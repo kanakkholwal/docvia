@@ -1,0 +1,12 @@
+
+:root {
+    --dockit-bg: #0f172a;
+    --dockit-fg: #f8fafc;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: var(--dockit-bg);
+    color: var(--dockit-fg);
+}

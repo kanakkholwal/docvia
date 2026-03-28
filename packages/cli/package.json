@@ -1,0 +1,34 @@
+{
+    "name": "@dockit/cli",
+    "version": "0.0.1",
+    "type": "module",
+    "bin": {
+        "dockit": "./dist/index.js"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"no tests yet\""
+    },
+    "dependencies": {
+        "@dockit/compiler": "workspace:*",
+        "@dockit/ir": "workspace:*",
+        "@dockit/plugins": "workspace:*",
+        "@dockit/renderer-svelte": "workspace:*",
+        "@dockit/search": "workspace:*",
+        "commander": "^12.0.0",
+        "chokidar": "^4.0.0",
+        "sirv": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.5.0"
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "name": "@dockit/renderer-svelte",
+    "version": "0.0.1",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "svelte": "./src/index.ts",
+            "node": "./dist/adapter.js",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"no tests yet\""
+    },
+    "dependencies": {
+        "@dockit/ir": "workspace:*",
+        "@dockit/renderer-core": "workspace:*",
+        "quick-lru": "^7.1.0",
+        "shiki": "^1.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.5.0",
+        "vite": "^6.0.0"
+    }
+}

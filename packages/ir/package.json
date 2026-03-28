@@ -1,0 +1,28 @@
+{
+    "name": "@dockit/ir",
+    "version": "0.0.1",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "development": "./src/index.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"no tests yet\""
+    },
+    "dependencies": {
+        "github-slugger": "^2.0.0"
+    },
+    "devDependencies": {
+        "@types/mdast": "^4.0.0",
+        "@types/node": "^20.0.0",
+        "mdast": "^3.0.0",
+        "typescript": "^5.5.0"
+    }
+}

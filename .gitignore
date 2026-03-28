@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.dockit/
+*.tsbuildinfo
+.turbo/
+.svelte-kit/
+.vite/

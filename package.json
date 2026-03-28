@@ -1,0 +1,32 @@
+{
+    "name": "dockit-mvp",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "turbo run build",
+        "lint": "biome check .",
+        "lint:fix": "biome check --fix .",
+        "format": "biome format --write .",
+        "format:check": "biome format .",
+        "test": "turbo run test",
+        "dev": "turbo run dev",
+        "prepare": "husky",
+        "setup": "pnpm install && pnpm build && pnpm test"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.0",
+        "husky": "^9.0.0",
+        "lint-staged": "^15.0.0",
+        "turbo": "^2.0.0",
+        "typescript": "^5.5.0"
+    },
+    "lint-staged": {
+        "*.{ts,js,json}": [
+            "biome check --fix --no-errors-on-unmatched"
+        ]
+    },
+    "packageManager": "pnpm@9.15.0",
+    "engines": {
+        "node": ">=20.0.0"
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "name": "@dockit/ui",
+    "version": "0.0.1",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"no tests yet\""
+    },
+    "dependencies": {
+        "@dockit/ir": "workspace:*",
+        "@dockit/renderer-core": "workspace:*",
+        "svelte": "^4.2.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "svelte-preprocess": "^5.1.0",
+        "typescript": "^5.5.0"
+    }
+}
