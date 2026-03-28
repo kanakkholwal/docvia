@@ -2,7 +2,10 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "outDir": "dist",
-        "rootDir": "src"
+        "rootDir": "src",
+        "types": [
+            "node"
+        ]
     },
     "include": [
         "src"
@@ -10,6 +13,12 @@
     "references": [
         {
             "path": "../ir"
+        },
+        {
+            "path": "../core"
+        },
+        {
+            "path": "../renderer-core"
         }
     ]
 }

@@ -1,26 +1,27 @@
 {
-    "name": "@dockit/source",
+    "name": "@dockit/vite-plugin",
     "version": "0.0.1",
     "type": "module",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
+            "import": "./dist/index.js"
         }
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "@dockit/ir": "workspace:*",
+        "@dockit/source": "workspace:*",
         "@dockit/core": "workspace:*",
-        "@dockit/renderer-core": "workspace:*"
+        "@dockit/ir": "workspace:*"
     },
     "devDependencies": {
+        "@types/node": "^20.0.0",
         "typescript": "^5.5.0",
-        "@types/node": "^20.0.0"
+        "vite": "^6.0.0"
     }
 }

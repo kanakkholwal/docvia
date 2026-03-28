@@ -199,11 +199,18 @@ export interface DockitPlugin {
 
 // Config Types
 
+export interface CollectionConfig {
+    readonly name: string;
+    readonly sourceDir: string;
+    readonly baseUrl?: string;
+}
+
 export interface DockitConfig {
     readonly sourceDir: string;
     readonly outDir: string;
     readonly plugins: readonly DockitPlugin[];
     readonly renderer?: RendererAdapter;
+    readonly collections?: readonly CollectionConfig[];
     readonly markdown: {
         readonly remarkPlugins: readonly unknown[];
     };

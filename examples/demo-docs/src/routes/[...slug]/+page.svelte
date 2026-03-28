@@ -1,7 +1,7 @@
 <script lang="ts">
     import Counter from "$lib/components/Counter.svelte";
     import { hydrate, type ComponentRegistry } from "@dockit/renderer-core";
-    import { Renderer } from "@dockit/renderer-svelte";
+    import Renderer from "@dockit/renderer-svelte";
     import { onMount } from "svelte";
 
     export let data;

@@ -129,149 +129,182 @@ async function processAssets(
 
 export async function compile(options: CompilerOptions): Promise<CompileResult> {
     const startTime = performance.now();
-    const { sourceDir, outDir, renderer, config } = options;
-    const resolvedSourceDir = resolve(sourceDir);
+    const { outDir, config } = options;
     const resolvedOutDir = resolve(outDir);
 
-    // Initialize
+    const collections = config.collections || [
+        { name: 'docs', sourceDir: options.sourceDir, baseUrl: '/' }
+    ];
+
     const pluginRunner = new PluginRunner(options.plugins);
     const configHash = xxh64(Buffer.from(JSON.stringify(config))).toString(36);
     const pluginCacheKeys = pluginRunner.getPluginCacheKeys();
 
-    // Step 1: Read file tree
-    const files = await readFileTree(resolvedSourceDir);
+    const allPages: PageMeta[] = [];
+    let totalFiles = 0;
+    let totalCompiled = 0;
 
-    // Step 2: Compile each file
-    const irDocs: IRDocument[] = [];
-    const pages: PageMeta[] = [];
+    for (const collection of collections) {
+        const resolvedSourceDir = resolve(collection.sourceDir);
+        const collectionOutDir = join(resolvedOutDir, 'collections', collection.name);
+        const assetsOutDir = join(resolvedOutDir, 'assets');
+        await mkdir(collectionOutDir, { recursive: true });
+        await mkdir(assetsOutDir, { recursive: true });
 
-    await compileParallel(files, async (file) => {
-        // Plugin: beforeParse
-        const processedFile = await pluginRunner.runBeforeParse(file);
+        // Step 1: Read file tree
+        const files = await readFileTree(resolvedSourceDir);
+        totalFiles += files.length;
 
-        // Extract frontmatter
-        const extracted = extractFrontmatter(processedFile.content);
-        const frontmatter = validateFrontmatter(extracted.data, file.path);
+        // Step 2: Compile each file
+        const irDocs: IRDocument[] = [];
+        const pages: PageMeta[] = [];
+        const routes: Record<string, string> = {};
+        const tags: Record<string, string[]> = {};
 
-        // Parse markdown
-        const { ast } = await parseMarkdown(extracted.content, {
-            remarkPlugins: config.markdown.remarkPlugins,
-        });
+        await compileParallel(files, async (file) => {
+            const processedFile = await pluginRunner.runBeforeParse(file);
+            const extracted = extractFrontmatter(processedFile.content);
+            const frontmatter = validateFrontmatter(extracted.data, file.path);
 
-        // Plugin: afterParse
-        const processedAst = (await pluginRunner.runAfterParse(ast, processedFile)) as MdastRoot;
+            const { ast } = await parseMarkdown(extracted.content, {
+                remarkPlugins: config.markdown.remarkPlugins,
+            });
 
-        // Plugin: beforeTransform
-        const finalAst = (await pluginRunner.runBeforeTransform(processedAst, frontmatter)) as MdastRoot;
+            const processedAst = (await pluginRunner.runAfterParse(ast, processedFile)) as MdastRoot;
+            const finalAst = (await pluginRunner.runBeforeTransform(processedAst, frontmatter)) as MdastRoot;
 
-        // Transform to IR
-        let irDoc = transformToIR(finalAst, frontmatter, file.relativePath);
+            let irDoc = transformToIR(finalAst, frontmatter, file.relativePath);
+            const contentHash = computeContentHash({
+                fileContent: file.hash,
+                frontmatter: JSON.stringify(frontmatter),
+                configHash,
+                pluginCacheKeys,
+                dependencyHashes: [],
+            });
 
-        // Compute content hash
-        const contentHash = computeContentHash({
-            fileContent: file.hash,
-            frontmatter: JSON.stringify(frontmatter),
-            configHash,
-            pluginCacheKeys,
-            dependencyHashes: [],
-        });
+            irDoc = { ...irDoc, contentHash };
+            irDoc = await pluginRunner.runAfterTransform(irDoc);
+            irDoc = await pluginRunner.runBeforeRender(irDoc);
 
-        irDoc = { ...irDoc, contentHash };
+            irDocs.push(irDoc);
+            totalCompiled++;
 
-        // Plugin: afterTransform
-        irDoc = await pluginRunner.runAfterTransform(irDoc);
+            const slug = irDoc.slug;
+            // Virtual route for dockit:source
+            routes[slug] = `/${relative(process.cwd(), file.path).replace(/\\/g, '/')}?dockit`;
 
-        // Plugin: beforeRender
-        irDoc = await pluginRunner.runBeforeRender(irDoc);
-
-        irDocs.push(irDoc);
-    });
-
-    // Step 3: Process assets
-    await mkdir(join(resolvedOutDir, 'assets'), { recursive: true });
-    await mkdir(join(resolvedOutDir, 'pages'), { recursive: true });
-
-    // Step 4: Render pages
-    for (const doc of irDocs) {
-        const rendered = await renderer.renderPage(doc);
-
-        // Write content-addressable output
-        const outPath = join(resolvedOutDir, 'pages', `${doc.slug}.${doc.contentHash}.js`);
-        await writeFile(outPath, rendered.code, 'utf-8');
-
-        // Process assets for this document
-        const assets = await processAssets(doc, resolvedOutDir);
-        for (const asset of assets) {
-            try {
-                const srcBuffer = await readFile(asset.originalPath);
-                await writeFile(asset.emittedPath, srcBuffer);
-            } catch {
-                // Already warned during processAssets
+            // Track tags
+            if (irDoc.frontmatter.tags) {
+                for (const tag of irDoc.frontmatter.tags) {
+                    if (!tags[tag]) tags[tag] = [];
+                    tags[tag].push(slug);
+                }
             }
-        }
 
-        pages.push({
-            slug: doc.slug,
-            title: doc.frontmatter.title,
-            description: doc.frontmatter.description,
-            headings: doc.headings,
-            contentHash: doc.contentHash,
-            lastModified: Date.now(),
-            tags: doc.frontmatter.tags,
-            order: doc.frontmatter.order,
+            pages.push({
+                slug,
+                title: irDoc.frontmatter.title,
+                description: irDoc.frontmatter.description,
+                headings: irDoc.headings,
+                contentHash,
+                lastModified: Date.now(),
+                tags: irDoc.frontmatter.tags || [],
+                order: irDoc.frontmatter.order,
+            });
+
+            // Process assets for this document
+            const assets = await processAssets(irDoc, resolvedOutDir);
+            for (const asset of assets) {
+                try {
+                    const srcBuffer = await readFile(asset.originalPath);
+                    await writeFile(asset.emittedPath, srcBuffer);
+                } catch {
+                    // Already warned during processAssets
+                }
+            }
         });
+
+        // Step 3: Write collection metadata
+        await writeFile(join(collectionOutDir, 'meta.json'), JSON.stringify(pages, null, 2));
+
+        // Navigation (Tree)
+        const nav = buildNavTree(pages);
+        await writeFile(join(collectionOutDir, 'nav.json'), JSON.stringify(nav, null, 2));
+
+        // Tags
+        await writeFile(join(collectionOutDir, 'tags.json'), JSON.stringify(tags, null, 2));
+
+        // Routes
+        const routesTs = [
+            `export const routes = ${JSON.stringify(routes, null, 2)} as const;`,
+            '',
+            'export type RouteKey = keyof typeof routes;',
+        ].join('\n');
+        await writeFile(join(collectionOutDir, 'routes.ts'), routesTs);
+
+        // Types
+        const typesDts = [
+            'export type RouteKey =',
+            ...Object.keys(routes).map(r => `  | "${r}"`),
+            '  | (string & {});',
+            '',
+            'export interface Frontmatter {',
+            '  title: string;',
+            '  description?: string;',
+            '  tags?: string[]; [key: string]: any;',
+            '}',
+        ].join('\n');
+        await writeFile(join(collectionOutDir, 'types.d.ts'), typesDts);
+
+        // Search index for this collection
+        const searchIndexer = await createSearchIndexer();
+        await searchIndexer.buildIndex(irDocs);
+        const searchJson = await searchIndexer.exportIndex();
+        await writeFile(join(collectionOutDir, 'search.json'), searchJson);
+
+        allPages.push(...pages);
     }
-
-    // Step 6: Build search index
-    const searchIndexer = await createSearchIndexer();
-    await searchIndexer.buildIndex(irDocs);
-    const searchJson = await searchIndexer.exportIndex();
-    const searchPath = join(resolvedOutDir, 'search.json');
-    await writeFile(searchPath, searchJson, 'utf-8');
-
-    // Step 7: Write manifest
-    const manifest = await renderer.renderManifest(pages);
-    await writeFile(join(resolvedOutDir, 'manifest.json'), manifest, 'utf-8');
-
-    // Step 8: Write page metadata
-    await writeFile(
-        join(resolvedOutDir, 'meta.json'),
-        JSON.stringify(pages, null, 2),
-        'utf-8',
-    );
-
-    // Step 9: Write routes.ts
-    const routesContent = [
-        'export const routes: Record<string, () => Promise<any>> = {',
-        ...pages.map((p) => `  '${p.slug}': () => import('./pages/${p.slug}.${p.contentHash}.js'),`),
-        '};',
-    ].join('\n');
-    await writeFile(join(resolvedOutDir, 'routes.ts'), routesContent, 'utf-8');
-
-    // Step 10: Write source.ts
-    const sourceContent = [
-        "import { routes } from './routes';",
-        "import meta from './meta.json';",
-        "",
-        "export const dockitSource = {",
-        "  routes,",
-        "  meta as any",
-        "};",
-    ].join('\n');
-    await writeFile(join(resolvedOutDir, 'source.ts'), sourceContent, 'utf-8');
 
     const duration = performance.now() - startTime;
 
     return {
-        pages,
-        searchIndex: searchPath,
+        pages: allPages,
+        searchIndex: join(resolvedOutDir, 'collections'), // Root of search indices
         duration,
         stats: {
-            total: files.length,
-            compiled: irDocs.length,
+            total: totalFiles,
+            compiled: totalCompiled,
             cached: 0,
         },
     };
+}
+
+function buildNavTree(pages: PageMeta[]) {
+    const tree: any[] = [];
+    const sorted = [...pages].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    for (const page of sorted) {
+        const parts = page.slug.split('/');
+        let current = tree;
+
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i]!;
+            let node = current.find((n: any) => n.name === part);
+
+            if (!node) {
+                node = { name: part, children: [] };
+                current.push(node);
+            }
+
+            if (i === parts.length - 1) {
+                node.slug = page.slug;
+                node.title = page.title;
+            }
+
+            current = node.children;
+        }
+    }
+    return tree;
 }
 
 export { computeContentHash as hashContent };
