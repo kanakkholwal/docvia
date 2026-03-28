@@ -6,7 +6,6 @@
         ".": {
             "types": "./dist/index.d.ts",
             "svelte": "./src/index.ts",
-            "node": "./dist/adapter.js",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
         }

@@ -1,15 +1,13 @@
 #!/usr/bin/env node
+import { compile } from '@dockit/compiler';
+import type { DockitConfig } from '@dockit/ir';
+import { DockitError } from '@dockit/ir';
+import { defineConfig, loadConfig } from '@dockit/plugins';
 import { Command } from 'commander';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
-
-import { compile } from '@dockit/compiler';
-import type { DockitConfig } from '@dockit/ir';
-import { DockitError } from '@dockit/ir';
-import { defineConfig, loadConfig } from '@dockit/plugins';
-import { createSvelteRenderer } from '@dockit/renderer-svelte';
 
 // Error Formatting
 
@@ -184,7 +182,7 @@ And a Svelte component:
             `import { defineConfig } from '@dockit/cli';
 
 export default defineConfig({
-  dir: 'docs',
+  sourceDir: 'docs',
   outDir: '.dockit',
   plugins: [],
 });
@@ -229,8 +227,10 @@ program
             }
 
             console.log('\x1b[36m◆\x1b[0m Building documentation...');
-
-            const renderer = config.renderer ?? createSvelteRenderer();
+            const renderer = config.renderer
+            if (!renderer) {
+                throw new DockitError("CONFIG_ERROR", "No renderer configured");
+            }
             const result = await compile({
                 sourceDir: resolve(dir),
                 outDir: resolve(outDir),
@@ -297,8 +297,8 @@ program
     .action(async (opts: { docs?: string; out?: string }) => {
         try {
             const config = defineConfig({});
-            const sourceDir = resolve(opts.docs ?? config.sourceDir);
-            const outDir = resolve(opts.out ?? config.outDir);
+            const sourceDir = resolve(opts.docs ?? config.sourceDir ?? 'docs');
+            const outDir = resolve(opts.out ?? config.outDir ?? '.dockit');
 
             if (!existsSync(sourceDir)) {
                 console.error(`\x1b[31m[ERROR]\x1b[0m Source directory not found: ${sourceDir}`);
@@ -308,7 +308,10 @@ program
             console.log('\x1b[36m◆\x1b[0m Starting dev mode...');
 
             // Initial build
-            const renderer = createSvelteRenderer();
+            const renderer = config.renderer;
+            if (!renderer) {
+                throw new DockitError("CONFIG_ERROR", "No renderer configured");
+            }
             const result = await compile({
                 sourceDir,
                 outDir,
@@ -337,7 +340,10 @@ program
 
                 console.log(`\x1b[36m◆\x1b[0m Rebuilding ${files.length} file(s)...`);
                 const start = performance.now();
-
+                const renderer = config.renderer;
+                if (!renderer) {
+                    throw new DockitError("CONFIG_ERROR", "No renderer configured");
+                }
                 compile({
                     sourceDir,
                     outDir,
