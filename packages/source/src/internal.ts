@@ -1,4 +1,3 @@
-import path from 'node:path';
 
 import type { DockitCollection, DockitSource } from './runtime';
 
@@ -23,15 +22,23 @@ export function createCollection<
     const { baseUrl, routes, meta, nav, tags } = opts;
 
     async function loadModule(modulePath: string) {
-        try {
-            return await import(modulePath);
-        } catch {
-            const filePath = path.resolve(
-                process.cwd(),
-                modulePath.replace(/\?dockit$/, '').replace(/^\//, ''),
-            );
-            const { loadMarkdown } = await import('./node.js');
-            return loadMarkdown(filePath);
+        if (typeof window === 'undefined') {
+            try {
+                // @ts-ignore - Vite will resolve this path relative to project root
+                return await import(/* @vite-ignore */ modulePath);
+            } catch {
+                const { resolve } = await import('node:path');
+                const { cwd } = await import('node:process');
+                const filePath = resolve(
+                    cwd(),
+                    modulePath.replace(/\?dockit$/, '').replace(/^\//, ''),
+                );
+                const { loadMarkdown } = await import('./node.js');
+                return loadMarkdown(filePath);
+            }
+        } else {
+            // @ts-ignore - Vite will resolve this path relative to project root
+            return await import(/* @vite-ignore */ modulePath);
         }
     }
 

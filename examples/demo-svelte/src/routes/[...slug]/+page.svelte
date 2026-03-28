@@ -1,8 +1,10 @@
 <script lang="ts">
-  import type { PageProps } from "./$types";
+  import Counter from "$lib/components/Counter.svelte";
   import { hydrate, type ComponentRegistry } from "@dockit/renderer-core";
   import { Renderer } from "@dockit/renderer-svelte";
   import { onMount } from "svelte";
+  import type { PageProps } from "./$types";
+
   let { data }: PageProps = $props();
 
   const registry: ComponentRegistry = {
@@ -12,7 +14,9 @@
     },
   };
   onMount(() => {
-    hydrate(data.page.manifest, registry);
+    if (data.page.manifest) {
+      hydrate(data.page.manifest, registry);
+    }
   });
 </script>
 

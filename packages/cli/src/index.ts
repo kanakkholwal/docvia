@@ -294,9 +294,18 @@ program
     .description('Start dev mode with file watching')
     .option('--docs <dir>', 'Docs directory')
     .option('--out <dir>', 'Output directory')
-    .action(async (opts: { docs?: string; out?: string }) => {
+    .option('--config <path>', 'Config file path', "./dockit.config.ts")
+    .action(async (opts: { docs?: string; out?: string; config?: string }) => {
         try {
-            const config = defineConfig({});
+            const configPath = opts.config ?? resolve('dockit.config.ts');
+            let config: DockitConfig;
+
+            if (existsSync(configPath)) {
+                config = await loadConfig(configPath);
+            } else {
+                config = defineConfig({});
+            }
+
             const sourceDir = resolve(opts.docs ?? config.sourceDir ?? 'docs');
             const outDir = resolve(opts.out ?? config.outDir ?? '.dockit');
 

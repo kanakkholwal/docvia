@@ -4,6 +4,14 @@ import path from 'node:path';
 export function dockitSourcePlugin() {
   return {
     name: 'dockit:source',
+    config(config: any) {
+      const root = config.root || process.cwd();
+      config.server = config.server || {};
+      config.server.fs = config.server.fs || {};
+      config.server.fs.allow = config.server.fs.allow || [];
+      config.server.fs.allow.push(path.resolve(root, '.dockit'));
+      return config;
+    },
 
     resolveId(id: string) {
       if (id === 'dockit:source' || id.startsWith('dockit:source/')) {
