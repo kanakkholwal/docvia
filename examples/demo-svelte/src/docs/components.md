@@ -21,6 +21,10 @@ This is a note component rendered via the directive system.
 This is a warning — handle with care!
 :::
 
+:::counter{initial=10}
+This is a counter component rendered via the directive system.
+:::
+
 ## Code Examples
 
 Here's a TypeScript example:

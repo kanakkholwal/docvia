@@ -3,6 +3,7 @@ import type { HydrationMode, IRNode, PageMeta } from '@dockit/ir';
 export type RenderOutput =
     | { kind: 'element'; tag: string; props?: Record<string, unknown>; children?: RenderOutput[]; id?: string }
     | { kind: 'text'; value: string }
+    | { kind: 'html'; value: string }
     | { kind: 'component'; name: string; props?: Record<string, unknown>; children?: RenderOutput[]; hydrate?: HydrationMode; id: string }
     | { kind: 'fragment'; children: RenderOutput[] };
 

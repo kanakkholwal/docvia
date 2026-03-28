@@ -20,6 +20,9 @@
   function isText(node: any): node is Extract<RenderOutput, { kind: "text" }> {
     return node?.kind === "text";
   }
+  function isHtml(node: any): node is Extract<RenderOutput, { kind: "html" }> {
+    return node?.kind === "html";
+  }
   function isComponent(
     node: any,
   ): node is Extract<RenderOutput, { kind: "component" }> {
@@ -39,6 +42,8 @@
 {#each nodeArray as node}
   {#if isText(node)}
     {node.value}
+  {:else if isHtml(node)}
+    {@html node["value"]}
   {:else if isElement(node)}
     <svelte:element this={node.tag} {...node.props} data-hid={node.id}>
       {#if node.children}

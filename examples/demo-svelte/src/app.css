@@ -127,7 +127,6 @@ a {
 
 .prose code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  background-color: var(--muted);
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
@@ -150,7 +149,8 @@ a {
   margin: 1.5rem 0;
 }
 
-.prose ul, .prose ol {
+.prose ul,
+.prose ol {
   margin-left: 1.5rem;
   margin-bottom: 1.25rem;
 }

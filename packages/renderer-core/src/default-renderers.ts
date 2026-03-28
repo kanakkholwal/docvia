@@ -44,7 +44,7 @@ export function createDefaultRendererMap(): RendererMap {
                     kind: 'element',
                     tag: 'div',
                     props: { class: 'dockit-code-block' },
-                    children: [{ kind: 'text', value: res.html }], // Raw HTML handled by adapter
+                    children: [{ kind: 'html', value: res.html }], // Raw HTML injection
                     id: n.id,
                 };
             } catch (e) {

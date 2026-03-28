@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
 import { docs } from 'dockit:source';
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params }) => {
     const slugs = params.slug?.split('/') || ['index'];
     const page = await docs.getPage(slugs);
 
