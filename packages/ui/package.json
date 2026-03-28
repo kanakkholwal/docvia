@@ -17,11 +17,11 @@
     "dependencies": {
         "@dockit/ir": "workspace:*",
         "@dockit/renderer-core": "workspace:*",
-        "svelte": "^4.2.0"
+        "svelte": "^5.55.0"
     },
     "devDependencies": {
-        "@types/node": "^20.0.0",
-        "svelte-preprocess": "^5.1.0",
-        "typescript": "^5.5.0"
+        "@types/node": "^25.5.0",
+        "svelte-preprocess": "^6.0.3",
+        "typescript": "^6.0.2"
     }
 }

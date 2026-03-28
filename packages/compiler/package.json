@@ -20,11 +20,11 @@
         "@dockit/schema": "workspace:*",
         "@dockit/plugins": "workspace:*",
         "@dockit/search": "workspace:*",
-        "@node-rs/xxhash": "^1.7.0"
+        "@node-rs/xxhash": "^1.7.6"
     },
     "devDependencies": {
-        "@types/mdast": "^4.0.0",
-        "@types/node": "^20.0.0",
-        "typescript": "^5.5.0"
+        "@types/mdast": "^4.0.4",
+        "@types/node": "^25.5.0",
+        "typescript": "^6.0.2"
     }
 }

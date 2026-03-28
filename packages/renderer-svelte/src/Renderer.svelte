@@ -1,14 +1,17 @@
 <script lang="ts">
     import type {
-        ComponentRegistry,
-        RenderOutput,
+      ComponentRegistry,
+      RenderOutput,
     } from "@dockit/renderer-core";
 
-    export let nodes: RenderOutput | RenderOutput[];
-    export let registry: ComponentRegistry;
+    interface Props {
+        nodes: RenderOutput | RenderOutput[];
+        registry: ComponentRegistry;
+    }
 
-    let nodeArray: RenderOutput[] = [];
-    $: nodeArray = Array.isArray(nodes) ? nodes : [nodes];
+    const { nodes, registry }: Props = $props();
+
+    let nodeArray = $derived.by(() => Array.isArray(nodes) ? nodes : [nodes]);
 
     function isElement(
         node: any,
@@ -33,9 +36,7 @@
     ): node is Extract<RenderOutput, { kind: "fragment" }> {
         return node?.kind === "fragment";
     }
-</script>
-
-{#each nodeArray as node}
+</script>{#each nodeArray as node}
     {#if isText(node)}
         {node.value}
     {:else if isElement(node)}

@@ -12,21 +12,21 @@
         "dev": "turbo run dev",
         "prepare": "husky",
         "setup": "pnpm install && pnpm build && pnpm test",
-        "clean": "turbo run clean && node ./scripts/clean.js"
+        "clean": "turbo run clean"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.0",
-        "husky": "^9.0.0",
-        "lint-staged": "^15.0.0",
-        "turbo": "^2.0.0",
-        "typescript": "^5.5.0"
+        "@biomejs/biome": "^2.4.9",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.4.0",
+        "turbo": "^2.8.21",
+        "typescript": "^6.0.2"
     },
     "lint-staged": {
         "*.{ts,js,json}": [
             "biome check --fix --no-errors-on-unmatched"
         ]
     },
-    "packageManager": "pnpm@9.15.0",
+    "packageManager": "pnpm@10.33.0",
     "engines": {
         "node": ">=20.0.0"
     }

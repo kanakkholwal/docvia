@@ -8,7 +8,7 @@ interface CollectionMetaEntry<TRouteKey extends string> {
 }
 
 export function createCollection<
-    TFrontmatter = any,
+    TFrontmatter = unknown,
     const TRoutes extends Record<string, string> = Record<string, string>,
 >(
     opts: {
@@ -16,7 +16,7 @@ export function createCollection<
         baseUrl: string;
         routes: TRoutes;
         meta: CollectionMetaEntry<keyof TRoutes & string>[];
-        nav: any;
+        nav: unknown;
         tags: Partial<Record<string, (keyof TRoutes & string)[]>>;
     },
 ): DockitCollection<TFrontmatter, keyof TRoutes & string> {
@@ -84,7 +84,7 @@ export function createCollection<
     };
 }
 
-export function createSource<TCollections extends Record<string, DockitCollection<any, any>>>(
+export function createSource<TCollections extends Record<string, DockitCollection<unknown, string>>>(
     collections: TCollections,
 ): DockitSource & { collections: TCollections } {
     return { collections };
