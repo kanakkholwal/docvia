@@ -125,6 +125,39 @@ async function processAssets(
     return emissions;
 }
 
+function toRouteKeyUnion(routes: Record<string, string>): string[] {
+    const routeKeys = Object.keys(routes);
+    return routeKeys.length > 0
+        ? routeKeys.map((route) => `  | "${route}"`)
+        : ['  | never'];
+}
+
+function createDockitEnvDts(collections: readonly { name: string }[], relativeOutDir: string): string {
+    const collectionLines = collections.map((collection) => {
+        const typesPath = `./${[relativeOutDir, 'collections', collection.name, 'types'].filter(Boolean).join('/')}`;
+        return `            ${collection.name}: DockitCollection<import('${typesPath}').Frontmatter, import('${typesPath}').RouteKey>;`;
+    });
+
+    const exportLines = collections.map(
+        (collection) => `    export const ${collection.name}: typeof dockitSource.collections.${collection.name};`,
+    );
+
+    return [
+        "declare module 'dockit:source' {",
+        "    import type { DockitCollection } from '@dockit/source/runtime';",
+        '',
+        '    export const dockitSource: {',
+        '        collections: {',
+        ...collectionLines,
+        '        };',
+        '    };',
+        '',
+        ...exportLines,
+        '}',
+        '',
+    ].join('\n');
+}
+
 // Compiler 
 
 export async function compile(options: CompilerOptions): Promise<CompileResult> {
@@ -245,13 +278,17 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
         // Types
         const typesDts = [
             'export type RouteKey =',
-            ...Object.keys(routes).map(r => `  | "${r}"`),
+            ...toRouteKeyUnion(routes),
             '  | (string & {});',
             '',
             'export interface Frontmatter {',
             '  title: string;',
             '  description?: string;',
-            '  tags?: string[]; [key: string]: any;',
+            '  slug?: string;',
+            '  tags?: string[];',
+            '  draft?: boolean;',
+            '  order?: number;',
+            '  [key: string]: unknown;',
             '}',
         ].join('\n');
         await writeFile(join(collectionOutDir, 'types.d.ts'), typesDts);
@@ -264,6 +301,13 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
 
         allPages.push(...pages);
     }
+
+    const projectRoot = process.cwd();
+    const relativeOutDir = relative(projectRoot, resolvedOutDir).replace(/\\/g, '/');
+    await writeFile(
+        join(projectRoot, 'dockit-env.d.ts'),
+        createDockitEnvDts(collections, relativeOutDir),
+    );
 
     const duration = performance.now() - startTime;
 

@@ -44,6 +44,9 @@ importers:
       '@dockit/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@dockit/vite-plugin':
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin
       '@sveltejs/adapter-auto':
         specifier: ^3.0.0
         version: 3.3.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.20)(vite@5.4.21(@types/node@20.19.37)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@20.19.37)))
@@ -281,6 +284,9 @@ importers:
       '@dockit/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
+      '@dockit/schema':
+        specifier: workspace:*
+        version: link:../schema
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -310,6 +316,31 @@ importers:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
+
+  packages/vite-plugin:
+    dependencies:
+      '@dockit/core':
+        specifier: workspace:*
+        version: link:../core
+      '@dockit/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@dockit/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@dockit/source':
+        specifier: workspace:*
+        version: link:../source
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.37
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@20.19.37)(jiti@2.6.1)(yaml@2.8.3)
 
 packages:
 

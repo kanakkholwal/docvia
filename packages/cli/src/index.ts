@@ -347,7 +347,7 @@ program
                 }).then(() => {
                     const ms = Math.round(performance.now() - start);
                     console.log(`\x1b[32m✓\x1b[0m Rebuild: ${ms}ms`);
-                }).catch((err) => {
+                }).catch((err: unknown) => {
                     if (err instanceof DockitError) {
                         console.error(formatError(err));
                     } else {

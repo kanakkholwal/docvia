@@ -236,7 +236,6 @@ export interface SearchDocument {
     readonly pageTitle: string;
 }
 
-// Re-export transform
 
 export { transformToIR } from './transform';
 

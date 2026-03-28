@@ -3,6 +3,21 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
+        "baseUrl": ".",
+        "paths": {
+            "@dockit/core": [
+                "../core/src/index.ts"
+            ],
+            "@dockit/ir": [
+                "../ir/src/index.ts"
+            ],
+            "@dockit/renderer-core": [
+                "../renderer-core/src/index.ts"
+            ],
+            "@dockit/schema": [
+                "../schema/src/index.ts"
+            ]
+        },
         "types": [
             "node"
         ]
@@ -16,6 +31,9 @@
         },
         {
             "path": "../core"
+        },
+        {
+            "path": "../schema"
         },
         {
             "path": "../renderer-core"

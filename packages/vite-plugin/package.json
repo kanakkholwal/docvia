@@ -1,14 +1,11 @@
 {
-    "name": "@dockit/renderer-svelte",
+    "name": "@dockit/vite-plugin",
     "version": "0.0.1",
     "type": "module",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "svelte": "./src/index.ts",
-            "node": "./dist/adapter.js",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
+            "import": "./dist/index.js"
         }
     },
     "main": "./dist/index.js",
@@ -18,10 +15,10 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
+        "@dockit/source": "workspace:*",
+        "@dockit/core": "workspace:*",
         "@dockit/ir": "workspace:*",
-        "@dockit/renderer-core": "workspace:*",
-        "quick-lru": "^7.1.0",
-        "shiki": "^1.1.0"
+        "@dockit/schema": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

@@ -11,7 +11,8 @@
         "test": "turbo run test",
         "dev": "turbo run dev",
         "prepare": "husky",
-        "setup": "pnpm install && pnpm build && pnpm test"
+        "setup": "pnpm install && pnpm build && pnpm test",
+        "clean": "turbo run clean && node ./scripts/clean.js"
     },
     "devDependencies": {
         "@biomejs/biome": "^1.9.0",

@@ -7,17 +7,33 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./runtime": {
+            "types": "./dist/runtime.d.ts",
+            "import": "./dist/runtime.js",
+            "default": "./dist/runtime.js"
+        },
+        "./internal": {
+            "types": "./dist/internal.d.ts",
+            "import": "./dist/internal.js",
+            "default": "./dist/internal.js"
+        },
+        "./node": {
+            "types": "./dist/node.d.ts",
+            "import": "./dist/node.js",
+            "default": "./dist/node.js"
         }
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc "
     },
     "dependencies": {
         "@dockit/ir": "workspace:*",
         "@dockit/core": "workspace:*",
-        "@dockit/renderer-core": "workspace:*"
+        "@dockit/renderer-core": "workspace:*",
+        "@dockit/schema": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.5.0",
