@@ -27,7 +27,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc "
+        "build": "tsup"
     },
     "dependencies": {
         "@dockit/ir": "workspace:*",
@@ -36,7 +36,7 @@
         "@dockit/schema": "workspace:*"
     },
     "devDependencies": {
-        "typescript": "^5.5.0",
+        "typescript": "^5.9.3",
         "@types/node": "^20.0.0"
     }
 }

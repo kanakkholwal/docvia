@@ -18,8 +18,9 @@
         "@biomejs/biome": "^2.4.9",
         "husky": "^9.1.7",
         "lint-staged": "^16.4.0",
+        "tsup": "^8.5.1",
         "turbo": "^2.8.21",
-        "typescript": "^6.0.2"
+        "typescript": "^5.9.3"
     },
     "lint-staged": {
         "*.{ts,js,json}": [

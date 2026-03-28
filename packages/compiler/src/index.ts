@@ -1,9 +1,3 @@
-import { xxh64 } from '@node-rs/xxhash';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { cpus } from 'node:os';
-import { extname, join, relative, resolve } from 'node:path';
-import { performance } from 'node:perf_hooks';
-
 import { parseMarkdown } from '@dockit/core';
 import type {
     CompileResult,
@@ -16,7 +10,12 @@ import { transformToIR } from '@dockit/ir';
 import { PluginRunner } from '@dockit/plugins';
 import { extractFrontmatter, validateFrontmatter } from '@dockit/schema';
 import { createSearchIndexer } from '@dockit/search';
+import { xxh64 } from '@node-rs/xxhash';
 import type { Root as MdastRoot } from 'mdast';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { cpus } from 'node:os';
+import { extname, join, relative, resolve } from 'node:path';
+import { performance } from 'node:perf_hooks';
 
 // Hashing
 

@@ -12,14 +12,14 @@ export type DockitErrorCode =
     | 'ASSET_ERROR';
 
 export class DockitError extends Error {
-    override readonly name = 'DockitError';
+    readonly name = 'DockitError';
 
     constructor(
         public readonly code: DockitErrorCode,
         message: string,
         public readonly file?: string,
         public readonly loc?: { readonly line: number; readonly column: number },
-        public override readonly cause?: Error,
+        public readonly cause?: Error,
     ) {
         super(message);
     }

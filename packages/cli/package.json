@@ -14,7 +14,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsup",
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
@@ -29,7 +29,7 @@
     },
     "devDependencies": {
         "@types/node": "^25.5.0",
-        "typescript": "^6.0.2",
+        "typescript": "^5.9.3",
         "svelte": "^5.49.2"
     }
 }

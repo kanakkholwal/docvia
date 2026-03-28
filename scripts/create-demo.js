@@ -28,7 +28,7 @@ async function createDemo() {
             "@sveltejs/kit": "^2.0.0",
             "@sveltejs/vite-plugin-svelte": "^3.0.0",
             "svelte": "^4.2.0",
-            "vite": "^5.0.0",
+            "vite": "^8.0.3",
             "@dockit/cli": "workspace:*",
             "@dockit/compiler": "workspace:*",
             "@dockit/renderer-svelte": "workspace:*",

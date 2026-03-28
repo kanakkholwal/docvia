@@ -1,4 +1,7 @@
+import type { ComponentType } from 'svelte';
+import Renderer from './Renderer.svelte';
+
 export * from './adapter';
+
 export { Renderer };
-    import Renderer from './Renderer.svelte';
-export default Renderer;
+export default Renderer as unknown as ComponentType;

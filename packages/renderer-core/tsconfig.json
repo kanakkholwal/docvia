@@ -6,15 +6,9 @@
         "lib": [
             "esnext",
             "dom"
-        ],
-        "baseUrl": "."
+        ]
     },
     "include": [
         "src/**/*"
-    ],
-    "references": [
-        {
-            "path": "../ir"
-        }
     ]
 }

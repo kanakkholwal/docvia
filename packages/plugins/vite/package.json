@@ -11,7 +11,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsup",
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
@@ -22,7 +22,7 @@
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
-        "typescript": "^5.5.0",
-        "vite": "^6.0.0"
+        "typescript": "^5.9.3",
+        "vite": "^8.0.3"
     }
 }

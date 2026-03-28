@@ -3,16 +3,17 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "noEmit": false,
     "lib": [
       "ES2022"
     ],
+    "types": ["node"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "outDir": "dist",
@@ -21,7 +22,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": false,
-    "noUncheckedIndexedAccess": true,
-    "baseUrl": "."
+    "noUncheckedIndexedAccess": true
   }
 }

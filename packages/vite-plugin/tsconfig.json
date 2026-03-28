@@ -2,47 +2,9 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "outDir": "dist",
-        "rootDir": "src",
-        "baseUrl": ".",
-        "types": [
-            "node"
-        ],
-        "paths": {
-            "@dockit/core": [
-                "../../core/src/index.ts"
-            ],
-            "@dockit/ir": [
-                "../../ir/src/index.ts"
-            ],
-            "@dockit/schema": [
-                "../../schema/src/index.ts"
-            ],
-            "@dockit/source": [
-                "../../source/src/index.ts"
-            ],
-            "@dockit/source/internal": [
-                "../../source/src/internal.ts"
-            ],
-            "@dockit/source/runtime": [
-                "../../source/src/runtime.ts"
-            ]
-        }
+        "rootDir": "src"
     },
     "include": [
         "src"
-    ],
-    "references": [
-        {
-            "path": "../source"
-        },
-        {
-            "path": "../ir"
-        },
-        {
-            "path": "../core"
-        },
-        {
-            "path": "../schema"
-        }
     ]
 }

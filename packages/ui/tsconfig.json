@@ -11,13 +11,5 @@
     },
     "include": [
         "src"
-    ],
-    "references": [
-        {
-            "path": "../ir"
-        },
-        {
-            "path": "../renderer-core"
-        }
     ]
 }

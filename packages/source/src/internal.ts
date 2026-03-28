@@ -24,8 +24,7 @@ export function createCollection<
 
     async function loadModule(modulePath: string) {
         try {
-            // @ts-ignore - Vite will resolve this path relative to project root
-            return await import(/* @vite-ignore */ modulePath);
+            return await import(modulePath);
         } catch {
             const filePath = path.resolve(
                 process.cwd(),
