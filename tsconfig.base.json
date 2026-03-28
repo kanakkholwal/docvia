@@ -3,11 +3,13 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "noEmit": false,
+    "noEmit": true,
     "lib": [
       "ES2022"
     ],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -22,6 +24,44 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": false,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@dockit/cli": [
+        "./packages/cli/src"
+      ],
+      "@dockit/compiler": [
+        "./packages/compiler/src"
+      ],
+      "@dockit/core": [
+        "./packages/core/src"
+      ],
+      "@dockit/ir": [
+        "./packages/ir/src"
+      ],
+      "@dockit/plugins": [
+        "./packages/plugins/src"
+      ],
+      "@dockit/renderer-core": [
+        "./packages/renderer-core/src"
+      ],
+      "@dockit/renderer-svelte": [
+        "./packages/renderer-svelte/src"
+      ],
+      "@dockit/schema": [
+        "./packages/schema/src"
+      ],
+      "@dockit/search": [
+        "./packages/search/src"
+      ],
+      "@dockit/source": [
+        "./packages/source/src"
+      ],
+      "@dockit/ui": [
+        "./packages/ui/src"
+      ],
+      "@dockit/vite-plugin": [
+        "./packages/vite-plugin/src"
+      ]
+    }
   }
 }
