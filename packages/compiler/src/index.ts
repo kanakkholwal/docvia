@@ -133,28 +133,45 @@ function toRouteKeyUnion(routes: Record<string, string>): string[] {
 }
 
 function createDockitEnvDts(collections: readonly { name: string }[], relativeOutDir: string): string {
-    const collectionLines = collections.map((collection) => {
-        const typesPath = `./${[relativeOutDir, 'collections', collection.name, 'types'].filter(Boolean).join('/')}`;
-        return `            ${collection.name}: DockitCollection<import('${typesPath}').Frontmatter, import('${typesPath}').RouteKey>;`;
-    });
-
-    const exportLines = collections.map(
-        (collection) => `    export const ${collection.name}: typeof dockitSource.collections.${collection.name};`,
-    );
-
+    const exports = collections.map(c => `    export const ${c.name}: typeof source.${c.name};`).join('\n');
     return [
         "declare module 'dockit:source' {",
-        "    import type { DockitCollection } from '@dockit/source/runtime';",
-        '',
-        '    export const dockitSource: {',
-        '        collections: {',
-        ...collectionLines,
-        '        };',
-        '    };',
-        '',
-        ...exportLines,
-        '}',
-        '',
+        `    const source: typeof import('${relativeOutDir}/source');`,
+        '    export const dockitSource: typeof source.dockitSource;',
+        exports,
+        "}",
+        "",
+    ].join('\n');
+}
+
+function generateSourceTs(collections: readonly { name: string }[]): string {
+    const imports = collections.map((c, i) => [
+        `import * as routes_${i} from './collections/${c.name}/routes';`,
+        `import meta_${i} from './collections/${c.name}/meta.json';`,
+        `import nav_${i} from './collections/${c.name}/nav.json';`,
+        `import tags_${i} from './collections/${c.name}/tags.json';`,
+    ].join('\n')).join('\n');
+
+    const inits = collections.map((c, i) => `
+export const ${c.name} = createCollection<import('./collections/${c.name}/types').Frontmatter>({
+  name: ${JSON.stringify(c.name)},
+  baseUrl: ${JSON.stringify(`/${c.name === 'docs' ? '' : c.name}`.replace(/\/+/g, '/'))},
+  routes: routes_${i}.routes,
+  meta: meta_${i} as any,
+  nav: nav_${i},
+  tags: tags_${i} as any
+});`).join('\n');
+
+    const collectionMap = collections.map(c => `    ${JSON.stringify(c.name)}: ${c.name}`).join(',\n');
+
+    return [
+        "import { createCollection, createSource } from '@dockit/source/internal';",
+        imports,
+        inits,
+        "",
+        "export const dockitSource = createSource({",
+        collectionMap,
+        "});",
     ].join('\n');
 }
 
@@ -275,21 +292,21 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
         ].join('\n');
         await writeFile(join(collectionOutDir, 'routes.ts'), routesTs);
 
-        // Types
+        // Types - Generate a more specific Frontmatter type
+        const uniqueFrontmatters = Array.from(new Set(irDocs.map(doc => JSON.stringify(doc.frontmatter))));
+        const frontmatterUnion = uniqueFrontmatters.length > 0
+            ? uniqueFrontmatters.map(f => `  | ${f}`).join('\n')
+            : '  | Record<string, unknown>';
+
         const typesDts = [
             'export type RouteKey =',
             ...toRouteKeyUnion(routes),
             '  | (string & {});',
             '',
-            'export interface Frontmatter {',
-            '  title: string;',
-            '  description?: string;',
-            '  slug?: string;',
-            '  tags?: string[];',
-            '  draft?: boolean;',
-            '  order?: number;',
-            '  [key: string]: unknown;',
-            '}',
+            'export type Frontmatter = ',
+            frontmatterUnion + ';',
+            '',
+            'export type DocPage = import("@dockit/source/runtime").DockitPage<Frontmatter>;',
         ].join('\n');
         await writeFile(join(collectionOutDir, 'types.d.ts'), typesDts);
 
@@ -304,9 +321,20 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
 
     const projectRoot = process.cwd();
     const relativeOutDir = relative(projectRoot, resolvedOutDir).replace(/\\/g, '/');
+
+    // Emit source.ts
     await writeFile(
-        join(projectRoot, 'dockit-env.d.ts'),
-        createDockitEnvDts(collections, relativeOutDir),
+        join(resolvedOutDir, 'source.ts'),
+        generateSourceTs(collections)
+    );
+
+    // Emit dockit-env.d.ts - put it in project root for better reliable resolution
+    const envFilePath = join(projectRoot, 'dockit-env.d.ts');
+    const envRelativeOutDir = `./${relativeOutDir}`;
+
+    await writeFile(
+        envFilePath,
+        createDockitEnvDts(collections, envRelativeOutDir.replace(/\/\/+/g, '/')),
     );
 
     const duration = performance.now() - startTime;

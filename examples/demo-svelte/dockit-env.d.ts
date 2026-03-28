@@ -1,11 +1,5 @@
 declare module 'dockit:source' {
-    import type { DockitCollection } from '@dockit/source/runtime';
-
-    export const dockitSource: {
-        collections: {
-            docs: DockitCollection<import('./.dockit/collections/docs/types').Frontmatter, import('./.dockit/collections/docs/types').RouteKey>;
-        };
-    };
-
-    export const docs: typeof dockitSource.collections.docs;
+    const source: typeof import('./.dockit/source');
+    export const dockitSource: typeof source.dockitSource;
+    export const docs: typeof source.docs;
 }

@@ -10,6 +10,19 @@ export function dockitSourcePlugin() {
       config.server.fs = config.server.fs || {};
       config.server.fs.allow = config.server.fs.allow || [];
       config.server.fs.allow.push(path.resolve(root, '.dockit'));
+
+      config.resolve = config.resolve || {};
+      config.resolve.alias = config.resolve.alias || {};
+      const sourcePath = path.resolve(root, '.dockit/source.ts');
+
+      if (fs.existsSync(sourcePath)) {
+        if (Array.isArray(config.resolve.alias)) {
+          config.resolve.alias.push({ find: 'dockit:source', replacement: sourcePath });
+        } else {
+          config.resolve.alias['dockit:source'] = sourcePath;
+        }
+      }
+
       return config;
     },
 
@@ -61,7 +74,7 @@ export function dockitSourcePlugin() {
         `);
 
         inits.push(`
-          const ${varName} = createCollection({
+          const ${varName} = createCollection<import('/.dockit/collections/${name}/types').Frontmatter>({
             name: ${unescape(name)},
             baseUrl: ${unescape(`/${name}`)},
             routes: routes_${varName}.routes,

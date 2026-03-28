@@ -5,3 +5,5 @@ dist/
 .turbo/
 .svelte-kit/
 .vite/
+
+tmp-*
