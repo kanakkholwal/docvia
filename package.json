@@ -32,6 +32,6 @@
         "node": ">=20.0.0"
     },
     "dependencies": {
-        "svelte": "5.46.4"
+        "svelte": "^5.49.2"
     }
 }

@@ -19,11 +19,11 @@
 		"@dockit/source": "workspace:*",
 		"@dockit/ui": "workspace:*",
 		"@dockit/vite-plugin": "workspace:*",
-		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
-		"svelte": "5.46.4",
-		"svelte-check": "^4.4.2",
+		"svelte": "^5.55.0",
+		"svelte-check": "^4.4.5",
 		"typescript": "^5.9.3",
 		"vite": "^8.0.3"
 	}

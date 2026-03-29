@@ -1,78 +1,249 @@
 <script lang="ts">
-    interface Heading {
-        depth: number;
-        text: string;
-        id: string;
-    }
+	import { onMount } from "svelte";
 
-    let { headings = [] } = $props<{ headings?: Heading[] }>();
+	interface Heading {
+		depth: number;
+		text: string;
+		id: string;
+	}
 
-    // Only show H2 and H3 in TOC
-    const filteredHeadings = $derived(
-        headings.filter((h: Heading) => h.depth === 2 || h.depth === 3),
-    );
+	let headings = $state<Heading[]>([]);
+	let activeId = $state<string | null>(null);
+
+	onMount(() => {
+		// Extract headings from the rendered content
+		const article = document.querySelector(".article-inner");
+		if (!article) return;
+
+		const headingElements = article.querySelectorAll("h2, h3");
+		const extractedHeadings: Heading[] = [];
+
+		headingElements.forEach((element, index) => {
+			const depth = parseInt(element.tagName[1]);
+			const text = element.textContent || "";
+			let id = element.id;
+
+			if (!id) {
+				id = `heading-${index}`;
+				element.id = id;
+			}
+
+			extractedHeadings.push({ depth, text, id });
+		});
+
+		headings = extractedHeadings;
+
+		// Set up intersection observer for active heading
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						activeId = entry.target.id;
+					}
+				});
+			},
+			{ rootMargin: "-100px 0px -66%" },
+		);
+
+		headingElements.forEach((element) => {
+			observer.observe(element);
+		});
+
+		return () => {
+			observer.disconnect();
+		};
+	});
+
+	const filteredHeadings = $derived(
+		headings.filter((h) => h.depth === 2 || h.depth === 3),
+	);
+
+	function handleLinkClick(id: string) {
+		activeId = id;
+		const element = document.getElementById(id);
+		if (element) {
+			element.scrollIntoView({ behavior: "smooth" });
+		}
+	}
 </script>
 
-<aside class="toc">
-    <div class="toc-container">
-        <h4 class="toc-title">On this page</h4>
-        <ul class="toc-list">
-            {#each filteredHeadings as heading}
-                <li
-                    class="toc-item"
-                    style="padding-left: {(heading.depth - 2) * 1}rem"
-                >
-                    <a href="#{heading.id}" class="toc-link">
-                        {heading.text}
-                    </a>
-                </li>
-            {/each}
-        </ul>
-    </div>
-</aside>
+<nav class="toc-nav" aria-label="Table of contents">
+	<div class="toc-header">
+		<h3 class="toc-title">On this page</h3>
+	</div>
+
+	<ul class="toc-list">
+		{#each filteredHeadings as heading (heading.id)}
+			<li class="toc-item" class:nested={heading.depth === 3}>
+				<a
+					href="#{heading.id}"
+					class="toc-link"
+					class:active={activeId === heading.id}
+					onclick={() => handleLinkClick(heading.id)}
+				>
+					<span class="toc-text">{heading.text}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+</nav>
+
+<nav class="toc-nav" aria-label="Table of contents">
+	<div class="toc-header">
+		<h3 class="toc-title">On this page</h3>
+	</div>
+
+	<ul class="toc-list">
+		{#each filteredHeadings as heading (heading.id)}
+			<li class="toc-item" class:nested={heading.depth === 3}>
+				<a
+					href="#{heading.id}"
+					class="toc-link"
+					class:active={activeId === heading.id}
+					onclick={() => handleLinkClick(heading.id)}
+				>
+					<span class="toc-text">{heading.text}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+</nav>
 
 <style>
-    .toc {
-        width: var(--toc-width);
-        position: sticky;
-        top: calc(var(--header-height) + 2rem);
-        height: fit-content;
-        padding-left: 1.5rem;
-        border-left: 1px solid var(--border);
-        margin-top: 3rem;
-    }
+	.toc-nav {
+		font-size: 0.875rem;
+	}
 
-    .toc-title {
-        font-size: 0.875rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--foreground);
-    }
+	.toc-header {
+		margin-bottom: 1rem;
+	}
 
-    .toc-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+	.toc-title {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--muted-foreground);
+		margin: 0;
+	}
 
-    .toc-link {
-        font-size: 0.875rem;
-        color: var(--muted-foreground);
-        transition: color 0.1s;
-        display: block;
-        line-height: 1.25;
-    }
+	.toc-list {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 0;
+		margin: 0;
+	}
 
-    .toc-link:hover {
-        color: var(--foreground);
-    }
+	.toc-item {
+		display: flex;
+		padding-left: 0;
+	}
 
-    @media (max-width: 1024px) {
-        .toc {
-            display: none;
-        }
-    }
+	.toc-item.nested {
+		padding-left: 0.75rem;
+	}
+
+	.toc-link {
+		display: flex;
+		align-items: center;
+		padding: 0.375rem 0.75rem;
+		color: var(--muted-foreground);
+		text-decoration: none;
+		border-left: 2px solid transparent;
+		transition: all 0.2s ease;
+		font-weight: 500;
+	}
+
+	.toc-link:hover {
+		color: var(--foreground);
+		background-color: var(--accent);
+		border-left-color: var(--primary);
+	}
+
+	.toc-link.active {
+		color: var(--primary);
+		border-left-color: var(--primary);
+		background-color: hsl(var(--primary-h), var(--primary-s), 95%);
+	}
+
+	:global(.dark) .toc-link.active {
+		background-color: hsl(var(--primary-h), var(--primary-s), 15%);
+	}
+
+	.toc-text {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.toc-nav {
+		font-size: 0.875rem;
+	}
+
+	.toc-header {
+		margin-bottom: 1rem;
+	}
+
+	.toc-title {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--muted-foreground);
+		margin: 0;
+	}
+
+	.toc-list {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding: 0;
+		margin: 0;
+	}
+
+	.toc-item {
+		display: flex;
+		padding-left: 0;
+	}
+
+	.toc-item.nested {
+		padding-left: 0.75rem;
+	}
+
+	.toc-link {
+		display: flex;
+		align-items: center;
+		padding: 0.375rem 0.75rem;
+		color: var(--muted-foreground);
+		text-decoration: none;
+		border-left: 2px solid transparent;
+		transition: all 0.2s ease;
+		font-weight: 500;
+	}
+
+	.toc-link:hover {
+		color: var(--foreground);
+		background-color: var(--accent);
+		border-left-color: var(--primary);
+	}
+
+	.toc-link.active {
+		color: var(--primary);
+		border-left-color: var(--primary);
+		background-color: hsl(var(--primary-h), var(--primary-s), 95%);
+	}
+
+	:global(.dark) .toc-link.active {
+		background-color: hsl(var(--primary-h), var(--primary-s), 15%);
+	}
+
+	.toc-text {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 </style>

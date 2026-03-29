@@ -37,7 +37,7 @@
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
-        "svelte": "5.46.4",
+        "svelte": "^5.49.2",
         "typescript": "^5.9.3"
     }
 }

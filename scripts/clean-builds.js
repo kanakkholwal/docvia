@@ -1,21 +1,49 @@
 #!/usr/bin/env node
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 // clean-builds.js
-// Deletes all "dist" directories under the monorepo root (one level up from scripts/).
-// Usage: node scripts/clean-builds.js [--dry-run] [--verbose]
+// Deletes all "dist", "build", "node_modules", and cache directories under the monorepo root.
+// Usage: node scripts/clean-builds.js [--dry-run] [--verbose] [--all]
+// Options:
+//   --dry-run, -n    Show what would be deleted without actually deleting
+//   --verbose, -v    Show detailed output including skipped directories
+//   --all            Delete node_modules (default: only dist, build, and caches)
 
 
 const repoRoot = path.resolve(__dirname, '..');
 const dryRun = process.argv.includes('--dry-run') || process.argv.includes('-n');
 const verbose = process.argv.includes('--verbose') || process.argv.includes('-v');
+const deleteAll = process.argv.includes('--all');
 
-const SKIP_DIRS = new Set(['node_modules', '.git', '.idea', '.vscode']);
+const SKIP_DIRS = new Set(['.git', '.idea', '.vscode', 'node_modules']);
+const DIRS_TO_DELETE = new Set([
+	'dist',
+	'build',
+	'out',
+	'.next',
+	'coverage',
+	'.cache',
+	'.turbo',
+	'.astro',
+	'.svelte-kit',
+	'_build',
+	'__sveltekit__'
+]);
+
+// Add node_modules if --all flag is used
+if (deleteAll) {
+	DIRS_TO_DELETE.add('node_modules');
+}
 
 let found = 0;
 let removed = 0;
+let skipped = 0;
 const removedPaths = [];
 
 async function safeRmDir(target) {
@@ -32,7 +60,7 @@ async function handleDirectoryEntry(ent, dir) {
     const name = ent.name;
     const full = path.join(dir, name);
 
-    if (name === 'dist') {
+    if (DIRS_TO_DELETE.has(name)) {
         found++;
         if (dryRun) {
             console.log('[dry-run] would remove:', full);
@@ -42,16 +70,17 @@ async function handleDirectoryEntry(ent, dir) {
             await safeRmDir(full);
             removed++;
             removedPaths.push(full);
-            console.log('removed:', full);
+            console.log('✓ removed:', full);
         } catch (err) {
-            console.error('failed to remove', full, err.message);
+            console.error('✗ failed to remove', full, '-', err.message);
         }
-        // Do not descend into a dist directory
+        // Do not descend into a deleted directory
         return;
     }
 
     if (SKIP_DIRS.has(name)) {
-        if (verbose) console.log('skipping:', full);
+        if (verbose) console.log('  skip:', full);
+        skipped++;
         return;
     }
 
@@ -76,21 +105,40 @@ async function walk(dir) {
 }
 
 (async () => {
-    console.log('Scanning for dist directories from:', repoRoot);
-    if (dryRun) console.log('DRY RUN - no folders will be deleted');
+    console.log('\n📦 Dockit Monorepo Cleaner');
+    console.log('─'.repeat(50));
+    console.log('Scanning from:', repoRoot);
+    
+    if (dryRun) {
+        console.log('Mode: DRY RUN (no changes will be made)\n');
+    } else {
+        console.log('Mode: LIVE (will delete directories)\n');
+    }
+
+    if (deleteAll) {
+        console.log('Target directories: dist, build, cache, .turbo, .svelte-kit, node_modules\n');
+    } else {
+        console.log('Target directories: dist, build, cache, .turbo, .svelte-kit');
+        console.log('(Use --all flag to also delete node_modules)\n');
+    }
+
     try {
         await walk(repoRoot);
-        console.log(`Found ${found} dist director${found === 1 ? 'y' : 'ies'}.`);
+        console.log('─'.repeat(50));
+        console.log(`Found:   ${found} director${found === 1 ? 'y' : 'ies'} to delete`);
         if (!dryRun) {
-            console.log(`Removed ${removed} dist director${removed === 1 ? 'y' : 'ies'}.`);
-            if (removedPaths.length && verbose) {
-                console.log('Removed paths:');
-                for (const p of removedPaths) console.log(' -', p);
-            }
+            console.log(`Removed: ${removed} director${removed === 1 ? 'y' : 'ies'}`);
         }
+        console.log(`Skipped: ${skipped} director${skipped === 1 ? 'y' : 'ies'}`);
+        
+        if (removedPaths.length && verbose) {
+            console.log('\n📁 Removed paths:');
+            for (const p of removedPaths) console.log('  -', p);
+        }
+        console.log('');
         process.exit(0);
     } catch (err) {
-        console.error('error:', err);
+        console.error('\n❌ error:', err);
         process.exit(2);
     }
 })();
