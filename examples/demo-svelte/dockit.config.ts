@@ -1,9 +1,21 @@
 import { defineConfig } from '@dockit/cli';
-import { createShikiHighlighter, createSvelteRenderer } from '@dockit/renderer-svelte';
+import { createShikiHighlighter, createSvelteRenderer } from '@dockit/renderer-svelte/node';
 
 export default defineConfig({
     sourceDir: 'src/docs',
     outDir: '.dockit',
+
+    // Register your components here — once. Dockit will generate the runtime
+    // registry automatically so you don't need to repeat this in +page.svelte.
+    components: {
+        counter: {
+            path: './src/lib/components/Counter.svelte',
+            hydrate: true,
+            defaultProps: {
+                initial: 0
+            }
+        }
+    },
 
     // Configure your renderer with the Shiki highlighter
     renderer: createSvelteRenderer({
@@ -22,21 +34,5 @@ export default defineConfig({
                 'json'
             ]
         }),
-        registry: {
-
-            resolve: (name: string) => {
-                if (name === 'counter') {
-                    return {
-                        component: "./src/lib/components/Counter.svelte",
-                        hydrate: true,
-                        defaultProps: {
-                            initial: 0
-                        }
-                    }
-                }
-                return null;
-
-            }
-        }
     })
 });

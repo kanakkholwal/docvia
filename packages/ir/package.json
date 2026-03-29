@@ -7,6 +7,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "default": "./dist/index.js"
+        },
+        "./transform": {
+            "types": "./dist/transform.d.ts",
+            "import": "./dist/transform.js",
+            "default": "./dist/transform.js"
         }
     },
     "main": "./dist/index.js",
@@ -22,6 +27,7 @@
         "@types/mdast": "^4.0.4",
         "@types/node": "^25.5.0",
         "mdast": "^3.0.0",
+        "svelte": "5.46.4",
         "typescript": "^5.9.3"
     }
 }

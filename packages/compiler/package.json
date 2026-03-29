@@ -17,14 +17,15 @@
     "dependencies": {
         "@dockit/core": "workspace:*",
         "@dockit/ir": "workspace:*",
-        "@dockit/schema": "workspace:*",
         "@dockit/plugins": "workspace:*",
+        "@dockit/schema": "workspace:*",
         "@dockit/search": "workspace:*",
         "@node-rs/xxhash": "^1.7.6"
     },
     "devDependencies": {
         "@types/mdast": "^4.0.4",
         "@types/node": "^25.5.0",
+        "svelte": "5.46.4",
         "typescript": "^5.9.3"
     }
 }

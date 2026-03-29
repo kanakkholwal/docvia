@@ -15,17 +15,18 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "micromark": "^4.0.2",
-        "micromark-extension-gfm": "^3.0.0",
-        "micromark-extension-directive": "^4.0.0",
+        "mdast-util-directive": "^3.1.0",
         "mdast-util-from-markdown": "^2.0.3",
         "mdast-util-gfm": "^3.1.0",
-        "mdast-util-directive": "^3.1.0",
+        "micromark": "^4.0.2",
+        "micromark-extension-directive": "^4.0.0",
+        "micromark-extension-gfm": "^3.0.0",
         "unified": "^11.0.5"
     },
     "devDependencies": {
         "@types/mdast": "^4.0.4",
         "@types/node": "^25.5.0",
+        "svelte": "5.46.4",
         "typescript": "^5.9.3"
     }
 }

@@ -23,13 +23,13 @@
         "@dockit/plugins": "workspace:*",
         "@dockit/renderer-svelte": "workspace:*",
         "@dockit/search": "workspace:*",
-        "commander": "^14.0.3",
         "chokidar": "^5.0.0",
+        "commander": "^14.0.3",
         "sirv": "^3.0.2"
     },
     "devDependencies": {
         "@types/node": "^25.5.0",
-        "typescript": "^5.9.3",
-        "svelte": "^5.49.2"
+        "svelte": "5.46.4",
+        "typescript": "^5.9.3"
     }
 }

@@ -50,9 +50,19 @@ export function dockitSourcePlugin() {
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name);
 
-      // Single collection import: dockit:source/docs
       const parts = id.split('/');
       const single = parts.length > 1 ? parts[1] : null;
+
+      // Special case: registry sub-module
+      if (single === 'registry') {
+        const registryPath = path.join(root, '.dockit/registry.ts');
+        if (fs.existsSync(registryPath)) {
+          return fs.readFileSync(registryPath, 'utf-8');
+        }
+        // Fallback: empty no-op registry if not generated yet
+        return `export const registry = { resolve(_name: string) { return null; } };`;
+      }
+
       const targets = single ? [single].filter((name) => names.includes(name)) : names;
 
       // biome-ignore lint/suspicious/noShadowRestrictedNames: no other variable name available

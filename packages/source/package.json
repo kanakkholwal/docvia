@@ -30,13 +30,14 @@
         "build": "tsup"
     },
     "dependencies": {
-        "@dockit/ir": "workspace:*",
         "@dockit/core": "workspace:*",
+        "@dockit/ir": "workspace:*",
         "@dockit/renderer-core": "workspace:*",
         "@dockit/schema": "workspace:*"
     },
     "devDependencies": {
-        "typescript": "^5.9.3",
-        "@types/node": "^20.0.0"
+        "@types/node": "^20.0.0",
+        "svelte": "5.46.4",
+        "typescript": "^5.9.3"
     }
 }

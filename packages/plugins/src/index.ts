@@ -1,4 +1,3 @@
-import { resolve } from 'node:path';
 import type {
     DockitConfig,
     DockitPlugin,
@@ -9,6 +8,7 @@ import type {
 } from '@dockit/ir';
 import { DockitError } from '@dockit/ir';
 import { createJiti } from 'jiti';
+import { resolve } from 'node:path';
 
 // Plugin Resolution
 
@@ -108,6 +108,7 @@ export function defineConfig(config: Partial<DockitConfig>): DockitConfig {
         outDir: config.outDir ?? '.dockit',
         plugins: config.plugins ?? [],
         renderer: config.renderer,
+        components: config.components,
         markdown: {
             remarkPlugins: config.markdown?.remarkPlugins ?? [],
         },

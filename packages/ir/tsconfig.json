@@ -3,11 +3,15 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
-        "composite": true,
-        "lib": ["dom", "ES2022"],
-        "types": ["node"]
+        "lib": [
+            "dom",
+            "ES2022"
+        ],
+        "types": [
+            "node"
+        ]
     },
     "include": [
-        "src"
+        "src/**/*"
     ]
 }
