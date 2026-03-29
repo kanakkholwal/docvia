@@ -17,7 +17,7 @@
     <Pagination pagesMeta={data.pagesMeta} />
   </div>
 
-  <TableOfContents headings={data.page.data.headings} />
+  <TableOfContents headings={data.page.headings} />
 </div>
 
 <style>

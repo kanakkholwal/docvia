@@ -5,7 +5,7 @@
         id: string;
     }
 
-    let { headings = [] } = $props<{ headings: Heading[] }>();
+    let { headings = [] } = $props<{ headings?: Heading[] }>();
 
     // Only show H2 and H3 in TOC
     const filteredHeadings = $derived(
