@@ -32,7 +32,6 @@ async function createDemo() {
             "@dockit/cli": "workspace:*",
             "@dockit/compiler": "workspace:*",
             "@dockit/renderer-svelte": "workspace:*",
-            "@dockit/ui": "workspace:*"
         }
     };
     await writeFile(join(DEMO_DIR, 'package.json'), JSON.stringify(packageJson, null, 2));
@@ -279,7 +278,7 @@ export const load: PageLoad = async ({ params }) => {
 
     const pageSvelte = `
 <script lang="ts">
-    import { Renderer, hydrate } from '@dockit/ui';
+    import { Renderer, hydrate } from '@dockit/renderer-svelte';
     import { onMount } from 'svelte';
     import Counter from '$lib/components/Counter.svelte';
 

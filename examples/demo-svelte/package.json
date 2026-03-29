@@ -17,7 +17,6 @@
 		"@dockit/renderer-core": "workspace:*",
 		"@dockit/renderer-svelte": "workspace:*",
 		"@dockit/source": "workspace:*",
-		"@dockit/ui": "workspace:*",
 		"@dockit/vite-plugin": "workspace:*",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.55.0",

@@ -10,6 +10,7 @@
     title: string;
     children: NavItem[];
   };
+
   interface Props {
     nav: NavItem[];
     children: Snippet;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { page } from "$app/state";
 
 	interface Heading {
 		depth: number;
@@ -7,31 +7,11 @@
 		id: string;
 	}
 
-	let headings = $state<Heading[]>([]);
+	let headings = $derived((page.data.page?.headings as Heading[]) || []);
 	let activeId = $state<string | null>(null);
 
-	onMount(() => {
-		// Extract headings from the rendered content
-		const article = document.querySelector(".article-inner");
-		if (!article) return;
-
-		const headingElements = article.querySelectorAll("h2, h3");
-		const extractedHeadings: Heading[] = [];
-
-		headingElements.forEach((element, index) => {
-			const depth = parseInt(element.tagName[1]);
-			const text = element.textContent || "";
-			let id = element.id;
-
-			if (!id) {
-				id = `heading-${index}`;
-				element.id = id;
-			}
-
-			extractedHeadings.push({ depth, text, id });
-		});
-
-		headings = extractedHeadings;
+	$effect(() => {
+		if (headings.length === 0) return;
 
 		// Set up intersection observer for active heading
 		const observer = new IntersectionObserver(
@@ -42,11 +22,15 @@
 					}
 				});
 			},
-			{ rootMargin: "-100px 0px -66%" },
+			{ rootMargin: "-100px 0px -66%" }
 		);
 
-		headingElements.forEach((element) => {
-			observer.observe(element);
+		// Observe elements based on heading IDs
+		headings.forEach((heading) => {
+			const element = document.getElementById(heading.id);
+			if (element) {
+				observer.observe(element);
+			}
 		});
 
 		return () => {
@@ -55,7 +39,7 @@
 	});
 
 	const filteredHeadings = $derived(
-		headings.filter((h) => h.depth === 2 || h.depth === 3),
+		headings.filter((h) => h.depth === 2 || h.depth === 3)
 	);
 
 	function handleLinkClick(id: string) {
@@ -66,27 +50,6 @@
 		}
 	}
 </script>
-
-<nav class="toc-nav" aria-label="Table of contents">
-	<div class="toc-header">
-		<h3 class="toc-title">On this page</h3>
-	</div>
-
-	<ul class="toc-list">
-		{#each filteredHeadings as heading (heading.id)}
-			<li class="toc-item" class:nested={heading.depth === 3}>
-				<a
-					href="#{heading.id}"
-					class="toc-link"
-					class:active={activeId === heading.id}
-					onclick={() => handleLinkClick(heading.id)}
-				>
-					<span class="toc-text">{heading.text}</span>
-				</a>
-			</li>
-		{/each}
-	</ul>
-</nav>
 
 <nav class="toc-nav" aria-label="Table of contents">
 	<div class="toc-header">
