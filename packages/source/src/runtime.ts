@@ -7,6 +7,7 @@ export interface DockitPage<TFrontmatter = any> {
     data: TFrontmatter;
     content: any;
     manifest: HydrationManifest;
+    headings?: Array<{ depth: number; text: string; id: string }>;
 }
 
 export interface DockitCollection<TFrontmatter = any, TRouteKey extends string = string> {

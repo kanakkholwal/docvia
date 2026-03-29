@@ -11,18 +11,7 @@ export function dockitSourcePlugin() {
       config.server.fs.allow = config.server.fs.allow || [];
       config.server.fs.allow.push(path.resolve(root, '.dockit'));
 
-      config.resolve = config.resolve || {};
-      config.resolve.alias = config.resolve.alias || {};
-      const sourcePath = path.resolve(root, '.dockit/source.ts');
-
-      if (fs.existsSync(sourcePath)) {
-        if (Array.isArray(config.resolve.alias)) {
-          config.resolve.alias.push({ find: 'dockit:source', replacement: sourcePath });
-        } else {
-          config.resolve.alias['dockit:source'] = sourcePath;
-        }
-      }
-
+      // Don't set an alias - we'll handle resolution with resolveId and load hooks instead
       return config;
     },
 
@@ -60,7 +49,7 @@ export function dockitSourcePlugin() {
           return fs.readFileSync(registryPath, 'utf-8');
         }
         // Fallback: empty no-op registry if not generated yet
-        return `export const registry = { resolve(_name: string) { return null; } };`;
+        return `export const registry = { resolve(_name) { return null; } };`;
       }
 
       const targets = single ? [single].filter((name) => names.includes(name)) : names;
@@ -84,7 +73,7 @@ export function dockitSourcePlugin() {
         `);
 
         inits.push(`
-          const ${varName} = createCollection<import('/.dockit/collections/${name}/types').Frontmatter>({
+          const ${varName} = createCollection({
             name: ${unescape(name)},
             baseUrl: ${unescape(`/${name}`)},
             routes: routes_${varName}.routes,

@@ -4,6 +4,7 @@ import type { DockitCollection, DockitSource } from './runtime';
 interface CollectionMetaEntry<TRouteKey extends string> {
     slug: TRouteKey;
     tags?: readonly string[];
+    headings?: Array<{ depth: number; text: string; id: string }>;
 }
 
 export function createCollection<
@@ -50,6 +51,7 @@ export function createCollection<
             if (!modulePath) return null;
 
             const mod = await loadModule(modulePath);
+            const pageMetaEntry = meta.find((entry: any) => entry.slug === key);
 
             return {
                 slug: key,
@@ -58,6 +60,7 @@ export function createCollection<
                 data: mod.meta as TFrontmatter,
                 content: mod.content,
                 manifest: mod.manifest,
+                headings: pageMetaEntry?.headings,
             };
         },
 

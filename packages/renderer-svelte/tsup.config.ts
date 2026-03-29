@@ -4,7 +4,7 @@ export default defineConfig({
   entry: ['src/index.ts', 'src/node.ts'],
   format: ['esm'],
   external: [/\.svelte$/],
-  dts: false,
+  dts: true,
   sourcemap: true,
   splitting: false,
   clean: true,

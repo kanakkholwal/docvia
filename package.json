@@ -12,7 +12,7 @@
         "dev": "turbo run dev",
         "prepare": "husky",
         "setup": "pnpm install && pnpm build && pnpm test",
-        "clean": "turbo run clean"
+        "cleanup": "node ./scripts/clean-builds.js"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.4.9",

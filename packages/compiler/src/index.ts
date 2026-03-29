@@ -170,8 +170,8 @@ function generateRegistryTs(components: Record<string, { path: string; hydrate?:
         imports,
         '',
         'export const registry = {',
-        '  resolve(name: string) {',
-        '    const map: Record<string, { component: unknown; hydrate?: boolean; defaultProps?: Record<string, unknown> }> = {',
+        '  resolve(name) {',
+        '    const map = {',
         mapEntries,
         '    };',
         '    return map[name] ?? null;',
@@ -367,9 +367,18 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
 
     // Emit registry.ts if components are configured
     if (config.components && Object.keys(config.components).length > 0) {
+        // Normalize component paths to be relative to the outDir
+        const normalizedComponents = Object.fromEntries(
+            Object.entries(config.components).map(([name, comp]: [string, any]) => {
+                const resolvedComponentPath = resolve(comp.path);
+                const relativePath = relative(resolvedOutDir, resolvedComponentPath).replace(/\\/g, '/');
+                return [name, { ...comp, path: relativePath }];
+            })
+        );
+
         await writeFile(
             join(resolvedOutDir, 'registry.ts'),
-            generateRegistryTs(config.components as Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>)
+            generateRegistryTs(normalizedComponents as Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>)
         );
     }
 
