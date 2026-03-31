@@ -1,9 +1,9 @@
 {
-    "name": "@dockit/cli",
+    "name": "@docvia/cli",
     "version": "0.0.1",
     "type": "module",
     "bin": {
-        "dockit": "./dist/index.js"
+        "docvia": "./dist/index.js"
     },
     "exports": {
         ".": {
@@ -18,11 +18,11 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "@dockit/compiler": "workspace:*",
-        "@dockit/ir": "workspace:*",
-        "@dockit/plugins": "workspace:*",
-        "@dockit/renderer-svelte": "workspace:*",
-        "@dockit/search": "workspace:*",
+        "@docvia/compiler": "workspace:*",
+        "@docvia/ir": "workspace:*",
+        "@docvia/plugins": "workspace:*",
+        "@docvia/renderer-svelte": "workspace:*",
+        "@docvia/search": "workspace:*",
         "chokidar": "^5.0.0",
         "commander": "^14.0.3",
         "sirv": "^3.0.2"

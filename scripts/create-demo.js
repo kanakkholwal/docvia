@@ -4,7 +4,7 @@ import { join } from 'node:path';
 const DEMO_DIR = 'examples/demo-docs';
 
 async function createDemo() {
-    console.log('🚀 Creating Dockit Demo Project...');
+    console.log('🚀 Creating docvia Demo Project...');
 
     // 1. Create directory structure
     await mkdir(DEMO_DIR, { recursive: true });
@@ -21,7 +21,7 @@ async function createDemo() {
             "dev": "vite dev",
             "build": "vite build",
             "preview": "vite preview",
-            "dockit:build": "dockit build"
+            "docvia:build": "docvia build"
         },
         devDependencies: {
             "@sveltejs/adapter-auto": "^3.0.0",
@@ -29,9 +29,9 @@ async function createDemo() {
             "@sveltejs/vite-plugin-svelte": "^3.0.0",
             "svelte": "^4.2.0",
             "vite": "^8.0.3",
-            "@dockit/cli": "workspace:*",
-            "@dockit/compiler": "workspace:*",
-            "@dockit/renderer-svelte": "workspace:*",
+            "@docvia/cli": "workspace:*",
+            "@docvia/compiler": "workspace:*",
+            "@docvia/renderer-svelte": "workspace:*",
         }
     };
     await writeFile(join(DEMO_DIR, 'package.json'), JSON.stringify(packageJson, null, 2));
@@ -69,14 +69,14 @@ export default defineConfig({
 `;
     await writeFile(join(DEMO_DIR, 'vite.config.ts'), viteConfig);
 
-    // 5. Create dockit.config.ts
-    const dockitConfig = `
-import { defineConfig } from '@dockit/cli';
-import { createSvelteRenderer } from '@dockit/renderer-svelte';
+    // 5. Create docvia.config.ts
+    const docviaConfig = `
+import { defineConfig } from '@docvia/cli';
+import { createSvelteRenderer } from '@docvia/renderer-svelte';
 
 export default defineConfig({
     dir: './docs',
-    outDir: './.dockit',
+    outDir: './.docvia',
     renderer: createSvelteRenderer({
         registry: {
             resolve: (name) => {
@@ -92,7 +92,7 @@ export default defineConfig({
     })
 });
 `;
-    await writeFile(join(DEMO_DIR, 'dockit.config.ts'), dockitConfig);
+    await writeFile(join(DEMO_DIR, 'docvia.config.ts'), docviaConfig);
 
     // 6. Create Counter.svelte
     const counterSvelte = `
@@ -136,15 +136,15 @@ export default defineConfig({
     import '../../app.css';
 </script>
 
-<div class="dockit-layout">
-    <header class="dockit-header">
-        <div class="dockit-logo">
-            <a href="/">Dockit Demo</a>
+<div class="docvia-layout">
+    <header class="docvia-header">
+        <div class="docvia-logo">
+            <a href="/">docvia Demo</a>
         </div>
     </header>
 
-    <div class="dockit-container">
-        <aside class="dockit-sidebar">
+    <div class="docvia-container">
+        <aside class="docvia-sidebar">
             <nav>
                 <ul>
                     <li><a href="/">Home</a></li>
@@ -153,20 +153,20 @@ export default defineConfig({
             </nav>
         </aside>
 
-        <main class="dockit-main">
+        <main class="docvia-main">
             <slot />
         </main>
     </div>
 </div>
 
 <style>
-    .dockit-layout {
+    .docvia-layout {
         display: flex;
         flex-direction: column;
         min-height: 100vh;
     }
 
-    .dockit-header {
+    .docvia-header {
         height: 64px;
         display: flex;
         align-items: center;
@@ -178,19 +178,19 @@ export default defineConfig({
         z-index: 50;
     }
 
-    .dockit-logo a {
+    .docvia-logo a {
         font-size: 1.25rem;
         font-weight: 700;
         color: white;
         text-decoration: none;
     }
 
-    .dockit-container {
+    .docvia-container {
         display: flex;
         flex: 1;
     }
 
-    .dockit-sidebar {
+    .docvia-sidebar {
         width: 280px;
         border-right: 1px solid #1e293b;
         padding: 2rem;
@@ -199,12 +199,12 @@ export default defineConfig({
         height: calc(100vh - 64px);
     }
 
-    .dockit-sidebar ul {
+    .docvia-sidebar ul {
         list-style: none;
         padding: 0;
     }
 
-    .dockit-sidebar a {
+    .docvia-sidebar a {
         display: block;
         padding: 0.5rem 0;
         color: #94a3b8;
@@ -212,11 +212,11 @@ export default defineConfig({
         transition: color 0.2s;
     }
 
-    .dockit-sidebar a:hover {
+    .docvia-sidebar a:hover {
         color: white;
     }
 
-    .dockit-main {
+    .docvia-main {
         flex: 1;
         padding: 2rem 4rem;
         max-width: 800px;
@@ -229,15 +229,15 @@ export default defineConfig({
 
     const appCss = `
 :root {
-    --dockit-bg: #0f172a;
-    --dockit-fg: #f8fafc;
+    --docvia-bg: #0f172a;
+    --docvia-fg: #f8fafc;
 }
 
 body {
     margin: 0;
     font-family: system-ui, -apple-system, sans-serif;
-    background-color: var(--dockit-bg);
-    color: var(--dockit-fg);
+    background-color: var(--docvia-bg);
+    color: var(--docvia-fg);
 }
 `;
     await writeFile(join(DEMO_DIR, 'src/app.css'), appCss);
@@ -262,7 +262,7 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = async ({ params }) => {
     const slug = params.slug || 'index';
     try {
-        const mod = await import(\`../../../.dockit/pages/\${slug.replace(/\\//g, '.')}.js\`);
+        const mod = await import(\`../../../.docvia/pages/\${slug.replace(/\\//g, '.')}.js\`);
         return {
             doc: mod.content,
             meta: mod.meta,
@@ -278,7 +278,7 @@ export const load: PageLoad = async ({ params }) => {
 
     const pageSvelte = `
 <script lang="ts">
-    import { Renderer, hydrate } from '@dockit/renderer-svelte';
+    import { Renderer, hydrate } from '@docvia/renderer-svelte';
     import { onMount } from 'svelte';
     import Counter from '$lib/components/Counter.svelte';
 
@@ -302,7 +302,7 @@ export const load: PageLoad = async ({ params }) => {
 
     // 10. Create sample content
     const indexMd = `---
-title: Welcome to Dockit
+title: Welcome to docvia
 description: Demo of partial hydration.
 ---
 

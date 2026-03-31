@@ -1,4 +1,4 @@
-import type { IRNode } from "@dockit/ir";
+import type { IRNode } from "@docvia/ir";
 
 export class RenderError extends Error {
     constructor(

@@ -34,7 +34,7 @@ async function doHydrate(el: Element, entry: HydrationEntry, registry: Component
 
     const resolved = registry.resolve(entry.name);
     if (!resolved) {
-        console.error(`[dockit] Failed to resolve component for hydration: ${entry.name}`);
+        console.error(`[docvia] Failed to resolve component for hydration: ${entry.name}`);
         return;
     }
 
@@ -47,7 +47,7 @@ async function doHydrate(el: Element, entry: HydrationEntry, registry: Component
         });
         hydrated.add(entry.id);
     } catch (err) {
-        console.error(`[dockit] Hydration failed for ${entry.id}:`, err);
+        console.error(`[docvia] Hydration failed for ${entry.id}:`, err);
     }
 }
 

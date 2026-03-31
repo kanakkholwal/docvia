@@ -1,4 +1,4 @@
-import { docs } from 'dockit:source';
+import { docs } from 'docvia:source';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async () => {

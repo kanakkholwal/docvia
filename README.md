@@ -1,6 +1,6 @@
-# Dockit
+# docvia
 
-**Dockit** is a production-grade, build-time first documentation compiler. It transforms your markdown files into high-performance, searchable, and interactive documentation sites with zero runtime overhead.
+**docvia** is a production-grade, build-time first documentation compiler. It transforms your markdown files into high-performance, searchable, and interactive documentation sites with zero runtime overhead.
 
 ## Core Features
 
@@ -13,38 +13,38 @@
 
 ## Project Structure
 
-Dockit is built as a PNPM monorepo:
+docvia is built as a PNPM monorepo:
 
 | Package | Purpose |
 |---------|---------|
-| `@dockit/cli` | Command-line interface (`init`, `build`, `dev`). |
-| `@dockit/compiler` | Parallel build orchestrator and asset pipeline. |
-| `@dockit/ir` | Intermediate Representation types and DFS transformer. |
-| `@dockit/core` | Micromark-based markdown parser with unified plugin runner. |
-| `@dockit/renderer-svelte` | Svelte-specific IR → JS renderer with Vite support. |
-| `@dockit/plugins` | Hook execution engine and configuration loader. |
-| `@dockit/search` | Section-level Orama indexing and client search helper. |
-| `@dockit/schema` | Frontmatter validation and line-scanner parser. |
-| `@dockit/ui` | Shared UI components and sidebar logic. |
+| `@docvia/cli` | Command-line interface (`init`, `build`, `dev`). |
+| `@docvia/compiler` | Parallel build orchestrator and asset pipeline. |
+| `@docvia/ir` | Intermediate Representation types and DFS transformer. |
+| `@docvia/core` | Micromark-based markdown parser with unified plugin runner. |
+| `@docvia/renderer-svelte` | Svelte-specific IR → JS renderer with Vite support. |
+| `@docvia/plugins` | Hook execution engine and configuration loader. |
+| `@docvia/search` | Section-level Orama indexing and client search helper. |
+| `@docvia/schema` | Frontmatter validation and line-scanner parser. |
+| `@docvia/ui` | Shared UI components and sidebar logic. |
 
 ## Quick Start
 
 ### Installation
 
 ```bash
-pnpm add @dockit/cli -D
+pnpm add @docvia/cli -D
 ```
 
 ### Initialize Project
 
 ```bash
-npx dockit init
+npx docvia init
 ```
 
 ### Build Documentation
 
 ```bash
-npx dockit build
+npx docvia build
 ```
 
 ## Contributing

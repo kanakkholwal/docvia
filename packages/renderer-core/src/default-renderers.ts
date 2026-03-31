@@ -1,4 +1,4 @@
-import type { HydrationMode } from '@dockit/ir';
+import type { HydrationMode } from '@docvia/ir';
 import { RenderError } from './errors';
 import { renderNodes } from './render';
 import type { RendererMap } from './types';
@@ -43,7 +43,7 @@ export function createDefaultRendererMap(): RendererMap {
                 return {
                     kind: 'element',
                     tag: 'div',
-                    props: { class: 'dockit-code-block' },
+                    props: { class: 'docvia-code-block' },
                     children: [{ kind: 'html', value: res.html }], // Raw HTML injection
                     id: n.id,
                 };

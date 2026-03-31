@@ -1,19 +1,19 @@
-import { parseMarkdown } from '@dockit/core';
-import type { DockitConfig } from '@dockit/ir';
-import { transformToIR } from '@dockit/ir';
-import { extractFrontmatter, validateFrontmatter } from '@dockit/schema';
+import { parseMarkdown } from '@docvia/core';
+import type { docviaConfig } from '@docvia/ir';
+import { transformToIR } from '@docvia/ir';
+import { extractFrontmatter, validateFrontmatter } from '@docvia/schema';
 
-export function dockitMarkdownPlugin(config: DockitConfig) {
+export function docviaMarkdownPlugin(config: docviaConfig) {
     const renderer = config.renderer;
     if (!renderer) {
-        throw new Error('[dockit] No renderer configured');
+        throw new Error('[docvia] No renderer configured');
     }
 
     return {
-        name: 'dockit:markdown',
+        name: 'docvia:markdown',
 
         async transform(code: string, id: string) {
-            if (!id.endsWith('.md?dockit')) return null;
+            if (!id.endsWith('.md?docvia')) return null;
 
             const filePath = id.split('?')[0];
             if (!filePath) return null;

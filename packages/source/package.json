@@ -1,5 +1,5 @@
 {
-    "name": "@dockit/source",
+    "name": "@docvia/source",
     "version": "0.0.1",
     "type": "module",
     "exports": {
@@ -30,10 +30,10 @@
         "build": "tsup"
     },
     "dependencies": {
-        "@dockit/core": "workspace:*",
-        "@dockit/ir": "workspace:*",
-        "@dockit/renderer-core": "workspace:*",
-        "@dockit/schema": "workspace:*"
+        "@docvia/core": "workspace:*",
+        "@docvia/ir": "workspace:*",
+        "@docvia/renderer-core": "workspace:*",
+        "@docvia/schema": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

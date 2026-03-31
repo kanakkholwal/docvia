@@ -24,40 +24,40 @@
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@dockit/cli": [
+      "@docvia/cli": [
         "./packages/cli/src"
       ],
-      "@dockit/compiler": [
+      "@docvia/compiler": [
         "./packages/compiler/src"
       ],
-      "@dockit/core": [
+      "@docvia/core": [
         "./packages/core/src"
       ],
-      "@dockit/ir": [
+      "@docvia/ir": [
         "./packages/ir/src"
       ],
-      "@dockit/plugins": [
+      "@docvia/plugins": [
         "./packages/plugins/src"
       ],
-      "@dockit/renderer-core": [
+      "@docvia/renderer-core": [
         "./packages/renderer-core/src"
       ],
-      "@dockit/renderer-svelte": [
+      "@docvia/renderer-svelte": [
         "./packages/renderer-svelte/src"
       ],
-      "@dockit/schema": [
+      "@docvia/schema": [
         "./packages/schema/src"
       ],
-      "@dockit/search": [
+      "@docvia/search": [
         "./packages/search/src"
       ],
-      "@dockit/source": [
+      "@docvia/source": [
         "./packages/source/src"
       ],
-      "@dockit/ui": [
+      "@docvia/ui": [
         "./packages/ui/src"
       ],
-      "@dockit/vite-plugin": [
+      "@docvia/vite-plugin": [
         "./packages/vite-plugin/src"
       ]
     }

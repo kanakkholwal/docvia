@@ -1,5 +1,5 @@
 
-import type { DockitCollection, DockitSource } from './runtime';
+import type { docviaCollection, docviaSource } from './runtime';
 
 interface CollectionMetaEntry<TRouteKey extends string> {
     slug: TRouteKey;
@@ -19,7 +19,7 @@ export function createCollection<
         nav: unknown;
         tags: Partial<Record<string, (keyof TRoutes & string)[]>>;
     },
-): DockitCollection<TFrontmatter, keyof TRoutes & string> {
+): docviaCollection<TFrontmatter, keyof TRoutes & string> {
     const { baseUrl, routes, meta, nav, tags } = opts;
 
     async function loadModule(modulePath: string) {
@@ -32,7 +32,7 @@ export function createCollection<
                 const { cwd } = await import('node:process');
                 const filePath = resolve(
                     cwd(),
-                    modulePath.replace(/\?dockit$/, '').replace(/^\//, ''),
+                    modulePath.replace(/\?docvia$/, '').replace(/^\//, ''),
                 );
                 const { loadMarkdown } = await import('./node.js');
                 return loadMarkdown(filePath);
@@ -93,8 +93,8 @@ export function createCollection<
     };
 }
 
-export function createSource<TCollections extends Record<string, DockitCollection<unknown, string>>>(
+export function createSource<TCollections extends Record<string, docviaCollection<unknown, string>>>(
     collections: TCollections,
-): DockitSource & { collections: TCollections } {
+): docviaSource & { collections: TCollections } {
     return { collections };
 }

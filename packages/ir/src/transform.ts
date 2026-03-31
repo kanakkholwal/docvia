@@ -126,7 +126,7 @@ function transformNode(node: any, ctx: TransformContext): IRNode | null {
     // Raw nodes should not survive rehype-raw, but guard anyway
     if (node.type === 'raw') {
         if (process.env.NODE_ENV !== 'production') {
-            console.warn('[dockit] Unexpected raw HAST node — skipping');
+            console.warn('[docvia] Unexpected raw HAST node — skipping');
         }
         return null;
     }
@@ -161,7 +161,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
     // Security: drop blocked tags silently
     if (BLOCKED_TAGS.has(tag)) {
         if (process.env.NODE_ENV !== 'production') {
-            console.warn(`[dockit] Blocked tag <${tag}> — skipped`);
+            console.warn(`[docvia] Blocked tag <${tag}> — skipped`);
         }
         return null;
     }

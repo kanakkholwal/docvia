@@ -3,7 +3,7 @@ import type {
     PageMeta,
     RenderedPage,
     RendererAdapter
-} from '@dockit/ir';
+} from '@docvia/ir';
 
 import {
     type ComponentRegistry,
@@ -11,7 +11,7 @@ import {
     type SyntaxHighlighter,
     createDefaultRendererMap,
     renderDocument,
-} from '@dockit/renderer-core';
+} from '@docvia/renderer-core';
 
 // Browser-safe highlighter creator that only loads shiki on demand (server-side)
 export function createShikiHighlighter(opts?: {
@@ -145,12 +145,12 @@ export function createInMemoryStore(): InMemoryStore {
     };
 }
 
-const VIRTUAL_PREFIX = 'virtual:dockit/';
-const RESOLVED_PREFIX = '\0virtual:dockit/';
+const VIRTUAL_PREFIX = 'virtual:docvia/';
+const RESOLVED_PREFIX = '\0virtual:docvia/';
 
-export function dockitVitePlugin(store: InMemoryStore) {
+export function docviaVitePlugin(store: InMemoryStore) {
     return {
-        name: 'dockit',
+        name: 'docvia',
 
         resolveId(id: string) {
             if (id.startsWith(VIRTUAL_PREFIX)) {

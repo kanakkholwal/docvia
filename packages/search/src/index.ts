@@ -1,4 +1,4 @@
-import type { HeadingMeta, IRDocument, IRNode, SearchDocument } from '@dockit/ir';
+import type { HeadingMeta, IRDocument, IRNode, SearchDocument } from '@docvia/ir';
 import { type Orama, create, insert, search as oramaSearch } from '@orama/orama';
 
 // Text Extraction (lazy, not stored in IR)

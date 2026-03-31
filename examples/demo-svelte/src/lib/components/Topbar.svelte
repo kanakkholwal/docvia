@@ -26,7 +26,7 @@
                     <polyline points="3.29 7 12 12 20.71 7"></polyline>
                     <line x1="12" y1="22" x2="12" y2="12"></line>
                 </svg>
-                <span class="logo-text">Dockit</span>
+                <span class="logo-text">docvia</span>
             </a>
         </div>
 
@@ -56,7 +56,7 @@
                 <a href="/" class="nav-link">Guide</a>
                 <a href="/components" class="nav-link">Components</a>
                 <a
-                    href="https://github.com/kanakkholwal/dockit"
+                    href="https://github.com/kanakkholwal/docvia"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="github-link"

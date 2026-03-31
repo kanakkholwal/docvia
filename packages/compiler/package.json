@@ -1,5 +1,5 @@
 {
-    "name": "@dockit/compiler",
+    "name": "@docvia/compiler",
     "version": "0.0.1",
     "type": "module",
     "exports": {
@@ -15,11 +15,11 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "@dockit/core": "workspace:*",
-        "@dockit/ir": "workspace:*",
-        "@dockit/plugins": "workspace:*",
-        "@dockit/schema": "workspace:*",
-        "@dockit/search": "workspace:*",
+        "@docvia/core": "workspace:*",
+        "@docvia/ir": "workspace:*",
+        "@docvia/plugins": "workspace:*",
+        "@docvia/schema": "workspace:*",
+        "@docvia/search": "workspace:*",
         "@node-rs/xxhash": "^1.7.6"
     },
     "devDependencies": {

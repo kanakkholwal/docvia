@@ -1,5 +1,5 @@
-import type { FrontmatterData } from '@dockit/ir';
-import { DockitError } from '@dockit/ir';
+import type { FrontmatterData } from '@docvia/ir';
+import { docviaError } from '@docvia/ir';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
@@ -27,7 +27,7 @@ export function extractFrontmatter(raw: string): ExtractedFrontmatter {
     }
 
     if (closingIndex === -1) {
-        throw new DockitError(
+        throw new docviaError(
             'SCHEMA_ERROR',
             'Unclosed frontmatter: missing closing ---',
             undefined,
@@ -47,7 +47,7 @@ export function extractFrontmatter(raw: string): ExtractedFrontmatter {
     try {
         data = parseYaml(yamlLines.join('\n')) as Record<string, unknown>;
     } catch (err) {
-        throw new DockitError(
+        throw new docviaError(
             'SCHEMA_ERROR',
             `Invalid YAML in frontmatter: ${(err as Error).message}`,
             undefined,
@@ -84,7 +84,7 @@ export function validateFrontmatter(
         const issues = result.error.issues
             .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
             .join('\n');
-        throw new DockitError(
+        throw new docviaError(
             'SCHEMA_ERROR',
             `Frontmatter validation failed:\n${issues}`,
             filePath,

@@ -1,8 +1,8 @@
-// @dockit/ir — Intermediate Representation types, error system, and transforms
+// @docvia/ir — Intermediate Representation types, error system, and transforms
 
 // Error System
 
-export type DockitErrorCode =
+export type docviaErrorCode =
     | 'SCHEMA_ERROR'
     | 'PARSE_ERROR'
     | 'TRANSFORM_ERROR'
@@ -11,11 +11,11 @@ export type DockitErrorCode =
     | 'CONFIG_ERROR'
     | 'ASSET_ERROR';
 
-export class DockitError extends Error {
-    readonly name = 'DockitError';
+export class docviaError extends Error {
+    readonly name = 'docviaError';
 
     constructor(
-        public readonly code: DockitErrorCode,
+        public readonly code: docviaErrorCode,
         message: string,
         public readonly file?: string,
         public readonly loc?: { readonly line: number; readonly column: number },
@@ -151,8 +151,8 @@ export interface CompilerOptions {
     readonly sourceDir: string;
     readonly outDir: string;
     readonly renderer: RendererAdapter;
-    readonly plugins: readonly DockitPlugin[];
-    readonly config: DockitConfig;
+    readonly plugins: readonly docviaPlugin[];
+    readonly config: docviaConfig;
 }
 
 export interface CompileResult {
@@ -185,7 +185,7 @@ export interface DependencyNode {
 
 export type HookPhase = 'pre' | 'normal' | 'post';
 
-export interface DockitPlugin {
+export interface docviaPlugin {
     readonly name: string;
     readonly version: string;
     readonly phase?: HookPhase;
@@ -212,10 +212,10 @@ export interface CollectionConfig {
     readonly baseUrl?: string;
 }
 
-export interface DockitConfig {
+export interface docviaConfig {
     readonly sourceDir: string;
     readonly outDir: string;
-    readonly plugins: readonly DockitPlugin[];
+    readonly plugins: readonly docviaPlugin[];
     readonly renderer?: RendererAdapter;
     readonly components?: Record<string, ComponentConfig>;
     readonly collections?: readonly CollectionConfig[];

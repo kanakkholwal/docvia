@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Renderer } from "@dockit/renderer-svelte";
-	import { registry } from "dockit:source/registry";
+	import { Renderer } from "@docvia/renderer-svelte";
+	import { registry } from "docvia:source/registry";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
