@@ -17,6 +17,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
+    "sourceMap": true,
     "declarationMap": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
