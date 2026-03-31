@@ -10,4 +10,6 @@ export default defineConfig({
   clean: true,
   shims: true,
   minify: false,
+  outDir: 'dist',
+  treeshake: true,
 });
