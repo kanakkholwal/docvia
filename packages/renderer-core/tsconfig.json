@@ -5,8 +5,8 @@
             "esnext",
             "dom"
         ],
-        "declaration": false,
-        "sourceMap": false
+        "sourceMap": false,
+        "noEmit": true
     },
     "include": [
         "src"

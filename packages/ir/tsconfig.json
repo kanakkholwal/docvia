@@ -3,8 +3,8 @@
     "compilerOptions": {
         "lib": [
             "dom",
-            "ES2022"
-        ]
+        ],
+        "noEmit": true
     },
     "include": [
         "src"
