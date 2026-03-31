@@ -3,7 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "turbo run build",
+        "build": "turbo run build && node ./scripts/clean-src-dts.js",
         "lint": "biome check .",
         "lint:fix": "biome check --fix .",
         "format": "biome format --write .",
