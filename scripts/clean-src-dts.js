@@ -5,8 +5,7 @@
  * This script removes .d.ts files that tsup's dts builder may have created
  * as intermediate files in the src/ directories. These should only exist in dist/.
  * 
- * We only delete .d.ts files that match known entry points, to avoid deleting
- * hand-written type declaration files like types.d.ts or module-augmentation files.
+ * We SKIP hand-written type declaration files like types.d.ts that are part of source.
  * 
  * Usage: node scripts/clean-src-dts.js [--dry-run]
  */
@@ -21,19 +20,10 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const dryRun = process.argv.includes('--dry-run') || process.argv.includes('-n');
 
-// Map of package directories to their entry points
-// We only delete .d.ts files that correspond to entry points
-const entryPointsByPackage = {
-  'packages/ir': ['index', 'transform'],
-  'packages/renderer-core': ['index'],
-  'packages/compiler': ['index'],
-  'packages/cli': ['index'],
-  'packages/core': ['index'],
-  'packages/plugins': ['index'],
-  'packages/schema': ['index'],
-  'packages/search': ['index'],
-  'packages/source': ['index', 'internal', 'runtime', 'node'],
-  'packages/vite-plugin': ['index'],
+// Map of package directories to their source files that should NOT be cleaned
+// (e.g., hand-written type declaration files)
+const preservedFilesByPackage = {
+  'packages/renderer-core': ['types.d.ts'],
 };
 
 async function safeUnlink(filePath) {
@@ -46,31 +36,40 @@ async function safeUnlink(filePath) {
 
 let removed = 0;
 
-async function cleanPackageSrc(packageRelPath, entryPoints) {
+async function cleanPackageSrc(packageRelPath) {
   const srcDir = path.join(repoRoot, packageRelPath, 'src');
+  const preserved = new Set(preservedFilesByPackage[packageRelPath] || []);
   
   // Check if src directory exists
+  let entries;
   try {
-    await fs.promises.access(srcDir);
+    entries = await fs.promises.readdir(srcDir, { withFileTypes: true });
   } catch {
     return;
   }
 
-  for (const entryPoint of entryPoints) {
-    const dtsFile = path.join(srcDir, `${entryPoint}.d.ts`);
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.d.ts')) {
+      continue;
+    }
+
+    // Skip preserved files
+    if (preserved.has(entry.name)) {
+      continue;
+    }
+
+    const filePath = path.join(srcDir, entry.name);
     
-    try {
-      await fs.promises.access(dtsFile);
-      // File exists, delete it
-      if (dryRun) {
-        console.log('[dry-run] would remove:', dtsFile);
-      } else {
-        await safeUnlink(dtsFile);
-        console.log('✓ removed:', dtsFile);
+    if (dryRun) {
+      console.log('[dry-run] would remove:', filePath);
+    } else {
+      try {
+        await safeUnlink(filePath);
+        console.log('✓ removed:', filePath);
         removed++;
+      } catch (err) {
+        console.error('✗ failed to remove', filePath, '-', err.message);
       }
-    } catch {
-      // File doesn't exist, skip
     }
   }
 }
@@ -81,8 +80,21 @@ if (dryRun) {
 }
 
 // Clean each package
-for (const [packagePath, entryPoints] of Object.entries(entryPointsByPackage)) {
-  await cleanPackageSrc(packagePath, entryPoints);
+const allPackages = [
+  'packages/cli',
+  'packages/compiler',
+  'packages/core',
+  'packages/ir',
+  'packages/plugins',
+  'packages/renderer-core',
+  'packages/schema',
+  'packages/search',
+  'packages/source',
+  'packages/vite-plugin',
+];
+
+for (const packagePath of allPackages) {
+  await cleanPackageSrc(packagePath);
 }
 
 console.log(`✓ Done! (${removed} files removed)`);
