@@ -46,6 +46,7 @@ export type IRNodeType =
     | 'thematic-break'
     | 'component'
     | 'component-inline'
+    | 'element'   // Generic HTML element passthrough (framework-agnostic)
     | 'unknown';
 
 export type HydrationMode = 'none' | 'client:load' | 'client:idle' | 'client:visible';

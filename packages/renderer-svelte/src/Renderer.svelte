@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ComponentRegistry, RenderOutput } from "@dockit/renderer-core";
-  import type { ComponentType } from "svelte";
+  import type { Component } from "svelte";
   import Renderer from "./Renderer.svelte";
 
   interface Props {
@@ -34,8 +34,8 @@
     return node?.kind === "fragment";
   }
 
-  function asSvelteComponent(value: unknown): ComponentType {
-    return value as ComponentType;
+  function asSvelteComponent(value: unknown): Component {
+    return value as Component;
   }
 </script>
 

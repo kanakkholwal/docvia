@@ -1,5 +1,5 @@
 import GithubSlugger from 'github-slugger';
-import type { Code, Content, Heading, Image, InlineCode, Link, Root as MdastRoot, Text } from 'mdast';
+import type { Element, Root as HastRoot, Text } from 'hast';
 import { dirname, normalize, resolve, sep } from 'node:path';
 import type {
     Dependency,
@@ -7,6 +7,7 @@ import type {
     HeadingMeta,
     IRDocument,
     IRNode,
+    IRNodeType,
 } from './index';
 
 // Transform Context
@@ -17,12 +18,13 @@ interface TransformContext {
     slugger: GithubSlugger;
     seenDeps: Set<string>;
     nodeCounter: number;
+    filePath: string;
 }
 
 // Public API
 
 export function transformToIR(
-    ast: MdastRoot,
+    ast: HastRoot,
     frontmatter: FrontmatterData,
     filePath: string,
 ): IRDocument {
@@ -32,9 +34,10 @@ export function transformToIR(
         slugger: new GithubSlugger(),
         seenDeps: new Set(),
         nodeCounter: 0,
+        filePath,
     };
 
-    const children = transformChildren(ast.children as Content[], filePath, ctx);
+    const children = transformChildren(ast.children as any[], ctx);
     const slug = computeSlug(filePath, frontmatter.slug);
 
     return {
@@ -47,245 +50,279 @@ export function transformToIR(
     };
 }
 
-// Node Transform (Single-Pass DFS)
+// Prop Normalization — enforces the IR contract (no className, no style objects)
 
-function transformChildren(
-    nodes: readonly Content[],
-    filePath: string,
-    ctx: TransformContext,
-): IRNode[] {
+export function normalizeProps(properties: Record<string, unknown> = {}): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+
+    for (const key in properties) {
+        const value = properties[key];
+        if (value === undefined || value === null) continue;
+
+        if (key === 'className') {
+            // HAST stores className as string[] — join to a plain string
+            out['class'] = Array.isArray(value) ? value.join(' ') : String(value);
+            continue;
+        }
+
+        if (key === 'style' && typeof value === 'object' && !Array.isArray(value)) {
+            // Convert style object to inline string
+            out['style'] = Object.entries(value as Record<string, unknown>)
+                .filter(([, v]) => v !== undefined && v !== null)
+                .map(([k, v]) => `${k}:${v}`)
+                .join(';');
+            continue;
+        }
+
+        out[key] = value;
+    }
+
+    return out;
+}
+
+// Semantic tag map
+
+const HEADING_RE = /^h([1-6])$/;
+
+const SEMANTIC_TAG_MAP: Record<string, IRNodeType> = {
+    p: 'paragraph',
+    ul: 'list',
+    ol: 'list',
+    li: 'list-item',
+    a: 'link',
+    img: 'image',
+    em: 'emphasis',
+    strong: 'strong',
+    blockquote: 'blockquote',
+    hr: 'thematic-break',
+    table: 'table',
+    tr: 'table-row',
+    td: 'table-cell',
+    th: 'table-cell',
+};
+
+// Tags that are blocked for security
+const BLOCKED_TAGS = new Set(['script', 'iframe', 'object', 'embed']);
+
+// Child traversal
+
+function transformChildren(nodes: any[], ctx: TransformContext): IRNode[] {
     const result: IRNode[] = [];
     for (const node of nodes) {
-        result.push(transformNode(node, filePath, ctx));
+        const ir = transformNode(node, ctx);
+        if (ir !== null) result.push(ir);
     }
     return result;
 }
 
-function transformNode(node: Content, filePath: string, ctx: TransformContext): IRNode {
-    const nodeId = `${ctx.slugger.slug(filePath)}-${ctx.nodeCounter++}`;
+// Node transform (HAST)
 
-    switch (node.type as string) {
-        case 'heading': {
-            const h = node as Heading;
-            const text = extractPlainText(node);
-            const id = ctx.slugger.slug(text);
-            ctx.headings.push({ depth: h.depth, text, id });
-            return {
-                type: 'heading',
-                id: nodeId,
-                props: { depth: h.depth, id },
-                children: transformChildren(h.children as Content[], filePath, ctx),
-            };
+function transformNode(node: any, ctx: TransformContext): IRNode | null {
+    // HAST text node
+    if (node.type === 'text') {
+        return transformText(node as Text, ctx);
+    }
+
+    // Raw nodes should not survive rehype-raw, but guard anyway
+    if (node.type === 'raw') {
+        if (process.env.NODE_ENV !== 'production') {
+            console.warn('[dockit] Unexpected raw HAST node — skipping');
         }
+        return null;
+    }
 
-        case 'paragraph':
-            return {
-                type: 'paragraph',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    (node as { children: Content[] }).children,
-                    filePath,
-                    ctx,
-                ),
-            };
+    // Root / doctype / comment — skip non-element nodes at top level
+    if (node.type !== 'element') {
+        return null;
+    }
 
-        case 'text':
-            return { type: 'text', id: nodeId, props: { value: (node as Text).value }, children: [] };
+    return transformElement(node as Element, ctx);
+}
 
-        case 'code': {
-            const c = node as Code;
+// Text node
+
+function transformText(node: Text, ctx: TransformContext): IRNode {
+    const nodeId = nextId(ctx);
+    return {
+        type: 'text',
+        id: nodeId,
+        props: { value: node.value },
+        children: [],
+    };
+}
+
+// Element node
+
+function transformElement(node: Element, ctx: TransformContext): IRNode | null {
+    const tag = node.tagName;
+    const nodeId = nextId(ctx);
+    const props = normalizeProps(node.properties as Record<string, unknown>);
+
+    // Security: drop blocked tags silently
+    if (BLOCKED_TAGS.has(tag)) {
+        if (process.env.NODE_ENV !== 'production') {
+            console.warn(`[dockit] Blocked tag <${tag}> — skipped`);
+        }
+        return null;
+    }
+
+    // --- Directive passthrough (from remarkDirectiveToHast) ---
+    // Note: rehype-sanitize may camelCase these to dataDirective/dataDirectiveType
+    const directiveName = (props['data-directive'] || props.dataDirective) as string | undefined;
+    const directiveType = (props['data-directive-type'] || props.dataDirectiveType) as string | undefined;
+
+    if (directiveName) {
+        const name = directiveName;
+        const isInline = directiveType !== 'block';
+
+        addDependency(ctx, { type: 'component', name });
+
+        // Clean up internal data props from the final IR
+        const attributes = { ...props };
+        delete attributes['data-directive'];
+        delete attributes.dataDirective;
+        delete attributes['data-directive-type'];
+        delete attributes.dataDirectiveType;
+
+        return {
+            type: isInline ? 'component-inline' : 'component',
+            id: nodeId,
+            props: { name, attributes, hydrate: 'none' },
+            children: isInline ? [] : transformChildren(node.children as any[], ctx),
+        };
+    }
+
+    // --- Heading ---
+    const headingMatch = HEADING_RE.exec(tag);
+    if (headingMatch) {
+        const depth = Number(headingMatch[1]);
+        const text = extractPlainText(node);
+        const id = ctx.slugger.slug(text);
+        ctx.headings.push({ depth, text, id });
+        return {
+            type: 'heading',
+            id: nodeId,
+            props: { depth, id },
+            children: transformChildren(node.children as any[], ctx),
+        };
+    }
+
+    // --- Code block: <pre><code class="language-X">...</code></pre> ---
+    if (tag === 'pre') {
+        const codeChild = (node.children as any[]).find(
+            (c: any) => c.type === 'element' && c.tagName === 'code',
+        ) as Element | undefined;
+
+        if (codeChild) {
+            const codeProps = normalizeProps(codeChild.properties as Record<string, unknown>);
+            const lang = extractLang(codeProps['class'] as string | undefined);
+            const value = extractPlainText(codeChild);
             return {
                 type: 'code-block',
                 id: nodeId,
-                props: { lang: c.lang ?? '', meta: c.meta ?? null, value: c.value },
+                props: { lang, value, meta: null },
                 children: [],
             };
         }
 
-        case 'inlineCode':
-            return {
-                type: 'inline-code',
-                id: nodeId,
-                props: { value: (node as InlineCode).value },
-                children: [],
-            };
-
-        case 'image': {
-            const img = node as Image;
-            if (img.url && !img.url.startsWith('http')) {
-                addDependency(ctx, { type: 'asset', path: resolve(dirname(filePath), img.url) });
-            }
-            return {
-                type: 'image',
-                id: nodeId,
-                props: { src: img.url, alt: img.alt ?? '', title: img.title ?? null },
-                children: [],
-            };
-        }
-
-        case 'link': {
-            const lnk = node as Link;
-            if (lnk.url.endsWith('.md') && !lnk.url.startsWith('http')) {
-                addDependency(ctx, { type: 'file', path: resolve(dirname(filePath), lnk.url) });
-            }
-            return {
-                type: 'link',
-                id: nodeId,
-                props: { href: lnk.url, title: lnk.title ?? null },
-                children: transformChildren(lnk.children as Content[], filePath, ctx),
-            };
-        }
-
-        case 'containerDirective':
-        case 'leafDirective': {
-            // Directives from remark-directive
-            const d = node as Content & {
-                name: string;
-                attributes?: Record<string, unknown>;
-                children?: Content[];
-            };
-            addDependency(ctx, { type: 'component', name: d.name });
-
-            const attributes = { ...(d.attributes ?? {}) };
-            const hydrate = attributes.hydrate;
-            attributes.hydrate = undefined;
-
-            // Resolve attributes that look like local file paths
-            for (const key in attributes) {
-                const val = attributes[key];
-                if (typeof val === 'string' && val.startsWith('./')) {
-                    addDependency(ctx, {
-                        type: 'asset',
-                        path: resolve(dirname(filePath), val),
-                    });
-                }
-            }
-
-            return {
-                type: (node.type as string) === 'containerDirective' ? 'component' : 'component-inline',
-                id: nodeId,
-                props: {
-                    name: d.name,
-                    attributes,
-                    hydrate: hydrate ?? 'none',
-                },
-                children: d.children ? transformChildren(d.children as Content[], filePath, ctx) : [],
-            };
-        }
-
-        case 'emphasis':
-            return {
-                type: 'emphasis',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'strong':
-            return {
-                type: 'strong',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'blockquote':
-            return {
-                type: 'blockquote',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'list': {
-            const list = node as any;
-            return {
-                type: 'list',
-                id: nodeId,
-                props: { ordered: list.ordered ?? false, start: list.start ?? 1 },
-                children: transformChildren(list.children || [], filePath, ctx),
-            };
-        }
-
-        case 'listItem':
-            return {
-                type: 'list-item',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'table': {
-            const tbl = node as any;
-            return {
-                type: 'table',
-                id: nodeId,
-                props: { align: tbl.align ?? [] },
-                children: transformChildren(tbl.children || [], filePath, ctx),
-            };
-        }
-
-        case 'tableRow':
-            return {
-                type: 'table-row',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'tableCell':
-            return {
-                type: 'table-cell',
-                id: nodeId,
-                props: {},
-                children: transformChildren(
-                    ((node as any).children || []) as Content[],
-                    filePath,
-                    ctx,
-                ),
-            };
-
-        case 'thematicBreak':
-            return { type: 'thematic-break', id: nodeId, props: {}, children: [] };
-
-        default: {
-            if (process.env.NODE_ENV !== 'production') {
-                console.warn(`[dockit] Unknown mdast node type: "${node.type}"`);
-            }
-            return {
-                type: 'unknown',
-                id: nodeId,
-                props: { originalType: node.type },
-                children: 'children' in node
-                    ? transformChildren((node as any).children || [], filePath, ctx)
-                    : [],
-            };
-        }
+        // <pre> without <code> child — treat as generic element
     }
+
+    // --- Inline code (top-level <code>, not inside <pre>) ---
+    if (tag === 'code') {
+        return {
+            type: 'inline-code',
+            id: nodeId,
+            props: { value: extractPlainText(node) },
+            children: [],
+        };
+    }
+
+    // --- List ---
+    if (tag === 'ul' || tag === 'ol') {
+        return {
+            type: 'list',
+            id: nodeId,
+            props: { ordered: tag === 'ol', start: 1, ...props },
+            children: transformChildren(node.children as any[], ctx),
+        };
+    }
+
+    // --- Link ---
+    if (tag === 'a') {
+        const href = (props['href'] as string) ?? '';
+        if (href.endsWith('.md') && !href.startsWith('http')) {
+            addDependency(ctx, { type: 'file', path: resolve(dirname(ctx.filePath), href) });
+        }
+        return {
+            type: 'link',
+            id: nodeId,
+            props: { href, title: props['title'] ?? null, ...filterClass(props) },
+            children: transformChildren(node.children as any[], ctx),
+        };
+    }
+
+    // --- Image ---
+    if (tag === 'img') {
+        const src = (props['src'] as string) ?? '';
+        if (src && !src.startsWith('http')) {
+            addDependency(ctx, { type: 'asset', path: resolve(dirname(ctx.filePath), src) });
+        }
+        return {
+            type: 'image',
+            id: nodeId,
+            props: { src, alt: props['alt'] ?? '', title: props['title'] ?? null },
+            children: [],
+        };
+    }
+
+
+    // --- Semantic map lookup ---
+    const semanticType = SEMANTIC_TAG_MAP[tag];
+    if (semanticType) {
+        return {
+            type: semanticType,
+            id: nodeId,
+            props,
+            children: transformChildren(node.children as any[], ctx),
+        };
+    }
+
+    // --- Fallback: generic element passthrough ---
+    return {
+        type: 'element',
+        id: nodeId,
+        props: { tag, ...props },
+        children: transformChildren(node.children as any[], ctx),
+    };
 }
 
 // Helpers
+
+function nextId(ctx: TransformContext): string {
+    return `node-${ctx.nodeCounter++}`;
+}
+
+function filterClass(props: Record<string, unknown>): Record<string, unknown> {
+    const { class: cls } = props;
+    return cls !== undefined ? { class: cls } : {};
+}
+
+/** Extract plain text content from a HAST element or text node */
+function extractPlainText(node: any): string {
+    if (node.type === 'text') return node.value as string;
+    if (Array.isArray(node.children)) {
+        return (node.children as any[]).map(extractPlainText).join('');
+    }
+    return '';
+}
+
+/** Extract language from "language-ts" style class string */
+function extractLang(classStr: string | undefined): string {
+    if (!classStr) return '';
+    const match = /language-(\S+)/.exec(classStr);
+    return match?.[1] ?? '';
+}
 
 function addDependency(ctx: TransformContext, dep: Dependency): void {
     let normalized: Dependency;
@@ -299,19 +336,15 @@ function addDependency(ctx: TransformContext, dep: Dependency): void {
         };
     }
 
-    const key = normalized.type === 'component' ? `c:${normalized.name}` : `${normalized.type}:${(normalized as any).path}`;
+    const key =
+        normalized.type === 'component'
+            ? `c:${normalized.name}`
+            : `${normalized.type}:${(normalized as any).path}`;
+
     if (!ctx.seenDeps.has(key)) {
         ctx.seenDeps.add(key);
         ctx.dependencies.push(normalized);
     }
-}
-
-function extractPlainText(node: Content): string {
-    if ('value' in node && typeof node.value === 'string') return node.value;
-    if ('children' in (node as any)) {
-        return ((node as any).children as Content[]).map(extractPlainText).join('');
-    }
-    return '';
 }
 
 function computeSlug(filePath: string, explicitSlug?: string): string {

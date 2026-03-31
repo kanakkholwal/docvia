@@ -169,6 +169,13 @@ export function createDefaultRendererMap(): RendererMap {
             props: { 'data-unknown-type': n.props.originalType },
             children: [{ kind: 'text', value: `Unknown node type: ${n.props.originalType}` }],
         }),
+
+        element: async (n, ctx) => ({
+            kind: 'element',
+            tag: n.props.tag as string,
+            props: { ...n.props },
+            children: await renderNodes(n.children, defaultMap, ctx),
+        }),
     };
 
     Object.assign(defaultMap, map);

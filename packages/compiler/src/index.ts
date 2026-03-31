@@ -12,7 +12,7 @@ import { PluginRunner } from '@dockit/plugins';
 import { extractFrontmatter, validateFrontmatter } from '@dockit/schema';
 import { createSearchIndexer } from '@dockit/search';
 import { xxh64 } from '@node-rs/xxhash';
-import type { Root as MdastRoot } from 'mdast';
+import type { Root as HastRoot } from 'hast';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { cpus } from 'node:os';
 import { extname, join, relative, resolve } from 'node:path';
@@ -257,8 +257,8 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
                 remarkPlugins: config.markdown.remarkPlugins,
             });
 
-            const processedAst = (await pluginRunner.runAfterParse(ast, processedFile)) as MdastRoot;
-            const finalAst = (await pluginRunner.runBeforeTransform(processedAst, frontmatter)) as MdastRoot;
+            const processedAst = (await pluginRunner.runAfterParse(ast, processedFile)) as HastRoot;
+            const finalAst = (await pluginRunner.runBeforeTransform(processedAst, frontmatter)) as HastRoot;
 
             let irDoc = transformToIR(finalAst, frontmatter, file.relativePath);
             const contentHash = computeContentHash({
