@@ -51,7 +51,7 @@
       {/if}
     </svelte:element>
   {:else if isComponent(node)}
-    {@const resolved = registry.resolve(node.name)}
+    {@const resolved = registry?.resolve(node.name)}
     {#if resolved}
       {@const DynamicComponent = asSvelteComponent(resolved.component)}
       <div data-hid={node.id} class="docvia-component-wrapper">
