@@ -12,6 +12,8 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsup",
+        "dev": "tsup --watch",
+        "typecheck": "tsc --noEmit",
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
