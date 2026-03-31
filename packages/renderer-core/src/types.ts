@@ -1,4 +1,4 @@
-import type { HydrationMode, IRNode, PageMeta } from '@dockit/ir';
+import type { HydrationMode, IRNode, PageMeta } from '@docvia/ir';
 
 export type RenderOutput =
     | { kind: 'element'; tag: string; props?: Record<string, unknown>; children?: RenderOutput[]; id?: string }

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import { compile } from '@dockit/compiler';
-import type { DockitConfig } from '@dockit/ir';
-import { DockitError } from '@dockit/ir';
-import { defineConfig, loadConfig } from '@dockit/plugins';
+import { compile } from '@docvia/compiler';
+import type { docviaConfig } from '@docvia/ir';
+import { docviaError } from '@docvia/ir';
+import { defineConfig, loadConfig } from '@docvia/plugins';
 import { Command } from 'commander';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -11,7 +11,7 @@ import { performance } from 'node:perf_hooks';
 
 // Error Formatting
 
-function formatError(err: DockitError): string {
+function formatError(err: docviaError): string {
     const loc = err.loc ? `:${err.loc.line}:${err.loc.column}` : '';
     const file = err.file ? `\n  → ${err.file}${loc}` : '';
     return `\x1b[31m[${err.code}]\x1b[0m ${err.message}${file}`;
@@ -22,15 +22,15 @@ function formatError(err: DockitError): string {
 const program = new Command();
 
 program
-    .name('dockit')
-    .description('Dockit — Build-time documentation compiler')
+    .name('docvia')
+    .description('docvia — Build-time documentation compiler')
     .version('0.0.1');
 
 // init
 
 program
     .command('init')
-    .description('Scaffold a new Dockit project')
+    .description('Scaffold a new docvia project')
     .option('-d, --dir <dir>', 'Project directory', '.')
     .action(async (opts: { dir: string }) => {
         const projectDir = resolve(opts.dir);
@@ -42,12 +42,12 @@ program
         await writeFile(
             join(dir, 'index.md'),
             `---
-title: Welcome to Dockit
+title: Welcome to docvia
 description: Your documentation starts here
 tags: [getting-started]
 ---
 
-# Welcome to Dockit
+# Welcome to docvia
 
 This is your documentation home page. Edit \`docs/index.md\` to get started.
 
@@ -61,8 +61,8 @@ This is your documentation home page. Edit \`docs/index.md\` to get started.
 ## Quick Start
 
 \`\`\`bash
-dockit build
-dockit dev
+docvia build
+docvia dev
 \`\`\`
 `,
             'utf-8',
@@ -72,7 +72,7 @@ dockit dev
             join(dir, 'getting-started.md'),
             `---
 title: Getting Started
-description: Learn how to set up Dockit
+description: Learn how to set up docvia
 tags: [guide, tutorial]
 order: 1
 ---
@@ -82,7 +82,7 @@ order: 1
 ## Installation
 
 \`\`\`bash
-pnpm add @dockit/cli -D
+pnpm add @docvia/cli -D
 \`\`\`
 
 ## Project Structure
@@ -90,8 +90,8 @@ pnpm add @dockit/cli -D
 | Directory | Purpose |
 |-----------|---------|
 | \`docs/\` | Markdown source files |
-| \`.dockit/\` | Compiled output |
-| \`dockit.config.ts\` | Configuration |
+| \`.docvia/\` | Compiled output |
+| \`docvia.config.ts\` | Configuration |
 
 ## Writing Documentation
 
@@ -114,10 +114,10 @@ Content goes here.
 Run the build command to compile your documentation:
 
 \`\`\`bash
-dockit build
+docvia build
 \`\`\`
 
-This will generate compiled output in the \`.dockit/\` directory.
+This will generate compiled output in the \`.docvia/\` directory.
 `,
             'utf-8',
         );
@@ -133,7 +133,7 @@ order: 2
 
 # Components
 
-Dockit supports custom components via the directive syntax.
+docvia supports custom components via the directive syntax.
 
 ## Usage
 
@@ -152,7 +152,7 @@ This is a warning — handle with care!
 Here's a TypeScript example:
 
 \`\`\`typescript
-import { defineConfig } from '@dockit/cli';
+import { defineConfig } from '@docvia/cli';
 
 export default defineConfig({
   dir: 'docs',
@@ -178,12 +178,12 @@ And a Svelte component:
 
         // Create config
         await writeFile(
-            join(projectDir, 'dockit.config.ts'),
-            `import { defineConfig } from '@dockit/cli';
+            join(projectDir, 'docvia.config.ts'),
+            `import { defineConfig } from '@docvia/cli';
 
 export default defineConfig({
   sourceDir: 'docs',
-  outDir: '.dockit',
+  outDir: '.docvia',
   plugins: [],
 });
 `,
@@ -192,8 +192,8 @@ export default defineConfig({
 
         console.log('\x1b[32m✓\x1b[0m Project initialized');
         console.log('  Created docs/ with sample documentation');
-        console.log('  Created dockit.config.ts');
-        console.log('\n  Run \x1b[36mdockit build\x1b[0m to compile');
+        console.log('  Created docvia.config.ts');
+        console.log('\n  Run \x1b[36mdocvia build\x1b[0m to compile');
     });
 
 export { defineConfig };
@@ -205,11 +205,11 @@ program
     .description('Compile documentation')
     .option('--docs <dir>', 'Docs directory')
     .option('--out <dir>', 'Output directory')
-    .option('--config <path>', 'Config file path', "./dockit.config.ts")
+    .option('--config <path>', 'Config file path', "./docvia.config.ts")
     .action(async (opts: { docs?: string; out?: string; config?: string }) => {
         try {
-            const configPath = opts.config ?? resolve('dockit.config.ts');
-            let config: DockitConfig;
+            const configPath = opts.config ?? resolve('docvia.config.ts');
+            let config: docviaConfig;
 
             if (existsSync(configPath)) {
                 config = await loadConfig(configPath);
@@ -222,14 +222,14 @@ program
 
             if (!existsSync(resolve(dir))) {
                 console.error(`\x1b[31m[ERROR]\x1b[0m Docs directory not found: ${dir}`);
-                console.error('  Run \x1b[36mdockit init\x1b[0m first');
+                console.error('  Run \x1b[36mdocvia init\x1b[0m first');
                 process.exit(1);
             }
 
             console.log('\x1b[36m◆\x1b[0m Building documentation...');
             const renderer = config.renderer
             if (!renderer) {
-                throw new DockitError("CONFIG_ERROR", "No renderer configured");
+                throw new docviaError("CONFIG_ERROR", "No renderer configured");
             }
             const result = await compile({
                 sourceDir: resolve(dir),
@@ -244,7 +244,7 @@ program
             console.log(`  ${result.pages.length} pages generated`);
             console.log(`  Output: ${resolve(outDir)}`);
         } catch (err) {
-            if (err instanceof DockitError) {
+            if (err instanceof docviaError) {
                 console.error(formatError(err));
                 if (err.cause) console.error(err.cause);
             } else {
@@ -260,14 +260,14 @@ program
 program
     .command('preview')
     .description('Serve compiled output')
-    .option('--out <dir>', 'Output directory', '.dockit')
+    .option('--out <dir>', 'Output directory', '.docvia')
     .option('-p, --port <port>', 'Port', '4173')
     .action(async (opts: { out: string; port: string }) => {
         const outDir = resolve(opts.out);
 
         if (!existsSync(outDir)) {
             console.error(`\x1b[31m[ERROR]\x1b[0m Output directory not found: ${outDir}`);
-            console.error('  Run \x1b[36mdockit build\x1b[0m first');
+            console.error('  Run \x1b[36mdocvia build\x1b[0m first');
             process.exit(1);
         }
 
@@ -294,11 +294,11 @@ program
     .description('Start dev mode with file watching')
     .option('--docs <dir>', 'Docs directory')
     .option('--out <dir>', 'Output directory')
-    .option('--config <path>', 'Config file path', "./dockit.config.ts")
+    .option('--config <path>', 'Config file path', "./docvia.config.ts")
     .action(async (opts: { docs?: string; out?: string; config?: string }) => {
         try {
-            const configPath = opts.config ?? resolve('dockit.config.ts');
-            let config: DockitConfig;
+            const configPath = opts.config ?? resolve('docvia.config.ts');
+            let config: docviaConfig;
 
             if (existsSync(configPath)) {
                 config = await loadConfig(configPath);
@@ -307,7 +307,7 @@ program
             }
 
             const sourceDir = resolve(opts.docs ?? config.sourceDir ?? 'docs');
-            const outDir = resolve(opts.out ?? config.outDir ?? '.dockit');
+            const outDir = resolve(opts.out ?? config.outDir ?? '.docvia');
 
             if (!existsSync(sourceDir)) {
                 console.error(`\x1b[31m[ERROR]\x1b[0m Source directory not found: ${sourceDir}`);
@@ -319,7 +319,7 @@ program
             // Initial build
             const renderer = config.renderer;
             if (!renderer) {
-                throw new DockitError("CONFIG_ERROR", "No renderer configured");
+                throw new docviaError("CONFIG_ERROR", "No renderer configured");
             }
             const result = await compile({
                 sourceDir,
@@ -351,7 +351,7 @@ program
                 const start = performance.now();
                 const renderer = config.renderer;
                 if (!renderer) {
-                    throw new DockitError("CONFIG_ERROR", "No renderer configured");
+                    throw new docviaError("CONFIG_ERROR", "No renderer configured");
                 }
                 compile({
                     sourceDir,
@@ -363,7 +363,7 @@ program
                     const ms = Math.round(performance.now() - start);
                     console.log(`\x1b[32m✓\x1b[0m Rebuild: ${ms}ms`);
                 }).catch((err: unknown) => {
-                    if (err instanceof DockitError) {
+                    if (err instanceof docviaError) {
                         console.error(formatError(err));
                     } else {
                         console.error('\x1b[31m[ERROR]\x1b[0m', (err as Error).message);
@@ -384,7 +384,7 @@ program
             console.log(`\x1b[36m◆\x1b[0m Watching ${sourceDir} for changes...`);
             console.log('  Press Ctrl+C to stop\n');
         } catch (err) {
-            if (err instanceof DockitError) {
+            if (err instanceof docviaError) {
                 console.error(formatError(err));
             } else {
                 console.error('\x1b[31m[ERROR]\x1b[0m', (err as Error).message);

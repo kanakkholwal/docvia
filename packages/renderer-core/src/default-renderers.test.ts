@@ -1,4 +1,4 @@
-import type { IRNode } from '@dockit/ir';
+import type { IRNode } from '@docvia/ir';
 import { describe, expect, it, vi } from 'vitest';
 import { createDefaultRendererMap } from './default-renderers';
 import type { RenderContext } from './types';
@@ -30,7 +30,7 @@ describe('default-renderers', () => {
         expect(output?.kind).toBe('element');
         if (output?.kind === 'element') {
             expect(output.tag).toBe('div');
-            expect(output.props?.class).toBe('dockit-code-block');
+            expect(output.props?.class).toBe('docvia-code-block');
             expect(output.children?.[0]?.kind).toBe('html');
             if (output.children?.[0]?.kind === 'html') {
                 expect(output.children?.[0]?.value).toBe('<pre><code>hello</code></pre>');

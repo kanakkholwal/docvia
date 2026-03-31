@@ -1,7 +1,7 @@
-import { parseMarkdown } from '@dockit/core';
-import { transformToIR } from '@dockit/ir';
-import { createDefaultRendererMap, renderDocument } from '@dockit/renderer-core';
-import { extractFrontmatter, validateFrontmatter } from '@dockit/schema';
+import { parseMarkdown } from '@docvia/core';
+import { transformToIR } from '@docvia/ir';
+import { createDefaultRendererMap, renderDocument } from '@docvia/renderer-core';
+import { extractFrontmatter, validateFrontmatter } from '@docvia/schema';
 import fs from 'node:fs/promises';
 
 export async function loadMarkdown(filePath: string) {

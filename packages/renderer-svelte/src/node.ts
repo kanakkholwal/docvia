@@ -3,7 +3,7 @@ import type {
     PageMeta,
     RenderedPage,
     RendererAdapter
-} from '@dockit/ir';
+} from '@docvia/ir';
 import { type Highlighter, createHighlighter } from 'shiki';
 
 import {
@@ -12,7 +12,7 @@ import {
     type SyntaxHighlighter,
     createDefaultRendererMap,
     renderDocument,
-} from '@dockit/renderer-core';
+} from '@docvia/renderer-core';
 
 export function createShikiHighlighter(opts?: {
     theme?: string;
@@ -130,8 +130,8 @@ export function createSvelteRenderer(options: {
 
 // Vite Plugin
 
-const VIRTUAL_PREFIX = 'virtual:dockit/';
-const RESOLVED_PREFIX = '\0virtual:dockit/';
+const VIRTUAL_PREFIX = 'virtual:docvia/';
+const RESOLVED_PREFIX = '\0virtual:docvia/';
 
 export interface InMemoryStore {
     get(slug: string): RenderedPage | undefined;
@@ -148,9 +148,9 @@ export function createInMemoryStore(): InMemoryStore {
     };
 }
 
-export function dockitVitePlugin(store: InMemoryStore) {
+export function docviaVitePlugin(store: InMemoryStore) {
     return {
-        name: 'dockit',
+        name: 'docvia',
 
         resolveId(id: string) {
             if (id.startsWith(VIRTUAL_PREFIX)) {

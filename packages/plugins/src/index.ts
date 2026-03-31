@@ -1,29 +1,29 @@
 import type {
-    DockitConfig,
-    DockitPlugin,
+    docviaConfig,
+    docviaPlugin,
     FileEntry,
     FrontmatterData,
     HookPhase,
     IRDocument,
-} from '@dockit/ir';
-import { DockitError } from '@dockit/ir';
+} from '@docvia/ir';
+import { docviaError } from '@docvia/ir';
 import { createJiti } from 'jiti';
 import { resolve } from 'node:path';
 
 // Plugin Resolution
 
-export function resolvePlugins(plugins: readonly DockitPlugin[]): readonly DockitPlugin[] {
+export function resolvePlugins(plugins: readonly docviaPlugin[]): readonly docviaPlugin[] {
     const names = new Set<string>();
 
     for (const p of plugins) {
         if (!p.name) {
-            throw new DockitError('PLUGIN_ERROR', 'Plugin missing name');
+            throw new docviaError('PLUGIN_ERROR', 'Plugin missing name');
         }
         if (!p.version) {
-            throw new DockitError('PLUGIN_ERROR', `Plugin "${p.name}" missing version`);
+            throw new docviaError('PLUGIN_ERROR', `Plugin "${p.name}" missing version`);
         }
         if (names.has(p.name)) {
-            throw new DockitError('PLUGIN_ERROR', `Duplicate plugin: "${p.name}"`);
+            throw new docviaError('PLUGIN_ERROR', `Duplicate plugin: "${p.name}"`);
         }
         names.add(p.name);
     }
@@ -39,9 +39,9 @@ export function resolvePlugins(plugins: readonly DockitPlugin[]): readonly Docki
 // Plugin Runner
 
 export class PluginRunner {
-    private readonly plugins: readonly DockitPlugin[];
+    private readonly plugins: readonly docviaPlugin[];
 
-    constructor(plugins: readonly DockitPlugin[]) {
+    constructor(plugins: readonly docviaPlugin[]) {
         this.plugins = resolvePlugins(plugins);
     }
 
@@ -102,10 +102,10 @@ export class PluginRunner {
 
 // Config Loader
 
-export function defineConfig(config: Partial<DockitConfig>): DockitConfig {
+export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
     return {
         sourceDir: config.sourceDir ?? 'docs',
-        outDir: config.outDir ?? '.dockit',
+        outDir: config.outDir ?? '.docvia',
         plugins: config.plugins ?? [],
         renderer: config.renderer,
         components: config.components,
@@ -124,7 +124,7 @@ export function defineConfig(config: Partial<DockitConfig>): DockitConfig {
     };
 }
 
-export async function loadConfig(configPath: string): Promise<DockitConfig> {
+export async function loadConfig(configPath: string): Promise<docviaConfig> {
     try {
         const jiti = createJiti(import.meta.url, {
             moduleCache: false,
@@ -137,7 +137,7 @@ export async function loadConfig(configPath: string): Promise<DockitConfig> {
 
         return defineConfig(rawConfig);
     } catch (err) {
-        throw new DockitError(
+        throw new docviaError(
             'CONFIG_ERROR',
             `Failed to load config: ${configPath}`,
             configPath,

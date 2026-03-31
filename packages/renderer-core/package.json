@@ -1,5 +1,5 @@
 {
-    "name": "@dockit/renderer-core",
+    "name": "@docvia/renderer-core",
     "version": "0.0.1",
     "type": "module",
     "exports": {
@@ -16,7 +16,7 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "@dockit/ir": "workspace:*"
+        "@docvia/ir": "workspace:*"
     },
     "devDependencies": {
         "@types/node": "^25.5.0",

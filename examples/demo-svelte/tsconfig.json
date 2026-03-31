@@ -19,10 +19,10 @@
 		"src/**/*.js",
 		"src/**/*.ts",
 		"src/**/*.svelte",
-		".dockit/**/*.ts",
-		".dockit/**/*.json",
+		".docvia/**/*.ts",
+		".docvia/**/*.json",
 		"vite.config.ts",
-		"dockit-env.d.ts"
+		"docvia-env.d.ts"
 	]
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

@@ -1,20 +1,20 @@
 # Technical Documentation & Contributing Guide
 
-Welcome to the **Dockit** technical documentation. This guide is intended for developers looking to understand the core architecture or contribute to the project.
+Welcome to the **docvia** technical documentation. This guide is intended for developers looking to understand the core architecture or contribute to the project.
 
 ## Architecture Overview
 
-Dockit follows a **Compiler-Grade Architecture** designed for scalability and extensibility.
+docvia follows a **Compiler-Grade Architecture** designed for scalability and extensibility.
 
 ### 1. The Pipeline
-1. **Core Parser (`@dockit/core`):** Micromark-based parser converts markdown strings into a standard `mdast` (Markdown Abstract Syntax Tree).
-2. **Plugins (`@dockit/plugins`):** `unified` plugins can intercept and modify the `mdast` before transformation.
-3. **IR Transform (`@dockit/ir`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
-4. **Compiler (`@dockit/compiler`):** Manages the build lifecycle, handles parallel file processing, uses `xxhash` for content-addressable output, and emits assets.
-5. **Renderer (`@dockit/renderer-svelte`):** Takes IR nodes and generates Svelte-compatible JavaScript modules, including pre-rendered Shiki syntax highlighting.
+1. **Core Parser (`@docvia/core`):** Micromark-based parser converts markdown strings into a standard `mdast` (Markdown Abstract Syntax Tree).
+2. **Plugins (`@docvia/plugins`):** `unified` plugins can intercept and modify the `mdast` before transformation.
+3. **IR Transform (`@docvia/ir`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
+4. **Compiler (`@docvia/compiler`):** Manages the build lifecycle, handles parallel file processing, uses `xxhash` for content-addressable output, and emits assets.
+5. **Renderer (`@docvia/renderer-svelte`):** Takes IR nodes and generates Svelte-compatible JavaScript modules, including pre-rendered Shiki syntax highlighting.
 
 ### 2. Intermediate Representation (IR)
-Dockit operates on IR rather than raw HTML. This allows different renderers (Svelte, React, Vue) to generate framework-optimized output from the same parsed source.
+docvia operates on IR rather than raw HTML. This allows different renderers (Svelte, React, Vue) to generate framework-optimized output from the same parsed source.
 
 ```typescript
 // Example IR Node
@@ -42,8 +42,8 @@ This ensures that only changed files (and their dependents) are recomputed.
 
 ### Monorepo Installation
 ```bash
-git clone https://github.com/your-username/dockit-mvp.git
-cd dockit-mvp
+git clone https://github.com/kanakkholwal/docvia.git
+cd docvia
 pnpm install
 ```
 
@@ -67,7 +67,7 @@ node ./packages/cli/dist/index.js init
 5. **PR Guidelines:** Keep PRs focused on a single feature or bug fix.
 
 ## Roadmap
-- [ ] `@dockit/ui` component library.
+- [ ] `@docvia/ui` component library.
 - [ ] Multi-package documentation support (`docs/` mapping to multiple sub-domains).
 - [ ] Integrated dev server with surgical HMR (via Vite).
 - [ ] Auto-link and SEO Meta-Tag plugins.

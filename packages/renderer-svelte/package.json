@@ -1,5 +1,5 @@
 {
-    "name": "@dockit/renderer-svelte",
+    "name": "@docvia/renderer-svelte",
     "version": "0.0.1",
     "type": "module",
     "exports": {
@@ -22,8 +22,9 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "@dockit/ir": "workspace:*",
-        "@dockit/renderer-core": "workspace:*",
+        "@docvia/ir": "workspace:*",
+        "@docvia/renderer-core": "workspace:*",
+        "@sveltejs/vite-plugin-svelte": "^7.0.0",
         "quick-lru": "^7.3.0",
         "shiki": "^4.0.2"
     },

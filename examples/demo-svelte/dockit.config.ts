@@ -1,11 +1,11 @@
-import { defineConfig } from '@dockit/cli';
-import { createShikiHighlighter, createSvelteRenderer } from '@dockit/renderer-svelte/node';
+import { defineConfig } from '@docvia/cli';
+import { createShikiHighlighter, createSvelteRenderer } from '@docvia/renderer-svelte/node';
 
 export default defineConfig({
     sourceDir: 'src/docs',
-    outDir: '.dockit',
+    outDir: '.docvia',
 
-    // Register your components here — once. Dockit will generate the runtime
+    // Register your components here — once. docvia will generate the runtime
     // registry automatically so you don't need to repeat this in +page.svelte.
     components: {
         counter: {

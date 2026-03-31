@@ -23,22 +23,22 @@ const deleteAll = process.argv.includes('--all');
 
 const SKIP_DIRS = new Set(['.git', '.idea', '.vscode', 'node_modules']);
 const DIRS_TO_DELETE = new Set([
-	'dist',
-	'build',
-	'out',
-	'.next',
-	'coverage',
-	'.cache',
-	'.turbo',
-	'.astro',
-	'.svelte-kit',
-	'_build',
-	'__sveltekit__'
+    'dist',
+    'build',
+    'out',
+    '.next',
+    'coverage',
+    '.cache',
+    '.turbo',
+    '.astro',
+    '.svelte-kit',
+    '_build',
+    '__sveltekit__'
 ]);
 
 // Add node_modules if --all flag is used
 if (deleteAll) {
-	DIRS_TO_DELETE.add('node_modules');
+    DIRS_TO_DELETE.add('node_modules');
 }
 
 let found = 0;
@@ -105,10 +105,10 @@ async function walk(dir) {
 }
 
 (async () => {
-    console.log('\n📦 Dockit Monorepo Cleaner');
+    console.log('\n📦 docvia Monorepo Cleaner');
     console.log('─'.repeat(50));
     console.log('Scanning from:', repoRoot);
-    
+
     if (dryRun) {
         console.log('Mode: DRY RUN (no changes will be made)\n');
     } else {
@@ -130,7 +130,7 @@ async function walk(dir) {
             console.log(`Removed: ${removed} director${removed === 1 ? 'y' : 'ies'}`);
         }
         console.log(`Skipped: ${skipped} director${skipped === 1 ? 'y' : 'ies'}`);
-        
+
         if (removedPaths.length && verbose) {
             console.log('\n📁 Removed paths:');
             for (const p of removedPaths) console.log('  -', p);

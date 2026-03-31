@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ComponentRegistry, RenderOutput } from "@dockit/renderer-core";
+  import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
   import type { Component } from "svelte";
   import Renderer from "./Renderer.svelte";
 
@@ -54,7 +54,7 @@
     {@const resolved = registry.resolve(node.name)}
     {#if resolved}
       {@const DynamicComponent = asSvelteComponent(resolved.component)}
-      <div data-hid={node.id} class="dockit-component-wrapper">
+      <div data-hid={node.id} class="docvia-component-wrapper">
         <DynamicComponent {...node.props || {}}>
           {#if node.children}
             <Renderer nodes={node.children} {registry} />
@@ -62,7 +62,7 @@
         </DynamicComponent>
       </div>
     {:else}
-      <div class="dockit-error">Unknown component: {node.name}</div>
+      <div class="docvia-error">Unknown component: {node.name}</div>
     {/if}
   {:else if isFragment(node)}
     <Renderer nodes={node.children} {registry} />

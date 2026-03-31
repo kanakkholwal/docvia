@@ -1,37 +1,37 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export function dockitSourcePlugin() {
+export function docviaSourcePlugin() {
   return {
-    name: 'dockit:source',
+    name: 'docvia:source',
     config(config: any) {
       const root = config.root || process.cwd();
       config.server = config.server || {};
       config.server.fs = config.server.fs || {};
       config.server.fs.allow = config.server.fs.allow || [];
-      config.server.fs.allow.push(path.resolve(root, '.dockit'));
+      config.server.fs.allow.push(path.resolve(root, '.docvia'));
 
       // Don't set an alias - we'll handle resolution with resolveId and load hooks instead
       return config;
     },
 
     resolveId(id: string) {
-      if (id === 'dockit:source' || id.startsWith('dockit:source/')) {
+      if (id === 'docvia:source' || id.startsWith('docvia:source/')) {
         return `\0${id}`;
       }
       return null;
     },
 
     load(id: string) {
-      if (!id.startsWith('\0dockit:source')) return;
+      if (!id.startsWith('\0docvia:source')) return;
 
       const root = process.cwd();
-      const collectionsDir = path.join(root, '.dockit/collections');
+      const collectionsDir = path.join(root, '.docvia/collections');
 
       if (!fs.existsSync(collectionsDir)) {
         return `
-          import { createSource } from '@dockit/source/internal';
-          export const dockitSource = createSource({});
+          import { createSource } from '@docvia/source/internal';
+          export const docviaSource = createSource({});
         `;
       }
 
@@ -44,7 +44,7 @@ export function dockitSourcePlugin() {
 
       // Special case: registry sub-module
       if (single === 'registry') {
-        const registryPath = path.join(root, '.dockit/registry.ts');
+        const registryPath = path.join(root, '.docvia/registry.ts');
         if (fs.existsSync(registryPath)) {
           return fs.readFileSync(registryPath, 'utf-8');
         }
@@ -66,10 +66,10 @@ export function dockitSourcePlugin() {
         const varName = `c${i}`;
 
         imports.push(`
-          import * as routes_${varName} from '/.dockit/collections/${name}/routes';
-          import meta_${varName} from '/.dockit/collections/${name}/meta.json';
-          import nav_${varName} from '/.dockit/collections/${name}/nav.json';
-          import tags_${varName} from '/.dockit/collections/${name}/tags.json';
+          import * as routes_${varName} from '/.docvia/collections/${name}/routes';
+          import meta_${varName} from '/.docvia/collections/${name}/meta.json';
+          import nav_${varName} from '/.docvia/collections/${name}/nav.json';
+          import tags_${varName} from '/.docvia/collections/${name}/tags.json';
         `);
 
         inits.push(`
@@ -85,7 +85,7 @@ export function dockitSourcePlugin() {
       });
 
       return `
-        import { createCollection, createSource } from '@dockit/source/internal';
+        import { createCollection, createSource } from '@docvia/source/internal';
 
         ${imports.join('\n')}
 
@@ -95,7 +95,7 @@ export function dockitSourcePlugin() {
           ${targets.map((name, i) => `${unescape(name)}: c${i}`).join(',')}
         };
 
-        export const dockitSource = createSource(collections);
+        export const docviaSource = createSource(collections);
 
         ${targets.map((name) => `export const ${name} = collections['${name}'];`).join('\n')}
       `;

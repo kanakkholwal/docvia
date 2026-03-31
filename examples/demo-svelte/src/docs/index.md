@@ -1,14 +1,14 @@
 ---
-title: Welcome to Dockit
-description: Fast, modern documentation with Dockit
+title: Welcome to docvia
+description: Fast, modern documentation with docvia
 tags: [getting-started]
 ---
 
-# Welcome to Dockit
+# Welcome to docvia
 
-Fast, modern documentation powered by Dockit. Build-time compilation, zero runtime overhead, and a beautiful UI out of the box.
+Fast, modern documentation powered by docvia. Build-time compilation, zero runtime overhead, and a beautiful UI out of the box.
 
-## Why Dockit?
+## Why docvia?
 
 - **Build-time compilation** — Zero runtime markdown parsing overhead
 - **Incremental rebuilds** — Only recompile changed pages
@@ -19,22 +19,22 @@ Fast, modern documentation powered by Dockit. Build-time compilation, zero runti
 
 ## Quick Start
 
-Install Dockit in your SvelteKit project:
+Install docvia in your SvelteKit project:
 
 ```bash
-npm install -D @dockit/cli @dockit/compiler @dockit/source
+npm install -D @docvia/cli @docvia/compiler @docvia/source
 ```
 
 Initialize your documentation:
 
 ```bash
-dockit init
+docvia init
 ```
 
 Start the development server:
 
 ```bash
-dockit dev
+docvia dev
 ```
 
 Your docs will be available at `http://localhost:5173`.

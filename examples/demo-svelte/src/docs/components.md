@@ -7,7 +7,7 @@ order: 2
 
 # Components
 
-Dockit ships with multiple ways to enhance your documentation with interactive components.
+docvia ships with multiple ways to enhance your documentation with interactive components.
 
 ## Renderer Component
 
@@ -15,8 +15,8 @@ The core renderer that displays all compiled markdown content:
 
 ```svelte
 <script>
-  import { Renderer } from '@dockit/renderer-svelte';
-  import { registry } from 'dockit:source/registry';
+  import { Renderer } from '@docvia/renderer-svelte';
+  import { registry } from 'docvia:source/registry';
   
   export let nodes;
 </script>
@@ -107,7 +107,7 @@ Feature comparison table:
 
 ### Ordered Steps
 
-1. Initialize your Dockit project
+1. Initialize your docvia project
 2. Create documentation files
 3. Configure your site
 4. Deploy to production
@@ -126,6 +126,6 @@ Feature comparison table:
 
 ## Next Steps
 
-Learn how to [get started](./getting-started) with Dockit in your project.
+Learn how to [get started](./getting-started) with docvia in your project.
 </div>
 ```

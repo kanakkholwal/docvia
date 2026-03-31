@@ -1,18 +1,18 @@
-import { dockitMarkdownPlugin, dockitSourcePlugin } from "@dockit/vite-plugin";
+import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/vite-plugin";
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import dockitConfig from './dockit.config';
+import docviaConfig from './docvia.config';
 
 
 export default defineConfig({
     plugins: [
         sveltekit(),
-        dockitSourcePlugin(),
-        dockitMarkdownPlugin(dockitConfig)
+        docviaSourcePlugin(),
+        docviaMarkdownPlugin(docviaConfig)
     ],
-	build: {
-		rollupOptions: {
-			external: ["@dockit/source", "@dockit/source/internal"]
-		}
-	}
+    build: {
+        rollupOptions: {
+            external: ["@docvia/source", "@docvia/source/internal"]
+        }
+    }
 });

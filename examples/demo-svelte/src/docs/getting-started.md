@@ -1,26 +1,26 @@
 ---
 title: Getting Started
-description: Learn how to set up Dockit
+description: Learn how to set up docvia
 tags: [guide, tutorial]
 order: 1
 ---
 
 # Getting Started
 
-Get Dockit up and running in minutes.
+Get docvia up and running in minutes.
 
 ## Installation
 
-Install Dockit in your project using your preferred package manager:
+Install docvia in your project using your preferred package manager:
 
 ```bash
-npm install -D @dockit/cli @dockit/compiler @dockit/source
+npm install -D @docvia/cli @docvia/compiler @docvia/source
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add -D @dockit/cli @dockit/compiler @dockit/source
+pnpm add -D @docvia/cli @docvia/compiler @docvia/source
 ```
 
 ## Project Structure
@@ -30,15 +30,15 @@ After initialization, your project will have:
 | Directory | Purpose |
 |-----------|---------|
 | `docs/` | Markdown source files for documentation |
-| `dockit.config.ts` | Dockit configuration file |
-| `.dockit/` | Compiled output (auto-generated) |
+| `docvia.config.ts` | docvia configuration file |
+| `.docvia/` | Compiled output (auto-generated) |
 
 ## Configuration
 
-Create a `dockit.config.ts` file in your project root:
+Create a `docvia.config.ts` file in your project root:
 
 ```typescript
-import { defineConfig } from '@dockit/cli';
+import { defineConfig } from '@docvia/cli';
 
 export default defineConfig({
   // Directory containing your markdown files
@@ -79,7 +79,7 @@ Use markdown headings to organize your content.
 Use fenced code blocks for syntax highlighting:
 
 \`\`\`javascript
-console.log('Hello, Dockit!');
+console.log('Hello, docvia!');
 \`\`\`
 ```
 
@@ -88,7 +88,7 @@ console.log('Hello, Dockit!');
 Start the development server with hot reload:
 
 ```bash
-dockit dev
+docvia dev
 ```
 
 Your documentation will be available at `http://localhost:5173`.
@@ -98,10 +98,10 @@ Your documentation will be available at `http://localhost:5173`.
 Compile your documentation for production:
 
 ```bash
-dockit build
+docvia build
 ```
 
-This generates optimized output in the `.dockit/` directory.
+This generates optimized output in the `.docvia/` directory.
 
 ## Deployment
 
@@ -171,12 +171,12 @@ const user: User = {
 
 - Explore [Components](./components) for advanced features
 - Check [Configuration](./configuration) for custom settings
-- Join our [Community](https://github.com/kanakkholwal/dockit)
+- Join our [Community](https://github.com/kanakkholwal/docvia)
 
 ## Getting Help
 
 Need help? Check out:
 
 - The [documentation](/)
-- [GitHub Issues](https://github.com/kanakkholwal/dockit/issues)
+- [GitHub Issues](https://github.com/kanakkholwal/docvia/issues)
 - GitHub Discussions

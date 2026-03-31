@@ -1,4 +1,4 @@
-import type { IRDocument, IRNode } from '@dockit/ir';
+import type { IRDocument, IRNode } from '@docvia/ir';
 import { RenderError } from './errors';
 import type { HydrationManifest, RenderContext, RenderOutput, RendererMap } from './types';
 
@@ -58,7 +58,7 @@ export async function renderNodes(
             out.push({
                 kind: 'element',
                 tag: 'div',
-                props: { class: 'dockit-render-error' },
+                props: { class: 'docvia-render-error' },
                 children: [{ kind: 'text', value: `Render error: ${renderErr.message}` }],
             });
         }

@@ -33,22 +33,22 @@ importers:
 
   examples/demo-svelte:
     devDependencies:
-      '@dockit/cli':
+      '@docvia/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@dockit/compiler':
+      '@docvia/compiler':
         specifier: workspace:*
         version: link:../../packages/compiler
-      '@dockit/renderer-core':
+      '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../../packages/renderer-core
-      '@dockit/renderer-svelte':
+      '@docvia/renderer-svelte':
         specifier: workspace:*
         version: link:../../packages/renderer-svelte
-      '@dockit/source':
+      '@docvia/source':
         specifier: workspace:*
         version: link:../../packages/source
-      '@dockit/vite-plugin':
+      '@docvia/vite-plugin':
         specifier: workspace:*
         version: link:../../packages/vite-plugin
       '@sveltejs/adapter-auto':
@@ -75,19 +75,19 @@ importers:
 
   packages/cli:
     dependencies:
-      '@dockit/compiler':
+      '@docvia/compiler':
         specifier: workspace:*
         version: link:../compiler
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@dockit/plugins':
+      '@docvia/plugins':
         specifier: workspace:*
         version: link:../plugins
-      '@dockit/renderer-svelte':
+      '@docvia/renderer-svelte':
         specifier: workspace:*
         version: link:../renderer-svelte
-      '@dockit/search':
+      '@docvia/search':
         specifier: workspace:*
         version: link:../search
       chokidar:
@@ -112,19 +112,19 @@ importers:
 
   packages/compiler:
     dependencies:
-      '@dockit/core':
+      '@docvia/core':
         specifier: workspace:*
         version: link:../core
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@dockit/plugins':
+      '@docvia/plugins':
         specifier: workspace:*
         version: link:../plugins
-      '@dockit/schema':
+      '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
-      '@dockit/search':
+      '@docvia/search':
         specifier: workspace:*
         version: link:../search
       '@node-rs/xxhash':
@@ -220,7 +220,7 @@ importers:
 
   packages/plugins:
     dependencies:
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
       jiti:
@@ -239,7 +239,7 @@ importers:
 
   packages/renderer-core:
     dependencies:
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
     devDependencies:
@@ -258,12 +258,15 @@ importers:
 
   packages/renderer-svelte:
     dependencies:
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@dockit/renderer-core':
+      '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.0.0
+        version: 7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(yaml@2.8.3))
       quick-lru:
         specifier: ^7.3.0
         version: 7.3.0
@@ -286,7 +289,7 @@ importers:
 
   packages/schema:
     dependencies:
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
       yaml:
@@ -308,7 +311,7 @@ importers:
 
   packages/search:
     dependencies:
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
       '@orama/orama':
@@ -327,16 +330,16 @@ importers:
 
   packages/source:
     dependencies:
-      '@dockit/core':
+      '@docvia/core':
         specifier: workspace:*
         version: link:../core
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@dockit/renderer-core':
+      '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
-      '@dockit/schema':
+      '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
     devDependencies:
@@ -352,16 +355,16 @@ importers:
 
   packages/vite-plugin:
     dependencies:
-      '@dockit/core':
+      '@docvia/core':
         specifier: workspace:*
         version: link:../core
-      '@dockit/ir':
+      '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@dockit/schema':
+      '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
-      '@dockit/source':
+      '@docvia/source':
         specifier: workspace:*
         version: link:../source
     devDependencies:

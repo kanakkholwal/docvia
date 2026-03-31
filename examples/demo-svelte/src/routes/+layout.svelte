@@ -9,8 +9,11 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Dockit Documentation</title>
-	<meta name="description" content="Modern documentation site powered by Dockit" />
+	<title>docvia Documentation</title>
+	<meta
+		name="description"
+		content="Modern documentation site powered by docvia"
+	/>
 </svelte:head>
 
 <Layout nav={data.nav} {children} />
