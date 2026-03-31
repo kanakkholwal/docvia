@@ -18,17 +18,18 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsup",
+        "build": "svelte-package --input src --output dist",
+        "check": "svelte-check --tsconfig ./tsconfig.json",
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
         "@docvia/ir": "workspace:*",
         "@docvia/renderer-core": "workspace:*",
-        "@sveltejs/vite-plugin-svelte": "^7.0.0",
-        "quick-lru": "^7.3.0",
         "shiki": "^4.0.2"
     },
     "devDependencies": {
+        "@sveltejs/package": "^2.5.7",
+        "@sveltejs/vite-plugin-svelte": "^7.0.0",
         "@types/node": "^25.5.0",
         "svelte": "^5.49.2",
         "typescript": "^5.9.3",
