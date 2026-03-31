@@ -5,7 +5,7 @@
 
   interface Props {
     nodes: RenderOutput | RenderOutput[];
-    registry: ComponentRegistry;
+    registry?: ComponentRegistry;
   }
 
   const { nodes, registry }: Props = $props();

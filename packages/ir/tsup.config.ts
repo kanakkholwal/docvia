@@ -6,8 +6,10 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  minify: true,
+  minify: false,
   splitting: false,
   treeshake: true,
   outDir: 'dist',
+  // Ensure no .d.ts files are generated in source directory
+  tsconfig: 'tsconfig.json',
 });

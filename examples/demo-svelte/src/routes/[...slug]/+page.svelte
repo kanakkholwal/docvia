@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { Renderer } from "@docvia/renderer-svelte";
-	import { registry } from "docvia:source/registry";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
 </script>
 
 <article class="article">
-	<Renderer nodes={data.page.content} {registry} />
+	<Renderer nodes={data.page.content}/>
 </article>
 
 <style>
