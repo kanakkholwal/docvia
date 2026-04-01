@@ -16,9 +16,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
+   	"declaration": false, /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+		"declarationMap": false,
+		"sourceMap": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
