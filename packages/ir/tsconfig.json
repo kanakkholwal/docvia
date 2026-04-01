@@ -1,16 +1,10 @@
 {
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
-        "lib": [
-            "dom",
-        ],
-        "noEmit": true
+        "outDir": "dist",
+        "noEmit": false
     },
     "include": [
         "src"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
     ]
 }

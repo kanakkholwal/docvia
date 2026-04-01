@@ -12,14 +12,14 @@ export type docviaErrorCode =
     | 'ASSET_ERROR';
 
 export class docviaError extends Error {
-    readonly name = 'docviaError';
+    override readonly name = 'docviaError';
 
     constructor(
         public readonly code: docviaErrorCode,
         message: string,
         public readonly file?: string,
         public readonly loc?: { readonly line: number; readonly column: number },
-        public readonly cause?: Error,
+        public override readonly cause?: Error,
     ) {
         super(message);
     }
