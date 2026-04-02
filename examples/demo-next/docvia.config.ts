@@ -1,7 +1,17 @@
 import { defineConfig } from '@docvia/cli';
 import { createReactRenderer, createShikiHighlighter } from '@docvia/renderer-react';
+import { z } from 'zod';
 
 export default defineConfig({
+    // Extend built-in frontmatter fields with app-specific ones.
+    // The compiler merges this with the base schema (title, description, tags…),
+    // validates every page at build time, and emits a typed Frontmatter interface
+    // instead of the default union-of-literal-values.
+    schema: z.object({
+        author: z.string().optional(),
+        order: z.number().optional(),
+    }),
+
     sourceDir: 'docs',
     outDir: '.docvia',
 

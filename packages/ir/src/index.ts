@@ -212,6 +212,21 @@ export interface CollectionConfig {
     readonly baseUrl?: string;
 }
 
+/**
+ * Duck-typed interface compatible with `z.ZodObject<any>`.
+ * Allows @docvia/ir to remain free of a zod dependency.
+ */
+export interface FrontmatterSchema {
+    safeParse(data: unknown): {
+        success: true;
+        data: Record<string, unknown>;
+    } | {
+        success: false;
+        error: { issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }> };
+    };
+    readonly shape: Readonly<Record<string, unknown>>;
+}
+
 export interface docviaConfig {
     readonly sourceDir: string;
     readonly outDir: string;
@@ -219,6 +234,25 @@ export interface docviaConfig {
     readonly renderer?: RendererAdapter;
     readonly components?: Record<string, ComponentConfig>;
     readonly collections?: readonly CollectionConfig[];
+    /**
+     * Zod schema to extend and validate frontmatter fields beyond the built-in
+     * (title, description, tags, draft, order, slug). Pass a `z.object({...})`
+     * and the compiler will merge it with the base schema, validate all pages
+     * at build time, and generate a typed `Frontmatter` interface instead of
+     * the default union-of-literal-values.
+     *
+     * @example
+     * ```ts
+     * import { z } from 'zod';
+     * export default defineConfig({
+     *   frontmatter: z.object({
+     *     author: z.string(),
+     *     category: z.enum(['guide', 'reference']).optional(),
+     *   }),
+     * });
+     * ```
+     */
+    readonly frontmatter?: FrontmatterSchema;
     readonly markdown: {
         readonly remarkPlugins: readonly unknown[];
     };

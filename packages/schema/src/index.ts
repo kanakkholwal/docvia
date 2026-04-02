@@ -77,8 +77,10 @@ export const DocPageSchema = z.object({
 export function validateFrontmatter(
     raw: Record<string, unknown>,
     filePath?: string,
+    extensionSchema?: z.ZodObject<z.ZodRawShape>,
 ): FrontmatterData {
-    const result = DocPageSchema.safeParse(raw);
+    const schema = extensionSchema ? DocPageSchema.merge(extensionSchema) : DocPageSchema;
+    const result = schema.safeParse(raw);
 
     if (!result.success) {
         const issues = result.error.issues
@@ -93,4 +95,58 @@ export function validateFrontmatter(
     }
 
     return result.data as FrontmatterData;
+}
+
+// Zod → TypeScript type string conversion
+
+function zodFieldToTs(schema: z.ZodTypeAny): { type: string; optional: boolean } {
+    if (schema instanceof z.ZodOptional) {
+        const inner = zodFieldToTs(schema.unwrap() as z.ZodTypeAny);
+        return { type: inner.type, optional: true };
+    }
+    if (schema instanceof z.ZodDefault) {
+        const inner = zodFieldToTs(schema.removeDefault() as z.ZodTypeAny);
+        return { type: inner.type, optional: false };
+    }
+    if (schema instanceof z.ZodNullable) {
+        const inner = zodFieldToTs(schema.unwrap() as z.ZodTypeAny);
+        return { type: `${inner.type} | null`, optional: inner.optional };
+    }
+    if (schema instanceof z.ZodString) return { type: 'string', optional: false };
+    if (schema instanceof z.ZodNumber) return { type: 'number', optional: false };
+    if (schema instanceof z.ZodBoolean) return { type: 'boolean', optional: false };
+    if (schema instanceof z.ZodLiteral) {
+        // Zod v4 stores values as array; v3 stored as single .value
+        const def = schema._def as { value?: unknown; values?: unknown[] };
+        const val = def.values?.[0] ?? def.value ?? null;
+        return { type: JSON.stringify(val), optional: false };
+    }
+    if (schema instanceof z.ZodEnum) {
+        const opts = schema.options as string[];
+        return { type: opts.map((v) => JSON.stringify(v)).join(' | '), optional: false };
+    }
+    if (schema instanceof z.ZodArray) {
+        const inner = zodFieldToTs(schema.element as z.ZodTypeAny);
+        return { type: `Array<${inner.type}>`, optional: false };
+    }
+    if (schema instanceof z.ZodUnion) {
+        const types = (schema.options as z.ZodTypeAny[]).map((o) => zodFieldToTs(o as z.ZodTypeAny).type);
+        return { type: types.join(' | '), optional: false };
+    }
+    return { type: 'unknown', optional: false };
+}
+
+/**
+ * Converts a Zod object schema (merged with the base DocPageSchema) into a
+ * TypeScript interface string suitable for emitting into `types.d.ts`.
+ */
+export function zodSchemaToFrontmatterTs(extensionSchema: z.ZodObject<z.ZodRawShape>): string {
+    const merged = DocPageSchema.merge(extensionSchema);
+    const lines: string[] = [];
+    for (const [key, fieldSchema] of Object.entries(merged.shape)) {
+        const { type, optional } = zodFieldToTs(fieldSchema as z.ZodTypeAny);
+        lines.push(`  ${key}${optional ? '?' : ''}: ${type};`);
+    }
+    lines.push('  [key: string]: unknown;');
+    return `{\n${lines.join('\n')}\n}`;
 }

@@ -9,7 +9,7 @@ import type {
 } from '@docvia/ir';
 import { transformToIR } from '@docvia/ir';
 import { PluginRunner } from '@docvia/plugins';
-import { extractFrontmatter, validateFrontmatter } from '@docvia/schema';
+import { extractFrontmatter, validateFrontmatter, zodSchemaToFrontmatterTs } from '@docvia/schema';
 import { createSearchIndexer } from '@docvia/search';
 import { xxh64 } from '@node-rs/xxhash';
 import type { Root as HastRoot } from 'hast';
@@ -254,7 +254,8 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
         await compileParallel(files, async (file) => {
             const processedFile = await pluginRunner.runBeforeParse(file);
             const extracted = extractFrontmatter(processedFile.content);
-            const frontmatter = validateFrontmatter(extracted.data, file.path);
+            // biome-ignore lint/suspicious/noExplicitAny: config.schema satisfies ZodObject at runtime
+            const frontmatter = validateFrontmatter(extracted.data, file.path, config.frontmatter as any);
 
             const { ast } = await parseMarkdown(extracted.content, {
                 remarkPlugins: config.markdown.remarkPlugins,
@@ -322,18 +323,27 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
             'export type RouteKey = keyof typeof routes;',
         ].join('\n');
 
-        const uniqueFrontmatters = Array.from(new Set(irDocs.map(doc => JSON.stringify(doc.frontmatter))));
-        const frontmatterUnion = uniqueFrontmatters.length > 0
-            ? uniqueFrontmatters.map(f => `  | ${f}`).join('\n')
-            : '  | Record<string, unknown>';
+        let frontmatterTypeDef: string;
+        if (config.frontmatter) {
+            // User provided a Zod schema — emit a proper typed interface
+            // biome-ignore lint/suspicious/noExplicitAny: config.frontmatter satisfies ZodObject at runtime
+            const tsType = zodSchemaToFrontmatterTs(config.frontmatter as any);
+            frontmatterTypeDef = `export type Frontmatter = ${tsType};`;
+        } else {
+            // Default: union of actual frontmatter literal objects from each page
+            const uniqueFrontmatters = Array.from(new Set(irDocs.map(doc => JSON.stringify(doc.frontmatter))));
+            const frontmatterUnion = uniqueFrontmatters.length > 0
+                ? uniqueFrontmatters.map(f => `  | ${f}`).join('\n')
+                : '  | Record<string, unknown>';
+            frontmatterTypeDef = `export type Frontmatter = \n${frontmatterUnion};`;
+        }
 
         const typesDts = [
             'export type RouteKey =',
             ...toRouteKeyUnion(routes),
             '  | (string & {});',
             '',
-            'export type Frontmatter = ',
-            frontmatterUnion + ';',
+            frontmatterTypeDef,
             '',
             'export type DocPage = import("@docvia/source/runtime").docviaPage<Frontmatter>;',
         ].join('\n');
