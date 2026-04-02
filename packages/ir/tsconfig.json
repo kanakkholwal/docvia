@@ -7,6 +7,7 @@
         "declarationDir": "dist/types",
     },
     "include": [
-        "src"
+        "src",
+        "tests/**/*.test.ts"
     ]
 }

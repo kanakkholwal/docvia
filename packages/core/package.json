@@ -14,7 +14,7 @@
         "build": "tsdown",
         "dev": "tsdown --watch",
         "typecheck": "tsc --noEmit",
-        "test": "echo \"no tests yet\""
+        "test": "vitest run"
     },
     "dependencies": {
         "rehype-raw": "^7.0.0",

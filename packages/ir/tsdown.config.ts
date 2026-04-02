@@ -11,7 +11,7 @@ export default defineConfig({
   outDir: 'dist',
   target: false,
   deps:{
-    onlyBundle: ['github-slugger', "@types/hast","@types/unist"],
+    onlyBundle: ["@types/hast","@types/unist"],
   }
 })
 

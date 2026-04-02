@@ -280,10 +280,13 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
     // --- Semantic map lookup ---
     const semanticType = SEMANTIC_TAG_MAP[tag];
     if (semanticType) {
+        // Preserve original tag for nodes where the tag carries semantic meaning
+        // (e.g. th vs td both map to table-cell but render differently)
+        const extraProps = semanticType === 'table-cell' ? { tag } : {};
         return {
             type: semanticType,
             id: nodeId,
-            props,
+            props: { ...props, ...extraProps },
             children: transformChildren(node.children, ctx),
         };
     }
@@ -352,7 +355,5 @@ function computeSlug(filePath: string, explicitSlug?: string): string {
     return filePath
         .replace(/\\/g, '/')
         .replace(/\.md$/, '')
-        .replace(/\/index$/, '')
-        .split('/')
-        .pop() ?? 'index';
+        .replace(/\/index$/, '') || 'index';
 }

@@ -7,5 +7,5 @@
     },
     "include": [
         "src/**/*"
-    ]
+, "tests/default-renderers.test.ts"    ]
 }
