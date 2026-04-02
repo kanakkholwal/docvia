@@ -1,0 +1,337 @@
+:root {
+    --primary-h: 217;
+    --primary-s: 91%;
+    --primary-l: 60%;
+    --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+    --primary-foreground: hsl(0, 0%, 100%);
+
+    --background: hsl(0, 0%, 100%);
+    --foreground: hsl(20, 14%, 8%);
+
+    --card: hsl(0, 0%, 100%);
+    --card-foreground: hsl(20, 14%, 8%);
+
+    --muted: hsl(220, 13%, 91%);
+    --muted-foreground: hsl(215, 13%, 34%);
+
+    --accent: hsl(220, 13%, 96%);
+    --accent-foreground: hsl(20, 14%, 8%);
+
+    --border: hsl(220, 13%, 91%);
+    --ring: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+
+    --radius: 0.5rem;
+
+    --header-height: 3.5rem;
+    --sidebar-width: 16rem;
+    --toc-width: 14rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: hsl(0, 0%, 3.5%);
+        --foreground: hsl(0, 0%, 98%);
+        --card: hsl(0, 0%, 8%);
+        --card-foreground: hsl(0, 0%, 98%);
+        --muted: hsl(0, 0%, 14%);
+        --muted-foreground: hsl(0, 0%, 64%);
+        --accent: hsl(0, 0%, 10%);
+        --accent-foreground: hsl(0, 0%, 98%);
+        --border: hsl(0, 0%, 14%);
+    }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ---- Layout ---- */
+
+.docs-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-height);
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+}
+
+.topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+    padding: 0 1.5rem;
+}
+
+.topbar-brand {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--primary);
+}
+
+.topbar-tagline {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+}
+
+.docs-body {
+    display: flex;
+    flex: 1;
+}
+
+/* ---- Sidebar ---- */
+
+.sidebar {
+    position: sticky;
+    top: var(--header-height);
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--header-height));
+    overflow-y: auto;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+}
+
+.nav-list, .nav-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-children { padding-left: 0.75rem; margin-top: 0.25rem; }
+
+.nav-item { margin-bottom: 0.125rem; }
+
+.nav-link {
+    display: block;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    transition: color 0.15s, background 0.15s;
+}
+
+.nav-link:hover { color: var(--foreground); background: var(--accent); }
+
+.nav-link--active {
+    color: var(--primary);
+    background: var(--accent);
+    font-weight: 500;
+}
+
+.nav-group-label {
+    display: block;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+    margin-top: 1rem;
+}
+
+/* ---- Docs main ---- */
+
+.docs-main {
+    flex: 1;
+    min-width: 0;
+    padding: 2.5rem 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.doc-page {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    max-width: 75rem;
+    margin: 0 auto;
+}
+
+.prose {
+    flex: 1;
+    min-width: 0;
+    max-width: 65ch;
+}
+
+/* ---- Table of contents ---- */
+
+.toc {
+    display: none;
+    width: var(--toc-width);
+    flex-shrink: 0;
+}
+
+@media (min-width: 1280px) {
+    .toc { display: block; }
+}
+
+.toc-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-foreground);
+    margin-bottom: 0.75rem;
+}
+
+.toc-list { list-style: none; }
+
+.toc-item { margin-bottom: 0.25rem; }
+
+.toc-depth-3 { padding-left: 1rem; }
+.toc-depth-4 { padding-left: 2rem; }
+
+.toc-link {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    line-height: 1.5;
+    transition: color 0.15s;
+}
+
+.toc-link:hover { color: var(--foreground); }
+
+/* ---- Prose typography ---- */
+
+.prose :is(h1, h2, h3, h4, h5, h6) {
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose h1 { font-size: 2rem; margin-top: 0; margin-bottom: 1rem; }
+.prose h2 { font-size: 1.5rem; margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+.prose h3 { font-size: 1.25rem; margin-top: 1.5rem; }
+
+.prose p { margin-bottom: 1.25rem; line-height: 1.75; }
+.prose p:first-child { font-size: 1.0625rem; color: var(--muted-foreground); }
+
+.prose a { color: var(--primary); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: transparent; transition: text-decoration-color 0.15s; }
+.prose a:hover { text-decoration-color: var(--primary); }
+
+.prose strong { font-weight: 600; }
+.prose em { font-style: italic; }
+
+.prose code {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 0.9em;
+    padding: 0.2em 0.4em;
+    background: var(--muted);
+    border-radius: 0.25rem;
+}
+
+.prose pre { margin: 1.5rem 0; border-radius: var(--radius); overflow-x: auto; }
+
+/* shiki code blocks — override its inline styles for rounded corners + border */
+.prose .docvia-code-block pre {
+    padding: 1.25rem !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 0;
+}
+
+.prose pre code { background: transparent; padding: 0; font-size: 0.875rem; }
+
+.prose blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: var(--muted-foreground);
+    font-style: italic;
+}
+
+.prose ul, .prose ol { margin: 0 0 1.25rem 1.5rem; }
+.prose li { margin-bottom: 0.5rem; line-height: 1.75; }
+
+.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.875rem; }
+.prose thead { border-bottom: 2px solid var(--border); background: var(--accent); }
+.prose th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; }
+.prose td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.prose tbody tr:hover { background: var(--accent); }
+
+.prose hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+.prose img { max-width: 100%; height: auto; border-radius: var(--radius); margin: 1.5rem 0; }
+
+/* ---- Interactive counter component ---- */
+
+.counter-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) * 1.5);
+    padding: 2rem;
+    margin: 1.5rem 0;
+}
+
+.counter-display { text-align: center; margin-bottom: 1.5rem; }
+
+.counter-value { font-size: 3rem; font-weight: 700; color: var(--primary); line-height: 1; }
+
+.counter-label {
+    font-size: 0.875rem;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.counter-controls { display: flex; gap: 0.75rem; justify-content: center; }
+
+.btn {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    outline: none;
+}
+
+.btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-secondary { background: var(--muted); color: var(--foreground); }
+.btn-secondary:hover { background: var(--border); }
+
+/* ---- Component wrapper ---- */
+
+.docvia-component-wrapper { margin: 1.5rem 0; }
+
+.docvia-render-error {
+    padding: 0.75rem 1rem;
+    background: hsl(0, 85%, 97%);
+    border: 1px solid hsl(0, 72%, 85%);
+    border-radius: var(--radius);
+    color: hsl(0, 72%, 40%);
+    font-size: 0.875rem;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+    .docs-main { padding: 1.5rem 1rem; }
+    .doc-page { flex-direction: column; }
+    .prose { max-width: 100%; }
+}
