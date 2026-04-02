@@ -3,7 +3,7 @@
     "compilerOptions": {
         "outDir": "dist",
         "lib": ["dom"],
-        "noEmit": true
+        "noEmit": false
     },
     "include": [
         "src/**/*"
