@@ -1,7 +1,7 @@
 import type { IRNode } from '@docvia/ir';
 import { describe, expect, it, vi } from 'vitest';
-import { createDefaultRendererMap } from './default-renderers';
-import type { RenderContext } from './types';
+import { createDefaultRendererMap } from '../src/default-renderers';
+import type { RenderContext } from '../src/types';
 
 describe('default-renderers', () => {
     const mockHighlighter = {

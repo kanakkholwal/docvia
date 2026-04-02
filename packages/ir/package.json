@@ -19,7 +19,7 @@
     "scripts": {
         "build": "tsdown",
         "dev": "tsdown --watch",
-        "test": "echo \"no tests yet\""
+        "test": "vitest run"
     },
     "dependencies": {
         "github-slugger": "^2.0.0"

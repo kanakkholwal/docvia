@@ -104,7 +104,7 @@ export function createDefaultRendererMap(): RendererMap {
 
         'table-cell': async (n, ctx) => ({
             kind: 'element',
-            tag: 'td', // Align props could be added here
+            tag: (n.props.tag as string | undefined) === 'th' ? 'th' : 'td',
             children: await renderNodes(n.children, defaultMap, ctx),
         }),
 
@@ -170,12 +170,15 @@ export function createDefaultRendererMap(): RendererMap {
             children: [{ kind: 'text', value: `Unknown node type: ${n.props.originalType}` }],
         }),
 
-        element: async (n, ctx) => ({
-            kind: 'element',
-            tag: n.props.tag as string,
-            props: { ...n.props },
-            children: await renderNodes(n.children, defaultMap, ctx),
-        }),
+        element: async (n, ctx) => {
+            const { tag, ...rest } = n.props;
+            return {
+                kind: 'element',
+                tag: tag as string,
+                props: rest,
+                children: await renderNodes(n.children, defaultMap, ctx),
+            };
+        },
     };
 
     Object.assign(defaultMap, map);

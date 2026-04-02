@@ -61,11 +61,16 @@ export interface ParseResult {
     readonly ast: HastRoot;
 }
 
-export async function parseMarkdown(
-    content: string,
-    options?: ParseOptions,
-): Promise<ParseResult> {
-    // Build base pipeline through MDAST plugins
+// Cache processors by remarkPlugins array reference.
+// The array reference is stable within a single build (same config object),
+// so we avoid rebuilding the unified pipeline for every document.
+// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
+let baseProcessor: any | null = null;
+// biome-ignore lint/suspicious/noExplicitAny: plugin arrays are untyped
+const pluginProcessorCache = new WeakMap<readonly any[], any>();
+
+// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
+function buildProcessor(remarkPlugins: readonly any[]): any {
     // biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
     let processor: any = unified()
         .use(remarkParse)
@@ -73,15 +78,35 @@ export async function parseMarkdown(
         .use(remarkDirective)
         .use(remarkDirectiveToHast);
 
-    // User remark plugins run on MDAST, before hast conversion
-    for (const plugin of options?.remarkPlugins ?? []) {
+    for (const plugin of remarkPlugins) {
         processor = processor.use(plugin);
     }
 
-    processor = processor
+    return processor
         .use(remarkRehype, { allowDangerousHtml: true })
         .use(rehypeRaw)
         .use(rehypeSanitize, sanitizeSchema);
+}
+
+export async function parseMarkdown(
+    content: string,
+    options?: ParseOptions,
+): Promise<ParseResult> {
+    const remarkPlugins = options?.remarkPlugins;
+
+    // biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
+    let processor: any;
+    if (!remarkPlugins || remarkPlugins.length === 0) {
+        if (!baseProcessor) baseProcessor = buildProcessor([]);
+        processor = baseProcessor;
+    } else {
+        let cached = pluginProcessorCache.get(remarkPlugins);
+        if (!cached) {
+            cached = buildProcessor(remarkPlugins);
+            pluginProcessorCache.set(remarkPlugins, cached);
+        }
+        processor = cached;
+    }
 
     const mdastTree = processor.parse(content);
     const hast = (await processor.run(mdastTree)) as HastRoot;

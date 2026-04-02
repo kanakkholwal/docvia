@@ -74,13 +74,14 @@ async function compileParallel<T>(
     fn: (item: T) => Promise<void>,
     concurrency = Math.max(1, cpus().length - 1),
 ): Promise<void> {
-    const queue = [...items];
+    let index = 0;
     const workers = Array.from(
-        { length: Math.min(concurrency, queue.length) },
+        { length: Math.min(concurrency, items.length) },
         async () => {
-            while (queue.length > 0) {
-                const item = queue.shift()!;
-                await fn(item);
+            while (true) {
+                const i = index++;
+                if (i >= items.length) break;
+                await fn(items[i] as T);
             }
         },
     );
@@ -94,6 +95,7 @@ interface AssetEmission {
     readonly emittedFilename: string;
     readonly emittedPath: string;
     readonly hash: string;
+    readonly buffer: Buffer;
 }
 
 async function processAssets(
@@ -115,6 +117,7 @@ async function processAssets(
                 emittedFilename,
                 emittedPath: join(outDir, 'assets', emittedFilename),
                 hash,
+                buffer,
             });
         } catch {
             // Asset not found — skip with warning
@@ -299,37 +302,26 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
                 order: irDoc.frontmatter.order,
             });
 
-            // Process assets for this document
+            // Process assets for this document — buffer already read inside processAssets
             const assets = await processAssets(irDoc, resolvedOutDir);
             for (const asset of assets) {
                 try {
-                    const srcBuffer = await readFile(asset.originalPath);
-                    await writeFile(asset.emittedPath, srcBuffer);
+                    await writeFile(asset.emittedPath, asset.buffer);
                 } catch {
                     // Already warned during processAssets
                 }
             }
         });
 
-        // Step 3: Write collection metadata
-        await writeFile(join(collectionOutDir, 'meta.json'), JSON.stringify(pages, null, 2));
-
-        // Navigation (Tree)
+        // Step 3: Write collection metadata — all files are independent, write in parallel
         const nav = buildNavTree(pages);
-        await writeFile(join(collectionOutDir, 'nav.json'), JSON.stringify(nav, null, 2));
 
-        // Tags
-        await writeFile(join(collectionOutDir, 'tags.json'), JSON.stringify(tags, null, 2));
-
-        // Routes
         const routesTs = [
             `export const routes = ${JSON.stringify(routes, null, 2)} as const;`,
             '',
             'export type RouteKey = keyof typeof routes;',
         ].join('\n');
-        await writeFile(join(collectionOutDir, 'routes.ts'), routesTs);
 
-        // Types - Generate a more specific Frontmatter type
         const uniqueFrontmatters = Array.from(new Set(irDocs.map(doc => JSON.stringify(doc.frontmatter))));
         const frontmatterUnion = uniqueFrontmatters.length > 0
             ? uniqueFrontmatters.map(f => `  | ${f}`).join('\n')
@@ -345,13 +337,19 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
             '',
             'export type DocPage = import("@docvia/source/runtime").docviaPage<Frontmatter>;',
         ].join('\n');
-        await writeFile(join(collectionOutDir, 'types.d.ts'), typesDts);
 
-        // Search index for this collection
         const searchIndexer = await createSearchIndexer();
         await searchIndexer.buildIndex(irDocs);
         const searchJson = await searchIndexer.exportIndex();
-        await writeFile(join(collectionOutDir, 'search.json'), searchJson);
+
+        await Promise.all([
+            writeFile(join(collectionOutDir, 'meta.json'), JSON.stringify(pages, null, 2)),
+            writeFile(join(collectionOutDir, 'nav.json'), JSON.stringify(nav, null, 2)),
+            writeFile(join(collectionOutDir, 'tags.json'), JSON.stringify(tags, null, 2)),
+            writeFile(join(collectionOutDir, 'routes.ts'), routesTs),
+            writeFile(join(collectionOutDir, 'types.d.ts'), typesDts),
+            writeFile(join(collectionOutDir, 'search.json'), searchJson),
+        ]);
 
         allPages.push(...pages);
     }
@@ -409,22 +407,41 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
     };
 }
 
-function buildNavTree(pages: PageMeta[]) {
-    const tree: any[] = [];
+interface NavNode {
+    name: string;
+    children: NavNode[];
+    slug?: string;
+    title?: string;
+}
+
+function buildNavTree(pages: PageMeta[]): NavNode[] {
+    const tree: NavNode[] = [];
+    // Each level gets its own name→node Map for O(1) child lookup
+    const levelMaps: Map<NavNode[], Map<string, NavNode>> = new Map();
     const sorted = [...pages].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    const getOrCreateNode = (list: NavNode[], name: string): NavNode => {
+        let map = levelMaps.get(list);
+        if (!map) {
+            map = new Map();
+            levelMaps.set(list, map);
+        }
+        let node = map.get(name);
+        if (!node) {
+            node = { name, children: [] };
+            list.push(node);
+            map.set(name, node);
+        }
+        return node;
+    };
 
     for (const page of sorted) {
         const parts = page.slug.split('/');
         let current = tree;
 
         for (let i = 0; i < parts.length; i++) {
-            const part = parts[i]!;
-            let node = current.find((n: any) => n.name === part);
-
-            if (!node) {
-                node = { name: part, children: [] };
-                current.push(node);
-            }
+            const part = parts[i] as string;
+            const node = getOrCreateNode(current, part);
 
             if (i === parts.length - 1) {
                 node.slug = page.slug;

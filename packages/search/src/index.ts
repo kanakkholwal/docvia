@@ -1,5 +1,5 @@
 import type { HeadingMeta, IRDocument, IRNode, SearchDocument } from '@docvia/ir';
-import { type Orama, create, insert, search as oramaSearch } from '@orama/orama';
+import { type Orama, create, insertMultiple, removeMultiple, search as oramaSearch } from '@orama/orama';
 
 // Text Extraction (lazy, not stored in IR)
 
@@ -89,32 +89,43 @@ export interface SearchIndexer {
 
 export async function createSearchIndexer(): Promise<SearchIndexer> {
     let db: Orama<typeof searchSchema> = await create({ schema: searchSchema });
+    // Maps slug → inserted document IDs, enabling surgical removal on update
+    const slugIds = new Map<string, string[]>();
 
     return {
         async buildIndex(pages) {
             db = await create({ schema: searchSchema });
+            slugIds.clear();
             for (const page of pages) {
                 const sections = extractSections(page);
-                for (const section of sections) {
-                    await insert(db, section);
-                }
+                if (sections.length === 0) continue;
+                const ids = await insertMultiple(db, sections);
+                slugIds.set(page.slug, ids);
             }
         },
 
         async updateIndex(changed, removed) {
-            // Rebuild for simplicity — Orama doesn't support targeted removal by field easily
-            // For production, maintain an ID map for surgical updates
-            void removed;
+            // Remove stale sections for every affected slug
+            const staleSlugs = [
+                ...changed.map((p) => p.slug),
+                ...removed,
+            ];
+            const staleIds = staleSlugs.flatMap((slug) => slugIds.get(slug) ?? []);
+            if (staleIds.length > 0) {
+                await removeMultiple(db, staleIds);
+                for (const slug of staleSlugs) slugIds.delete(slug);
+            }
+
+            // Re-insert updated pages
             for (const page of changed) {
                 const sections = extractSections(page);
-                for (const section of sections) {
-                    await insert(db, section);
-                }
+                if (sections.length === 0) continue;
+                const ids = await insertMultiple(db, sections);
+                slugIds.set(page.slug, ids);
             }
         },
 
         async exportIndex() {
-            // Export the raw DB state as JSON for client-side loading
             return JSON.stringify(db);
         },
     };
