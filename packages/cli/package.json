@@ -3,19 +3,19 @@
     "version": "0.0.1",
     "type": "module",
     "bin": {
-        "docvia": "./dist/index.js"
+        "docvia": "./dist/index.mjs"
     },
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js"
+            "types": "./dist/index.d.mts",
+            "import": "./dist/index.mjs"
         }
     },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "main": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
     "scripts": {
-        "build": "tsup",
-        "dev": "tsup --watch",
+        "build": "tsdown",
+        "dev": "tsdown --watch",
         "typecheck": "tsc --noEmit",
         "test": "echo \"no tests yet\""
     },

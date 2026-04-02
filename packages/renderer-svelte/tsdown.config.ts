@@ -1,9 +1,8 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   entry: ['src/index.ts', 'src/node.ts'],
   format: ['esm'],
-  external: [/\.svelte$/],
   dts: true,
   sourcemap: true,
   splitting: false,
@@ -12,4 +11,8 @@ export default defineConfig({
   minify: false,
   outDir: 'dist',
   treeshake: true,
+  deps: {
+    neverBundle: [/\.svelte$/],
+  },
+  target: false,
 });
