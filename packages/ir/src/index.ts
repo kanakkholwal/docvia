@@ -243,7 +243,7 @@ export interface docviaConfig {
      *
      * @example
      * ```ts
-     * import { z } from 'zod';
+     * import { z } from 'zod/3';
      * export default defineConfig({
      *   frontmatter: z.object({
      *     author: z.string(),

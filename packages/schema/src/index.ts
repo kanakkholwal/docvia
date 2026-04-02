@@ -1,7 +1,7 @@
 import type { FrontmatterData } from '@docvia/ir';
 import { docviaError } from '@docvia/ir';
 import { parse as parseYaml } from 'yaml';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // Frontmatter Extraction
 
