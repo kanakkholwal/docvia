@@ -109,6 +109,7 @@ export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
         plugins: config.plugins ?? [],
         renderer: config.renderer,
         components: config.components,
+        frontmatter: config.frontmatter,
         markdown: {
             remarkPlugins: config.markdown?.remarkPlugins ?? [],
         },

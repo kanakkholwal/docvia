@@ -3,6 +3,7 @@ title: Components
 description: Interactive React components embedded in Markdown via directives
 tags: [components, react, interactive]
 order: 2
+featured: true
 ---
 
 # Components

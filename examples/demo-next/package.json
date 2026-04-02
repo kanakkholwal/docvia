@@ -17,6 +17,7 @@
     },
     "devDependencies": {
         "@docvia/cli": "workspace:*",
+        "zod": "^4.3.6",
         "@docvia/renderer-react": "workspace:*",
         "@docvia/renderer-core": "workspace:*",
         "@docvia/source": "workspace:*",
