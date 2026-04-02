@@ -1,4 +1,5 @@
 import type { HydrationMode, IRNode, PageMeta } from '@docvia/ir';
+import type { RenderError } from './errors';
 
 export type RenderOutput =
     | { kind: 'element'; tag: string; props?: Record<string, unknown>; children?: RenderOutput[]; id?: string }
@@ -43,5 +44,4 @@ export interface HydrationEntry {
 
 export type HydrationManifest = HydrationEntry[];
 
-import type { RenderError } from './errors';
 
