@@ -1,0 +1,5 @@
+.next/
+.docvia/
+node_modules/
+docvia-env.d.ts
+next-env.d.ts

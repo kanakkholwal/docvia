@@ -1,14 +1,13 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-    entry: ['src/index.ts'],
-    format: ['esm'],
-    dts: true,
-    splitting: false,
-    sourcemap: true,
-    clean: true,
-    outDir: 'dist',
-    treeshake: true,
+  entry: ['src/index.ts'],
+  format: ['esm'],
+  dts: true,
+  sourcemap: true,
+  clean: true,
+  outDir: 'dist',
+  treeshake: true,
   target: false,
 })
 

@@ -43,6 +43,9 @@
       "@docvia/renderer-core": [
         "./packages/renderer-core/src"
       ],
+      "@docvia/renderer-react": [
+        "./packages/renderer-react/src"
+      ],
       "@docvia/renderer-svelte": [
         "./packages/renderer-svelte/src"
       ],
