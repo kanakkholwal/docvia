@@ -6,5 +6,6 @@ dist/
 .turbo/
 .svelte-kit/
 .vite/
+.claude
 
 tmp-*

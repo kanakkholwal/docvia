@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
     entry: ['src/**/*.ts'],
@@ -12,5 +12,6 @@ export default defineConfig({
     minify: false,
     splitting: false,
     outDir: 'dist',
+  target: false,
 })
 

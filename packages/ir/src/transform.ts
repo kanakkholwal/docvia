@@ -37,7 +37,7 @@ export function transformToIR(
         filePath,
     };
 
-    const children = transformChildren(ast.children as any[], ctx);
+    const children = transformChildren(ast.children, ctx);
     const slug = computeSlug(filePath, frontmatter.slug);
 
     return {
@@ -188,7 +188,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
             type: isInline ? 'component-inline' : 'component',
             id: nodeId,
             props: { name, attributes, hydrate: 'none' },
-            children: isInline ? [] : transformChildren(node.children as any[], ctx),
+            children: isInline ? [] : transformChildren(node.children, ctx),
         };
     }
 
@@ -203,14 +203,14 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
             type: 'heading',
             id: nodeId,
             props: { depth, id },
-            children: transformChildren(node.children as any[], ctx),
+            children: transformChildren(node.children, ctx),
         };
     }
 
     // --- Code block: <pre><code class="language-X">...</code></pre> ---
     if (tag === 'pre') {
-        const codeChild = (node.children as any[]).find(
-            (c: any) => c.type === 'element' && c.tagName === 'code',
+        const codeChild = (node.children).find(
+            (c) => c.type === 'element' && c.tagName === 'code',
         ) as Element | undefined;
 
         if (codeChild) {
@@ -244,7 +244,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
             type: 'list',
             id: nodeId,
             props: { ordered: tag === 'ol', start: 1, ...props },
-            children: transformChildren(node.children as any[], ctx),
+            children: transformChildren(node.children, ctx),
         };
     }
 
@@ -258,7 +258,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
             type: 'link',
             id: nodeId,
             props: { href, title: props['title'] ?? null, ...filterClass(props) },
-            children: transformChildren(node.children as any[], ctx),
+            children: transformChildren(node.children, ctx),
         };
     }
 
@@ -284,7 +284,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
             type: semanticType,
             id: nodeId,
             props,
-            children: transformChildren(node.children as any[], ctx),
+            children: transformChildren(node.children, ctx),
         };
     }
 
@@ -293,7 +293,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
         type: 'element',
         id: nodeId,
         props: { tag, ...props },
-        children: transformChildren(node.children as any[], ctx),
+        children: transformChildren(node.children, ctx),
     };
 }
 
@@ -329,7 +329,7 @@ function addDependency(ctx: TransformContext, dep: Dependency): void {
     if (dep.type === 'component') {
         normalized = dep;
     } else {
-        const d = dep as any;
+        const d = dep as Extract<Dependency, { type: 'file' | 'asset' }>;
         normalized = {
             ...d,
             path: normalize(d.path).split(sep).join('/'),
