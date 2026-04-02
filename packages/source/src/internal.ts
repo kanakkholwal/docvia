@@ -25,8 +25,7 @@ export function createCollection<
     async function loadModule(modulePath: string) {
         if (typeof window === 'undefined') {
             try {
-                // @ts-ignore - Vite will resolve this path relative to project root
-                return await import(/* @vite-ignore */ modulePath);
+                return await import(/* @vite-ignore */ /* webpackIgnore: true */ modulePath);
             } catch {
                 const { resolve } = await import('node:path');
                 const { cwd } = await import('node:process');
@@ -38,8 +37,7 @@ export function createCollection<
                 return loadMarkdown(filePath);
             }
         } else {
-            // @ts-ignore - Vite will resolve this path relative to project root
-            return await import(/* @vite-ignore */ modulePath);
+            return await import(/* @vite-ignore */ /* webpackIgnore: true */ modulePath);
         }
     }
 
