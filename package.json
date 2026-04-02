@@ -3,17 +3,17 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "turbo run build",
+        "build": "turbo run build && pnpm run cleanup:dts",
         "lint": "biome check .",
         "lint:fix": "biome check --fix .",
         "format": "biome format --write .",
         "format:check": "biome format .",
         "test": "turbo run test",
-        "dev": "turbo run dev",
+        "dev": "turbo run dev --concurrency=15",
         "prepare": "husky",
         "setup": "pnpm install && pnpm build && pnpm test",
         "reset": "node ./scripts/clean-builds.js",
-        "cleanup": "node ./scripts/clean-src-dts.js"
+        "cleanup:dts": "node ./scripts/clean-src-dts.js"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.4.9",

@@ -55,9 +55,6 @@
       "@docvia/source": [
         "./packages/source/src"
       ],
-      "@docvia/ui": [
-        "./packages/ui/src"
-      ],
       "@docvia/vite-plugin": [
         "./packages/vite-plugin/src"
       ]

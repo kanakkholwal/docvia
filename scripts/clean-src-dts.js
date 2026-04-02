@@ -23,7 +23,7 @@ const dryRun = process.argv.includes('--dry-run') || process.argv.includes('-n')
 // Map of package directories to their source files that should NOT be cleaned
 // (e.g., hand-written type declaration files)
 const preservedFilesByPackage = {
-  'packages/renderer-core': ['types.d.ts'],
+  // 'packages/renderer-core': ['types.d.ts'],
 };
 
 async function safeUnlink(filePath) {
