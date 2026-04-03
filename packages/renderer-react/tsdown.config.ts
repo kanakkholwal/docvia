@@ -16,5 +16,7 @@ export default defineConfig({
   treeshake: true,
   target: false,
   // React and react-dom are peer deps — never bundle them.
-  external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
+  deps: {
+    onlyBundle: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime']
+  },
 });
