@@ -34,75 +34,65 @@ export function withDocvia(options: DocviaNextOptions = {}) {
         _initPromise = init(isDev, options);
     }
 
-    return (nextConfig: NextConfig = {}): NextConfig => {
-        // Resolve the outDir so we can set up aliases/plugins pointing to files on disk.
-        // We resolve against cwd() because that's where Next.js runs from.
-        const outDir = resolve('.docvia');
+    return function withDocviaConfig(nextConfig: NextConfig | ((phase: string, context: any) => NextConfig | Promise<NextConfig>) = {}): any {
+        return async (phase: string, context: any) => {
+            // Await initialization BEFORE Next.js continues.
+            // This natively supports Turbopack because Turbopack will not start
+            // resolving aliases until the config is fully resolved.
+            if (_initPromise) {
+                await _initPromise;
+            }
 
-        // Extract Turbopack configuration to support Next >= 15 / 16
-        const extTurbo = (nextConfig.experimental as any)?.turbo || {};
-        const baseTurbo = (nextConfig as any).turbo || {};
+            // Resolve the underlying config if it's a function or an async function
+            const resolvedConfig = typeof nextConfig === 'function' ? await nextConfig(phase, context) : nextConfig;
 
-        const turbo = {
-            ...extTurbo,
-            ...baseTurbo,
-            resolveAlias: {
-                ...extTurbo.resolveAlias,
-                ...baseTurbo.resolveAlias,
-                'docvia:source/registry': resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
-                'docvia:source': resolve(outDir, 'source.ts').replace(/\\/g, '/'),
-            },
-        };
+            // Resolve the outDir so we can set up aliases/plugins pointing to files on disk.
+            // We resolve against cwd() because that's where Next.js runs from.
+            const outDir = resolve('.docvia');
 
-        const configToReturn: any = {
-            ...nextConfig,
-            experimental: {
-                ...nextConfig.experimental,
-                turbo,
-            },
-            webpack(config: any, webpackOptions: any) {
-                // --- Edge Case 1: Race condition ---
-                // init() is async and may not have finished writing .docvia/ files
-                // by the time webpack starts resolving modules. We inject a tiny
-                // plugin that blocks the first webpack compilation until init() is done.
-                if (_initPromise) {
-                    const waitPromise = _initPromise;
-                    config.plugins.push({
-                        apply(compiler: any) {
-                            compiler.hooks.beforeCompile.tapPromise(
-                                'DocviaWaitPlugin',
-                                async () => {
-                                    await waitPromise;
+            // Extract Turbopack configuration to support Next >= 15 / 16
+            const isNext16Plus = resolvedConfig && typeof resolvedConfig === 'object' && "turbopack" in resolvedConfig;
+            // Next.js 13/14+ will have a valid config object, we inject Webpack as a fallback or explicit
+            const isNext13Plus = !isNext16Plus && ("webpack" in resolvedConfig);
+
+            const configToReturn = {
+                ...resolvedConfig,
+                ...(isNext13Plus ? {
+                    webpack(config: any, webpackOptions: any) {
+                        // Resolve `docvia:source` → .docvia/source.ts
+                        // Resolve `docvia:source/registry` → .docvia/registry.ts
+                        //
+                        // We use NormalModuleReplacementPlugin for Webpack.
+                        config.plugins.push(
+                            new webpackOptions.webpack.NormalModuleReplacementPlugin(
+                                /^docvia:source(\/.*)?$/,
+                                (resource: { request: string }) => {
+                                    if (resource.request === 'docvia:source') {
+                                        resource.request = resolve(outDir, 'source.ts');
+                                    } else if (resource.request === 'docvia:source/registry') {
+                                        resource.request = resolve(outDir, 'registry.ts');
+                                    }
                                 },
-                            );
-                        },
-                    });
-                }
+                            ),
+                        );
 
-                // Resolve `docvia:source` → .docvia/source.ts
-                // Resolve `docvia:source/registry` → .docvia/registry.ts
-                //
-                // We use NormalModuleReplacementPlugin because webpack 5 treats
-                // the `docvia:` prefix as a URI scheme and processes it before
-                // resolve.alias gets a chance to match.
-                config.plugins.push(
-                    new webpackOptions.webpack.NormalModuleReplacementPlugin(
-                        /^docvia:source(\/.*)?$/,
-                        (resource: { request: string }) => {
-                            if (resource.request === 'docvia:source') {
-                                resource.request = resolve(outDir, 'source.ts');
-                            } else if (resource.request === 'docvia:source/registry') {
-                                resource.request = resolve(outDir, 'registry.ts');
-                            }
-                        },
-                    ),
-                );
+                        return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
+                    },
+                } : {}),
+                ...(isNext16Plus ? {
+                    turbopack: {
+                        ...resolvedConfig.turbopack,
+                        resolveAlias: {
+                            ...resolvedConfig.turbopack?.resolveAlias,
+                            "docvia:source": resolve(outDir, 'source.ts'),
+                            "docvia:source/registry": resolve(outDir, 'registry.ts'),
+                        }
+                    },
+                } : {}),
+            };
 
-                return nextConfig.webpack?.(config, webpackOptions) ?? config;
-            },
+            return configToReturn;
         };
-
-        return configToReturn;
     };
 }
 

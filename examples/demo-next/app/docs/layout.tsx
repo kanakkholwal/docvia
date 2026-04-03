@@ -1,6 +1,6 @@
 import { docs } from "docvia:source";
-import { Sidebar } from "../../components/Sidebar";
 import type { ReactNode } from "react";
+import { Sidebar } from "../../components/Sidebar";
 
 // Server Component — fetches nav tree server-side, zero client JS for layout
 export default async function DocsLayout({
