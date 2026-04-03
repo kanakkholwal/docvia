@@ -3,8 +3,12 @@
 		"target": "ES2022",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
-		"lib": ["ES2022"],
-		"types": ["node"],
+		"lib": [
+			"ES2022"
+		],
+		"types": [
+			"node"
+		],
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
@@ -21,18 +25,45 @@
 		"exactOptionalPropertyTypes": false,
 		"noUncheckedIndexedAccess": true,
 		"paths": {
-			"@docvia/cli": ["./packages/cli/src"],
-			"@docvia/compiler": ["./packages/compiler/src"],
-			"@docvia/core": ["./packages/core/src"],
-			"@docvia/ir": ["./packages/ir/src"],
-			"@docvia/plugins": ["./packages/plugins/src"],
-			"@docvia/renderer-core": ["./packages/renderer-core/src"],
-			"@docvia/renderer-react": ["./packages/renderer-react/src"],
-			"@docvia/renderer-svelte": ["./packages/renderer-svelte/src"],
-			"@docvia/schema": ["./packages/schema/src"],
-			"@docvia/search": ["./packages/search/src"],
-			"@docvia/source": ["./packages/source/src"],
-			"@docvia/plugin-vite": ["./packages/vite-plugin/src"]
+			"@docvia/cli": [
+				"./packages/cli/src"
+			],
+			"@docvia/compiler": [
+				"./packages/compiler/src"
+			],
+			"@docvia/core": [
+				"./packages/core/src"
+			],
+			"@docvia/ir": [
+				"./packages/ir/src"
+			],
+			"@docvia/plugins": [
+				"./packages/plugins/src"
+			],
+			"@docvia/renderer-core": [
+				"./packages/renderer-core/src"
+			],
+			"@docvia/renderer-react": [
+				"./packages/renderer-react/src"
+			],
+			"@docvia/renderer-svelte": [
+				"./packages/renderer-svelte/src"
+			],
+			"@docvia/schema": [
+				"./packages/schema/src"
+			],
+			"@docvia/search": [
+				"./packages/search/src"
+			],
+			"@docvia/source": [
+				"./packages/source/src"
+			],
+			"@docvia/plugin-vite": [
+				"./packages/plugin-vite/src"
+			],
+			"@docvia/plugin-next": [
+				"./packages/plugin-next/src"
+			]
 		}
 	}
 }

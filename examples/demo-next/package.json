@@ -15,6 +15,7 @@
         "shiki": "^4.0.2"
     },
     "devDependencies": {
+        "@docvia/cli": "workspace:*",
         "@docvia/plugin-next": "workspace:*",
         "zod": "^4.3.6",
         "@docvia/renderer-react": "workspace:*",
