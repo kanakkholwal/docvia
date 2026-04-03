@@ -4,11 +4,9 @@
     "version": "0.0.1",
     "type": "module",
     "scripts": {
-        "prebuild": "docvia build",
         "build": "next build",
-        "dev": "concurrently \"docvia dev\" \"next dev --turbopack\"",
-        "start": "next start",
-        "build:docs": "docvia build"
+        "dev": "next dev --turbopack",
+        "start": "next start"
     },
     "dependencies": {
         "react": "^19",
@@ -17,7 +15,7 @@
         "shiki": "^4.0.2"
     },
     "devDependencies": {
-        "@docvia/cli": "workspace:*",
+        "@docvia/plugin-next": "workspace:*",
         "zod": "^4.3.6",
         "@docvia/renderer-react": "workspace:*",
         "@docvia/renderer-core": "workspace:*",

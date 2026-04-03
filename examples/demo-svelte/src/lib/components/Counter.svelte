@@ -1,11 +1,11 @@
 <script lang="ts">
-  interface Props {
-    initial?: number;
-  }
+interface Props {
+	initial?: number;
+}
 
-  const { initial = 0 }: Props = $props();
-  // svelte-ignore state_referenced_locally
-  let count = $state(initial);
+const { initial = 0 }: Props = $props();
+// svelte-ignore state_referenced_locally
+let count = $state(initial);
 </script>
 
 <div class="counter-card">

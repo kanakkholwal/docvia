@@ -1,37 +1,37 @@
 {
-    "name": "@docvia/cli",
-    "version": "0.0.1",
-    "type": "module",
-    "bin": {
-        "docvia": "./dist/index.mjs"
-    },
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "typecheck": "tsc --noEmit",
-        "test": "echo \"no tests yet\""
-    },
-    "dependencies": {
-        "@docvia/compiler": "workspace:*",
-        "@docvia/ir": "workspace:*",
-        "@docvia/plugins": "workspace:*",
-        "@docvia/renderer-svelte": "workspace:*",
-        "@docvia/search": "workspace:*",
-        "chokidar": "^5.0.0",
-        "commander": "^14.0.3",
-        "sirv": "^3.0.2"
-    },
-    "devDependencies": {
-        "@types/node": "^25.5.0",
-        "svelte": "^5.49.2",
-        "typescript": "^5.9.3"
-    }
+	"name": "@docvia/cli",
+	"version": "0.0.1",
+	"type": "module",
+	"bin": {
+		"docvia": "./dist/index.mjs"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "echo \"no tests yet\""
+	},
+	"dependencies": {
+		"@docvia/compiler": "workspace:*",
+		"@docvia/ir": "workspace:*",
+		"@docvia/plugins": "workspace:*",
+		"@docvia/renderer-svelte": "workspace:*",
+		"@docvia/search": "workspace:*",
+		"chokidar": "^5.0.0",
+		"commander": "^14.0.3",
+		"sirv": "^3.0.2"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"svelte": "^5.49.2",
+		"typescript": "^5.9.3"
+	}
 }

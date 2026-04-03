@@ -1,28 +1,28 @@
 {
-    "name": "@docvia/search",
-    "version": "0.0.1",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "typecheck": "tsc --noEmit",
-        "test": "vitest run"
-    },
-    "dependencies": {
-        "@docvia/ir": "workspace:*",
-        "@orama/orama": "^3.1.18"
-    },
-    "devDependencies": {
-        "@types/node": "^25.5.0",
-        "svelte": "^5.49.2",
-        "typescript": "^5.9.3"
-    }
+	"name": "@docvia/search",
+	"version": "0.0.1",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@docvia/ir": "workspace:*",
+		"@orama/orama": "^3.1.18"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"svelte": "^5.49.2",
+		"typescript": "^5.9.3"
+	}
 }

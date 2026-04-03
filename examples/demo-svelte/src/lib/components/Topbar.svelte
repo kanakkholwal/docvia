@@ -1,7 +1,7 @@
 <script lang="ts">
-    let { nav } = $props<{ nav: any[] }>();
+let { nav } = $props<{ nav: any[] }>();
 
-    // A simple icon library can be added later, for now we use SVG
+// A simple icon library can be added later, for now we use SVG
 </script>
 
 <header class="header">

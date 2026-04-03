@@ -1,26 +1,26 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
-  import Header from "./Header.svelte";
-  import Sidebar from "./Sidebar.svelte";
-  import TableOfContents from "./TableOfContents.svelte";
+import type { Snippet } from "svelte";
+import Header from "./Header.svelte";
+import Sidebar from "./Sidebar.svelte";
+import TableOfContents from "./TableOfContents.svelte";
 
-  type NavItem = {
-    name: string;
-    slug: string;
-    title: string;
-    children: NavItem[];
-  };
+type NavItem = {
+	name: string;
+	slug: string;
+	title: string;
+	children: NavItem[];
+};
 
-  interface Props {
-    nav: NavItem[];
-    children: Snippet;
-  }
+interface Props {
+	nav: NavItem[];
+	children: Snippet;
+}
 
-  let { nav, children }: Props = $props();
-  let sidebarOpen = $state(false);
-  function closeSidebar() {
-    sidebarOpen = false;
-  }
+let { nav, children }: Props = $props();
+let sidebarOpen = $state(false);
+function closeSidebar() {
+	sidebarOpen = false;
+}
 </script>
 
 <div class="layout-root">

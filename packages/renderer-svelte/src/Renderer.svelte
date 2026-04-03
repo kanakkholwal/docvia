@@ -1,42 +1,42 @@
 <script lang="ts">
-  import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
-  import type { Component } from "svelte";
-  import Renderer from "./Renderer.svelte";
+import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
+import type { Component } from "svelte";
+import Renderer from "./Renderer.svelte";
 
-  interface Props {
-    nodes: RenderOutput | RenderOutput[];
-    registry?: ComponentRegistry;
-  }
+interface Props {
+	nodes: RenderOutput | RenderOutput[];
+	registry?: ComponentRegistry;
+}
 
-  const { nodes, registry }: Props = $props();
+const { nodes, registry }: Props = $props();
 
-  let nodeArray = $derived.by(() => (Array.isArray(nodes) ? nodes : [nodes]));
+let nodeArray = $derived.by(() => (Array.isArray(nodes) ? nodes : [nodes]));
 
-  function isElement(
-    node: any,
-  ): node is Extract<RenderOutput, { kind: "element" }> {
-    return node?.kind === "element";
-  }
-  function isText(node: any): node is Extract<RenderOutput, { kind: "text" }> {
-    return node?.kind === "text";
-  }
-  function isHtml(node: any): node is Extract<RenderOutput, { kind: "html" }> {
-    return node?.kind === "html";
-  }
-  function isComponent(
-    node: any,
-  ): node is Extract<RenderOutput, { kind: "component" }> {
-    return node?.kind === "component";
-  }
-  function isFragment(
-    node: any,
-  ): node is Extract<RenderOutput, { kind: "fragment" }> {
-    return node?.kind === "fragment";
-  }
+function isElement(
+	node: any,
+): node is Extract<RenderOutput, { kind: "element" }> {
+	return node?.kind === "element";
+}
+function isText(node: any): node is Extract<RenderOutput, { kind: "text" }> {
+	return node?.kind === "text";
+}
+function isHtml(node: any): node is Extract<RenderOutput, { kind: "html" }> {
+	return node?.kind === "html";
+}
+function isComponent(
+	node: any,
+): node is Extract<RenderOutput, { kind: "component" }> {
+	return node?.kind === "component";
+}
+function isFragment(
+	node: any,
+): node is Extract<RenderOutput, { kind: "fragment" }> {
+	return node?.kind === "fragment";
+}
 
-  function asSvelteComponent(value: unknown): Component {
-    return value as Component;
-  }
+function asSvelteComponent(value: unknown): Component {
+	return value as Component;
+}
 </script>
 
 {#each nodeArray as node}

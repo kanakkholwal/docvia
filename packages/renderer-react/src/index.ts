@@ -11,14 +11,18 @@
  * For client-side island hydration use `@docvia/renderer-react/client`.
  */
 
-export { DocviaContent } from './DocviaContent';
-export type { CodeBlockOverrideProps, DocviaComponents, DocviaContentProps } from './DocviaContent';
+export { DocviaContent } from "./DocviaContent";
+export type {
+	CodeBlockOverrideProps,
+	DocviaComponents,
+	DocviaContentProps,
+} from "./DocviaContent";
 
 export {
-    createReactRenderer,
-    createShikiHighlighter,
-    createInMemoryStore,
-    docviaVitePlugin,
-    invalidateModules,
-} from './adapter';
-export type { InMemoryStore } from './adapter';
+	createReactRenderer,
+	createShikiHighlighter,
+	createInMemoryStore,
+	docviaVitePlugin,
+	invalidateModules,
+} from "./adapter";
+export type { InMemoryStore } from "./adapter";

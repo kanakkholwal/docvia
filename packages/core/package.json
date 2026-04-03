@@ -1,37 +1,37 @@
 {
-    "name": "@docvia/core",
-    "version": "0.0.1",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "typecheck": "tsc --noEmit",
-        "test": "vitest run"
-    },
-    "dependencies": {
-        "rehype-raw": "^7.0.0",
-        "rehype-sanitize": "^6.0.0",
-        "remark-directive": "^4.0.0",
-        "remark-gfm": "^4.0.1",
-        "remark-parse": "^11.0.0",
-        "remark-rehype": "^11.1.2",
-        "unified": "^11.0.5",
-        "unist-util-visit": "^5.1.0",
-        "hast-util-sanitize": "^5.0.2"
-    },
-    "devDependencies": {
-        "@types/hast": "^3.0.4",
-        "@types/mdast": "^4.0.4",
-        "@types/node": "^25.5.0",
-        "svelte": "^5.49.2",
-        "typescript": "^5.9.3"
-    }
+	"name": "@docvia/core",
+	"version": "0.0.1",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"rehype-raw": "^7.0.0",
+		"rehype-sanitize": "^6.0.0",
+		"remark-directive": "^4.0.0",
+		"remark-gfm": "^4.0.1",
+		"remark-parse": "^11.0.0",
+		"remark-rehype": "^11.1.2",
+		"unified": "^11.0.5",
+		"unist-util-visit": "^5.1.0",
+		"hast-util-sanitize": "^5.0.2"
+	},
+	"devDependencies": {
+		"@types/hast": "^3.0.4",
+		"@types/mdast": "^4.0.4",
+		"@types/node": "^25.5.0",
+		"svelte": "^5.49.2",
+		"typescript": "^5.9.3"
+	}
 }

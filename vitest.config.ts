@@ -1,10 +1,10 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	test: {
-		environment: 'node',
+		environment: "node",
 		globals: true,
-		include: ['packages/*/tests/**/*.test.ts'],
-		exclude: ['node_modules', 'dist', '.turbo'],
+		include: ["packages/*/tests/**/*.test.ts"],
+		exclude: ["node_modules", "dist", ".turbo"],
 	},
 });

@@ -1,54 +1,54 @@
 <script lang="ts">
-	import { page } from "$app/state";
+import { page } from "$app/state";
 
-	interface Heading {
-		depth: number;
-		text: string;
-		id: string;
-	}
+interface Heading {
+	depth: number;
+	text: string;
+	id: string;
+}
 
-	let headings = $derived((page.data.page?.headings as Heading[]) || []);
-	let activeId = $state<string | null>(null);
+let headings = $derived((page.data.page?.headings as Heading[]) || []);
+let activeId = $state<string | null>(null);
 
-	$effect(() => {
-		if (headings.length === 0) return;
+$effect(() => {
+	if (headings.length === 0) return;
 
-		// Set up intersection observer for active heading
-		const observer = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						activeId = entry.target.id;
-					}
-				});
-			},
-			{ rootMargin: "-100px 0px -66%" }
-		);
-
-		// Observe elements based on heading IDs
-		headings.forEach((heading) => {
-			const element = document.getElementById(heading.id);
-			if (element) {
-				observer.observe(element);
-			}
-		});
-
-		return () => {
-			observer.disconnect();
-		};
-	});
-
-	const filteredHeadings = $derived(
-		headings.filter((h) => h.depth === 2 || h.depth === 3)
+	// Set up intersection observer for active heading
+	const observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					activeId = entry.target.id;
+				}
+			});
+		},
+		{ rootMargin: "-100px 0px -66%" },
 	);
 
-	function handleLinkClick(id: string) {
-		activeId = id;
-		const element = document.getElementById(id);
+	// Observe elements based on heading IDs
+	headings.forEach((heading) => {
+		const element = document.getElementById(heading.id);
 		if (element) {
-			element.scrollIntoView({ behavior: "smooth" });
+			observer.observe(element);
 		}
+	});
+
+	return () => {
+		observer.disconnect();
+	};
+});
+
+const filteredHeadings = $derived(
+	headings.filter((h) => h.depth === 2 || h.depth === 3),
+);
+
+function handleLinkClick(id: string) {
+	activeId = id;
+	const element = document.getElementById(id);
+	if (element) {
+		element.scrollIntoView({ behavior: "smooth" });
 	}
+}
 </script>
 
 <nav class="toc-nav" aria-label="Table of contents">

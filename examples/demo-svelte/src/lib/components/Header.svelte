@@ -1,12 +1,12 @@
 <script lang="ts">
-	let { nav, sidebarOpen = false } = $props<{
-		nav: any[];
-		sidebarOpen: boolean;
-	}>();
+let { nav, sidebarOpen = false } = $props<{
+	nav: any[];
+	sidebarOpen: boolean;
+}>();
 
-	function toggleSidebar() {
-		sidebarOpen = !sidebarOpen;
-	}
+function toggleSidebar() {
+	sidebarOpen = !sidebarOpen;
+}
 </script>
 
 <header class="header">

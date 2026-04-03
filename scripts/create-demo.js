@@ -1,43 +1,46 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
-const DEMO_DIR = 'examples/demo-docs';
+const DEMO_DIR = "examples/demo-docs";
 
 async function createDemo() {
-    console.log('🚀 Creating docvia Demo Project...');
+	console.log("🚀 Creating docvia Demo Project...");
 
-    // 1. Create directory structure
-    await mkdir(DEMO_DIR, { recursive: true });
-    await mkdir(join(DEMO_DIR, 'docs'), { recursive: true });
-    await mkdir(join(DEMO_DIR, 'src/lib/components'), { recursive: true });
-    await mkdir(join(DEMO_DIR, 'src/routes/[...slug]'), { recursive: true });
+	// 1. Create directory structure
+	await mkdir(DEMO_DIR, { recursive: true });
+	await mkdir(join(DEMO_DIR, "docs"), { recursive: true });
+	await mkdir(join(DEMO_DIR, "src/lib/components"), { recursive: true });
+	await mkdir(join(DEMO_DIR, "src/routes/[...slug]"), { recursive: true });
 
-    // 2. Scaffold package.json
-    const packageJson = {
-        name: 'demo-docs',
-        private: true,
-        type: 'module',
-        scripts: {
-            "dev": "vite dev",
-            "build": "vite build",
-            "preview": "vite preview",
-            "docvia:build": "docvia build"
-        },
-        devDependencies: {
-            "@sveltejs/adapter-auto": "^3.0.0",
-            "@sveltejs/kit": "^2.0.0",
-            "@sveltejs/vite-plugin-svelte": "^3.0.0",
-            "svelte": "^4.2.0",
-            "vite": "^8.0.3",
-            "@docvia/cli": "workspace:*",
-            "@docvia/compiler": "workspace:*",
-            "@docvia/renderer-svelte": "workspace:*",
-        }
-    };
-    await writeFile(join(DEMO_DIR, 'package.json'), JSON.stringify(packageJson, null, 2));
+	// 2. Scaffold package.json
+	const packageJson = {
+		name: "demo-docs",
+		private: true,
+		type: "module",
+		scripts: {
+			dev: "vite dev",
+			build: "vite build",
+			preview: "vite preview",
+			"docvia:build": "docvia build",
+		},
+		devDependencies: {
+			"@sveltejs/adapter-auto": "^3.0.0",
+			"@sveltejs/kit": "^2.0.0",
+			"@sveltejs/vite-plugin-svelte": "^3.0.0",
+			svelte: "^4.2.0",
+			vite: "^8.0.3",
+			"@docvia/cli": "workspace:*",
+			"@docvia/compiler": "workspace:*",
+			"@docvia/renderer-svelte": "workspace:*",
+		},
+	};
+	await writeFile(
+		join(DEMO_DIR, "package.json"),
+		JSON.stringify(packageJson, null, 2),
+	);
 
-    // 3. Create svelte.config.js
-    const svelteConfig = `
+	// 3. Create svelte.config.js
+	const svelteConfig = `
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
@@ -51,10 +54,10 @@ const config = {
 
 export default config;
 `;
-    await writeFile(join(DEMO_DIR, 'svelte.config.js'), svelteConfig);
+	await writeFile(join(DEMO_DIR, "svelte.config.js"), svelteConfig);
 
-    // 4. Create vite.config.ts
-    const viteConfig = `
+	// 4. Create vite.config.ts
+	const viteConfig = `
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -67,10 +70,10 @@ export default defineConfig({
     }
 });
 `;
-    await writeFile(join(DEMO_DIR, 'vite.config.ts'), viteConfig);
+	await writeFile(join(DEMO_DIR, "vite.config.ts"), viteConfig);
 
-    // 5. Create docvia.config.ts
-    const docviaConfig = `
+	// 5. Create docvia.config.ts
+	const docviaConfig = `
 import { defineConfig } from '@docvia/cli';
 import { createSvelteRenderer } from '@docvia/renderer-svelte';
 
@@ -92,10 +95,10 @@ export default defineConfig({
     })
 });
 `;
-    await writeFile(join(DEMO_DIR, 'docvia.config.ts'), docviaConfig);
+	await writeFile(join(DEMO_DIR, "docvia.config.ts"), docviaConfig);
 
-    // 6. Create Counter.svelte
-    const counterSvelte = `
+	// 6. Create Counter.svelte
+	const counterSvelte = `
 <script>
     export let initial = 0;
     let count = initial;
@@ -128,10 +131,13 @@ export default defineConfig({
     }
 </style>
 `;
-    await writeFile(join(DEMO_DIR, 'src/lib/components/Counter.svelte'), counterSvelte);
+	await writeFile(
+		join(DEMO_DIR, "src/lib/components/Counter.svelte"),
+		counterSvelte,
+	);
 
-    // 7. Create Layout component (now inside demo app)
-    const layoutSvelte = `
+	// 7. Create Layout component (now inside demo app)
+	const layoutSvelte = `
 <script lang="ts">
     import '../../app.css';
 </script>
@@ -224,10 +230,10 @@ export default defineConfig({
     }
 </style>
 `;
-    await mkdir(join(DEMO_DIR, 'src/lib'), { recursive: true });
-    await writeFile(join(DEMO_DIR, 'src/lib/Layout.svelte'), layoutSvelte);
+	await mkdir(join(DEMO_DIR, "src/lib"), { recursive: true });
+	await writeFile(join(DEMO_DIR, "src/lib/Layout.svelte"), layoutSvelte);
 
-    const appCss = `
+	const appCss = `
 :root {
     --docvia-bg: #0f172a;
     --docvia-fg: #f8fafc;
@@ -240,10 +246,10 @@ body {
     color: var(--docvia-fg);
 }
 `;
-    await writeFile(join(DEMO_DIR, 'src/app.css'), appCss);
+	await writeFile(join(DEMO_DIR, "src/app.css"), appCss);
 
-    // 8. Create +layout.svelte
-    const rootLayoutSvelte = `
+	// 8. Create +layout.svelte
+	const rootLayoutSvelte = `
 <script>
     import Layout from '$lib/Layout.svelte';
 </script>
@@ -252,10 +258,13 @@ body {
     <slot />
 </Layout>
 `;
-    await writeFile(join(DEMO_DIR, 'src/routes/+layout.svelte'), rootLayoutSvelte);
+	await writeFile(
+		join(DEMO_DIR, "src/routes/+layout.svelte"),
+		rootLayoutSvelte,
+	);
 
-    // 9. Create routing layer (+page.ts and +page.svelte)
-    const pageTs = `
+	// 9. Create routing layer (+page.ts and +page.svelte)
+	const pageTs = `
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -274,9 +283,9 @@ export const load: PageLoad = async ({ params }) => {
     }
 };
 `;
-    await writeFile(join(DEMO_DIR, 'src/routes/[...slug]/+page.ts'), pageTs);
+	await writeFile(join(DEMO_DIR, "src/routes/[...slug]/+page.ts"), pageTs);
 
-    const pageSvelte = `
+	const pageSvelte = `
 <script lang="ts">
     import { Renderer, hydrate } from '@docvia/renderer-svelte';
     import { onMount } from 'svelte';
@@ -298,10 +307,13 @@ export const load: PageLoad = async ({ params }) => {
 
 <Renderer nodes={data.doc} {registry} />
 `;
-    await writeFile(join(DEMO_DIR, 'src/routes/[...slug]/+page.svelte'), pageSvelte);
+	await writeFile(
+		join(DEMO_DIR, "src/routes/[...slug]/+page.svelte"),
+		pageSvelte,
+	);
 
-    // 10. Create sample content
-    const indexMd = `---
+	// 10. Create sample content
+	const indexMd = `---
 title: Welcome to docvia
 description: Demo of partial hydration.
 ---
@@ -316,9 +328,9 @@ Scroll down for visibility hydration.
 
 ::counter{initial=100 hydrate="client:visible"}
 `;
-    await writeFile(join(DEMO_DIR, 'docs/index.md'), indexMd);
+	await writeFile(join(DEMO_DIR, "docs/index.md"), indexMd);
 
-    const componentsMd = `---
+	const componentsMd = `---
 title: Components
 ---
 
@@ -332,9 +344,9 @@ title: Components
 |------|------|-------------|
 | count| number| Initial value|
 `;
-    await writeFile(join(DEMO_DIR, 'docs/components.md'), componentsMd);
+	await writeFile(join(DEMO_DIR, "docs/components.md"), componentsMd);
 
-    console.log('✅ Demo project scaffolded in examples/demo-docs');
+	console.log("✅ Demo project scaffolded in examples/demo-docs");
 }
 
 createDemo().catch(console.error);
