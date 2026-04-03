@@ -24,7 +24,7 @@ const program = new Command();
 program
     .name('docvia')
     .description('docvia — Build-time documentation compiler')
-    .version('0.0.1');
+    .version(process.env.npm_package_version ?? "0.0.1");
 
 // init
 
