@@ -16,9 +16,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-   	"declaration": false, /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
-		"declarationMap": false,
-		"sourceMap": true,
+    "declaration": false, /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    "declarationMap": false,
+    "sourceMap": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -58,7 +58,7 @@
       "@docvia/source": [
         "./packages/source/src"
       ],
-      "@docvia/vite-plugin": [
+      "@docvia/plugin-vite": [
         "./packages/vite-plugin/src"
       ]
     }

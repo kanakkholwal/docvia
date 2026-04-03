@@ -1,5 +1,5 @@
 {
-    "name": "@docvia/vite-plugin",
+    "name": "@docvia/plugin-vite",
     "version": "0.0.1",
     "type": "module",
     "exports": {

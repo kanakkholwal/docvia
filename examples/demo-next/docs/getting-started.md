@@ -125,7 +125,7 @@ slug: custom-url           # override auto-generated slug
 Watch docs and Next.js simultaneously:
 
 ```bash
-pnpm concurrently "docvia dev" "next dev --turbopack"
+pnpm dev
 ```
 
 `docvia dev` watches markdown files and recompiles on change. Next.js HMR picks up the updated `.docvia/` files automatically.

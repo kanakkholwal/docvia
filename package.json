@@ -12,8 +12,9 @@
         "dev": "turbo run dev --concurrency=15",
         "prepare": "husky",
         "setup": "pnpm install && pnpm build && pnpm test",
-        "reset": "node ./scripts/clean-builds.js",
-        "cleanup:dts": "node ./scripts/clean-src-dts.js"
+        "reset": "node ./scripts/clean-builds.js && pnpm run cleanup:dts",
+        "cleanup:dts": "node ./scripts/clean-src-dts.js",
+        "postinstall": "pnpm run reset"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.4.9",
