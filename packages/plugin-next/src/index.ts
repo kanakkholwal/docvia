@@ -1,5 +1,4 @@
 import type { docviaConfig } from '@docvia/ir';
-import { docviaError } from '@docvia/ir';
 import type { NextConfig } from 'next';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -26,7 +25,7 @@ let _initPromise: Promise<void> | null = null;
  * ```
  */
 export function withDocvia(options: DocviaNextOptions = {}) {
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = process.env.NODE_ENV !== 'production';
 
     // Singleton guard — Next.js evaluates config multiple times
     // (dev server restarts, webpack workers, etc.)
@@ -38,11 +37,30 @@ export function withDocvia(options: DocviaNextOptions = {}) {
     return (nextConfig: NextConfig = {}): NextConfig => {
         // Resolve the outDir so we can set up aliases/plugins pointing to files on disk.
         // We resolve against cwd() because that's where Next.js runs from.
-        const outDir = resolve(options.configPath ? '.' : '.', '.docvia');
+        const outDir = resolve('.docvia');
 
-        return {
+        // Extract Turbopack configuration to support Next >= 15 / 16
+        const extTurbo = (nextConfig.experimental as any)?.turbo || {};
+        const baseTurbo = (nextConfig as any).turbo || {};
+
+        const turbo = {
+            ...extTurbo,
+            ...baseTurbo,
+            resolveAlias: {
+                ...extTurbo.resolveAlias,
+                ...baseTurbo.resolveAlias,
+                'docvia:source/registry': resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
+                'docvia:source': resolve(outDir, 'source.ts').replace(/\\/g, '/'),
+            },
+        };
+
+        const configToReturn: any = {
             ...nextConfig,
-            webpack(config, webpackOptions) {
+            experimental: {
+                ...nextConfig.experimental,
+                turbo,
+            },
+            webpack(config: any, webpackOptions: any) {
                 // --- Edge Case 1: Race condition ---
                 // init() is async and may not have finished writing .docvia/ files
                 // by the time webpack starts resolving modules. We inject a tiny
@@ -83,18 +101,21 @@ export function withDocvia(options: DocviaNextOptions = {}) {
                 return nextConfig.webpack?.(config, webpackOptions) ?? config;
             },
         };
+
+        return configToReturn;
     };
 }
 
-// ---------------------------------------------------------------------------
 // Initialization: compile + (dev) watch
-// ---------------------------------------------------------------------------
 
 async function init(dev: boolean, options: DocviaNextOptions): Promise<void> {
-    // Dynamic imports — these are Node-only, heavy deps that we don't want
-    // in the webpack bundle or parsed at config-evaluation time.
+    // Dynamic imports — these are Node-only, heavy deps that we should NOT
+    // pull in at config-evaluation time. Keeps the top-level import clean
+    // and avoids MODULE_NOT_FOUND if workspace packages aren't built yet
+    // when Next.js first loads the config.
     const { compile } = await import('@docvia/compiler');
     const { loadConfig, defineConfig } = await import('@docvia/plugins');
+    const { docviaError } = await import('@docvia/ir');
 
     const configPath = resolve(options.configPath ?? './docvia.config.ts');
 
@@ -163,6 +184,7 @@ async function startDevWatcher(
     config: docviaConfig,
 ): Promise<void> {
     const { compile } = await import('@docvia/compiler');
+    const { docviaError } = await import('@docvia/ir');
     const { watch } = await import('chokidar');
 
     let pending = new Set<string>();

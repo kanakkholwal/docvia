@@ -1,10 +1,9 @@
+import { DocviaHydrator } from "@/components/DocviaHydrator";
 import { DocviaContent } from "@docvia/renderer-react";
 import { docs } from "docvia:source";
-import { registry } from "docvia:source/registry";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DocviaHydrator } from "../../../components/DocviaHydrator";
 
 interface PageProps {
 	params: Promise<{ slug?: string[] }>;
@@ -48,7 +47,6 @@ export default async function DocPage({ params }: PageProps) {
                 */}
 				<DocviaContent
 					nodes={page.content}
-					registry={registry}
 					components={{
 						a: ({ href, children, ...props }) => (
 							<Link href={href ?? "/"} {...props}>
