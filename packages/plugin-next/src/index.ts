@@ -1,6 +1,6 @@
 import type { docviaConfig } from '@docvia/ir';
 import type { NextConfig } from 'next';
-import { existsSync } from 'node:fs';
+import { closeSync, existsSync, openSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export interface DocviaNextOptions {
@@ -8,107 +8,94 @@ export interface DocviaNextOptions {
     configPath?: string;
 }
 
-// Stores the init promise so the Webpack plugin can await it before compilation starts
-let _initPromise: Promise<void> | null = null;
+const logger = {
+    info(msg: string) { console.log(`\x1b[36m[docvia]\x1b[0m ${msg}`); },
+    success(msg: string) { console.log(`\x1b[32m[docvia]\x1b[0m ${msg}`); },
+    warn(msg: string) { console.warn(`\x1b[33m[docvia]\x1b[0m ${msg}`); },
+    error(msg: string, err?: unknown) { console.error(`\x1b[31m[docvia]\x1b[0m ${msg}`); if (err) console.error(err); },
+};
+
+let _initPromise: Promise<docviaConfig | null> | null = null;
+let _watcherCleanup: (() => void) | null = null;
+
+function acquireFileLock(dir: string): boolean {
+    const lockPath = resolve(dir, '.docvia-build.lock');
+    try {
+        const fd = openSync(lockPath, 'wx');
+        closeSync(fd);
+        const cleanup = () => {
+            try { rmSync(lockPath, { force: true }); } catch { /* ignore */ }
+        };
+        process.on('exit', cleanup);
+        process.on('SIGINT', () => { cleanup(); process.exit(); });
+        process.on('SIGTERM', () => { cleanup(); process.exit(); });
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Create a Next.js config wrapper that integrates docvia's compilation,
  * file-watching, and module resolution directly into the Next.js lifecycle.
- *
- * @example
- * ```ts
- * // next.config.ts
- * import { withDocvia } from '@docvia/plugin-next';
- *
- * const withDocs = withDocvia();
- * export default withDocs({});
- * ```
  */
 export function withDocvia(options: DocviaNextOptions = {}) {
     const isDev = process.env.NODE_ENV !== 'production';
 
-    // Singleton guard — Next.js evaluates config multiple times
-    // (dev server restarts, webpack workers, etc.)
-    if (process.env._DOCVIA_NEXT !== '1') {
-        process.env._DOCVIA_NEXT = '1';
-        _initPromise = init(isDev, options);
-    }
-
     return function withDocviaConfig(nextConfig: NextConfig | ((phase: string, context: any) => NextConfig | Promise<NextConfig>) = {}): any {
         return async (phase: string, context: any) => {
-            // Await initialization BEFORE Next.js continues.
-            // This natively supports Turbopack because Turbopack will not start
-            // resolving aliases until the config is fully resolved.
-            if (_initPromise) {
-                await _initPromise;
+            if (!_initPromise) {
+                _initPromise = init(isDev, options);
             }
-
-            // Resolve the underlying config if it's a function or an async function
+            
+            const docviaConfigInfo = await _initPromise;
             const resolvedConfig = typeof nextConfig === 'function' ? await nextConfig(phase, context) : nextConfig;
 
-            // Resolve the outDir so we can set up aliases/plugins pointing to files on disk.
-            // We resolve against cwd() because that's where Next.js runs from.
-            const outDir = resolve('.docvia');
+            const outDir = docviaConfigInfo ? resolve(docviaConfigInfo.outDir ?? '.docvia') : resolve('.docvia');
+            const isTurbopack = process.env.TURBOPACK === '1' || !!process.env.__NEXT_TURBOPACK || ("turbopack" in resolvedConfig);
 
-            // Extract Turbopack configuration to support Next >= 15 / 16
-            const isNext16Plus = resolvedConfig && typeof resolvedConfig === 'object' && "turbopack" in resolvedConfig;
-            // Next.js 13/14+ will have a valid config object, we inject Webpack as a fallback or explicit
-            const isNext13Plus = !isNext16Plus && ("webpack" in resolvedConfig);
-
-            const configToReturn = {
+            return {
                 ...resolvedConfig,
-                ...(isNext13Plus ? {
-                    webpack(config: any, webpackOptions: any) {
-                        // Resolve `docvia:source` → .docvia/source.ts
-                        // Resolve `docvia:source/registry` → .docvia/registry.ts
-                        //
-                        // We use NormalModuleReplacementPlugin for Webpack.
-                        config.plugins.push(
-                            new webpackOptions.webpack.NormalModuleReplacementPlugin(
-                                /^docvia:source(\/.*)?$/,
-                                (resource: { request: string }) => {
-                                    if (resource.request === 'docvia:source') {
-                                        resource.request = resolve(outDir, 'source.ts');
-                                    } else if (resource.request === 'docvia:source/registry') {
-                                        resource.request = resolve(outDir, 'registry.ts');
-                                    }
-                                },
-                            ),
-                        );
+                webpack(config: any, webpackOptions: any) {
+                    config.resolve = config.resolve || {};
+                    config.resolve.alias = config.resolve.alias || {};
+                    config.resolve.alias['docvia:source/registry'] = resolve(outDir, 'registry.ts');
+                    config.resolve.alias['docvia:source'] = resolve(outDir, 'source.ts');
 
-                        return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
-                    },
-                } : {}),
-                ...(isNext16Plus ? {
-                    turbopack: {
-                        ...resolvedConfig.turbopack,
-                        resolveAlias: {
-                            ...resolvedConfig.turbopack?.resolveAlias,
-                            "docvia:source": resolve(outDir, 'source.ts'),
-                            "docvia:source/registry": resolve(outDir, 'registry.ts'),
+                    return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
+                },
+                ...(isTurbopack ? {
+                    experimental: {
+                        ...(resolvedConfig.experimental || {}),
+                        turbo: {
+                            ...((resolvedConfig as any).experimental?.turbo || {}),
+                            resolveAlias: {
+                                ...((resolvedConfig as any).experimental?.turbo?.resolveAlias || {}),
+                                "docvia:source": resolve(outDir, 'source.ts').replace(/\\/g, '/'),
+                                "docvia:source/registry": resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
+                            }
                         }
                     },
+                    turbo: {
+                        ...((resolvedConfig as any).turbo || {}),
+                        resolveAlias: {
+                            ...((resolvedConfig as any).turbo?.resolveAlias || {}),
+                            "docvia:source": resolve(outDir, 'source.ts').replace(/\\/g, '/'),
+                            "docvia:source/registry": resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
+                        }
+                    }
                 } : {}),
             };
-
-            return configToReturn;
         };
     };
 }
 
-// Initialization: compile + (dev) watch
-
-async function init(dev: boolean, options: DocviaNextOptions): Promise<void> {
-    // Dynamic imports — these are Node-only, heavy deps that we should NOT
-    // pull in at config-evaluation time. Keeps the top-level import clean
-    // and avoids MODULE_NOT_FOUND if workspace packages aren't built yet
-    // when Next.js first loads the config.
+async function init(dev: boolean, options: DocviaNextOptions): Promise<docviaConfig | null> {
     const { compile } = await import('@docvia/compiler');
     const { loadConfig, defineConfig } = await import('@docvia/plugins');
     const { docviaError } = await import('@docvia/ir');
 
     const configPath = resolve(options.configPath ?? './docvia.config.ts');
-
     let config: docviaConfig;
     if (existsSync(configPath)) {
         config = await loadConfig(configPath);
@@ -116,55 +103,51 @@ async function init(dev: boolean, options: DocviaNextOptions): Promise<void> {
         config = defineConfig({});
     }
 
-    const sourceDir = resolve(config.sourceDir);
-    const outDir = resolve(config.outDir);
+    const sourceDir = resolve(config.sourceDir ?? 'docs');
+    const outDir = resolve(config.outDir ?? '.docvia');
     const renderer = config.renderer;
 
     if (!renderer) {
-        console.warn(
-            '[docvia] No renderer configured in docvia.config.ts — skipping compilation.\n' +
-            '         Add a renderer (e.g. createReactRenderer()) to enable documentation compilation.',
-        );
-        return;
+        logger.warn('No renderer configured in docvia.config.ts — skipping compilation.');
+        return config;
     }
 
     if (!existsSync(sourceDir)) {
-        console.warn(
-            `[docvia] Source directory not found: ${sourceDir}\n` +
-            '         Run `docvia init` or create the directory to get started.',
-        );
-        return;
+        logger.warn(`Source directory not found: ${sourceDir}`);
+        return config;
     }
 
-    // --- Initial build ---
+    if (!acquireFileLock(process.cwd())) {
+        logger.info('Build already running in another process (file-lock detected), skipping start.');
+        return config; // Handled by another next worker
+    }
+
     try {
-        console.log('[docvia] Compiling documentation...');
+        logger.info('Compiling documentation...');
         const result = await compile({
             sourceDir,
             outDir,
             renderer,
-            plugins: [...config.plugins],
+            plugins: [...(config.plugins ?? [])],
             config,
         });
-        console.log(
-            `[docvia] \u2713 Built ${result.stats.total} files in ${Math.round(result.duration)}ms`,
-        );
+        logger.success(`Built ${result.stats.total} files in ${Math.round(result.duration)}ms`);
     } catch (err) {
         if (err instanceof docviaError) {
-            console.error(`[docvia] Build failed: [${err.code}] ${err.message}`);
-            if (err.file) console.error(`         → ${err.file}`);
+            logger.error(`Build failed: [${err.code}] ${err.message}`, err.file ? ` → ${err.file}` : undefined);
         } else {
-            console.error('[docvia] Build failed:', (err as Error).message);
+            logger.error('Build failed', err);
         }
-        // Don't throw — let Next.js start anyway so the user can see the error
-        // in the browser overlay and fix it without restarting the dev server.
-        return;
+        if (!dev) {
+            throw err;
+        }
     }
 
-    // --- Dev mode: watch for markdown file changes ---
     if (dev) {
         await startDevWatcher(sourceDir, outDir, renderer, config);
     }
+    
+    return config;
 }
 
 async function startDevWatcher(
@@ -173,6 +156,8 @@ async function startDevWatcher(
     renderer: NonNullable<docviaConfig['renderer']>,
     config: docviaConfig,
 ): Promise<void> {
+    if (_watcherCleanup) return; // singleton
+
     const { compile } = await import('@docvia/compiler');
     const { docviaError } = await import('@docvia/ir');
     const { watch } = await import('chokidar');
@@ -180,41 +165,58 @@ async function startDevWatcher(
     let pending = new Set<string>();
     let timer: ReturnType<typeof setTimeout> | null = null;
     let isRebuilding = false;
+    let rebuildQueued = false;
 
     const watcher = watch(sourceDir, {
         ignoreInitial: true,
         awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
     });
 
+    _watcherCleanup = () => {
+        logger.info('Closing file watcher');
+        void watcher.close();
+        _watcherCleanup = null;
+    };
+    
+    process.on('exit', _watcherCleanup);
+    process.on('SIGINT', () => { if (_watcherCleanup) _watcherCleanup(); process.exit(); });
+    process.on('SIGTERM', () => { if (_watcherCleanup) _watcherCleanup(); process.exit(); });
+
     function flush() {
-        if (pending.size === 0 || isRebuilding) return;
+        if (pending.size === 0) return;
+        if (isRebuilding) {
+            rebuildQueued = true;
+            return;
+        }
+        
         const count = pending.size;
-        pending = new Set();
+        pending.clear();
         timer = null;
         isRebuilding = true;
+        rebuildQueued = false;
 
-        console.log(`[docvia] Rebuilding (${count} file(s) changed)...`);
+        logger.info(`Rebuilding (${count} file(s) changed)...`);
+        
         compile({
             sourceDir,
             outDir,
             renderer,
-            plugins: [...config.plugins],
+            plugins: [...(config.plugins ?? [])],
             config,
         })
             .then((r) => {
-                console.log(`[docvia] \u2713 Rebuilt in ${Math.round(r.duration)}ms`);
+                logger.success(`Rebuilt in ${Math.round(r.duration)}ms`);
             })
             .catch((err: unknown) => {
                 if (err instanceof docviaError) {
-                    console.error(`[docvia] Rebuild failed: [${err.code}] ${err.message}`);
+                    logger.error(`Rebuild failed: [${err.code}] ${err.message}`);
                 } else {
-                    console.error('[docvia] Rebuild error:', (err as Error).message);
+                    logger.error('Rebuild error:', err);
                 }
             })
             .finally(() => {
                 isRebuilding = false;
-                // If more changes accumulated during the rebuild, flush again
-                if (pending.size > 0) {
+                if (rebuildQueued || pending.size > 0) {
                     flush();
                 }
             });
@@ -230,12 +232,5 @@ async function startDevWatcher(
     watcher.on('add', schedule);
     watcher.on('unlink', schedule);
 
-    console.log(`[docvia] Watching ${sourceDir} for changes...`);
-
-    process.on('exit', () => {
-        if (!watcher.closed) {
-            console.log('[docvia] Closing file watcher');
-            void watcher.close();
-        }
-    });
+    logger.info(`Watching ${sourceDir} for changes...`);
 }
