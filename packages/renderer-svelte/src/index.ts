@@ -1,5 +1,4 @@
-import Renderer from './Renderer.svelte';
+import Renderer from "./Renderer.svelte";
 
-export * from './adapter';
+export * from "./adapter";
 export { Renderer };
-

@@ -1,27 +1,25 @@
 <script lang="ts">
-    import { page } from "$app/state";
+import { page } from "$app/state";
 
-    interface PageMeta {
-        slug: string;
-        title: string;
-        description: string;
-    }
+interface PageMeta {
+	slug: string;
+	title: string;
+	description: string;
+}
 
-    let { pagesMeta = [] } = $props<{ pagesMeta: PageMeta[] }>();
+let { pagesMeta = [] } = $props<{ pagesMeta: PageMeta[] }>();
 
-    const currentSlug = $derived(page.params.slug || "index");
-    const currentIndex = $derived(
-        pagesMeta.findIndex((p: PageMeta) => p.slug === currentSlug),
-    );
+const currentSlug = $derived(page.params.slug || "index");
+const currentIndex = $derived(
+	pagesMeta.findIndex((p: PageMeta) => p.slug === currentSlug),
+);
 
-    const prevPage = $derived(
-        currentIndex > 0 ? pagesMeta[currentIndex - 1] : null,
-    );
-    const nextPage = $derived(
-        currentIndex < pagesMeta.length - 1
-            ? pagesMeta[currentIndex + 1]
-            : null,
-    );
+const prevPage = $derived(
+	currentIndex > 0 ? pagesMeta[currentIndex - 1] : null,
+);
+const nextPage = $derived(
+	currentIndex < pagesMeta.length - 1 ? pagesMeta[currentIndex + 1] : null,
+);
 </script>
 
 <div class="pagination">

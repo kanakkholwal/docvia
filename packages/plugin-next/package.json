@@ -1,0 +1,33 @@
+{
+    "name": "@docvia/plugin-next",
+    "version": "0.0.1",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.mts",
+            "import": "./dist/index.mjs"
+        }
+    },
+    "main": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "scripts": {
+        "build": "tsdown",
+        "dev": "tsdown --watch",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@docvia/compiler": "workspace:*",
+        "@docvia/ir": "workspace:*",
+        "@docvia/plugins": "workspace:*",
+        "chokidar": "^4.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.5.0",
+        "next": "^16",
+        "typescript": "^5.9.3",
+        "webpack": "^5"
+    },
+    "peerDependencies": {
+        "next": ">=14"
+    }
+}

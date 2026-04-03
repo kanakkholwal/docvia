@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Renderer } from "@docvia/renderer-svelte";
-	import type { PageProps } from "./$types";
+import { Renderer } from "@docvia/renderer-svelte";
+import type { PageProps } from "./$types";
 
-	let { data }: PageProps = $props();
+let { data }: PageProps = $props();
 </script>
 
 <article class="article">

@@ -1,32 +1,32 @@
 {
-    "name": "@docvia/ir",
-    "version": "0.0.1",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs",
-            "default": "./dist/index.mjs"
-        },
-        "./transform": {
-            "types": "./dist/transform.d.mts",
-            "import": "./dist/transform.mjs",
-            "default": "./dist/transform.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "test": "vitest run"
-    },
-    "dependencies": {
-        "github-slugger": "^2.0.0"
-    },
-    "devDependencies": {
-        "@types/hast": "^3.0.4",
-        "@types/node": "^25.5.0",
-        "typescript": "^5.9.3"
-    }
+	"name": "@docvia/ir",
+	"version": "0.0.1",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		},
+		"./transform": {
+			"types": "./dist/transform.d.mts",
+			"import": "./dist/transform.mjs",
+			"default": "./dist/transform.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"github-slugger": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/hast": "^3.0.4",
+		"@types/node": "^25.5.0",
+		"typescript": "^5.9.3"
+	}
 }

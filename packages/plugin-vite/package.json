@@ -1,31 +1,31 @@
 {
-    "name": "@docvia/plugin-vite",
-    "version": "0.0.1",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch",
-        "typecheck": "tsc --noEmit",
-        "test": "echo \"no tests yet\""
-    },
-    "dependencies": {
-        "@docvia/core": "workspace:*",
-        "@docvia/ir": "workspace:*",
-        "@docvia/schema": "workspace:*",
-        "@docvia/source": "workspace:*"
-    },
-    "devDependencies": {
-        "@types/node": "^20.0.0",
-        "svelte": "^5.49.2",
-        "typescript": "^5.5.0",
-        "vite": "^6.0.0"
-    }
+	"name": "@docvia/plugin-vite",
+	"version": "0.0.1",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch",
+		"typecheck": "tsc --noEmit",
+		"test": "echo \"no tests yet\""
+	},
+	"dependencies": {
+		"@docvia/core": "workspace:*",
+		"@docvia/ir": "workspace:*",
+		"@docvia/schema": "workspace:*",
+		"@docvia/source": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"svelte": "^5.49.2",
+		"typescript": "^5.5.0",
+		"vite": "^6.0.0"
+	}
 }

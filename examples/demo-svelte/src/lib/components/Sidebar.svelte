@@ -1,26 +1,26 @@
 <script lang="ts">
-	import { page } from "$app/state";
+import { page } from "$app/state";
 
-	interface NavItem {
-		name: string;
-		slug: string;
-		title: string;
-		children: NavItem[];
-	}
-	interface Props {
-		nav: NavItem[];
-	}
+interface NavItem {
+	name: string;
+	slug: string;
+	title: string;
+	children: NavItem[];
+}
+interface Props {
+	nav: NavItem[];
+}
 
-	let { nav } : Props = $props();
+let { nav }: Props = $props();
 
-	function isActive(slug: string): boolean {
-		const currentSlug = page.params.slug?.[0] || "index";
-		return currentSlug === slug || (slug === "index" && !page.params.slug);
-	}
+function isActive(slug: string): boolean {
+	const currentSlug = page.params.slug?.[0] || "index";
+	return currentSlug === slug || (slug === "index" && !page.params.slug);
+}
 
-	function getHref(slug: string): string {
-		return slug === "index" ? "/" : `/${slug}`;
-	}
+function getHref(slug: string): string {
+	return slug === "index" ? "/" : `/${slug}`;
+}
 </script>
 
 <ul class="nav-list">
