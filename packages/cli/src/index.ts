@@ -410,4 +410,11 @@ program
 		}
 	});
 
-program.parse();
+// Run only if executed as a CLI script, not when imported as a configuration helper
+const arg1 = process.argv[1] || '';
+// Check if the executing script's name is docvia (or index.mjs inside cli/dist)
+const isCli = arg1.match(/docvia(\.m?js|\.cmd)?$/i) || arg1.endsWith('cli/dist/index.mjs') || arg1.endsWith('cli\\dist\\index.mjs');
+
+if (isCli) {
+    program.parse();
+}
