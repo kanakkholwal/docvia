@@ -1,8 +1,7 @@
 import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
 import React from "react";
 
-// --- Component override types ---
-
+// Component override types 
 /**
  * Props passed to a custom code block component.
  * `html` is the pre-rendered syntax-highlighted markup from shiki.
@@ -84,9 +83,7 @@ export function DocviaContent({
 	);
 }
 
-// ---------------------------------------------------------------------------
 // Internal recursive node renderer
-// ---------------------------------------------------------------------------
 
 interface NodeProps {
 	node: RenderOutput;
@@ -228,9 +225,7 @@ function DocviaNode({
 	}
 }
 
-// ---------------------------------------------------------------------------
 // Child rendering helpers
-// ---------------------------------------------------------------------------
 
 /** Returns children as a flat array for React.createElement spread. */
 function renderChildrenArray(

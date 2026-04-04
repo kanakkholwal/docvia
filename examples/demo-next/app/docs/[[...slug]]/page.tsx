@@ -1,6 +1,6 @@
 import { DocviaHydrator } from "@/components/DocviaHydrator";
 import { DocviaContent } from "@docvia/renderer-react";
-import { docs } from "docvia:source";
+import { docs } from "../../../.docvia/source";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";

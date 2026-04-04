@@ -5,7 +5,9 @@ export default defineConfig({
 	format: ["esm"],
 	dts: true,
 	sourcemap: true,
-	clean: true,
+	// Keep the published entrypoint available while watch mode rebuilds so
+	// consuming apps can still import the workspace package during startup.
+	clean: false,
 	outDir: "dist",
 	treeshake: true,
 	target: false,

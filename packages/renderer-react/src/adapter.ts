@@ -73,9 +73,7 @@ function escapeHtml(str: string): string {
 		.replace(/"/g, "&quot;");
 }
 
-// ---------------------------------------------------------------------------
 // React renderer adapter
-// ---------------------------------------------------------------------------
 
 /**
  * Creates a docvia RendererAdapter for React.
@@ -159,9 +157,7 @@ export function createReactRenderer(
 	};
 }
 
-// ---------------------------------------------------------------------------
 // Vite virtual-module plugin
-// ---------------------------------------------------------------------------
 
 export interface InMemoryStore {
 	get(slug: string): RenderedPage | undefined;

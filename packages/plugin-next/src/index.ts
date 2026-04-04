@@ -1,7 +1,7 @@
 import type { docviaConfig } from '@docvia/ir';
 import type { NextConfig } from 'next';
 import { closeSync, existsSync, openSync, rmSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 
 export interface DocviaNextOptions {
     /** Path to docvia.config.ts relative to project root (default: './docvia.config.ts') */
@@ -17,6 +17,43 @@ const logger = {
 
 let _initPromise: Promise<docviaConfig | null> | null = null;
 let _watcherCleanup: (() => void) | null = null;
+
+function findTurbopackRoot(startDir: string): string {
+    let currentDir = startDir;
+
+    while (true) {
+        if (
+            existsSync(resolve(currentDir, 'pnpm-lock.yaml'))
+            || existsSync(resolve(currentDir, 'package-lock.json'))
+            || existsSync(resolve(currentDir, 'yarn.lock'))
+            || existsSync(resolve(currentDir, 'bun.lock'))
+            || existsSync(resolve(currentDir, 'bun.lockb'))
+        ) {
+            return currentDir;
+        }
+
+        const parentDir = resolve(currentDir, '..');
+        if (parentDir === currentDir) {
+            return startDir;
+        }
+
+        currentDir = parentDir;
+    }
+}
+
+function toTurbopackAliasPath(filePath: string, rootDir: string): string {
+    const normalizedRelativePath = relative(rootDir, filePath).replace(/\\/g, '/');
+
+    if (normalizedRelativePath.startsWith('.')) {
+        return normalizedRelativePath;
+    }
+
+    if (!normalizedRelativePath.startsWith('..')) {
+        return `./${normalizedRelativePath}`;
+    }
+
+    return filePath.replace(/\\/g, '/');
+}
 
 function acquireFileLock(dir: string): boolean {
     const lockPath = resolve(dir, '.docvia-build.lock');
@@ -50,41 +87,35 @@ export function withDocvia(options: DocviaNextOptions = {}) {
             
             const docviaConfigInfo = await _initPromise;
             const resolvedConfig = typeof nextConfig === 'function' ? await nextConfig(phase, context) : nextConfig;
-
             const outDir = docviaConfigInfo ? resolve(docviaConfigInfo.outDir ?? '.docvia') : resolve('.docvia');
-            const isTurbopack = process.env.TURBOPACK === '1' || !!process.env.__NEXT_TURBOPACK || ("turbopack" in resolvedConfig);
+            const sourceAlias = resolve(outDir, 'source.ts');
+            const registryAlias = resolve(outDir, 'registry.ts');
+            const legacyTurbopackConfig = (resolvedConfig as any).experimental?.turbo ?? {};
+            const turbopackRoot = (resolvedConfig as any).turbopack?.root
+                ?? legacyTurbopackConfig.root
+                ?? findTurbopackRoot(process.cwd());
 
             return {
                 ...resolvedConfig,
                 webpack(config: any, webpackOptions: any) {
                     config.resolve = config.resolve || {};
                     config.resolve.alias = config.resolve.alias || {};
-                    config.resolve.alias['docvia:source/registry'] = resolve(outDir, 'registry.ts');
-                    config.resolve.alias['docvia:source'] = resolve(outDir, 'source.ts');
+                    config.resolve.alias['docvia:source/registry'] = registryAlias;
+                    config.resolve.alias['docvia:source'] = sourceAlias;
 
                     return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
                 },
-                ...(isTurbopack ? {
-                    experimental: {
-                        ...(resolvedConfig.experimental || {}),
-                        turbo: {
-                            ...((resolvedConfig as any).experimental?.turbo || {}),
-                            resolveAlias: {
-                                ...((resolvedConfig as any).experimental?.turbo?.resolveAlias || {}),
-                                "docvia:source": resolve(outDir, 'source.ts').replace(/\\/g, '/'),
-                                "docvia:source/registry": resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
-                            }
-                        }
-                    },
-                    turbo: {
-                        ...((resolvedConfig as any).turbo || {}),
-                        resolveAlias: {
-                            ...((resolvedConfig as any).turbo?.resolveAlias || {}),
-                            "docvia:source": resolve(outDir, 'source.ts').replace(/\\/g, '/'),
-                            "docvia:source/registry": resolve(outDir, 'registry.ts').replace(/\\/g, '/'),
-                        }
+                turbopack: {
+                    ...legacyTurbopackConfig,
+                    ...((resolvedConfig as any).turbopack || {}),
+                    root: turbopackRoot,
+                    resolveAlias: {
+                        ...(legacyTurbopackConfig.resolveAlias || {}),
+                        ...((resolvedConfig as any).turbopack?.resolveAlias || {}),
+                        "docvia:source": toTurbopackAliasPath(sourceAlias, turbopackRoot),
+                        "docvia:source/registry": toTurbopackAliasPath(registryAlias, turbopackRoot),
                     }
-                } : {}),
+                },
             };
         };
     };
