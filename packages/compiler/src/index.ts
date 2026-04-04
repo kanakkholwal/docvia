@@ -229,6 +229,7 @@ export const ${c.name} = createCollection<import('./collections/${c.name}/types'
   name: ${JSON.stringify(c.name)},
   baseUrl: ${JSON.stringify(`/${c.name === "docs" ? "" : c.name}`.replace(/\/+/g, "/"))},
   routes: routes_${i}.routes,
+  sourceModuleUrl: import.meta.url,
   meta: meta_${i} as any,
   nav: nav_${i},
   tags: tags_${i} as any
