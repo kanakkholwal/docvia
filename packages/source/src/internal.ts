@@ -13,11 +13,12 @@ export function createCollection<
 	name: string;
 	baseUrl: string;
 	routes: TRoutes;
+	sourceModuleUrl: string;
 	meta: CollectionMetaEntry<keyof TRoutes & string>[];
 	nav: unknown;
 	tags: Partial<Record<string, (keyof TRoutes & string)[]>>;
 }): docviaCollection<TFrontmatter, keyof TRoutes & string> {
-	const { baseUrl, routes, meta, nav, tags } = opts;
+	const { baseUrl, routes, sourceModuleUrl, meta, nav, tags } = opts;
 
 	async function loadModule(modulePath: string) {
 		if (typeof window === "undefined") {
@@ -26,11 +27,12 @@ export function createCollection<
 					/* @vite-ignore */ /* webpackIgnore: true */ modulePath
 				);
 			} catch {
-				const { resolve } = await import("node:path");
-				const { cwd } = await import("node:process");
-				const filePath = resolve(
-					cwd(),
-					modulePath.replace(/\?docvia$/, "").replace(/^\//, ""),
+				const { fileURLToPath } = await import("node:url");
+				const filePath = fileURLToPath(
+					new URL(
+						modulePath.replace(/\?docvia$/, "").replace(/^\//, "../"),
+						sourceModuleUrl,
+					),
 				);
 				const { loadMarkdown } = await import("./node.js");
 				return loadMarkdown(filePath);
