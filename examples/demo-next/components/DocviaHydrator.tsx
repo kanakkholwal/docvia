@@ -13,7 +13,7 @@
 
 import type { HydrationManifest } from "@docvia/renderer-core";
 import { hydrate } from "@docvia/renderer-react/client";
-import { registry } from "../.docvia/registry";
+import { registry } from "docvia:source";
 import { useEffect } from "react";
 
 interface Props {

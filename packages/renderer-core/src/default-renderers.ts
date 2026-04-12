@@ -122,19 +122,12 @@ export function createDefaultRendererMap(): RendererMap {
 		component: async (node, ctx) => {
 			const name = node.props.name as string;
 			const resolved = ctx.registry.resolve(name);
-
-			if (!resolved) {
-				throw new RenderError(
-					"MISSING_COMPONENT",
-					`Component not found: ${name}`,
-					node,
-				);
-			}
-
 			const hydrate = (node.props.hydrate as HydrationMode) ?? "none";
 			const attributes =
 				(node.props.attributes as Record<string, unknown>) ?? {};
-			const mergedProps = { ...resolved.defaultProps, ...attributes };
+			const mergedProps = resolved
+				? { ...resolved.defaultProps, ...attributes }
+				: attributes;
 
 			return {
 				kind: "component",
@@ -149,19 +142,12 @@ export function createDefaultRendererMap(): RendererMap {
 		"component-inline": async (node, ctx) => {
 			const name = node.props.name as string;
 			const resolved = ctx.registry.resolve(name);
-
-			if (!resolved) {
-				throw new RenderError(
-					"MISSING_COMPONENT",
-					`Component not found: ${name}`,
-					node,
-				);
-			}
-
 			const hydrate = (node.props.hydrate as HydrationMode) ?? "none";
 			const attributes =
 				(node.props.attributes as Record<string, unknown>) ?? {};
-			const mergedProps = { ...resolved.defaultProps, ...attributes };
+			const mergedProps = resolved
+				? { ...resolved.defaultProps, ...attributes }
+				: attributes;
 
 			return {
 				kind: "component",

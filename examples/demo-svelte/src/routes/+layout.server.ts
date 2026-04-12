@@ -2,23 +2,17 @@ import { docs } from "docvia:source";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async () => {
-	const nav = docs.getTree();
-	const allPages = docs.getAllPages();
+	const tree = docs.pageTree;
+	const pages = docs.getPages();
 
-	// Fetch titles and descriptions for all pages to help with search or breadcrumbs
-	const pagesMeta = await Promise.all(
-		allPages.map(async (slug: string) => {
-			const page = await docs.getPage(slug.split("/"));
-			return {
-				slug,
-				title: page?.data?.title || slug,
-				description: page?.data?.description || "",
-			};
-		}),
-	);
+	const pagesMeta = pages.map((p) => ({
+		slug: p.slugs.join("/") || "index",
+		title: p.data?.title || p.slugs[p.slugs.length - 1] || "Home",
+		description: p.data?.description || "",
+	}));
 
 	return {
-		nav,
+		tree,
 		pagesMeta,
 	};
 };

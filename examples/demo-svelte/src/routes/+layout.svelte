@@ -16,7 +16,7 @@ let { data, children } = $props();
 	/>
 </svelte:head>
 
-<Layout nav={data.nav} {children} />
+<Layout tree={data.tree} {children} />
 
 <style>
 	:global(body) {
