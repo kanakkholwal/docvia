@@ -1,5 +1,4 @@
 <script lang="ts">
-import favicon from "$lib/assets/favicon.svg";
 import Layout from "$lib/components/Layout.svelte";
 import "../app.css";
 
@@ -7,20 +6,9 @@ let { data, children } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>docvia Documentation</title>
-	<meta
-		name="description"
-		content="Modern documentation site powered by docvia"
-	/>
+	<meta name="description" content="Modern documentation site powered by docvia" />
 </svelte:head>
 
 <Layout tree={data.tree} {children} />
-
-<style>
-	:global(body) {
-		margin: 0;
-		padding: 0;
-	}
-</style>

@@ -9,7 +9,6 @@ interface PageProps {
 	params: Promise<{ slug?: string[] }>;
 }
 
-// Pre-render all known slugs at build time (SSG)
 export async function generateStaticParams() {
 	return docs.generateParams();
 }
@@ -32,37 +31,83 @@ export default async function DocPage({ params }: PageProps) {
 
 	if (!page) notFound();
 
+	const allPages = docs.getPages();
+	const currentSlug = page.slugs.join("/") || "index";
+	const currentIndex = allPages.findIndex(
+		(p) => (p.slugs.join("/") || "index") === currentSlug,
+	);
+	const prev = currentIndex > 0 ? allPages[currentIndex - 1] : null;
+	const next =
+		currentIndex < allPages.length - 1 ? allPages[currentIndex + 1] : null;
+
 	return (
 		<div className="doc-page">
-			<article className="prose">
-				<DocviaContent
-					nodes={page.content}
-					registry={registry}
-					components={{
-						a: ({ href, children, ...props }) => (
-							<Link href={href ?? "/"} {...props}>
-								{children}
+			<article className="doc-content">
+				<div className="prose">
+					<DocviaContent
+						nodes={page.content}
+						registry={registry}
+						components={{
+							a: ({ href, children, ...props }) => (
+								<Link href={href ?? "/"} {...props}>
+									{children}
+								</Link>
+							),
+						}}
+					/>
+				</div>
+
+				{(prev || next) && (
+					<nav className="pagination" aria-label="Pagination">
+						{prev ? (
+							<Link href={prev.url} className="pagination-link">
+								<span className="pagination-label">Previous</span>
+								<span className="pagination-title">
+									{prev.data?.title || "Previous"}
+								</span>
 							</Link>
-						),
-					}}
-				/>
+						) : (
+							<div />
+						)}
+						{next ? (
+							<Link
+								href={next.url}
+								className="pagination-link pagination-link--next"
+							>
+								<span className="pagination-label">Next</span>
+								<span className="pagination-title">
+									{next.data?.title || "Next"}
+								</span>
+							</Link>
+						) : (
+							<div />
+						)}
+					</nav>
+				)}
+
+				{page.manifest.length > 0 && (
+					<DocviaHydrator manifest={page.manifest} />
+				)}
 			</article>
 
-			{page.manifest.length > 0 && <DocviaHydrator manifest={page.manifest} />}
-
 			{page.headings && page.headings.length > 0 && (
-				<nav className="toc" aria-label="Table of contents">
+				<aside className="toc" aria-label="Table of contents">
 					<p className="toc-title">On this page</p>
 					<ul className="toc-list">
-						{page.headings.map((h) => (
-							<li key={h.id} className={`toc-item toc-depth-${h.depth}`}>
-								<a href={`#${h.id}`} className="toc-link">
-									{h.text}
-								</a>
-							</li>
-						))}
+						{page.headings
+							.filter((h) => h.depth <= 3)
+							.map((h) => (
+								<li
+									key={h.id}
+									className={`toc-item${h.depth === 3 ? " toc-depth-3" : ""}`}
+								>
+									<a href={`#${h.id}`} className="toc-link">
+										{h.text}
+									</a>
+								</li>
+							))}
 					</ul>
-				</nav>
+				</aside>
 			)}
 		</div>
 	);

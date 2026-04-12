@@ -1,131 +1,107 @@
 ---
 title: Getting Started
-description: Set up docvia with Next.js App Router
-tags: [guide, setup]
+description: Set up Docvia with Next.js App Router in under 5 minutes.
 order: 1
 ---
 
 # Getting Started
 
-Get docvia running with Next.js in three steps.
+Set up Docvia with Next.js App Router. This guide covers installation, configuration, and creating your first documentation page.
 
-## 1. Install
+## Installation
+
+Install the core packages:
 
 ```bash
-pnpm add -D @docvia/cli @docvia/renderer-react @docvia/source next react react-dom
+npm install @docvia/cli @docvia/renderer-react @docvia/plugin-next shiki
 ```
 
-## 2. Configure
+## Configuration
 
 Create `docvia.config.ts` in your project root:
 
 ```typescript
-import { defineConfig } from '@docvia/cli';
-import { createReactRenderer, createShikiHighlighter } from '@docvia/renderer-react';
+import { defineConfig } from "@docvia/cli";
+import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
 
 export default defineConfig({
-    sourceDir: 'docs',
-    outDir: '.docvia',
-    renderer: createReactRenderer({
-        highlighter: createShikiHighlighter({ theme: 'github-dark' }),
+  sourceDir: "docs",
+  outDir: ".docvia",
+  renderer: createReactRenderer({
+    highlighter: createShikiHighlighter({
+      theme: "github-dark",
+      langs: ["typescript", "tsx", "bash", "json"],
     }),
+  }),
 });
 ```
 
-Create `next.config.ts`:
+Update `next.config.ts` to integrate the plugin:
 
 ```typescript
-import path from 'node:path';
-import type { NextConfig } from 'next';
+import { withDocvia } from "@docvia/plugin-next";
 
-const nextConfig: NextConfig = {
-    webpack(config) {
-        config.resolve.alias = {
-            ...config.resolve.alias,
-            'docvia:source': path.resolve('.docvia/source.ts'),
-            'docvia:source/registry': path.resolve('.docvia/registry.ts'),
-        };
-        return config;
-    },
-    experimental: {
-        turbo: {
-            resolveAlias: {
-                'docvia:source': './.docvia/source.ts',
-                'docvia:source/registry': './.docvia/registry.ts',
-            },
-        },
-    },
-};
-
-export default nextConfig;
+const withDocs = withDocvia();
+export default withDocs({});
 ```
 
-## 3. Create Your Page
+Add path aliases to `tsconfig.json`:
 
-Build docs and start Next.js:
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "docvia/source": ["./.docvia/source.ts"],
+      "docvia/registry": ["./.docvia/registry.ts"]
+    }
+  }
+}
+```
+
+## Create your first page
+
+Create `docs/index.md`:
+
+```markdown
+---
+title: Welcome
+description: My documentation site
+---
+
+# Welcome
+
+This is your first documentation page.
+```
+
+## Build and preview
 
 ```bash
-pnpm docvia build && next dev
+npx docvia build
+npx next dev
 ```
 
-Create `app/docs/[[...slug]]/page.tsx`:
+Visit `http://localhost:3000/docs` to see your page.
 
-```tsx
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { docs } from 'docvia:source';
-import { DocviaContent } from '@docvia/renderer-react';
-
-export async function generateStaticParams() {
-    return docs.getAllPages().map(slug => ({
-        slug: slug === 'index' ? [] : slug.split('/'),
-    }));
-}
-
-export default async function DocPage({ params }) {
-    const { slug } = await params;
-    const page = await docs.getPage(slug ?? []);
-    if (!page) notFound();
-
-    return (
-        <article className="prose">
-            <DocviaContent
-                nodes={page.content}
-                components={{ a: Link }}
-            />
-        </article>
-    );
-}
-```
-
-## Project Structure
+## Project structure
 
 | Path | Purpose |
-|---|---|
+| --- | --- |
 | `docs/` | Markdown source files |
-| `docvia.config.ts` | Renderer and component config |
-| `next.config.ts` | Webpack alias for `docvia:source` |
-| `.docvia/` | Compiled output (gitignored) |
-| `app/docs/[[...slug]]/page.tsx` | Catch-all doc page |
+| `.docvia/` | Generated output (gitignored) |
+| `docvia.config.ts` | Docvia configuration |
+| `app/docs/` | Next.js routes for documentation |
 
-## Frontmatter Fields
+## Frontmatter fields
 
-```yaml
----
-title: Page Title          # required
-description: Brief summary # used in <meta> and previews
-tags: [guide, api]         # for tag-based grouping
-order: 1                   # controls navigation sort order
-slug: custom-url           # override auto-generated slug
----
-```
+Every Markdown file starts with YAML frontmatter:
 
-## Development Workflow
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | Yes | Page title, used in navigation and metadata |
+| `description` | `string` | No | Meta description for SEO |
+| `order` | `number` | No | Sort order in navigation |
+| `tags` | `string[]` | No | Tags for categorization |
+| `slug` | `string` | No | Override the auto-generated slug |
+| `draft` | `boolean` | No | Exclude from production builds |
 
-Watch docs and Next.js simultaneously:
-
-```bash
-pnpm dev
-```
-
-`docvia dev` watches markdown files and recompiles on change. Next.js HMR picks up the updated `.docvia/` files automatically.
+You can extend these with custom fields via a Zod schema in your config. See [Configuration](/docs/configuration) for details.

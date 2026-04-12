@@ -1,117 +1,107 @@
 ---
 title: Components
-description: Interactive React components embedded in Markdown via directives
-tags: [components, react, interactive]
-order: 2
-featured: true
+description: Embed interactive React components in your Markdown documentation using directives and selective hydration.
+order: 4
 ---
 
 # Components
 
-Embed interactive React components directly in your Markdown using the directive syntax.
+Docvia supports embedding interactive components directly in Markdown using the directive syntax. Components are registered in your config and hydrated on the client with configurable strategies.
 
-## Directive Syntax
+## Directive syntax
 
-Use `:::name` for block components and `:name` for inline ones:
+Use the remark-directive syntax to embed components:
+
+**Block directive** — renders as a block element with optional children:
 
 ```markdown
-:::counter{initial=5}
-Optional slot content passed as children.
+:::counter{initial=42}
 :::
 ```
 
-## Registering Components
+**Inline directive** — renders inline within a paragraph:
 
-Add components to `docvia.config.ts`:
+```markdown
+Check the :badge{text="new"} feature.
+```
+
+## Registration
+
+Register components in `docvia.config.ts`:
 
 ```typescript
 export default defineConfig({
-    components: {
-        counter: {
-            path: './components/Counter',
-            hydrate: true,        // enables client-side hydration
-            defaultProps: { initial: 0 },
-        },
+  components: {
+    counter: {
+      path: "./components/Counter",
+      hydrate: true,
+      defaultProps: { initial: 0 },
     },
+  },
 });
 ```
 
-## Hydration Modes
+| Field | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the component file |
+| `hydrate` | `boolean` | Enable client-side interactivity |
+| `defaultProps` | `object` | Default prop values, overridable in Markdown |
 
-| Directive | When it hydrates |
-|---|---|
-| `hydrate: false` | Server-rendered only, no client JS |
-| `hydrate: true` (default) | `client:load` — immediately on page load |
-| `client:idle` | After browser is idle (`requestIdleCallback`) |
-| `client:visible` | When the element scrolls into view |
+## Hydration modes
 
-## The `components` Prop
+Docvia supports selective hydration — only interactive components ship JavaScript to the client:
 
-`DocviaContent` accepts a `components` prop for tag-level overrides:
+| Mode | When | Use case |
+| --- | --- | --- |
+| `hydrate: false` | Never | Static content, rendered server-side only |
+| `hydrate: true` | Immediate (`client:load`) | Interactive components needed on first paint |
+| `client:idle` | On idle | Components loaded after main thread is free |
+| `client:visible` | On intersection | Components loaded when scrolled into view |
 
-```tsx
-<DocviaContent
-    nodes={page.content}
-    registry={registry}
-    components={{
-        // next/link for client-side navigation
-        a: ({ href, children, ...props }) => (
-            <Link href={href ?? '/'} {...props}>{children}</Link>
-        ),
-        // next/image for optimised images
-        img: ({ src, alt, ...props }) => (
-            <Image src={src!} alt={alt ?? ''} {...props} />
-        ),
-        // Custom code block with copy button
-        codeBlock: ({ html, className }) => (
-            <div className={className}>
-                <button onClick={() => navigator.clipboard.writeText(html)}>
-                    Copy
-                </button>
-                <div dangerouslySetInnerHTML={{ __html: html }} />
-            </div>
-        ),
-    }}
-/>
+Set the hydration mode in your directive:
+
+```markdown
+:::counter{initial=10 hydrate="client:visible"}
+:::
 ```
 
-## Live Counter Example
+## Live example
 
-The counter below is a `'use client'` React component embedded via a directive:
+Here is an interactive counter component embedded via directive:
 
 :::counter{initial=42}
 :::
 
-The page is fully server-rendered. React hydrates the Counter island automatically since `Counter.tsx` carries the `'use client'` directive.
+The counter above is server-rendered, then hydrated on the client. Try clicking the buttons — the component state is fully interactive.
 
-## Code Highlighting
+## How it works
 
-docvia uses [shiki](https://shiki.style) for syntax highlighting. Code blocks are compiled at build time — no client-side parsing.
+1. The directive `:::counter{initial=42}` is parsed into an IR `component` node
+2. At build time, the component is rendered to HTML (server-side)
+3. The hydration manifest records the component's `id`, `name`, and `props`
+4. At runtime, `DocviaHydrator` mounts React on the server-rendered HTML
 
-```typescript
-import { DocviaContent } from '@docvia/renderer-react';
-import type { RenderOutput } from '@docvia/renderer-core';
+## Creating components
 
-interface Props {
-    nodes: RenderOutput | RenderOutput[];
-}
+Components are standard React components. The only requirements:
 
-// Server Component — no 'use client' needed
-export function DocPage({ nodes }: Props) {
-    return (
-        <article className="prose">
-            <DocviaContent nodes={nodes} />
-        </article>
-    );
+- Must have a **default export**
+- Props are passed from directive attributes
+- Children come from the directive body (if block directive)
+
+```tsx
+"use client";
+
+import { useState } from "react";
+
+export default function Counter({ initial = 0 }) {
+  const [count, setCount] = useState(initial);
+
+  return (
+    <div>
+      <span>{count}</span>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  );
 }
 ```
-
-## Tables
-
-| Feature | Svelte renderer | React renderer |
-|---|---|---|
-| SSR | SvelteKit | Next.js App Router |
-| Hydration | Svelte `mount` | `hydrateRoot` / `createRoot` |
-| RSC support | No | Yes (no `'use client'` required) |
-| Component overrides | No | Yes (`components` prop) |
-| `next/link` integration | No | Yes |
