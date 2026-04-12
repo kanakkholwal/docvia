@@ -61,6 +61,11 @@ function remarkDirectiveToHast() {
 	return (tree: any) => {
 		visit(tree, (node: any) => {
 			if (node.type === "containerDirective" || node.type === "leafDirective") {
+				// Prefix directive attributes with data-prop- so they survive rehype-sanitize
+				const attrs: Record<string, string> = {};
+				for (const [key, value] of Object.entries(node.attributes ?? {})) {
+					attrs[`data-prop-${key}`] = String(value);
+				}
 				node.data = {
 					...node.data,
 					hName: "div",
@@ -68,7 +73,7 @@ function remarkDirectiveToHast() {
 						"data-directive": node.name,
 						"data-directive-type":
 							node.type === "containerDirective" ? "block" : "inline",
-						...(node.attributes ?? {}),
+						...attrs,
 					},
 				};
 			}

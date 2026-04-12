@@ -60,7 +60,7 @@ export default async function DocPage({ params }: PageProps) {
 				{(prev || next) && (
 					<nav className="pagination" aria-label="Pagination">
 						{prev ? (
-							<Link href={prev.url} className="pagination-link">
+							<Link href={"/docs"+ prev.url} className="pagination-link">
 								<span className="pagination-label">Previous</span>
 								<span className="pagination-title">
 									{prev.data?.title || "Previous"}
@@ -71,7 +71,7 @@ export default async function DocPage({ params }: PageProps) {
 						)}
 						{next ? (
 							<Link
-								href={next.url}
+								href={"/docs"+ next.url}
 								className="pagination-link pagination-link--next"
 							>
 								<span className="pagination-label">Next</span>

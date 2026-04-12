@@ -15,7 +15,7 @@ Use the remark-directive syntax to embed components:
 **Block directive** — renders as a block element with optional children:
 
 ```markdown
-:::counter{initial=42}
+:::counter{initial=42 hydrate="client:load"}
 :::
 ```
 
@@ -69,7 +69,7 @@ Set the hydration mode in your directive:
 
 Here is an interactive counter component embedded via directive:
 
-:::counter{initial=42}
+:::counter{initial=42 hydrate="client:load"}
 :::
 
 The counter above is server-rendered, then hydrated on the client. Try clicking the buttons — the component state is fully interactive.

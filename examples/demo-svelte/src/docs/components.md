@@ -13,7 +13,7 @@ Docvia supports embedding interactive components directly in Markdown using the 
 **Block directive**:
 
 ```markdown
-:::counter{initial=42}
+:::counter{initial=42 hydrate="client:load"}
 :::
 ```
 
@@ -52,7 +52,7 @@ export default defineConfig({
 
 Here is an interactive counter embedded via directive:
 
-:::counter{initial=42}
+:::counter{initial=42 hydrate="client:load"}
 :::
 
 The counter is server-rendered then hydrated client-side.
