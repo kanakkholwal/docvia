@@ -182,17 +182,26 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 
 		addDependency(ctx, { type: "component", name });
 
-		// Clean up internal data props from the final IR
-		const attributes = { ...props };
-		delete attributes["data-directive"];
-		delete attributes.dataDirective;
-		delete attributes["data-directive-type"];
-		delete attributes.dataDirectiveType;
+		// Extract directive props from data-prop-* attributes (prefixed to survive sanitization)
+		const attributes: Record<string, unknown> = {};
+		let hydrate: string = "none";
+		for (const [key, value] of Object.entries(props)) {
+			if (key.startsWith("data-prop-") || key.startsWith("dataProp")) {
+				const propName = key.startsWith("data-prop-")
+					? key.slice("data-prop-".length)
+					: key.charAt("dataProp".length).toLowerCase() + key.slice("dataProp".length + 1);
+				if (propName === "hydrate") {
+					hydrate = String(value);
+				} else {
+					attributes[propName] = value;
+				}
+			}
+		}
 
 		return {
 			type: isInline ? "component-inline" : "component",
 			id: nodeId,
-			props: { name, attributes, hydrate: "none" },
+			props: { name, attributes, hydrate },
 			children: isInline ? [] : transformChildren(node.children, ctx),
 		};
 	}

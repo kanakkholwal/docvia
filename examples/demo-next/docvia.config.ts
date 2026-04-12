@@ -17,6 +17,7 @@ export default defineConfig({
 
 	sourceDir: "docs",
 	outDir: ".docvia",
+	collections: [{ name: "docs", sourceDir: "docs", baseUrl: "/docs" }],
 
 	// Register components here — the compiler generates the runtime registry
 	// so individual pages don't need to import them manually.

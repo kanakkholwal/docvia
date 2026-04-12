@@ -13,7 +13,7 @@
 	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
-		"dev": "tsdown --watch",
+		"dev": "tsdown --watch --no-clean",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run"
 	},
