@@ -38,7 +38,7 @@ const index = await docs.getPage(undefined);
 
 ### Usage in Next.js
 
-```tsx
+```typescript
 export default async function DocPage({ params }) {
   const { slug } = await params;
   const page = await docs.getPage(slug);
@@ -78,7 +78,7 @@ const tree = docs.pageTree;
 
 ### Rendering navigation
 
-```tsx
+```typescript
 function Nav({ nodes }) {
   return nodes.map(node => {
     if (node.type === "page") {

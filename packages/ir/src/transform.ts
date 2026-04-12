@@ -10,6 +10,29 @@ import type {
 	IRNodeType,
 } from "./index";
 
+// Coerce HTML attribute string values to proper JS types
+function coerceValue(value: unknown): unknown {
+	if (typeof value !== "string") return value;
+	if (value === "true") return true;
+	if (value === "false") return false;
+	if (value === "null") return null;
+	if (value === "undefined") return undefined;
+	const num = Number(value);
+	if (!Number.isNaN(num) && value.trim() !== "") return num;
+	// Try JSON (arrays, objects)
+	if (
+		(value.startsWith("[") && value.endsWith("]")) ||
+		(value.startsWith("{") && value.endsWith("}"))
+	) {
+		try {
+			return JSON.parse(value);
+		} catch {
+			// not valid JSON, return as string
+		}
+	}
+	return value;
+}
+
 // Transform Context
 
 interface TransformContext {
@@ -193,7 +216,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 				if (propName === "hydrate") {
 					hydrate = String(value);
 				} else {
-					attributes[propName] = value;
+					attributes[propName] = coerceValue(value);
 				}
 			}
 		}

@@ -112,6 +112,7 @@ interface CollectionData {
 
 function generateDynamicTs(
 	collections: readonly CollectionData[],
+	syntaxConfig: { theme: string; langs: readonly string[] },
 ): string {
 	const routeMaps = collections
 		.map((c) => {
@@ -132,6 +133,29 @@ const routeMap: Record<string, Record<string, string>> = {
 ${routeMaps}
 };
 
+// Cached Shiki highlighter for Node.js loadMarkdown fallback
+let _hlInstance = null;
+function _escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+async function _getHighlighter() {
+  if (_hlInstance) return _hlInstance;
+  try {
+    const { createHighlighter } = await import('shiki');
+    const h = await createHighlighter({
+      themes: [${JSON.stringify(syntaxConfig.theme)}],
+      langs: ${JSON.stringify(syntaxConfig.langs)},
+    });
+    _hlInstance = {
+      highlight: async (code, lang) => {
+        try { return { html: h.codeToHtml(code, { lang, theme: ${JSON.stringify(syntaxConfig.theme)} }) }; }
+        catch { return { html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }; }
+      },
+    };
+  } catch {
+    _hlInstance = { highlight: async (code) => ({ html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }) };
+  }
+  return _hlInstance;
+}
+
 export async function loadModule(
   collection: string,
   slug: string,
@@ -148,8 +172,9 @@ export async function loadModule(
     const cleanPath = modulePath.replace(/\\?docvia$/, '');
     const { fileURLToPath } = await import('node:url');
     const resolved = fileURLToPath(new URL(cleanPath, import.meta.url));
+    const hl = await _getHighlighter();
     const { loadMarkdown } = await import('@docvia/source/node');
-    return loadMarkdown(resolved);
+    return loadMarkdown(resolved, { highlighter: hl });
   }
 }
 
@@ -462,7 +487,7 @@ export async function compile(
 	);
 
 	await Promise.all([
-		writeFile(join(resolvedOutDir, "dynamic.ts"), generateDynamicTs(collectionData)),
+		writeFile(join(resolvedOutDir, "dynamic.ts"), generateDynamicTs(collectionData, config.syntax)),
 		writeFile(
 			join(resolvedOutDir, "source.ts"),
 			generateSourceTs(collectionData, config),
