@@ -12,11 +12,11 @@ type NavItem = {
 };
 
 interface Props {
-	nav: NavItem[];
+	tree: NavItem[];
 	children: Snippet;
 }
 
-let { nav, children }: Props = $props();
+let { tree, children }: Props = $props();
 let sidebarOpen = $state(false);
 function closeSidebar() {
 	sidebarOpen = false;
@@ -24,7 +24,7 @@ function closeSidebar() {
 </script>
 
 <div class="layout-root">
-  <Header {nav} sidebarOpen={sidebarOpen} />
+  <Header nav={tree} sidebarOpen={sidebarOpen} />
 
   <div class="layout-container">
     {#if sidebarOpen}
@@ -42,7 +42,7 @@ function closeSidebar() {
 
     <aside class={`sidebar ${sidebarOpen ? "open" : ""}`}>
       <nav class="sidebar-content">
-        <Sidebar {nav} />
+        <Sidebar nav={tree} />
       </nav>
     </aside>
 

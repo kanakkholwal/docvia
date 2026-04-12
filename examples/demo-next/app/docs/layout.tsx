@@ -1,4 +1,4 @@
-import { docs } from "../../.docvia/source";
+import { docs } from "docvia:source";
 import type { ReactNode } from "react";
 import { Sidebar } from "../../components/Sidebar";
 
@@ -8,7 +8,7 @@ export default async function DocsLayout({
 }: {
 	children: ReactNode;
 }) {
-	const nav = docs.getTree();
+	const tree = docs.pageTree;
 
 	return (
 		<div className="docs-layout">
@@ -22,7 +22,7 @@ export default async function DocsLayout({
 			</header>
 
 			<div className="docs-body">
-				<Sidebar nav={nav} />
+				<Sidebar tree={tree} />
 
 				<main className="docs-main">{children}</main>
 			</div>

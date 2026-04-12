@@ -161,7 +161,7 @@ export interface CompilerOptions {
 
 export interface CompileResult {
 	readonly pages: readonly PageMeta[];
-	readonly searchIndex: string;
+	readonly searchIndex?: string;
 	readonly duration: number;
 	readonly stats: {
 		readonly total: number;

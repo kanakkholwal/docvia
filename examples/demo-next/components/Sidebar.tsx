@@ -1,47 +1,59 @@
 "use client";
 
+import type { PageTree } from "@docvia/source/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-interface NavNode {
-	name: string;
-	slug?: string;
-	title?: string;
-	children: NavNode[];
-}
-
 interface SidebarProps {
-	nav: NavNode[];
+	tree: PageTree.Root;
 }
 
-export function Sidebar({ nav }: SidebarProps) {
+export function Sidebar({ tree }: SidebarProps) {
 	const pathname = usePathname();
 
-	function getHref(node: NavNode): string {
-		if (!node.slug) return "/docs";
-		return node.slug === "index" ? "/docs" : `/docs/${node.slug}`;
-	}
-
-	function renderNodes(nodes: NavNode[]) {
+	function renderNodes(nodes: PageTree.Node[]) {
 		return nodes.map((node) => {
-			const href = getHref(node);
-			const isActive = pathname === href;
+			if (node.type === "separator") {
+				return (
+					<li key={`sep-${node.name}`} className="nav-item">
+						<span className="nav-group-label">{node.name}</span>
+					</li>
+				);
+			}
 
+			if (node.type === "folder") {
+				const indexHref = node.index?.url;
+				const isActive = indexHref ? pathname === indexHref : false;
+
+				return (
+					<li key={node.$id ?? node.name} className="nav-item">
+						{indexHref ? (
+							<Link
+								href={indexHref}
+								className={`nav-link${isActive ? " nav-link--active" : ""}`}
+							>
+								{node.name}
+							</Link>
+						) : (
+							<span className="nav-group-label">{node.name}</span>
+						)}
+						{node.children.length > 0 && (
+							<ul className="nav-children">{renderNodes(node.children)}</ul>
+						)}
+					</li>
+				);
+			}
+
+			// type === "page"
+			const isActive = pathname === node.url;
 			return (
-				<li key={node.slug ?? node.name} className="nav-item">
-					{node.slug ? (
-						<Link
-							href={href}
-							className={`nav-link${isActive ? " nav-link--active" : ""}`}
-						>
-							{node.title ?? node.name}
-						</Link>
-					) : (
-						<span className="nav-group-label">{node.title ?? node.name}</span>
-					)}
-					{node.children.length > 0 && (
-						<ul className="nav-children">{renderNodes(node.children)}</ul>
-					)}
+				<li key={node.$id ?? node.url} className="nav-item">
+					<Link
+						href={node.url}
+						className={`nav-link${isActive ? " nav-link--active" : ""}`}
+					>
+						{node.name}
+					</Link>
 				</li>
 			);
 		});
@@ -50,7 +62,7 @@ export function Sidebar({ nav }: SidebarProps) {
 	return (
 		<aside className="sidebar">
 			<nav aria-label="Documentation navigation">
-				<ul className="nav-list">{renderNodes(nav)}</ul>
+				<ul className="nav-list">{renderNodes(tree.children)}</ul>
 			</nav>
 		</aside>
 	);

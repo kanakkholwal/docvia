@@ -1,96 +1,207 @@
-import type { docviaCollection, docviaSource } from "./runtime";
+import type {
+	PageTree,
+	docviaCollection,
+	docviaPage,
+	docviaSource,
+} from "./runtime.js";
 
-interface CollectionMetaEntry<TRouteKey extends string> {
-	slug: TRouteKey;
-	tags?: readonly string[];
-	headings?: Array<{ depth: number; text: string; id: string }>;
+export interface ModuleExports {
+	meta: any;
+	content: any;
+	manifest: any;
 }
 
 export function createCollection<
 	TFrontmatter = unknown,
-	const TRoutes extends Record<string, string> = Record<string, string>,
+	TRouteKey extends string = string,
 >(opts: {
 	name: string;
 	baseUrl: string;
-	routes: TRoutes;
+	routeKeys: readonly TRouteKey[];
+	getModule: (slug: string) => Promise<ModuleExports | undefined>;
+	eagerModules: Record<string, ModuleExports> | null;
 	sourceModuleUrl: string;
-	meta: CollectionMetaEntry<keyof TRoutes & string>[];
-	nav: unknown;
-	tags: Partial<Record<string, (keyof TRoutes & string)[]>>;
-}): docviaCollection<TFrontmatter, keyof TRoutes & string> {
-	const { baseUrl, routes, sourceModuleUrl, meta, nav, tags } = opts;
+}): docviaCollection<TFrontmatter, TRouteKey> {
+	const { baseUrl, routeKeys, getModule, eagerModules } = opts;
 
-	async function loadModule(modulePath: string) {
-		if (typeof window === "undefined") {
-			try {
-				return await import(
-					/* @vite-ignore */ /* webpackIgnore: true */ modulePath
-				);
-			} catch {
-				const { fileURLToPath } = await import("node:url");
-				const filePath = fileURLToPath(
-					new URL(
-						modulePath.replace(/\?docvia$/, "").replace(/^\//, "../"),
-						sourceModuleUrl,
-					),
-				);
-				const { loadMarkdown } = await import("./node.js");
-				return loadMarkdown(filePath);
+	const routeSet = new Set<string>(routeKeys);
+
+	// Lazy-built page tree (cached after first access)
+	let _pageTree: PageTree.Root | null = null;
+
+	// Lazy-built children map for tree construction
+	let _childrenMap: Map<string | null, string[]> | null = null;
+
+	function ensureChildrenMap(): Map<string | null, string[]> {
+		if (_childrenMap) return _childrenMap;
+		_childrenMap = new Map();
+
+		for (const key of routeKeys) {
+			const segments = key.split("/");
+			const parentSlug =
+				segments.length <= 1 ? null : segments.slice(0, -1).join("/");
+
+			let children = _childrenMap.get(parentSlug);
+			if (!children) {
+				children = [];
+				_childrenMap.set(parentSlug, children);
 			}
-		} else {
-			return await import(
-				/* @vite-ignore */ /* webpackIgnore: true */ modulePath
-			);
+			children.push(key);
 		}
+
+		return _childrenMap;
+	}
+
+	function toTitleCase(segment: string): string {
+		return segment
+			.replace(/[-_]/g, " ")
+			.replace(/\b\w/g, (c) => c.toUpperCase());
+	}
+
+	function getTitle(slug: string): string {
+		if (eagerModules?.[slug]?.meta?.title) {
+			return eagerModules[slug].meta.title;
+		}
+		const segments = slug.split("/");
+		const last = segments[segments.length - 1] ?? slug;
+		return last === "index" ? "Home" : toTitleCase(last);
+	}
+
+	function getOrder(slug: string): number {
+		return eagerModules?.[slug]?.meta?.order ?? Number.POSITIVE_INFINITY;
+	}
+
+	function buildUrl(slug: string): string {
+		if (slug === "index") return baseUrl || "/";
+		const path = baseUrl.endsWith("/")
+			? `${baseUrl}${slug}`
+			: `${baseUrl}/${slug}`;
+		return path;
+	}
+
+	function buildTreeNodes(parentSlug: string | null): PageTree.Node[] {
+		const cm = ensureChildrenMap();
+		const directChildren = cm.get(parentSlug) ?? [];
+
+		// Sort by order then slug
+		const sorted = [...directChildren].sort((a, b) => {
+			const oa = getOrder(a);
+			const ob = getOrder(b);
+			if (oa !== ob) return oa - ob;
+			return a.localeCompare(b);
+		});
+
+		const nodes: PageTree.Node[] = [];
+		const seenFolders = new Set<string>();
+
+		for (const slug of sorted) {
+			const segments = slug.split("/");
+			const lastSegment = segments[segments.length - 1] ?? slug;
+
+			// Check if this slug has children (making it a folder)
+			const hasChildren = cm.has(slug);
+
+			if (hasChildren) {
+				if (seenFolders.has(slug)) continue;
+				seenFolders.add(slug);
+
+				const folderNode: PageTree.Folder = {
+					type: "folder",
+					name: getTitle(slug),
+					children: buildTreeNodes(slug),
+					$id: slug,
+				};
+
+				// If the slug itself is a page (e.g., "guide" maps to guide/index or guide itself),
+				// use it as the folder index
+				if (routeSet.has(slug)) {
+					folderNode.index = {
+						type: "page",
+						name: getTitle(slug),
+						url: buildUrl(slug),
+						$id: slug,
+					};
+				}
+
+				// Also check for an "index" child
+				const indexSlug = `${slug}/index`;
+				if (routeSet.has(indexSlug)) {
+					folderNode.index = {
+						type: "page",
+						name: getTitle(indexSlug),
+						url: buildUrl(indexSlug),
+						$id: indexSlug,
+					};
+				}
+
+				nodes.push(folderNode);
+			} else if (lastSegment === "index" && parentSlug !== null) {
+				// index files handled as folder index above, skip standalone
+				continue;
+			} else {
+				nodes.push({
+					type: "page",
+					name: getTitle(slug),
+					url: buildUrl(slug),
+					$id: slug,
+				});
+			}
+		}
+
+		return nodes;
+	}
+
+	function buildPageTree(): PageTree.Root {
+		return {
+			name: opts.name,
+			children: buildTreeNodes(null),
+		};
 	}
 
 	return {
 		async getPage(slugs) {
 			const normalizedSlugs = slugs?.filter(Boolean) ?? [];
-			const key = (normalizedSlugs.join("/") || "index") as keyof TRoutes &
-				string;
-			const modulePath = routes[key];
-			if (!modulePath) return null;
+			const key = (normalizedSlugs.join("/") || "index") as TRouteKey;
 
-			const mod = await loadModule(modulePath);
-			const pageMetaEntry = meta.find((entry: any) => entry.slug === key);
+			if (!routeSet.has(key)) return undefined;
+
+			const mod = await getModule(key);
+			if (!mod) return undefined;
 
 			return {
-				slug: key,
 				slugs: normalizedSlugs,
-				url: baseUrl + (key === "index" ? "" : `/${key}`),
+				url: buildUrl(key),
 				data: mod.meta as TFrontmatter,
 				content: mod.content,
 				manifest: mod.manifest,
-				headings: pageMetaEntry?.headings,
-			};
+				headings: mod.meta?.headings,
+			} as docviaPage<TFrontmatter>;
 		},
 
-		getAllPages() {
-			return Object.keys(routes) as (keyof TRoutes & string)[];
+		getPages() {
+			return routeKeys.map((slug) => {
+				const slugs = slug === "index" ? [] : slug.split("/");
+				const data = eagerModules?.[slug]?.meta ?? ({} as TFrontmatter);
+				return { slugs, url: buildUrl(slug), data };
+			});
 		},
 
-		getTree() {
-			return nav;
-		},
-
-		getPagesByTag(tag) {
-			return (tags[tag] ?? []) as (keyof TRoutes & string)[];
-		},
-
-		getRelated(slug) {
-			const page = meta.find((entry) => entry.slug === slug);
-			if (!page?.tags?.length) return [];
-
-			const out = new Set<keyof TRoutes & string>();
-			for (const tag of page.tags) {
-				for (const relatedSlug of tags[tag] ?? []) {
-					if (relatedSlug !== slug) {
-						out.add(relatedSlug);
-					}
-				}
+		get pageTree() {
+			if (!_pageTree) {
+				_pageTree = buildPageTree();
 			}
-			return Array.from(out).slice(0, 5);
+			return _pageTree;
+		},
+
+		getPageTree() {
+			return this.pageTree;
+		},
+
+		generateParams(slug = "slug" as any) {
+			return routeKeys.map((key) => {
+				const slugs = key === "index" ? [] : key.split("/");
+				return { [slug]: slugs } as any;
+			});
 		},
 	};
 }
