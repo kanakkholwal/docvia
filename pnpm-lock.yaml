@@ -466,6 +466,9 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37
+      shiki:
+        specifier: ^4.0.2
+        version: 4.0.2
       svelte:
         specifier: ^5.49.2
         version: 5.55.0

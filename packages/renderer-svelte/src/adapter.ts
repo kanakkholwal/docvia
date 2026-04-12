@@ -14,56 +14,43 @@ import {
 } from "@docvia/renderer-core";
 
 // Browser-safe highlighter creator that only loads shiki on demand (server-side)
-// Cross-environment cache: globalThis survives across Vite build environments
-const _hlCache: Map<string, SyntaxHighlighter> =
-	((globalThis as any).__docvia_shiki_cache__ ??= new Map());
-
 export function createShikiHighlighter(opts?: {
 	theme?: string;
 	langs?: string[];
 }): SyntaxHighlighter {
-	const key = JSON.stringify(opts ?? {});
-	const cached = _hlCache.get(key);
-	if (cached) return cached;
+	const theme = opts?.theme ?? "github-dark";
+	const langs = opts?.langs ?? [
+		"javascript",
+		"typescript",
+		"bash",
+		"json",
+		"css",
+		"html",
+		"svelte",
+	];
 
-	let instance: any = null;
-
-	async function getHighlighter(): Promise<any> {
-		if (!instance) {
-			const { createHighlighter } = await import("shiki");
-			instance = await createHighlighter({
-				themes: [opts?.theme ?? "github-dark"],
-				langs: opts?.langs ?? [
-					"javascript",
-					"typescript",
-					"bash",
-					"json",
-					"css",
-					"html",
-					"svelte",
-				],
-			});
-		}
-		return instance;
-	}
-
-	const hl: SyntaxHighlighter = {
+	return {
 		async highlight(code: string, lang: string) {
-			const h = await getHighlighter();
+			const g = globalThis as any;
+
+			if (!g.__docvia_shiki__ && !g.__docvia_shiki_pending__) {
+				g.__docvia_shiki_pending__ = (async () => {
+					const { createHighlighter } = await import("shiki");
+					const h = await createHighlighter({ themes: [theme], langs });
+					g.__docvia_shiki__ = h;
+					delete g.__docvia_shiki_pending__;
+					return h;
+				})();
+			}
+
+			const h = g.__docvia_shiki__ ?? (await g.__docvia_shiki_pending__);
 			try {
-				const html = h.codeToHtml(code, {
-					lang,
-					theme: opts?.theme ?? "github-dark",
-				});
-				return { html };
+				return { html: h.codeToHtml(code, { lang, theme }) };
 			} catch {
 				return { html: `<pre><code>${escapeHtml(code)}</code></pre>` };
 			}
 		},
 	};
-
-	_hlCache.set(key, hl);
-	return hl;
 }
 
 function escapeHtml(str: string): string {

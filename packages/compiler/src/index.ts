@@ -133,27 +133,33 @@ const routeMap: Record<string, Record<string, string>> = {
 ${routeMaps}
 };
 
-// Cached Shiki highlighter for Node.js loadMarkdown fallback
-let _hlInstance = null;
+// Global Shiki singleton — shared across dynamic.ts, source/node.ts, and renderer adapters
 function _escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 async function _getHighlighter() {
-  if (_hlInstance) return _hlInstance;
-  try {
-    const { createHighlighter } = await import('shiki');
-    const h = await createHighlighter({
-      themes: [${JSON.stringify(syntaxConfig.theme)}],
-      langs: ${JSON.stringify(syntaxConfig.langs)},
-    });
-    _hlInstance = {
-      highlight: async (code, lang) => {
-        try { return { html: h.codeToHtml(code, { lang, theme: ${JSON.stringify(syntaxConfig.theme)} }) }; }
-        catch { return { html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }; }
-      },
-    };
-  } catch {
-    _hlInstance = { highlight: async (code) => ({ html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }) };
-  }
-  return _hlInstance;
+  const g = globalThis;
+  if (g.__docvia_shiki__) return g.__docvia_shiki__;
+  if (g.__docvia_shiki_pending__) return g.__docvia_shiki_pending__;
+  g.__docvia_shiki_pending__ = (async () => {
+    try {
+      const _m = 'sh' + 'iki';
+      const { createHighlighter } = await import(/* @vite-ignore */ /* webpackIgnore: true */ _m);
+      const h = await createHighlighter({
+        themes: [${JSON.stringify(syntaxConfig.theme)}],
+        langs: ${JSON.stringify(syntaxConfig.langs)},
+      });
+      g.__docvia_shiki__ = {
+        highlight: async (code, lang) => {
+          try { return { html: h.codeToHtml(code, { lang, theme: ${JSON.stringify(syntaxConfig.theme)} }) }; }
+          catch { return { html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }; }
+        },
+      };
+    } catch {
+      g.__docvia_shiki__ = { highlight: async (code) => ({ html: '<pre><code>' + _escapeHtml(code) + '</code></pre>' }) };
+    }
+    delete g.__docvia_shiki_pending__;
+    return g.__docvia_shiki__;
+  })();
+  return g.__docvia_shiki_pending__;
 }
 
 export async function loadModule(

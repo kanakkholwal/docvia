@@ -22,48 +22,57 @@ const defaultHighlighter: SyntaxHighlighter = {
 	}),
 };
 
-// Module-level cached Shiki highlighter (lazy-loaded)
-let _shikiHighlighter: SyntaxHighlighter | null = null;
-
 async function getShikiHighlighter(): Promise<SyntaxHighlighter> {
-	if (_shikiHighlighter) return _shikiHighlighter;
-	try {
-		// @ts-ignore — shiki is an optional peer dependency
-		const { createHighlighter } = await import("shiki");
-		const instance = await createHighlighter({
-			themes: ["github-dark"],
-			langs: [
-				"javascript",
-				"typescript",
-				"tsx",
-				"jsx",
-				"bash",
-				"json",
-				"css",
-				"html",
-				"svelte",
-				"markdown",
-			],
-		});
-		_shikiHighlighter = {
-			highlight: async (code: string, lang: string) => {
-				try {
-					const html = instance.codeToHtml(code, {
-						lang,
-						theme: "github-dark",
-					});
-					return { html };
-				} catch {
-					return {
-						html: `<pre><code>${escapeHtml(code)}</code></pre>`,
-					};
-				}
-			},
-		};
-		return _shikiHighlighter;
-	} catch {
-		return defaultHighlighter;
-	}
+	// Reuse global singleton if already created by dynamic.ts or renderer adapter
+	const g = globalThis as any;
+	if (g.__docvia_shiki__) return g.__docvia_shiki__;
+	if (g.__docvia_shiki_pending__) return g.__docvia_shiki_pending__;
+
+	g.__docvia_shiki_pending__ = (async (): Promise<SyntaxHighlighter> => {
+		try {
+			// @ts-ignore — shiki is an optional peer dependency
+			const { createHighlighter } = await import(
+				/* @vite-ignore */ "shiki"
+			);
+			const instance = await createHighlighter({
+				themes: ["github-dark"],
+				langs: [
+					"javascript",
+					"typescript",
+					"tsx",
+					"jsx",
+					"bash",
+					"json",
+					"css",
+					"html",
+					"svelte",
+					"markdown",
+				],
+			});
+			g.__docvia_shiki__ = {
+				highlight: async (code: string, lang: string) => {
+					try {
+						return {
+							html: instance.codeToHtml(code, {
+								lang,
+								theme: "github-dark",
+							}),
+						};
+					} catch {
+						return {
+							html: `<pre><code>${escapeHtml(code)}</code></pre>`,
+						};
+					}
+				},
+			};
+		} catch {
+			g.__docvia_shiki__ = defaultHighlighter;
+		}
+		delete g.__docvia_shiki_pending__;
+		return g.__docvia_shiki__;
+	})();
+
+	return g.__docvia_shiki_pending__;
 }
 
 export async function loadMarkdown(
