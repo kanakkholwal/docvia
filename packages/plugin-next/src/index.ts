@@ -89,29 +89,17 @@ export function withDocvia(options: DocviaNextOptions = {}) {
             const resolvedConfig = typeof nextConfig === 'function' ? await nextConfig(phase, context) : nextConfig;
             const outDir = docviaConfigInfo ? resolve(docviaConfigInfo.outDir ?? '.docvia') : resolve('.docvia');
             const sourceAlias = resolve(outDir, 'source.ts');
-            const legacyTurbopackConfig = (resolvedConfig as any).experimental?.turbo ?? {};
-            const turbopackRoot = (resolvedConfig as any).turbopack?.root
-                ?? legacyTurbopackConfig.root
-                ?? findTurbopackRoot(process.cwd());
+            const registryAlias = resolve(outDir, 'registry.ts');
 
             return {
                 ...resolvedConfig,
                 webpack(config: any, webpackOptions: any) {
                     config.resolve = config.resolve || {};
                     config.resolve.alias = config.resolve.alias || {};
-                    config.resolve.alias['docvia:source'] = sourceAlias;
+                    config.resolve.alias['docvia/source'] = sourceAlias;
+                    config.resolve.alias['docvia/registry'] = registryAlias;
 
                     return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
-                },
-                turbopack: {
-                    ...legacyTurbopackConfig,
-                    ...((resolvedConfig as any).turbopack || {}),
-                    root: turbopackRoot,
-                    resolveAlias: {
-                        ...(legacyTurbopackConfig.resolveAlias || {}),
-                        ...((resolvedConfig as any).turbopack?.resolveAlias || {}),
-                        "docvia:source": toTurbopackAliasPath(sourceAlias, turbopackRoot),
-                    }
                 },
             };
         };

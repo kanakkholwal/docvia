@@ -23,9 +23,9 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "docvia/source": ["./.docvia/source.ts"],
+      "docvia/registry": ["./.docvia/registry.ts"]
     }
   },
   "include": [

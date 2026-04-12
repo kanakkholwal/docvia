@@ -19,10 +19,27 @@ export function createCollection<
 	baseUrl: string;
 	routeKeys: readonly TRouteKey[];
 	getModule: (slug: string) => Promise<ModuleExports | undefined>;
-	eagerModules: Record<string, ModuleExports> | null;
+	/** Lazy getter for server-side eager modules (avoids top-level await in source.ts). */
+	getEagerModules: () => Promise<Record<string, ModuleExports> | null>;
 	sourceModuleUrl: string;
 }): docviaCollection<TFrontmatter, TRouteKey> {
-	const { baseUrl, routeKeys, getModule, eagerModules } = opts;
+	const { baseUrl, routeKeys, getModule } = opts;
+
+	// Lazily resolved eager modules (cached after first access)
+	let _eagerModules: Record<string, ModuleExports> | null | undefined;
+	async function resolveEagerModules(): Promise<Record<string, ModuleExports> | null> {
+		if (_eagerModules !== undefined) return _eagerModules;
+		_eagerModules = await opts.getEagerModules();
+		return _eagerModules;
+	}
+
+	// Sync access to eager modules (returns null if not yet resolved)
+	function eagerModulesSync(): Record<string, ModuleExports> | null {
+		if (_eagerModules !== undefined) return _eagerModules;
+		// Kick off resolution in background
+		resolveEagerModules();
+		return null;
+	}
 
 	const routeSet = new Set<string>(routeKeys);
 
@@ -59,8 +76,9 @@ export function createCollection<
 	}
 
 	function getTitle(slug: string): string {
-		if (eagerModules?.[slug]?.meta?.title) {
-			return eagerModules[slug].meta.title;
+		const eager = eagerModulesSync();
+		if (eager?.[slug]?.meta?.title) {
+			return eager[slug].meta.title;
 		}
 		const segments = slug.split("/");
 		const last = segments[segments.length - 1] ?? slug;
@@ -68,7 +86,7 @@ export function createCollection<
 	}
 
 	function getOrder(slug: string): number {
-		return eagerModules?.[slug]?.meta?.order ?? Number.POSITIVE_INFINITY;
+		return eagerModulesSync()?.[slug]?.meta?.order ?? Number.POSITIVE_INFINITY;
 	}
 
 	function buildUrl(slug: string): string {
@@ -181,7 +199,8 @@ export function createCollection<
 		getPages() {
 			return routeKeys.map((slug) => {
 				const slugs = slug === "index" ? [] : slug.split("/");
-				const data = eagerModules?.[slug]?.meta ?? ({} as TFrontmatter);
+				const eager = eagerModulesSync();
+			const data = eager?.[slug]?.meta ?? ({} as TFrontmatter);
 				return { slugs, url: buildUrl(slug), data };
 			});
 		},
