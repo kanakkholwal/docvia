@@ -1,117 +1,105 @@
 <script lang="ts">
 import { page } from "$app/state";
 
-interface NavItem {
-	name: string;
-	slug: string;
-	title: string;
-	children: NavItem[];
-}
 interface Props {
-	nav: NavItem[];
+	nav: any[];
 }
 
 let { nav }: Props = $props();
 
-function isActive(slug: string): boolean {
-	const currentSlug = page.params.slug?.[0] || "index";
-	return currentSlug === slug || (slug === "index" && !page.params.slug);
-}
-
-function getHref(slug: string): string {
-	return slug === "index" ? "/" : `/${slug}`;
+function isActive(url: string): boolean {
+	const current = `/${page.params.slug ?? ""}`;
+	return current === url || (!page.params.slug && url === "/");
 }
 </script>
 
 <ul class="nav-list">
-	{#each nav as item (item.slug)}
-		<li class="nav-item">
-			<a
-				href={getHref(item.slug)}
-				class="nav-link"
-				class:active={isActive(item.slug)}
-			>
-				<span class="nav-label">{item.title}</span>
-			</a>
-
-			{#if item.children && item.children.length > 0}
-				<ul class="nav-sublist">
-					{#each item.children as child (child.slug)}
-						<li class="nav-item">
-							<a
-								href={getHref(child.slug)}
-								class="nav-link"
-								class:active={isActive(child.slug)}
-							>
-								<span class="nav-label">{child.title}</span>
-							</a>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</li>
+	{#each nav as item (item.$id ?? item.name)}
+		{#if item.type === "separator"}
+			<li class="nav-section">
+				<span class="nav-section-label">{item.name}</span>
+			</li>
+		{:else if item.type === "folder"}
+			<li class="nav-section">
+				<span class="nav-folder-label">{item.name}</span>
+				{#if item.children?.length}
+					<ul class="nav-children">
+						{#if item.index}
+							<li>
+								<a href={item.index.url} class="nav-link" class:nav-link--active={isActive(item.index.url)}>
+									Overview
+								</a>
+							</li>
+						{/if}
+						{#each item.children as child (child.$id ?? child.name)}
+							{#if child.type === "page"}
+								<li>
+									<a href={child.url} class="nav-link" class:nav-link--active={isActive(child.url)}>
+										{child.name}
+									</a>
+								</li>
+							{/if}
+						{/each}
+					</ul>
+				{/if}
+			</li>
+		{:else}
+			<li>
+				<a href={item.url} class="nav-link" class:nav-link--active={isActive(item.url)}>
+					{item.name}
+				</a>
+			</li>
+		{/if}
 	{/each}
 </ul>
 
 <style>
 	.nav-list {
 		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding: 0 1rem;
 	}
 
-	.nav-item {
-		display: flex;
-		flex-direction: column;
+	.nav-section {
+		margin-bottom: 4px;
+	}
+
+	.nav-section-label,
+	.nav-folder-label {
+		display: block;
+		padding: 6px 12px;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted-fg);
+		margin-top: 16px;
+		margin-bottom: 2px;
+	}
+
+	.nav-children {
+		list-style: none;
+		padding-left: 8px;
+		margin-left: 12px;
+		border-left: 1px solid var(--border);
 	}
 
 	.nav-link {
-		display: flex;
-		align-items: center;
-		padding: 0.625rem 1rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--muted-foreground);
-		border-radius: 0.5rem;
-		transition: all 0.2s ease;
+		display: block;
+		padding: 6px 12px;
+		border-radius: var(--radius-sm);
+		font-size: 13px;
+		color: var(--muted);
+		transition: color var(--transition), background var(--transition);
 		text-decoration: none;
-		border-left: 2px solid transparent;
-		margin-left: -0.25rem;
 	}
 
 	.nav-link:hover {
-		color: var(--foreground);
-		background-color: var(--accent);
+		color: var(--fg);
+		background: var(--surface);
 	}
 
-	.nav-link.active {
-		color: var(--primary);
-		background-color: hsl(var(--primary-h), var(--primary-s), 95%);
-		font-weight: 600;
-		border-left-color: var(--primary);
-	}
-
-	:global(.dark) .nav-link.active {
-		background-color: hsl(var(--primary-h), var(--primary-s), 15%);
-	}
-
-	.nav-label {
-		display: block;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.nav-sublist {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding-left: 1rem;
-		margin-top: 0.25rem;
-		border-left: 1px solid var(--border);
-		margin-left: 0.5rem;
+	.nav-link--active {
+		color: var(--fg);
+		background: var(--surface);
+		font-weight: 500;
 	}
 </style>

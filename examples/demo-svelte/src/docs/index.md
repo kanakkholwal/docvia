@@ -1,62 +1,55 @@
 ---
-title: Welcome to docvia
-description: Fast, modern documentation with docvia
-tags: [getting-started]
+title: Introduction
+description: Docvia is a compiler-grade documentation framework that transforms Markdown into type-safe, framework-optimized output.
+order: 0
 ---
 
-# Welcome to docvia
+# Introduction
 
-Fast, modern documentation powered by docvia. Build-time compilation, zero runtime overhead, and a beautiful UI out of the box.
+Docvia is a documentation framework built on a compiler architecture. It parses Markdown into an Intermediate Representation (IR), then renders framework-optimized output for Svelte, React, or any target.
 
-## Why docvia?
+## How it works
 
-- **Build-time compilation** — Zero runtime markdown parsing overhead
-- **Incremental rebuilds** — Only recompile changed pages
-- **Developer-first** — Minimal dependencies, maximum control
-- **Full-text search** — Powered by Orama search engine
-- **Plugin system** — Extend with custom renderers and hooks
-- **Beautiful UI** — Modern, minimal design included
-
-## Quick Start
-
-Install docvia in your SvelteKit project:
-
-```bash
-npm install -D @docvia/cli @docvia/compiler @docvia/source
+```
+Markdown → Parser → IR → Renderer → Framework Output
 ```
 
-Initialize your documentation:
+1. **Parse** — Micromark parses your `.md` files into an AST
+2. **Transform** — The IR layer converts the AST into framework-agnostic nodes
+3. **Render** — A renderer adapter (Svelte, React) produces serialized output
+4. **Deliver** — SvelteKit renders the output with full SSR support
+
+All heavy work happens at build time. At runtime, your pages are pre-compiled JSON trees — no markdown parsing, no syntax highlighting overhead.
+
+## Why Docvia
+
+- **Type-safe** — Generated TypeScript types for routes and frontmatter
+- **Framework-native** — SvelteKit SSR, Svelte 5 runes, not framework-agnostic wrappers
+- **Build-time compilation** — Shiki syntax highlighting, IR transforms, and rendering happen once
+- **Interactive islands** — Embed Svelte components in Markdown with selective hydration
+- **Zero client JS by default** — Only interactive components ship JavaScript
+
+## Quick start
 
 ```bash
-docvia init
+npm install @docvia/cli @docvia/renderer-svelte @docvia/plugin-vite
 ```
-
-Start the development server:
 
 ```bash
-docvia dev
+npx docvia init
+npx docvia build
 ```
 
-Your docs will be available at `http://localhost:5173`.
+Then load and render in your SvelteKit routes:
 
-## Key Features
+```typescript
+import { docs } from "docvia/source";
 
-### Zero Runtime Parsing
+const page = await docs.getPage(["getting-started"]);
+```
 
-All markdown is compiled at build time. Your documentation renders instantly with zero JavaScript parsing overhead.
+## Next steps
 
-### Incremental Compilation
-
-Changes to one page don't require recompiling your entire documentation. Only affected files are reprocessed, making development fast.
-
-### Extensible
-
-Use the plugin system to add custom renderers, transformations, or hooks to your documentation pipeline.
-
-### Search-Ready
-
-Full-text search is built-in and powered by Orama. Search your entire documentation with lightning speed.
-
-## What's Next?
-
-Explore the documentation to learn more about [components](./components) and advanced configuration.
+- [Getting Started](/getting-started) — Set up Docvia with SvelteKit
+- [Source API](/source-api) — Work with pages, navigation, and routes
+- [Rendering](/rendering) — Render content with the Svelte Renderer

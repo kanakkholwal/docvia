@@ -1,50 +1,55 @@
 ---
-title: Welcome to docvia
-description: Fast, modern documentation with docvia and Next.js SSR
-tags: [getting-started]
+title: Introduction
+description: Docvia is a compiler-grade documentation framework that transforms Markdown into type-safe, framework-optimized output.
+order: 0
 ---
 
-# Welcome to docvia
+# Introduction
 
-Fast, modern documentation powered by docvia — compiled at build time, rendered server-side by Next.js, zero runtime markdown overhead.
+Docvia is a documentation framework built on a compiler architecture. It parses Markdown into an Intermediate Representation (IR), then renders framework-optimized output for React, Svelte, or any target.
 
-## Why docvia + Next.js?
+## How it works
 
-- **Server Components** — `DocviaContent` is an RSC by default, zero client JS for static pages
-- **Build-time compilation** — Markdown compiled to a typed `RenderOutput` tree before the server starts
-- **`next/link` integration** — Pass `components={{ a: Link }}` for instant client-side navigation
-- **Interactive islands** — React components embedded in markdown via the directive syntax
-- **Full-text search** — Powered by Orama, built at compile time
-
-## Quick Start
-
-Add docvia to your Next.js project:
-
-```bash
-pnpm add -D @docvia/cli @docvia/renderer-react @docvia/source
+```
+Markdown → Parser → IR → Renderer → Framework Output
 ```
 
-Build your docs:
+1. **Parse** — Micromark parses your `.md` files into an AST
+2. **Transform** — The IR layer converts the AST into framework-agnostic nodes
+3. **Render** — A renderer adapter (React, Svelte) produces serialized output
+4. **Deliver** — Your framework renders the output with full SSR support
+
+All heavy work happens at build time. At runtime, your pages are pre-compiled JSON trees — no markdown parsing, no syntax highlighting overhead.
+
+## Why Docvia
+
+- **Type-safe** — Generated TypeScript types for routes and frontmatter
+- **Framework-native** — React Server Components, SvelteKit SSR, not framework-agnostic wrappers
+- **Build-time compilation** — Shiki syntax highlighting, IR transforms, and rendering happen once
+- **Interactive islands** — Embed React/Svelte components in Markdown with selective hydration
+- **Zero client JS by default** — Only interactive components ship JavaScript
+
+## Quick start
 
 ```bash
-pnpm docvia build
+npm install @docvia/cli @docvia/renderer-react @docvia/plugin-next
 ```
-
-Start the dev server:
 
 ```bash
-next dev --turbopack
+npx docvia init
+npx docvia build
 ```
 
-## How SSR Works
+Then import and render in your Next.js pages:
 
-1. `docvia build` compiles all Markdown files into typed `RenderOutput` trees (with shiki syntax highlighting)
-2. The `.docvia/` directory holds metadata, navigation, and the compiled source module
-3. Next.js App Router imports `docvia:source` via a webpack alias → resolves to `.docvia/source.ts`
-4. `docs.getPage(slug)` loads the page module — on the server, this renders from the compiled output
-5. `<DocviaContent nodes={page.content} />` renders the tree as React elements server-side
+```tsx
+import { docs } from "docvia/source";
 
-## What's Next?
+const page = await docs.getPage(["getting-started"]);
+```
 
-- [Getting Started](./getting-started) — full setup walkthrough
-- [Components](./components) — interactive component islands in markdown
+## Next steps
+
+- [Getting Started](/docs/getting-started) — Set up Docvia with Next.js
+- [Source API](/docs/source-api) — Work with pages, navigation, and routes
+- [Rendering](/docs/rendering) — Render content with component overrides

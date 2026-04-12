@@ -1,131 +1,78 @@
 ---
 title: Components
-description: Built-in and custom components
-tags: [advanced, components]
-order: 2
+description: Embed interactive Svelte components in your Markdown documentation using directives and selective hydration.
+order: 4
 ---
 
 # Components
 
-docvia ships with multiple ways to enhance your documentation with interactive components.
+Docvia supports embedding interactive components directly in Markdown using the directive syntax. Components are registered in your config and hydrated on the client.
 
-## Renderer Component
+## Directive syntax
 
-The core renderer that displays all compiled markdown content:
+**Block directive**:
 
-```svelte
-<script>
-  import { Renderer } from '@docvia/renderer-svelte';
-  import { registry } from 'docvia:source/registry';
-  
-  export let nodes;
-</script>
-
-<Renderer {nodes} registry={registry} />
+```markdown
+:::counter{initial=42}
+:::
 ```
 
-## Custom Components via Directives
+**Inline directive**:
 
-Embed interactive components using the directive syntax:
+```markdown
+Check the :badge{text="new"} feature.
+```
 
-:::note
-This is a note component rendered via the directive system.
-:::
+## Registration
 
-:::warning
-This is a warning — handle with care!
-:::
-
-:::info
-Information messages help users understand important details.
-:::
-
-:::success
-This shows a successful operation or achievement.
-:::
-
-## Code Examples
-
-TypeScript example with syntax highlighting:
+Register components in `docvia.config.ts`:
 
 ```typescript
-interface Config {
-  dir: string;
-  output: string;
-  plugins: Array<Plugin>;
-}
-
-function compileMarkdown(input: string): Promise<string> {
-  return Promise.resolve(input);
-}
+export default defineConfig({
+  components: {
+    counter: {
+      path: "./src/lib/components/Counter.svelte",
+      hydrate: true,
+      defaultProps: { initial: 0 },
+    },
+  },
+});
 ```
 
-Svelte component example:
+## Hydration modes
 
-```svelte
-<script>
-  let count = $state(0);
-  
-  function increment() {
-    count++;
-  }
-</script>
+| Mode | When | Use case |
+| --- | --- | --- |
+| `hydrate: false` | Never | Static content only |
+| `hydrate: true` | Immediate | Interactive on first paint |
+| `client:idle` | On idle | After main thread is free |
+| `client:visible` | On intersection | When scrolled into view |
 
-<button on:click={increment}>
-  Count: {count}
-</button>
+## Live example
 
-<style>
-  button {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 0.25rem;
-    cursor: pointer;
-  }
-</style>
-```
-
-## Interactive Counter
+Here is an interactive counter embedded via directive:
 
 :::counter{initial=42}
-This is an interactive counter component!
 :::
 
-## Tables
+The counter is server-rendered then hydrated client-side.
 
-Feature comparison table:
+## Creating components
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Build-time compilation | ✓ | Zero runtime overhead |
-| Incremental builds | ✓ | Fast development cycles |
-| Search integration | ✓ | Full-text powered by Orama |
-| Plugin system | ✓ | Custom renderers support |
-| Dark mode | Planned | Theme switching coming soon |
+Components are standard Svelte 5 components:
 
-## List Examples
+```svelte
+<script lang="ts">
+  let { initial = 0 } = $props();
+  let count = $state(initial);
+</script>
 
-### Ordered Steps
-
-1. Initialize your docvia project
-2. Create documentation files
-3. Configure your site
-4. Deploy to production
-
-### Feature List
-
-- **Fast** — Build-time compilation, instant renders
-- **Minimal** — Zero runtime parsing overhead
-- **Extensible** — Full plugin system
-- **Search-ready** — Built-in full-text search
-- **Beautiful** — Modern UI out of the box
-
-## Blockquote
-
-> "Good documentation is the best investment in your project's success. It reduces support burden, improves user adoption, and makes maintenance easier."
-
-## Next Steps
-
-Learn how to [get started](./getting-started) with docvia in your project.
+<div class="counter-card">
+  <div class="counter-value">{count}</div>
+  <div class="counter-controls">
+    <button class="btn" onclick={() => count--}>-</button>
+    <button class="btn" onclick={() => count = initial}>Reset</button>
+    <button class="btn btn-primary" onclick={() => count++}>+</button>
+  </div>
 </div>
 ```

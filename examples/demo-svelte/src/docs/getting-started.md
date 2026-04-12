@@ -1,182 +1,116 @@
 ---
 title: Getting Started
-description: Learn how to set up docvia
-tags: [guide, tutorial]
+description: Set up Docvia with SvelteKit in under 5 minutes.
 order: 1
 ---
 
 # Getting Started
 
-Get docvia up and running in minutes.
+Set up Docvia with SvelteKit. This guide covers installation, configuration, and creating your first documentation page.
 
 ## Installation
 
-Install docvia in your project using your preferred package manager:
-
 ```bash
-npm install -D @docvia/cli @docvia/compiler @docvia/source
+npm install @docvia/cli @docvia/renderer-svelte @docvia/plugin-vite shiki
 ```
-
-Or with pnpm:
-
-```bash
-pnpm add -D @docvia/cli @docvia/compiler @docvia/source
-```
-
-## Project Structure
-
-After initialization, your project will have:
-
-| Directory | Purpose |
-|-----------|---------|
-| `docs/` | Markdown source files for documentation |
-| `docvia.config.ts` | docvia configuration file |
-| `.docvia/` | Compiled output (auto-generated) |
 
 ## Configuration
 
-Create a `docvia.config.ts` file in your project root:
+Create `docvia.config.ts` in your project root:
 
 ```typescript
-import { defineConfig } from '@docvia/cli';
+import { defineConfig } from "@docvia/cli";
+import { createSvelteRenderer, createShikiHighlighter } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-  // Directory containing your markdown files
-  dir: 'docs',
-  
-  // Title for your documentation site
-  title: 'My Documentation',
-  
-  // Custom plugins
-  plugins: [
-    // Add custom plugins here
-  ],
+  sourceDir: "src/docs",
+  outDir: ".docvia",
+  renderer: createSvelteRenderer({
+    highlighter: createShikiHighlighter({
+      theme: "dracula",
+      langs: ["typescript", "svelte", "bash", "json"],
+    }),
+  }),
 });
 ```
 
-## Writing Documentation
+Update `vite.config.ts` with the Docvia plugins:
 
-Create markdown files in the `docs/` directory:
+```typescript
+import { sveltekit } from "@sveltejs/kit/vite";
+import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [sveltekit(), docviaSourcePlugin(), docviaMarkdownPlugin(config)],
+});
+```
+
+## Create your first page
+
+Create `src/docs/index.md`:
 
 ```markdown
 ---
-title: My First Page
-description: A brief description
-tags: [example, tutorial]
-order: 1
+title: Welcome
+description: My documentation site
 ---
 
-# My First Page
+# Welcome
 
-Start writing your content here.
-
-## Sections
-
-Use markdown headings to organize your content.
-
-### Code Examples
-
-Use fenced code blocks for syntax highlighting:
-
-\`\`\`javascript
-console.log('Hello, docvia!');
-\`\`\`
+This is your first documentation page.
 ```
 
-## Development
+## Data loading
 
-Start the development server with hot reload:
-
-```bash
-docvia dev
-```
-
-Your documentation will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Compile your documentation for production:
-
-```bash
-docvia build
-```
-
-This generates optimized output in the `.docvia/` directory.
-
-## Deployment
-
-Deploy your compiled documentation to any static host:
-
-- Vercel
-- Netlify
-- GitHub Pages
-- AWS S3
-- Any static file server
-
-Just deploy the contents of your build output directory.
-
-## Front Matter Options
-
-Every markdown file supports these frontmatter fields:
-
-```yaml
----
-# Page title (required)
-title: Page Title
-
-# Page description (optional)
-description: A brief description
-
-# Tags for organization (optional)
-tags: [example, guide]
-
-# Sort order in navigation (optional)
-order: 1
----
-```
-
-## Markdown Features
-
-### Lists
-
-- Feature one
-- Feature two
-  - Sub-feature
-  - Another sub-feature
-- Feature three
-
-### Code Blocks
+Create a server load function at `src/routes/+layout.server.ts`:
 
 ```typescript
-interface User {
-  id: string;
-  name: string;
-}
+import { docs } from "docvia/source";
 
-const user: User = {
-  id: '1',
-  name: 'John',
+export const load = async () => {
+  const tree = docs.pageTree;
+  return { tree };
 };
 ```
 
-### Blockquotes
+And a page load at `src/routes/[...slug]/+page.server.ts`:
 
-> This is a blockquote. It's useful for highlighting important information.
+```typescript
+import { docs } from "docvia/source";
+import { error } from "@sveltejs/kit";
 
-### Links
+export const load = async ({ params }) => {
+  const slugs = params.slug?.split("/") || [];
+  const page = await docs.getPage(slugs);
+  if (!page) throw error(404, "Page not found");
+  return { page };
+};
+```
 
-[Visit GitHub](https://github.com) to contribute!
+## Build and preview
 
-## Next Steps
+```bash
+npx docvia build
+npm run dev
+```
 
-- Explore [Components](./components) for advanced features
-- Check [Configuration](./configuration) for custom settings
-- Join our [Community](https://github.com/kanakkholwal/docvia)
+## Project structure
 
-## Getting Help
+| Path | Purpose |
+| --- | --- |
+| `src/docs/` | Markdown source files |
+| `.docvia/` | Generated output (gitignored) |
+| `docvia.config.ts` | Docvia configuration |
+| `src/routes/` | SvelteKit routes |
 
-Need help? Check out:
+## Frontmatter fields
 
-- The [documentation](/)
-- [GitHub Issues](https://github.com/kanakkholwal/docvia/issues)
-- GitHub Discussions
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | Yes | Page title |
+| `description` | `string` | No | Meta description |
+| `order` | `number` | No | Sort order in navigation |
+| `tags` | `string[]` | No | Tags for categorization |
+| `slug` | `string` | No | Override the auto-generated slug |
+| `draft` | `boolean` | No | Exclude from production |
