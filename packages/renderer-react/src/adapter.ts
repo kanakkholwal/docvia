@@ -23,10 +23,18 @@ import {
  * highlight calls. Dynamic import keeps shiki out of any browser bundle if
  * this factory is only ever called server-side (build / SSR).
  */
+// Cross-environment cache: globalThis survives across Vite build environments
+const _hlCache: Map<string, SyntaxHighlighter> =
+	((globalThis as any).__docvia_shiki_cache__ ??= new Map());
+
 export function createShikiHighlighter(opts?: {
 	theme?: string;
 	langs?: string[];
 }): SyntaxHighlighter {
+	const key = JSON.stringify(opts ?? {});
+	const cached = _hlCache.get(key);
+	if (cached) return cached;
+
 	let instance: any = null;
 
 	async function getInstance(): Promise<any> {
@@ -49,7 +57,7 @@ export function createShikiHighlighter(opts?: {
 		return instance;
 	}
 
-	return {
+	const hl: SyntaxHighlighter = {
 		async highlight(code: string, lang: string) {
 			const h = await getInstance();
 			try {
@@ -63,6 +71,9 @@ export function createShikiHighlighter(opts?: {
 			}
 		},
 	};
+
+	_hlCache.set(key, hl);
+	return hl;
 }
 
 function escapeHtml(str: string): string {

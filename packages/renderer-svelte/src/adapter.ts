@@ -14,15 +14,22 @@ import {
 } from "@docvia/renderer-core";
 
 // Browser-safe highlighter creator that only loads shiki on demand (server-side)
+// Cross-environment cache: globalThis survives across Vite build environments
+const _hlCache: Map<string, SyntaxHighlighter> =
+	((globalThis as any).__docvia_shiki_cache__ ??= new Map());
+
 export function createShikiHighlighter(opts?: {
 	theme?: string;
 	langs?: string[];
 }): SyntaxHighlighter {
+	const key = JSON.stringify(opts ?? {});
+	const cached = _hlCache.get(key);
+	if (cached) return cached;
+
 	let instance: any = null;
 
 	async function getHighlighter(): Promise<any> {
 		if (!instance) {
-			// Dynamic import to keep shiki out of the browser bundle if this isn't called
 			const { createHighlighter } = await import("shiki");
 			instance = await createHighlighter({
 				themes: [opts?.theme ?? "github-dark"],
@@ -40,7 +47,7 @@ export function createShikiHighlighter(opts?: {
 		return instance;
 	}
 
-	return {
+	const hl: SyntaxHighlighter = {
 		async highlight(code: string, lang: string) {
 			const h = await getHighlighter();
 			try {
@@ -54,6 +61,9 @@ export function createShikiHighlighter(opts?: {
 			}
 		},
 	};
+
+	_hlCache.set(key, hl);
+	return hl;
 }
 
 function escapeHtml(str: string): string {
