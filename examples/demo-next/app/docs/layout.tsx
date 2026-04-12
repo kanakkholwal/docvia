@@ -1,4 +1,4 @@
-import { docs } from "docvia:source";
+import { docs } from "docvia/source";
 import type { ReactNode } from "react";
 import { Sidebar } from "../../components/Sidebar";
 
