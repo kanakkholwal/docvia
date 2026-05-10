@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-import { defineConfig } from "@docvia/plugins";
-import { Command } from "commander";
 import { realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { defineConfig } from "@docvia/plugins";
+import { Command } from "commander";
 import { runBuild } from "./commands/build";
 import { runDev } from "./commands/dev";
 import { runInit } from "./commands/init";
 import { runPreview } from "./commands/preview";
 import type { RendererTemplate } from "./templates";
 
+export type { docviaConfig, docviaPlugin } from "@docvia/ir";
 // Re-export defineConfig so users can import it from "@docvia/cli"
 export { defineConfig };
-export type { docviaConfig, docviaPlugin } from "@docvia/ir";
 
 const VERSION = process.env.npm_package_version ?? "0.1.0";
 
@@ -102,8 +102,9 @@ function isCliEntry(): boolean {
 	if (!argv1) return false;
 	try {
 		const entryUrl = pathToFileURL(realpathSync(argv1)).href;
-		const moduleUrl = pathToFileURL(realpathSync(fileURLToPath(import.meta.url)))
-			.href;
+		const moduleUrl = pathToFileURL(
+			realpathSync(fileURLToPath(import.meta.url)),
+		).href;
 		return entryUrl === moduleUrl;
 	} catch {
 		// Fall back to substring check for edge cases (Windows .cmd shims etc.)

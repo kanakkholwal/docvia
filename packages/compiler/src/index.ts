@@ -267,7 +267,10 @@ export async function getEagerModules(
 
 function generateRegistryTs(
 	resolvedOutDir: string,
-	components: Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>,
+	components: Record<
+		string,
+		{ path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }
+	>,
 ): string {
 	const entries = Object.entries(components);
 	const parts: string[] = [
@@ -277,10 +280,10 @@ function generateRegistryTs(
 
 	entries.forEach(([, entry], idx) => {
 		const resolvedComponentPath = resolve(entry.path);
-		const relativePath = relative(resolvedOutDir, resolvedComponentPath).replace(
-			/\\/g,
-			"/",
-		);
+		const relativePath = relative(
+			resolvedOutDir,
+			resolvedComponentPath,
+		).replace(/\\/g, "/");
 		parts.push(`import _Component${idx} from ${JSON.stringify(relativePath)};`);
 	});
 
@@ -516,7 +519,11 @@ export async function compile(
 				frontmatter,
 			)) as HastRoot;
 
-			let irDoc: IRDocument = transformToIR(finalAst, frontmatter, file.relativePath);
+			let irDoc: IRDocument = transformToIR(
+				finalAst,
+				frontmatter,
+				file.relativePath,
+			);
 			const contentHash = computeContentHash({
 				fileContent: file.hash,
 				frontmatter: stableStringify(frontmatter),
@@ -574,7 +581,8 @@ export async function compile(
 		collectionData.push({
 			name: collection.name,
 			baseUrl: (
-				collection.baseUrl ?? `/${collection.name === "docs" ? "" : collection.name}`
+				collection.baseUrl ??
+				`/${collection.name === "docs" ? "" : collection.name}`
 			).replace(/\/+/g, "/"),
 			routes,
 			frontmatterTypeDef,
@@ -606,7 +614,14 @@ export async function compile(
 						join(resolvedOutDir, "registry.ts"),
 						generateRegistryTs(
 							resolvedOutDir,
-							config.components as Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>,
+							config.components as Record<
+								string,
+								{
+									path: string;
+									hydrate?: boolean;
+									defaultProps?: Record<string, unknown>;
+								}
+							>,
 						),
 					),
 				]

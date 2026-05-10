@@ -26,9 +26,7 @@ export interface CacheFile {
 	readonly entries: Record<string, CachedEntry>;
 }
 
-export async function readCache(
-	outDir: string,
-): Promise<CacheFile | null> {
+export async function readCache(outDir: string): Promise<CacheFile | null> {
 	try {
 		const raw = await readFile(join(outDir, CACHE_FILE), "utf-8");
 		const parsed = JSON.parse(raw) as CacheFile;

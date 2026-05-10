@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { page } from "$app/state";
-	import { cn } from "$lib/utils";
-	import { nav } from "$lib/nav";
+import { page } from "$app/state";
+import { nav } from "$lib/nav";
+import { cn } from "$lib/utils";
 </script>
 
 <nav class="flex flex-col gap-8 py-6 text-sm">

@@ -6,10 +6,10 @@ import type {
 } from "@docvia/ir";
 import {
 	type ComponentRegistry,
-	type RenderContext,
-	type SyntaxHighlighter,
 	createDefaultRendererMap,
+	type RenderContext,
 	renderDocument,
+	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 
 // ---------------------------------------------------------------------------

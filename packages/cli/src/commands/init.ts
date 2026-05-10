@@ -2,11 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { c, log, symbols } from "../logger";
-import {
-	getScaffold,
-	installHint,
-	type RendererTemplate,
-} from "../templates";
+import { getScaffold, installHint, type RendererTemplate } from "../templates";
 
 export interface InitOptions {
 	dir: string;
@@ -89,5 +85,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
 
 	console.log("");
 	log.plain(`  Next: ${c.cyan("docvia build")} ${symbols.arrow} compile`);
-	log.plain(`        ${c.cyan("docvia dev")}   ${symbols.arrow} watch & rebuild`);
+	log.plain(
+		`        ${c.cyan("docvia dev")}   ${symbols.arrow} watch & rebuild`,
+	);
 }

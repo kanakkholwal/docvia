@@ -1,20 +1,20 @@
 <script lang="ts">
-	import "../app.css";
-	import Brand from "$lib/components/brand.svelte";
-	import ThemeToggle from "$lib/components/theme-toggle.svelte";
-	import { Button } from "$lib/components/ui/button";
-	import { Github, Menu, X } from "@lucide/svelte";
-	import type { Snippet } from "svelte";
+import "../app.css";
+import Brand from "$lib/components/brand.svelte";
+import ThemeToggle from "$lib/components/theme-toggle.svelte";
+import { Button } from "$lib/components/ui/button";
+import { Github, Menu, X } from "@lucide/svelte";
+import type { Snippet } from "svelte";
 
-	let { children }: { children: Snippet } = $props();
-	let mobileOpen = $state(false);
+let { children }: { children: Snippet } = $props();
+let mobileOpen = $state(false);
 
-	const navLinks = [
-		{ label: "Features", href: "/#features" },
-		{ label: "Use cases", href: "/#use-cases" },
-		{ label: "Editions", href: "/#editions" },
-		{ label: "Docs", href: "/docs" },
-	];
+const navLinks = [
+	{ label: "Features", href: "/#features" },
+	{ label: "Use cases", href: "/#use-cases" },
+	{ label: "Editions", href: "/#editions" },
+	{ label: "Docs", href: "/docs" },
+];
 </script>
 
 <a

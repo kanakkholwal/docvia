@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { Badge } from "$lib/components/ui/badge";
-	import { Button } from "$lib/components/ui/button";
-	import { ArrowRight } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import { ArrowRight } from "@lucide/svelte";
 
-	const steps = [
-		{
-			step: "01",
-			cmd: "pnpm add -D @docvia/cli",
-			label: "Install the CLI as a dev dependency.",
-		},
-		{
-			step: "02",
-			cmd: "npx docvia init --renderer react",
-			label: "Scaffold a docs/ directory and a working config.",
-		},
-		{
-			step: "03",
-			cmd: "npx docvia build",
-			label: "Compile your documentation into a typed module graph.",
-		},
-	];
+const steps = [
+	{
+		step: "01",
+		cmd: "pnpm add -D @docvia/cli",
+		label: "Install the CLI as a dev dependency.",
+	},
+	{
+		step: "02",
+		cmd: "npx docvia init --renderer react",
+		label: "Scaffold a docs/ directory and a working config.",
+	},
+	{
+		step: "03",
+		cmd: "npx docvia build",
+		label: "Compile your documentation into a typed module graph.",
+	},
+];
 </script>
 
 <section id="quickstart" class="border-t border-border/60 bg-bg-subtle/30">

@@ -33,7 +33,15 @@ function NavNodes({
 	return (
 		<>
 			{nodes.map((node, i) => (
-				<NavNode key={"$id" in node ? (node.$id ?? `${node.type}-${i}`) : `${node.type}-${i}`} node={node} pathname={pathname} />
+				<NavNode
+					key={
+						"$id" in node
+							? (node.$id ?? `${node.type}-${i}`)
+							: `${node.type}-${i}`
+					}
+					node={node}
+					pathname={pathname}
+				/>
 			))}
 		</>
 	);
@@ -117,8 +125,7 @@ function hasActiveChild(folder: PageTree.Folder, pathname: string): boolean {
 	if (folder.index && pathname === folder.index.url) return true;
 	for (const child of folder.children) {
 		if (child.type === "page" && pathname === child.url) return true;
-		if (child.type === "folder" && hasActiveChild(child, pathname))
-			return true;
+		if (child.type === "folder" && hasActiveChild(child, pathname)) return true;
 	}
 	return false;
 }
