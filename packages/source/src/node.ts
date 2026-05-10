@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and rendered content shapes vary per renderer; typing them here would couple the loader to a single framework.
 import fs from "node:fs/promises";
 import { parseMarkdown } from "@docvia/core";
 import { transformToIR } from "@docvia/ir";

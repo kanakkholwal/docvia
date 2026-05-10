@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and React component bridge types are intentionally erased to keep the adapter loose.
 import type {
 	IRDocument,
 	PageMeta,
@@ -204,11 +205,7 @@ export function docviaVitePlugin(store: InMemoryStore) {
  * Signals Vite's dev server to invalidate and push HMR updates for the given
  * page slugs. Call this after re-compiling changed documents.
  */
-export function invalidateModules(
-	slugs: string[],
-	// biome-ignore lint/suspicious/noExplicitAny: Vite server type not imported to avoid bundling vite
-	server: any,
-): void {
+export function invalidateModules(slugs: string[], server: any): void {
 	for (const slug of slugs) {
 		const moduleId = RESOLVED_PREFIX + slug;
 		const mod = server.moduleGraph?.getModuleById(moduleId);
