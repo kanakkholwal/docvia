@@ -1,55 +1,134 @@
 # docvia
 
-**docvia** is a production-grade, build-time first documentation compiler. It transforms your markdown files into high-performance, searchable, and interactive documentation sites with zero runtime overhead.
+A build-time documentation compiler. docvia turns a directory of Markdown into
+typed, pre-rendered modules for React, Svelte, or any framework with a renderer
+adapter — no runtime Markdown parser ships to the browser.
 
-## Core Features
+- **Build-time first.** Markdown is parsed, sanitized, and transformed into an
+  Intermediate Representation (IR) once.
+- **Typed frontmatter.** Extend the built-in schema with a Zod object and
+  docvia generates a `Frontmatter` interface for every collection.
+- **Incremental builds.** A `.docvia.cache.json` skips unchanged files between
+  runs. Subsequent builds for unchanged content take milliseconds.
+- **Pluggable pipeline.** Five hook points (`beforeParse`, `afterParse`,
+  `beforeTransform`, `afterTransform`, `beforeRender`).
+- **Framework adapters.** First-party React and Svelte renderers; Vite plugin
+  and Next.js wrapper for direct integration.
 
-- 🚀 **Build-Time First:** Zero runtime markdown parsing. Everything is pre-compiled to optimized JS/JSON.
-- ⚡ **High Performance:** Parallel compilation and incremental rebuilds using advanced hashing.
-- 🔍 **Full-Text Search:** Integrated section-level search powered by [Orama](https://oramasearch.com/).
-- 🎨 **Shiki Highlighting:** Beautiful, accurate syntax highlighting with theme support.
-- 🛠️ **Pluggable Architecture:** Extend the pipeline with custom hooks (remark, IR transform, render).
-- 📦 **Monorepo Design:** Clean separation of concerns between IR, Core, Compiler, and Renderers.
+## Install
 
-## Project Structure
+```bash
+pnpm add -D @docvia/cli
+pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
+```
 
-docvia is built as a PNPM monorepo:
+## Quick start
+
+```bash
+npx docvia init                  # scaffold docs/ + docvia.config.ts
+npx docvia build                 # compile to .docvia/
+npx docvia dev                   # watch & rebuild on change
+```
+
+Minimal `docvia.config.ts`:
+
+```ts
+import { defineConfig } from "@docvia/cli";
+import {
+  createReactRenderer,
+  createShikiHighlighter,
+} from "@docvia/renderer-react";
+
+export default defineConfig({
+  sourceDir: "docs",
+  outDir: ".docvia",
+  renderer: createReactRenderer({
+    highlighter: createShikiHighlighter({
+      theme: "github-dark",
+      langs: ["typescript", "bash", "json"],
+    }),
+  }),
+});
+```
+
+After `docvia build`, import the generated source:
+
+```ts
+import { docviaSource } from "docvia/source";
+
+const page = await docviaSource.docs.get("index");
+```
+
+## Packages
 
 | Package | Purpose |
-|---------|---------|
-| `@docvia/cli` | Command-line interface (`init`, `build`, `dev`). |
-| `@docvia/compiler` | Parallel build orchestrator and asset pipeline. |
-| `@docvia/ir` | Intermediate Representation types and DFS transformer. |
-| `@docvia/core` | Micromark-based markdown parser with unified plugin runner. |
-| `@docvia/renderer-svelte` | Svelte-specific IR → JS renderer with Vite support. |
-| `@docvia/plugins` | Hook execution engine and configuration loader. |
+|---|---|
+| `@docvia/cli` | `init` / `build` / `dev` / `preview` commands. |
+| `@docvia/compiler` | Build orchestrator, content hashing, incremental cache, module-graph generation. |
+| `@docvia/core` | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
+| `@docvia/ir` | Intermediate representation, error system, AST → IR transform. |
+| `@docvia/schema` | Frontmatter validation (Zod), YAML extraction, TS codegen. |
+| `@docvia/plugins` | `defineConfig`, `loadConfig`, `PluginRunner`. |
+| `@docvia/renderer-core` | Framework-agnostic rendering engine and default renderers. |
+| `@docvia/renderer-react` | React renderer adapter (server + `./client` hydration). |
+| `@docvia/renderer-svelte` | Svelte renderer adapter. |
 | `@docvia/search` | Section-level Orama indexing and client search helper. |
-| `@docvia/schema` | Frontmatter validation and line-scanner parser. |
-| `@docvia/ui` | Shared UI components and sidebar logic. |
+| `@docvia/source` | Runtime collection helpers and Node markdown loader. |
+| `@docvia/plugin-vite` | Vite plugin for `?docvia` virtual modules. |
+| `@docvia/plugin-next` | Next.js wrapper (`withDocvia`). |
 
-## Quick Start
+## Apps
 
-### Installation
+| App | Purpose |
+|---|---|
+| `apps/web` | Marketing/landing site (SvelteKit + Tailwind + shadcn-svelte). |
+| `apps/docs` | Documentation site (SvelteKit + docvia). |
+| `examples/demo-next` | End-to-end React/Next.js example. |
+| `examples/demo-svelte` | End-to-end Svelte/SvelteKit example. |
 
-```bash
-pnpm add @docvia/cli -D
-```
-
-### Initialize Project
-
-```bash
-npx docvia init
-```
-
-### Build Documentation
+## Development
 
 ```bash
-npx docvia build
+pnpm install
+pnpm build       # build all packages
+pnpm test        # run vitest across packages
+pnpm typecheck   # tsc --noEmit across packages
 ```
 
-## Contributing
+### Watch modes
 
-We welcome contributions! Please see our [Documentation.md](./documentation.md) for a technical overview of the architecture and instructions on how to set up the development environment.
+`pnpm dev` is intentionally focused — it only watches `packages/*` and `apps/*`, not the heavier `examples/*` demos. Run those explicitly when you need them.
+
+| Script | What it watches |
+|---|---|
+| `pnpm dev` | All packages + both apps (`apps/web`, `apps/docs`) |
+| `pnpm dev:packages` | Only `packages/*` (compiler, CLI, renderers, …) |
+| `pnpm dev:apps` | Only `apps/*` (landing + docs site) |
+| `pnpm dev:web` | Only `apps/web` |
+| `pnpm dev:docs` | Only `apps/docs` |
+| `pnpm dev:examples` | Both example demos (`demo-next`, `demo-svelte`) |
+| `pnpm dev:next` | Only `examples/demo-next` |
+| `pnpm dev:svelte` | Only `examples/demo-svelte` |
+| `pnpm dev:all` | Everything in the monorepo |
+
+Each filtered script still rebuilds the packages it depends on (`turbo` resolves the dependency graph), so you can run `pnpm dev:next` without first running `pnpm dev:packages`.
+
+Releases are managed with [Changesets](https://github.com/changesets/changesets) — see [RELEASING.md](./RELEASING.md) for the full workflow.
+
+```bash
+pnpm changeset           # author a changeset (run on every code-changing PR)
+pnpm changeset:status    # see what's pending
+pnpm version-packages    # consume changesets → bump versions, write CHANGELOGs
+pnpm release             # pnpm build && changeset publish
+```
+
+CI handles version bumps and publishing automatically — see `.github/workflows/release.yml`.
+
+## Status
+
+v0.1 preview. APIs are stabilizing; expect breaking changes before v1.0. See
+[`.changeset/`](./.changeset) for in-flight release notes and
+[`documentation.md`](./documentation.md) for architecture notes.
 
 ## License
 

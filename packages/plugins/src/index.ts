@@ -47,6 +47,31 @@ export function resolvePlugins(
 
 // Plugin Runner
 
+/**
+ * Wrap a plugin hook invocation so any thrown error carries the originating
+ * plugin's name+version+hook in the resulting docviaError.
+ */
+async function callHook<T>(
+	plugin: docviaPlugin,
+	hook: string,
+	file: string | undefined,
+	fn: () => Promise<T> | T,
+): Promise<T> {
+	try {
+		return await fn();
+	} catch (err) {
+		if (err instanceof docviaError) throw err;
+		const e = err as Error;
+		throw new docviaError(
+			"PLUGIN_ERROR",
+			`Plugin "${plugin.name}@${plugin.version}" failed in ${hook}: ${e?.message ?? String(err)}`,
+			file,
+			undefined,
+			e,
+		);
+	}
+}
+
 export class PluginRunner {
 	private readonly plugins: readonly docviaPlugin[];
 
@@ -58,7 +83,9 @@ export class PluginRunner {
 		let result = file;
 		for (const plugin of this.plugins) {
 			if (plugin.beforeParse) {
-				result = await plugin.beforeParse(result);
+				result = await callHook(plugin, "beforeParse", file.path, () =>
+					plugin.beforeParse!(result),
+				);
 			}
 		}
 		return result;
@@ -68,7 +95,9 @@ export class PluginRunner {
 		let result = ast;
 		for (const plugin of this.plugins) {
 			if (plugin.afterParse) {
-				result = await plugin.afterParse(result, file);
+				result = await callHook(plugin, "afterParse", file.path, () =>
+					plugin.afterParse!(result, file),
+				);
 			}
 		}
 		return result;
@@ -81,7 +110,9 @@ export class PluginRunner {
 		let result = ast;
 		for (const plugin of this.plugins) {
 			if (plugin.beforeTransform) {
-				result = await plugin.beforeTransform(result, meta);
+				result = await callHook(plugin, "beforeTransform", undefined, () =>
+					plugin.beforeTransform!(result, meta),
+				);
 			}
 		}
 		return result;
@@ -91,7 +122,9 @@ export class PluginRunner {
 		let result = doc;
 		for (const plugin of this.plugins) {
 			if (plugin.afterTransform) {
-				result = await plugin.afterTransform(result);
+				result = await callHook(plugin, "afterTransform", undefined, () =>
+					plugin.afterTransform!(result),
+				);
 			}
 		}
 		return result;
@@ -101,7 +134,9 @@ export class PluginRunner {
 		let result = doc;
 		for (const plugin of this.plugins) {
 			if (plugin.beforeRender) {
-				result = await plugin.beforeRender(result);
+				result = await callHook(plugin, "beforeRender", undefined, () =>
+					plugin.beforeRender!(result),
+				);
 			}
 		}
 		return result;
@@ -121,6 +156,7 @@ export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
 		plugins: config.plugins ?? [],
 		renderer: config.renderer,
 		components: config.components,
+		collections: config.collections,
 		frontmatter: config.frontmatter,
 		markdown: {
 			remarkPlugins: config.markdown?.remarkPlugins ?? [],
@@ -146,24 +182,36 @@ export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
 }
 
 export async function loadConfig(configPath: string): Promise<docviaConfig> {
+	const resolved = resolve(configPath);
+	let mod: unknown;
 	try {
 		const jiti = createJiti(import.meta.url, {
 			moduleCache: false,
 			fsCache: false,
 		});
-
-		// Use jiti to load the config; it handles TS and ESM-CJS conversion
-		const mod = await jiti.import(resolve(configPath));
-		const rawConfig = (mod as any).default ?? mod;
-
-		return defineConfig(rawConfig);
+		mod = await jiti.import(resolved);
 	} catch (err) {
 		throw new docviaError(
 			"CONFIG_ERROR",
-			`Failed to load config: ${configPath}`,
-			configPath,
+			`Failed to load config: ${resolved}\n  ${(err as Error).message}`,
+			resolved,
 			undefined,
 			err as Error,
 		);
 	}
+
+	const rawConfig =
+		mod && typeof mod === "object" && "default" in (mod as object)
+			? (mod as { default: unknown }).default
+			: mod;
+
+	if (!rawConfig || typeof rawConfig !== "object") {
+		throw new docviaError(
+			"CONFIG_ERROR",
+			`Config file did not export an object (got ${typeof rawConfig}). Did you forget \`export default defineConfig({...})\`?`,
+			resolved,
+		);
+	}
+
+	return defineConfig(rawConfig as Partial<docviaConfig>);
 }

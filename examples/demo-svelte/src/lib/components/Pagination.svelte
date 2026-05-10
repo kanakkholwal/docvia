@@ -20,13 +20,17 @@ const prevPage = $derived(
 const nextPage = $derived(
 	currentIndex < pagesMeta.length - 1 ? pagesMeta[currentIndex + 1] : null,
 );
+
+function urlFor(slug: string): string {
+	return slug === "index" ? "/docs" : `/docs/${slug}`;
+}
 </script>
 
 <div class="pagination">
     <div class="pagination-prev">
         {#if prevPage}
             <a
-                href={prevPage.slug === "index" ? "/" : `/${prevPage.slug}`}
+                href={urlFor(prevPage.slug)}
                 class="page-card prev"
             >
                 <span class="label">Previous</span>
@@ -38,7 +42,7 @@ const nextPage = $derived(
     <div class="pagination-next">
         {#if nextPage}
             <a
-                href={nextPage.slug === "index" ? "/" : `/${nextPage.slug}`}
+                href={urlFor(nextPage.slug)}
                 class="page-card next"
             >
                 <span class="label">Next</span>

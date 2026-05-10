@@ -1,34 +1,56 @@
 {
-    "name": "@docvia/plugin-next",
-    "version": "0.0.1",
-    "type": "module",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.mts",
-            "import": "./dist/index.mjs",
-            "default": "./dist/index.mjs"
-        }
-    },
-    "main": "./dist/index.mjs",
-    "types": "./dist/index.d.mts",
-    "scripts": {
-        "build": "tsdown",
-        "dev": "tsdown --watch --no-clean",
-        "typecheck": "tsc --noEmit"
-    },
-    "dependencies": {
-        "@docvia/compiler": "workspace:*",
-        "@docvia/ir": "workspace:*",
-        "@docvia/plugins": "workspace:*",
-        "chokidar": "^4.0.0"
-    },
-    "devDependencies": {
-        "@types/node": "^25.5.0",
-        "next": "^16",
-        "typescript": "^5.9.3",
-        "webpack": "^5"
-    },
-    "peerDependencies": {
-        "next": ">=14"
-    }
+	"name": "@docvia/plugin-next",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch --no-clean",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@docvia/compiler": "workspace:*",
+		"@docvia/ir": "workspace:*",
+		"@docvia/plugins": "workspace:*",
+		"chokidar": "^4.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"next": "^16",
+		"typescript": "^5.9.3",
+		"webpack": "^5"
+	},
+	"peerDependencies": {
+		"next": ">=14"
+	},
+	"description": "Next.js integration for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/plugin-next"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }

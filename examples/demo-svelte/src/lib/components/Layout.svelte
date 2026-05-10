@@ -39,10 +39,18 @@ $effect(() => {
           <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
         </button>
         <a href="/" class="docs-logo">
+          <span class="docs-logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="14" height="14"><path fill="currentColor" d="M28.7 8.7C25.5 4.1 19.1 2.7 14.5 5.7l-8 5.1A9.2 9.2 0 0 0 2.4 17a9.7 9.7 0 0 0 1 6.2 9.2 9.2 0 0 0-1.4 3.4 9.8 9.8 0 0 0 1.7 7.4c3.2 4.6 9.6 6 14.2 3l8-5.1a9.2 9.2 0 0 0 4.1-6.2 9.7 9.7 0 0 0-1-6.2 9.2 9.2 0 0 0 1.4-3.4 9.8 9.8 0 0 0-1.7-7.4Z"/></svg>
+          </span>
           docvia<span>docs</span>
         </a>
+        <span class="demo-badge demo-badge-svelte">
+          <span class="demo-badge-dot" aria-hidden="true"></span>
+          sveltekit demo
+        </span>
       </div>
       <div class="docs-header-right">
+        <a href="/" class="docs-header-link" aria-label="Back to demo home">← Demo home</a>
         <button class="theme-toggle" onclick={toggleTheme} aria-label="Toggle theme">
           {#if theme === "dark"}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/></svg>
@@ -113,6 +121,9 @@ $effect(() => {
   }
 
   .docs-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 700;
     font-size: 15px;
     letter-spacing: -0.02em;
@@ -123,8 +134,61 @@ $effect(() => {
   .docs-logo span {
     color: var(--muted);
     font-weight: 400;
-    margin-left: 8px;
+    margin-left: 6px;
     font-size: 13px;
+  }
+
+  .docs-logo-mark {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #ff3e00;
+    color: #fff;
+  }
+
+  .demo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-subtle);
+    color: var(--muted);
+    text-transform: lowercase;
+  }
+
+  .demo-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+  }
+
+  .demo-badge-svelte {
+    border-color: color-mix(in srgb, #ff3e00 40%, var(--border));
+  }
+
+  .demo-badge-svelte .demo-badge-dot {
+    background: #ff3e00;
+    box-shadow: 0 0 10px rgba(255, 62, 0, 0.55);
+  }
+
+  .docs-header-link {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: color 150ms ease, background 150ms ease;
+  }
+
+  .docs-header-link:hover {
+    color: var(--fg);
+    background: var(--surface);
   }
 
   .docs-header-right {

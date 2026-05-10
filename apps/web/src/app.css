@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* ── Design tokens — kept identical between apps/web and apps/docs ── */
+
+:root,
+[data-theme="light"] {
+	--bg: oklch(0.99 0 0);
+	--bg-subtle: oklch(0.975 0 0);
+	--bg-muted: oklch(0.95 0.005 250);
+	--fg: oklch(0.145 0 0);
+	--fg-muted: oklch(0.45 0.005 250);
+	--fg-subtle: oklch(0.6 0.005 250);
+	--border: oklch(0.92 0.005 250);
+	--border-strong: oklch(0.85 0.005 250);
+	--accent: oklch(0.58 0.22 290);
+	--accent-fg: oklch(0.99 0 0);
+	--accent-subtle: oklch(0.96 0.04 290);
+	--success: oklch(0.6 0.15 155);
+	--warn: oklch(0.7 0.18 75);
+	--danger: oklch(0.58 0.22 25);
+	--info: oklch(0.6 0.18 230);
+
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+
+	--shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+	--shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.08);
+	--shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.12);
+
+	--motion-fast: 100ms;
+	--motion-base: 180ms;
+	--motion-slow: 280ms;
+	--ease-out: cubic-bezier(0.2, 0, 0, 1);
+	--ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+	color-scheme: light;
+}
+
+[data-theme="dark"] {
+	--bg: oklch(0.145 0 0);
+	--bg-subtle: oklch(0.18 0 0);
+	--bg-muted: oklch(0.21 0.005 250);
+	--fg: oklch(0.985 0 0);
+	--fg-muted: oklch(0.7 0.005 250);
+	--fg-subtle: oklch(0.55 0.005 250);
+	--border: oklch(0.27 0.005 250);
+	--border-strong: oklch(0.34 0.005 250);
+	--accent: oklch(0.7 0.21 290);
+	--accent-fg: oklch(0.145 0 0);
+	--accent-subtle: oklch(0.25 0.08 290);
+	--success: oklch(0.7 0.15 155);
+	--warn: oklch(0.78 0.18 75);
+	--danger: oklch(0.7 0.2 25);
+	--info: oklch(0.72 0.18 230);
+
+	color-scheme: dark;
+}
+
+/* ── Tailwind v4 theme bridge ── */
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-bg-subtle: var(--bg-subtle);
+	--color-bg-muted: var(--bg-muted);
+	--color-fg: var(--fg);
+	--color-fg-muted: var(--fg-muted);
+	--color-fg-subtle: var(--fg-subtle);
+	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
+	--color-accent: var(--accent);
+	--color-accent-fg: var(--accent-fg);
+	--color-accent-subtle: var(--accent-subtle);
+	--color-success: var(--success);
+	--color-warn: var(--warn);
+	--color-danger: var(--danger);
+	--color-info: var(--info);
+
+	--font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Geist", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace,
+		"SF Mono", Menlo, monospace;
+
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+}
+
+/* ── Base ── */
+
+html {
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	font-family: var(--font-sans);
+}
+
+body {
+	background: var(--bg);
+	color: var(--fg);
+	min-height: 100vh;
+}
+
+::selection {
+	background: var(--accent-subtle);
+	color: var(--fg);
+}
+
+/* ── Focus ring ── */
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

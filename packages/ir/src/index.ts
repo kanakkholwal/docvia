@@ -157,6 +157,17 @@ export interface CompilerOptions {
 	readonly renderer: RendererAdapter;
 	readonly plugins: readonly docviaPlugin[];
 	readonly config: docviaConfig;
+	/**
+	 * Project root used for resolving relative paths and emitting the ambient
+	 * `docvia-env.d.ts`. Defaults to `process.cwd()` for backwards compatibility.
+	 */
+	readonly projectRoot?: string;
+	/**
+	 * When true (default), the compiler reads/writes `.docvia.cache.json` and
+	 * skips files whose content hash and pipeline cache key match the previous
+	 * build. Pass `false` to force a full rebuild.
+	 */
+	readonly incremental?: boolean;
 }
 
 export interface CompileResult {
