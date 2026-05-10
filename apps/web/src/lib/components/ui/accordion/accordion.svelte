@@ -1,7 +1,7 @@
 <script lang="ts">
-import { cn } from "$lib/utils";
 import { ChevronDown } from "@lucide/svelte";
 import { slide } from "svelte/transition";
+import { cn } from "$lib/utils";
 
 type Props = {
 	question: string;

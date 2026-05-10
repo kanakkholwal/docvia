@@ -1,7 +1,7 @@
 <script lang="ts">
+import { Check, Cloud, Github } from "@lucide/svelte";
 import { Badge } from "$lib/components/ui/badge";
 import { Button } from "$lib/components/ui/button";
-import { Check, Cloud, Github } from "@lucide/svelte";
 
 const editions = [
 	{

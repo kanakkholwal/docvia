@@ -1,7 +1,7 @@
-import type { docviaConfig } from "@docvia/ir";
-import type { NextConfig } from "next";
 import { closeSync, existsSync, openSync, rmSync } from "node:fs";
 import { relative, resolve } from "node:path";
+import type { docviaConfig } from "@docvia/ir";
+import type { NextConfig } from "next";
 
 export interface DocviaNextOptions {
 	/** Path to docvia.config.ts relative to project root (default: './docvia.config.ts') */
@@ -224,7 +224,7 @@ async function startDevWatcher(
 	const { docviaError } = await import("@docvia/ir");
 	const { watch } = await import("chokidar");
 
-	let pending = new Set<string>();
+	const pending = new Set<string>();
 	let timer: ReturnType<typeof setTimeout> | null = null;
 	let isRebuilding = false;
 	let rebuildQueued = false;

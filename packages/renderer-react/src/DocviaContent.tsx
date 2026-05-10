@@ -71,9 +71,8 @@ export function DocviaContent({
 	return (
 		<>
 			{nodeArray.map((node, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: nodes are static markdown output
 				<DocviaNode
-					key={i}
+					key={getNodeKey(node, i)}
 					node={node}
 					registry={registry}
 					components={components}
@@ -111,9 +110,8 @@ function DocviaNode({
 			return (
 				<>
 					{(node.children ?? []).map((child, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 						<DocviaNode
-							key={i}
+							key={getNodeKey(child, i)}
 							node={child}
 							registry={registry}
 							components={components}
@@ -235,9 +233,8 @@ function renderChildrenArray(
 ): Array<React.ReactElement | null> {
 	if (!children?.length) return [];
 	return children.map((child, i) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 		<DocviaNode
-			key={i}
+			key={getNodeKey(child, i)}
 			node={child}
 			registry={registry}
 			components={components}
@@ -255,9 +252,8 @@ function renderChildren(
 	return (
 		<>
 			{children.map((child, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 				<DocviaNode
-					key={i}
+					key={getNodeKey(child, i)}
 					node={child}
 					registry={registry}
 					components={components}
@@ -265,4 +261,18 @@ function renderChildren(
 			))}
 		</>
 	);
+}
+
+function getNodeKey(node: RenderOutput, index: number): string {
+	switch (node.kind) {
+		case "component":
+		case "element":
+			return node.id ?? `${node.kind}:${node.tag}:${index}`;
+		case "text":
+			return `text:${index}:${node.value}`;
+		case "html":
+			return `html:${index}:${node.value}`;
+		case "fragment":
+			return `fragment:${index}:${node.children.length}`;
+	}
 }

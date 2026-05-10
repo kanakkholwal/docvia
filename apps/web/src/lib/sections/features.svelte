@@ -1,5 +1,4 @@
 <script lang="ts">
-import { Card } from "$lib/components/ui/card";
 import {
 	Boxes,
 	FileText,
@@ -8,6 +7,7 @@ import {
 	Search,
 	ShieldCheck,
 } from "@lucide/svelte";
+import { Card } from "$lib/components/ui/card";
 
 const features = [
 	{

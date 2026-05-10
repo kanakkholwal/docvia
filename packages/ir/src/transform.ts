@@ -1,6 +1,6 @@
+import { dirname, normalize, resolve, sep } from "node:path";
 import GithubSlugger from "github-slugger";
 import type { Element, Root as HastRoot, Text } from "hast";
-import { dirname, normalize, resolve, sep } from "node:path";
 import type {
 	Dependency,
 	FrontmatterData,

@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Card } from "$lib/components/ui/card";
-import { Badge } from "$lib/components/ui/badge";
 import { BookOpen, Code2, GraduationCap, Library } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
+import { Card } from "$lib/components/ui/card";
 
 const cases = [
 	{

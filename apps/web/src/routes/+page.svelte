@@ -1,14 +1,14 @@
 <script lang="ts">
-import Hero from "$lib/sections/hero.svelte";
-import Stats from "$lib/sections/stats.svelte";
-import Features from "$lib/sections/features.svelte";
-import CompilerDeepDive from "$lib/sections/compiler-deep-dive.svelte";
-import UseCases from "$lib/sections/use-cases.svelte";
 import Comparison from "$lib/sections/comparison.svelte";
-import Editions from "$lib/sections/editions.svelte";
-import Quickstart from "$lib/sections/quickstart.svelte";
-import Faq from "$lib/sections/faq.svelte";
+import CompilerDeepDive from "$lib/sections/compiler-deep-dive.svelte";
 import Cta from "$lib/sections/cta.svelte";
+import Editions from "$lib/sections/editions.svelte";
+import Faq from "$lib/sections/faq.svelte";
+import Features from "$lib/sections/features.svelte";
+import Hero from "$lib/sections/hero.svelte";
+import Quickstart from "$lib/sections/quickstart.svelte";
+import Stats from "$lib/sections/stats.svelte";
+import UseCases from "$lib/sections/use-cases.svelte";
 </script>
 
 <svelte:head>

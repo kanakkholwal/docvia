@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const themeBootstrapScript = `try{const t=localStorage.getItem("docvia-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch{}`;
+
 export const metadata: Metadata = {
 	title: {
 		template: "%s — docvia",
@@ -18,11 +20,7 @@ export default function RootLayout({
 		<html lang="en" data-theme="dark" suppressHydrationWarning>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<script
-					dangerouslySetInnerHTML={{
-						__html: `try{const t=localStorage.getItem("docvia-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch{}`,
-					}}
-				/>
+				<script>{themeBootstrapScript}</script>
 			</head>
 			<body>{children}</body>
 		</html>

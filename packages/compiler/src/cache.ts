@@ -3,9 +3,9 @@
 // is considered "fresh" when (fileHash, configHash, toolVersion, pluginKeys)
 // all match the previous run.
 
-import type { PageMeta } from "@docvia/ir";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import type { PageMeta } from "@docvia/ir";
 
 export const CACHE_FILE = ".docvia.cache.json";
 // Bump this whenever the on-disk shape changes incompatibly.
