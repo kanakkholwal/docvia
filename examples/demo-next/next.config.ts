@@ -1,4 +1,4 @@
-import { withDocvia } from '@docvia/plugin-next';
+import { withDocvia } from "@docvia/plugin-next";
 
 const withDocs = withDocvia();
 

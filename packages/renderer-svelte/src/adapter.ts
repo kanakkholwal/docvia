@@ -7,10 +7,10 @@ import type {
 
 import {
 	type ComponentRegistry,
-	type RenderContext,
-	type SyntaxHighlighter,
 	createDefaultRendererMap,
+	type RenderContext,
 	renderDocument,
+	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 
 // Browser-safe highlighter creator that only loads shiki on demand (server-side)

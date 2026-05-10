@@ -1,7 +1,7 @@
 import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
 import React from "react";
 
-// Component override types 
+// Component override types
 /**
  * Props passed to a custom code block component.
  * `html` is the pre-rendered syntax-highlighted markup from shiki.

@@ -1,24 +1,24 @@
 <script lang="ts">
-	const features = [
-		{
-			title: "SvelteKit",
-			body: "Pages live under src/routes/[...slug] as a single rest route.",
-		},
-		{
-			title: "Svelte 5 (runes)",
-			body: "Components use $state and $derived; renderer ships zero markdown to the client.",
-		},
-		{
-			title: "Vite-native",
-			body: "Markdown is consumed via the @docvia/plugin-vite ?docvia transform.",
-		},
-		{
-			title: "SSR + hydration",
-			body: "Server renders the tree; only declared islands hydrate on the client.",
-		},
-	];
+const features = [
+	{
+		title: "SvelteKit",
+		body: "Pages live under src/routes/[...slug] as a single rest route.",
+	},
+	{
+		title: "Svelte 5 (runes)",
+		body: "Components use $state and $derived; renderer ships zero markdown to the client.",
+	},
+	{
+		title: "Vite-native",
+		body: "Markdown is consumed via the @docvia/plugin-vite ?docvia transform.",
+	},
+	{
+		title: "SSR + hydration",
+		body: "Server renders the tree; only declared islands hydrate on the client.",
+	},
+];
 
-	const codeSnippet = `// docvia.config.ts
+const codeSnippet = `// docvia.config.ts
 import { defineConfig } from "@docvia/cli";
 import {
   createShikiHighlighter,

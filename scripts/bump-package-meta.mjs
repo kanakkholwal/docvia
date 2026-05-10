@@ -19,8 +19,7 @@ const descriptions = {
 	"@docvia/cli": "Build-time documentation compiler — CLI entry point",
 	"@docvia/compiler":
 		"Parallel build orchestrator and module-graph generator for docvia",
-	"@docvia/core":
-		"Markdown parsing pipeline (micromark + unified) for docvia",
+	"@docvia/core": "Markdown parsing pipeline (micromark + unified) for docvia",
 	"@docvia/ir":
 		"Intermediate representation, error system, and AST → IR transform for docvia",
 	"@docvia/plugins":

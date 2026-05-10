@@ -1,44 +1,44 @@
 <script lang="ts">
-	import { Badge } from "$lib/components/ui/badge";
-	import { Button } from "$lib/components/ui/button";
-	import { Check, Cloud, Github } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import { Check, Cloud, Github } from "@lucide/svelte";
 
-	const editions = [
-		{
-			name: "Open source",
-			price: "Free",
-			tagline: "Self-host. Forever free under MIT.",
-			highlighted: true,
-			cta: { label: "Get started", href: "/docs", variant: "primary" as const },
-			features: [
-				"Full compiler and CLI",
-				"React and Svelte renderers",
-				"Vite and Next.js integrations",
-				"Section-level Orama search",
-				"Plugin system with 5 hook points",
-				"Incremental cache between builds",
-			],
+const editions = [
+	{
+		name: "Open source",
+		price: "Free",
+		tagline: "Self-host. Forever free under MIT.",
+		highlighted: true,
+		cta: { label: "Get started", href: "/docs", variant: "primary" as const },
+		features: [
+			"Full compiler and CLI",
+			"React and Svelte renderers",
+			"Vite and Next.js integrations",
+			"Section-level Orama search",
+			"Plugin system with 5 hook points",
+			"Incremental cache between builds",
+		],
+	},
+	{
+		name: "Cloud",
+		price: "Coming soon",
+		tagline: "Hosted previews, analytics, and collaboration.",
+		highlighted: false,
+		cta: {
+			label: "Join the waitlist",
+			href: "https://github.com/kanakkholwal/docvia",
+			variant: "outline" as const,
 		},
-		{
-			name: "Cloud",
-			price: "Coming soon",
-			tagline: "Hosted previews, analytics, and collaboration.",
-			highlighted: false,
-			cta: {
-				label: "Join the waitlist",
-				href: "https://github.com/kanakkholwal/docvia",
-				variant: "outline" as const,
-			},
-			features: [
-				"Everything in open source",
-				"Hosted preview environments",
-				"Branch-based deploys",
-				"Built-in analytics",
-				"Search-as-you-type at scale",
-				"Team roles and permissions",
-			],
-		},
-	];
+		features: [
+			"Everything in open source",
+			"Hosted preview environments",
+			"Branch-based deploys",
+			"Built-in analytics",
+			"Search-as-you-type at scale",
+			"Team roles and permissions",
+		],
+	},
+];
 </script>
 
 <section class="border-t border-border/60">

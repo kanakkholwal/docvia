@@ -80,9 +80,9 @@ export default function Home() {
 						docvia, running inside <span className="nx-accent">Next.js</span>.
 					</h1>
 					<p className="nx-hero-lede">
-						This demo shows the React renderer wired into a Next.js App
-						Router project. The same Markdown source can be rendered by any
-						supported framework — open the SvelteKit demo to compare.
+						This demo shows the React renderer wired into a Next.js App Router
+						project. The same Markdown source can be rendered by any supported
+						framework — open the SvelteKit demo to compare.
 					</p>
 					<div className="nx-cta-row">
 						<Link href="/docs" className="nx-btn nx-btn-primary">
@@ -120,8 +120,8 @@ export default function Home() {
 
 				<section className="nx-footnote">
 					<div>
-						<strong>Same compiler, different renderer.</strong> The Markdown
-						in <code>docs/</code> is identical to the SvelteKit demo. Only the
+						<strong>Same compiler, different renderer.</strong> The Markdown in{" "}
+						<code>docs/</code> is identical to the SvelteKit demo. Only the
 						renderer adapter and framework chrome differ.
 					</div>
 					<Link href="/docs/getting-started" className="nx-footnote-link">

@@ -1,12 +1,12 @@
+import fs from "node:fs/promises";
 import { parseMarkdown } from "@docvia/core";
 import { transformToIR } from "@docvia/ir";
 import {
-	type SyntaxHighlighter,
 	createDefaultRendererMap,
 	renderDocument,
+	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
-import fs from "node:fs/promises";
 
 function escapeHtml(str: string): string {
 	return str
@@ -30,10 +30,8 @@ async function getShikiHighlighter(): Promise<SyntaxHighlighter> {
 
 	g.__docvia_shiki_pending__ = (async (): Promise<SyntaxHighlighter> => {
 		try {
-			// @ts-ignore — shiki is an optional peer dependency
-			const { createHighlighter } = await import(
-				/* @vite-ignore */ "shiki"
-			);
+			// @ts-expect-error — shiki is an optional peer dependency
+			const { createHighlighter } = await import(/* @vite-ignore */ "shiki");
 			const instance = await createHighlighter({
 				themes: ["github-dark"],
 				langs: [
@@ -85,8 +83,7 @@ export async function loadMarkdown(
 	const { ast } = await parseMarkdown(extracted.content);
 	const ir = transformToIR(ast, meta, filePath);
 
-	const highlighter =
-		options?.highlighter ?? (await getShikiHighlighter());
+	const highlighter = options?.highlighter ?? (await getShikiHighlighter());
 
 	const { output, manifest } = await renderDocument(
 		ir,

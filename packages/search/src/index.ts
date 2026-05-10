@@ -5,11 +5,11 @@ import type {
 	SearchDocument,
 } from "@docvia/ir";
 import {
-	type Orama,
 	create,
 	insertMultiple,
-	removeMultiple,
+	type Orama,
 	search as oramaSearch,
+	removeMultiple,
 } from "@orama/orama";
 
 // Text Extraction (lazy, not stored in IR)

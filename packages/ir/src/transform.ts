@@ -212,7 +212,8 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 			if (key.startsWith("data-prop-") || key.startsWith("dataProp")) {
 				const propName = key.startsWith("data-prop-")
 					? key.slice("data-prop-".length)
-					: key.charAt("dataProp".length).toLowerCase() + key.slice("dataProp".length + 1);
+					: key.charAt("dataProp".length).toLowerCase() +
+						key.slice("dataProp".length + 1);
 				if (propName === "hydrate") {
 					hydrate = String(value);
 				} else {
