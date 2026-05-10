@@ -7,7 +7,7 @@ let { data, children } = $props();
 
 <svelte:head>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>docvia Documentation</title>
+	<title>Docvia Documentation</title>
 	<meta name="description" content="Modern documentation site powered by docvia" />
 </svelte:head>
 
