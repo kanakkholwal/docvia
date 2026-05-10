@@ -26,5 +26,5 @@
  *   hydrate(manifest, registry);
  */
 
-export { hydrate } from "./hydrate";
 export type { HydrateOptions } from "./hydrate";
+export { hydrate } from "./hydrate";

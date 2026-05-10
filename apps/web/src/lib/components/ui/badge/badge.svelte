@@ -1,21 +1,21 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from "tailwind-variants";
+import { tv, type VariantProps } from "tailwind-variants";
 
-	export const badgeVariants = tv({
-		base: "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-		variants: {
-			variant: {
-				default: "border-border bg-bg-subtle text-fg-muted",
-				accent: "border-accent/30 bg-accent-subtle text-accent",
-				outline: "border-border-strong bg-transparent text-fg",
-				success: "border-success/30 bg-success/10 text-success",
-				soon: "border-border bg-bg-muted text-fg-subtle font-mono uppercase tracking-[0.05em] text-[10px]",
-			},
+export const badgeVariants = tv({
+	base: "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+	variants: {
+		variant: {
+			default: "border-border bg-bg-subtle text-fg-muted",
+			accent: "border-accent/30 bg-accent-subtle text-accent",
+			outline: "border-border-strong bg-transparent text-fg",
+			success: "border-success/30 bg-success/10 text-success",
+			soon: "border-border bg-bg-muted text-fg-subtle font-mono uppercase tracking-[0.05em] text-[10px]",
 		},
-		defaultVariants: { variant: "default" },
-	});
+	},
+	defaultVariants: { variant: "default" },
+});
 
-	export type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+export type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
 </script>
 
 <script lang="ts">

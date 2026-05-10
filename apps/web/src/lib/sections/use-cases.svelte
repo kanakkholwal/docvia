@@ -1,39 +1,34 @@
 <script lang="ts">
-	import { Card } from "$lib/components/ui/card";
-	import { Badge } from "$lib/components/ui/badge";
-	import {
-		BookOpen,
-		Code2,
-		GraduationCap,
-		Library,
-	} from "@lucide/svelte";
+import { BookOpen, Code2, GraduationCap, Library } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
+import { Card } from "$lib/components/ui/card";
 
-	const cases = [
-		{
-			icon: Code2,
-			title: "API references",
-			body: "Generate fully-typed API docs from Markdown. Embed live components for try-it-yourself examples.",
-			example: "/api/v2/users",
-		},
-		{
-			icon: BookOpen,
-			title: "Product documentation",
-			body: "Ship a polished docs site that lives next to your app code. Same repo, same deploy, same review process.",
-			example: "Quickstart · Guides · How-tos",
-		},
-		{
-			icon: Library,
-			title: "Internal handbooks",
-			body: "Wiki-grade content with the rigor of compiled code. Link checking, typed frontmatter, search by default.",
-			example: "Engineering handbook",
-		},
-		{
-			icon: GraduationCap,
-			title: "Tutorials & courses",
-			body: "Long-form learning content with embedded interactive components and predictable navigation.",
-			example: "12 lessons · 4 chapters",
-		},
-	];
+const cases = [
+	{
+		icon: Code2,
+		title: "API references",
+		body: "Generate fully-typed API docs from Markdown. Embed live components for try-it-yourself examples.",
+		example: "/api/v2/users",
+	},
+	{
+		icon: BookOpen,
+		title: "Product documentation",
+		body: "Ship a polished docs site that lives next to your app code. Same repo, same deploy, same review process.",
+		example: "Quickstart · Guides · How-tos",
+	},
+	{
+		icon: Library,
+		title: "Internal handbooks",
+		body: "Wiki-grade content with the rigor of compiled code. Link checking, typed frontmatter, search by default.",
+		example: "Engineering handbook",
+	},
+	{
+		icon: GraduationCap,
+		title: "Tutorials & courses",
+		body: "Long-form learning content with embedded interactive components and predictable navigation.",
+		example: "12 lessons · 4 chapters",
+	},
+];
 </script>
 
 <section class="border-t border-border/60">

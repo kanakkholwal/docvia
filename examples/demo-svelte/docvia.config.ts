@@ -7,9 +7,7 @@ import {
 export default defineConfig({
 	sourceDir: "src/docs",
 	outDir: ".docvia",
-	collections: [
-		{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" },
-	],
+	collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" }],
 
 	// Register your components here — once. docvia will generate the runtime
 	// registry automatically so you don't need to repeat this in +page.svelte.

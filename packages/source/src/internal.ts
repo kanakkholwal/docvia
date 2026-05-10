@@ -1,14 +1,15 @@
 import type {
-	PageTree,
 	docviaCollection,
 	docviaPage,
 	docviaSource,
+	PageTree,
 } from "./runtime.js";
 
 export interface ModuleExports {
-	meta: any;
+	meta: unknown;
+	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters) — intentionally polymorphic.
 	content: any;
-	manifest: any;
+	manifest: unknown;
 }
 
 export function createCollection<
@@ -27,7 +28,10 @@ export function createCollection<
 
 	// Lazily resolved eager modules (cached after first access)
 	let _eagerModules: Record<string, ModuleExports> | null | undefined;
-	async function resolveEagerModules(): Promise<Record<string, ModuleExports> | null> {
+	async function resolveEagerModules(): Promise<Record<
+		string,
+		ModuleExports
+	> | null> {
 		if (_eagerModules !== undefined) return _eagerModules;
 		_eagerModules = await opts.getEagerModules();
 		return _eagerModules;
@@ -154,8 +158,6 @@ export function createCollection<
 
 				nodes.push(folderNode);
 			} else if (lastSegment === "index" && parentSlug !== null) {
-				// index files handled as folder index above, skip standalone
-				continue;
 			} else {
 				nodes.push({
 					type: "page",
@@ -200,7 +202,7 @@ export function createCollection<
 			return routeKeys.map((slug) => {
 				const slugs = slug === "index" ? [] : slug.split("/");
 				const eager = eagerModulesSync();
-			const data = eager?.[slug]?.meta ?? ({} as TFrontmatter);
+				const data = eager?.[slug]?.meta ?? ({} as TFrontmatter);
 				return { slugs, url: buildUrl(slug), data };
 			});
 		},
@@ -216,10 +218,10 @@ export function createCollection<
 			return this.pageTree;
 		},
 
-		generateParams(slug = "slug" as any) {
+		generateParams(slug: string = "slug"): Array<Record<string, string[]>> {
 			return routeKeys.map((key) => {
 				const slugs = key === "index" ? [] : key.split("/");
-				return { [slug]: slugs } as any;
+				return { [slug]: slugs };
 			});
 		},
 	};

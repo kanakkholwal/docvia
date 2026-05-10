@@ -1,3 +1,4 @@
+// biome-ignore lint/suspicious/noExplicitAny: HydrationManifest shape is renderer-specific (e.g. island map for React, props bag for Svelte) — intentionally polymorphic at this layer.
 export type HydrationManifest = any;
 
 // PageTree types (Fumadocs-compatible)
@@ -28,18 +29,19 @@ export namespace PageTree {
 	export type Node = Item | Folder | Separator;
 }
 
-export interface docviaPage<TFrontmatter = any> {
+export interface docviaPage<TFrontmatter = unknown> {
 	slugs: string[];
 	url: string;
 	data: TFrontmatter;
+	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters; JSX/Snippet for direct mounts) — intentionally polymorphic.
 	content: any;
 	manifest: HydrationManifest;
 	headings?: Array<{ depth: number; text: string; id: string }>;
 }
 
 export interface docviaCollection<
-	TFrontmatter = any,
-	TRouteKey extends string = string,
+	TFrontmatter = unknown,
+	_TRouteKey extends string = string,
 > {
 	/** Get a single page by slug segments. */
 	getPage(
@@ -62,5 +64,5 @@ export interface docviaCollection<
 }
 
 export interface docviaSource {
-	collections: Record<string, docviaCollection<any, any>>;
+	collections: Record<string, docviaCollection<unknown, string>>;
 }

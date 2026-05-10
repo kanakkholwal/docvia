@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
-	import { ChevronDown } from "@lucide/svelte";
-	import { slide } from "svelte/transition";
+import { ChevronDown } from "@lucide/svelte";
+import { slide } from "svelte/transition";
+import { cn } from "$lib/utils";
 
-	type Props = {
-		question: string;
-		open?: boolean;
-		class?: string;
-		children?: import("svelte").Snippet;
-	};
+type Props = {
+	question: string;
+	open?: boolean;
+	class?: string;
+	children?: import("svelte").Snippet;
+};
 
-	let { question, open = false, class: className, children }: Props = $props();
-	let isOpen = $state(open);
+let { question, open = false, class: className, children }: Props = $props();
+let isOpen = $state(open);
 </script>
 
 <div

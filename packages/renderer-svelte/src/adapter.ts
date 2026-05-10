@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and Svelte component bridge types are intentionally erased to keep the adapter loose.
 import type {
 	IRDocument,
 	PageMeta,
@@ -7,10 +8,10 @@ import type {
 
 import {
 	type ComponentRegistry,
-	type RenderContext,
-	type SyntaxHighlighter,
 	createDefaultRendererMap,
+	type RenderContext,
 	renderDocument,
+	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 
 // Browser-safe highlighter creator that only loads shiki on demand (server-side)
@@ -177,11 +178,7 @@ export function docviaVitePlugin(store: InMemoryStore) {
 	};
 }
 
-export function invalidateModules(
-	slugs: string[],
-	// biome-ignore lint/suspicious/noExplicitAny: Vite server type
-	server: any,
-) {
+export function invalidateModules(slugs: string[], server: any) {
 	for (const slug of slugs) {
 		const moduleId = RESOLVED_PREFIX + slug;
 		const mod = server.moduleGraph?.getModuleById(moduleId);

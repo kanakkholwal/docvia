@@ -1,8 +1,8 @@
 <script lang="ts">
-	import PageHeader from "$lib/components/page-header.svelte";
-	import Prose from "$lib/components/prose.svelte";
-	import { Button } from "$lib/components/ui/button";
-	import { ArrowRight } from "@lucide/svelte";
+import { ArrowRight } from "@lucide/svelte";
+import PageHeader from "$lib/components/page-header.svelte";
+import Prose from "$lib/components/prose.svelte";
+import { Button } from "$lib/components/ui/button";
 </script>
 
 <svelte:head>

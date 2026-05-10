@@ -1,46 +1,46 @@
 <script lang="ts">
-	import { Card } from "$lib/components/ui/card";
-	import {
-		Boxes,
-		FileText,
-		Gauge,
-		Layers,
-		Search,
-		ShieldCheck,
-	} from "@lucide/svelte";
+import {
+	Boxes,
+	FileText,
+	Gauge,
+	Layers,
+	Search,
+	ShieldCheck,
+} from "@lucide/svelte";
+import { Card } from "$lib/components/ui/card";
 
-	const features = [
-		{
-			icon: Gauge,
-			title: "Build-time first",
-			body: "No runtime markdown parser ships to the browser. Pages are pre-rendered into a tiny module graph at build time.",
-		},
-		{
-			icon: Layers,
-			title: "Incremental cache",
-			body: "A content-addressable cache skips unchanged files. Subsequent builds for unchanged content take milliseconds.",
-		},
-		{
-			icon: FileText,
-			title: "Typed frontmatter",
-			body: "Extend the built-in schema with a Zod object. docvia generates a typed Frontmatter interface for every collection.",
-		},
-		{
-			icon: Boxes,
-			title: "Framework adapters",
-			body: "First-party React and Svelte renderers, with a Vite plugin and Next.js wrapper for direct integration.",
-		},
-		{
-			icon: Search,
-			title: "Section-level search",
-			body: "Built-in Orama indexing groups by heading. Field-weighted ranking gives fast, accurate results client-side.",
-		},
-		{
-			icon: ShieldCheck,
-			title: "Sanitized by default",
-			body: "Markdown passes through a strict allow-list. Script, iframe, object and embed tags are blocked.",
-		},
-	];
+const features = [
+	{
+		icon: Gauge,
+		title: "Build-time first",
+		body: "No runtime markdown parser ships to the browser. Pages are pre-rendered into a tiny module graph at build time.",
+	},
+	{
+		icon: Layers,
+		title: "Incremental cache",
+		body: "A content-addressable cache skips unchanged files. Subsequent builds for unchanged content take milliseconds.",
+	},
+	{
+		icon: FileText,
+		title: "Typed frontmatter",
+		body: "Extend the built-in schema with a Zod object. docvia generates a typed Frontmatter interface for every collection.",
+	},
+	{
+		icon: Boxes,
+		title: "Framework adapters",
+		body: "First-party React and Svelte renderers, with a Vite plugin and Next.js wrapper for direct integration.",
+	},
+	{
+		icon: Search,
+		title: "Section-level search",
+		body: "Built-in Orama indexing groups by heading. Field-weighted ranking gives fast, accurate results client-side.",
+	},
+	{
+		icon: ShieldCheck,
+		title: "Sanitized by default",
+		body: "Markdown passes through a strict allow-list. Script, iframe, object and embed tags are blocked.",
+	},
+];
 </script>
 
 <section id="features" class="border-t border-border/60">

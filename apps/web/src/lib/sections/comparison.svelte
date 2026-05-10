@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { Badge } from "$lib/components/ui/badge";
-	import { Check, Minus } from "@lucide/svelte";
+import { Check, Minus } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
 
-	const rows = [
-		{ feature: "Build-time compilation", docvia: true, others: false },
-		{ feature: "Incremental cache between runs", docvia: true, others: false },
-		{ feature: "Typed frontmatter via Zod", docvia: true, others: false },
-		{ feature: "Framework-agnostic IR", docvia: true, others: false },
-		{ feature: "Bring your own renderer", docvia: true, others: false },
-		{ feature: "Strict HTML sanitization", docvia: true, others: true },
-		{ feature: "Section-level full-text search", docvia: true, others: true },
-		{ feature: "Open source MIT", docvia: true, others: true },
-	];
+const rows = [
+	{ feature: "Build-time compilation", docvia: true, others: false },
+	{ feature: "Incremental cache between runs", docvia: true, others: false },
+	{ feature: "Typed frontmatter via Zod", docvia: true, others: false },
+	{ feature: "Framework-agnostic IR", docvia: true, others: false },
+	{ feature: "Bring your own renderer", docvia: true, others: false },
+	{ feature: "Strict HTML sanitization", docvia: true, others: true },
+	{ feature: "Section-level full-text search", docvia: true, others: true },
+	{ feature: "Open source MIT", docvia: true, others: true },
+];
 </script>
 
 <section class="border-t border-border/60 bg-bg-subtle/30">

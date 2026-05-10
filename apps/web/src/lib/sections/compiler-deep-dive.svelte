@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { Badge } from "$lib/components/ui/badge";
-	import { ArrowRight, FileCode2 } from "@lucide/svelte";
+import { ArrowRight, FileCode2 } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
 
-	const stages = [
-		{ name: "Read", body: "Parallel directory walk, xxhash content fingerprints" },
-		{ name: "Parse", body: "remark + rehype with cached processor" },
-		{ name: "Sanitize", body: "Strict allow-list; scripts and iframes blocked" },
-		{ name: "Transform", body: "Single-pass DFS into framework-agnostic IR" },
-		{ name: "Cache", body: "Composite hash gates per-file work" },
-		{ name: "Render", body: "Per-renderer adapter emits typed module graph" },
-	];
+const stages = [
+	{
+		name: "Read",
+		body: "Parallel directory walk, xxhash content fingerprints",
+	},
+	{ name: "Parse", body: "remark + rehype with cached processor" },
+	{ name: "Sanitize", body: "Strict allow-list; scripts and iframes blocked" },
+	{ name: "Transform", body: "Single-pass DFS into framework-agnostic IR" },
+	{ name: "Cache", body: "Composite hash gates per-file work" },
+	{ name: "Render", body: "Per-renderer adapter emits typed module graph" },
+];
 
-	const codeConfig = `import { defineConfig } from "@docvia/cli";
+const codeConfig = `import { defineConfig } from "@docvia/cli";
 import {
   createReactRenderer,
   createShikiHighlighter,
