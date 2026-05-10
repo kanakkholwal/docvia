@@ -22,4 +22,13 @@ if (!existsSync(distEntry)) {
 
 // Use a file:// URL so dynamic import works on Windows (where absolute paths
 // like `c:\…` aren't valid ESM specifiers).
-await import(pathToFileURL(distEntry).href);
+const cli = await import(pathToFileURL(distEntry).href);
+
+try {
+	await cli.runCli(process.argv);
+} catch (err) {
+	// Individual commands print their own formatted errors. This is just the
+	// last-ditch handler for parser failures and unexpected throws.
+	console.error(err);
+	process.exit(1);
+}
