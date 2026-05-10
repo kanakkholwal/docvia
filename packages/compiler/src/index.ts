@@ -1,4 +1,4 @@
-// biome-ignore assist/source/organizeImports: no need
+// biome-ignore assist/source/organizeImports: explicit ordering for clarity
 import { parseMarkdown } from "@docvia/core";
 import type {
 	CompileResult,
@@ -7,7 +7,7 @@ import type {
 	IRDocument,
 	PageMeta,
 } from "@docvia/ir";
-import { transformToIR } from "@docvia/ir";
+import { docviaError, transformToIR } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
 import {
 	extractFrontmatter,
@@ -20,8 +20,20 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { cpus } from "node:os";
 import { extname, join, relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
+import {
+	type CacheFile,
+	cacheIsCompatible,
+	CACHE_VERSION,
+	type CachedEntry,
+	readCache,
+	writeCache,
+} from "./cache";
 
-// Hashing
+// Tool version: keep in sync with package.json. Bumped when generated module
+// shape changes — invalidates the on-disk cache automatically.
+const TOOL_VERSION = "0.1.0";
+
+// ── Hashing ─────────────────────────────────────────────────────────
 
 export interface HashInputs {
 	readonly fileContent: string;
@@ -42,35 +54,87 @@ export function computeContentHash(inputs: HashInputs): string {
 	return xxh64(Buffer.from(composite)).toString(36);
 }
 
-// File Reading
+/**
+ * Stable JSON stringify — sorts object keys so config hash is deterministic
+ * regardless of property declaration order. Skips function values (plugins
+ * are accounted for via pluginCacheKeys instead).
+ */
+function stableStringify(value: unknown): string {
+	if (value === null) return "null";
+	if (typeof value === "function") return '"<fn>"';
+	if (typeof value !== "object") return JSON.stringify(value);
+	if (Array.isArray(value)) {
+		return `[${value.map(stableStringify).join(",")}]`;
+	}
+	const obj = value as Record<string, unknown>;
+	const keys = Object.keys(obj).sort();
+	return `{${keys
+		.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`)
+		.join(",")}}`;
+}
+
+function hashConfig(config: unknown): string {
+	return xxh64(Buffer.from(stableStringify(config))).toString(36);
+}
+
+// ── File Reading ────────────────────────────────────────────────────
+
+const FILE_READ_CONCURRENCY = Math.max(4, cpus().length);
 
 async function readFileTree(dir: string): Promise<FileEntry[]> {
 	const entries: FileEntry[] = [];
+	const dirsToWalk: string[] = [dir];
 
-	async function walk(dir: string) {
-		const items = await readdir(dir, { withFileTypes: true });
-		for (const item of items) {
-			const fullPath = join(dir, item.name);
-			if (item.isDirectory()) {
-				await walk(fullPath);
-			} else if (item.isFile() && extname(item.name) === ".md") {
-				const content = await readFile(fullPath, "utf-8");
-				const hash = xxh64(Buffer.from(content)).toString(36);
-				entries.push({
-					path: fullPath,
-					relativePath: relative(dir, fullPath).replace(/\\/g, "/"),
-					content,
-					hash,
-				});
+	// Parallelized BFS — read directories in batches; for each batch, parallel
+	// readdir then collect files and queue subdirectories.
+	while (dirsToWalk.length > 0) {
+		const batch = dirsToWalk.splice(0, FILE_READ_CONCURRENCY);
+		const listings = await Promise.all(
+			batch.map(async (d) => {
+				try {
+					return [d, await readdir(d, { withFileTypes: true })] as const;
+				} catch (err) {
+					throw new docviaError(
+						"PARSE_ERROR",
+						`Failed to read directory: ${d}`,
+						d,
+						undefined,
+						err as Error,
+					);
+				}
+			}),
+		);
+
+		const filePaths: { full: string; rel: string }[] = [];
+		for (const [d, items] of listings) {
+			for (const item of items) {
+				const full = join(d, item.name);
+				if (item.isDirectory()) {
+					dirsToWalk.push(full);
+				} else if (item.isFile() && extname(item.name) === ".md") {
+					filePaths.push({
+						full,
+						rel: relative(dir, full).replace(/\\/g, "/"),
+					});
+				}
 			}
 		}
+
+		// Read file contents in parallel
+		const reads = await Promise.all(
+			filePaths.map(async ({ full, rel }) => {
+				const content = await readFile(full, "utf-8");
+				const hash = xxh64(Buffer.from(content)).toString(36);
+				return { path: full, relativePath: rel, content, hash } as FileEntry;
+			}),
+		);
+		entries.push(...reads);
 	}
 
-	await walk(dir);
 	return entries;
 }
 
-// Parallelism
+// ── Concurrency ─────────────────────────────────────────────────────
 
 async function compileParallel<T>(
 	items: readonly T[],
@@ -79,7 +143,7 @@ async function compileParallel<T>(
 ): Promise<void> {
 	let index = 0;
 	const workers = Array.from(
-		{ length: Math.min(concurrency, items.length) },
+		{ length: Math.min(concurrency, items.length) || 1 },
 		async () => {
 			while (true) {
 				const i = index++;
@@ -91,8 +155,7 @@ async function compileParallel<T>(
 	await Promise.all(workers);
 }
 
-
-// Route key union for types
+// ── Type generation ─────────────────────────────────────────────────
 
 function toRouteKeyUnion(routes: Record<string, string>): string[] {
 	const routeKeys = Object.keys(routes);
@@ -101,7 +164,7 @@ function toRouteKeyUnion(routes: Record<string, string>): string[] {
 		: ["  | never"];
 }
 
-// ── Module Graph Generation ──────────────────────────────────────────
+// ── Module Graph Generation ─────────────────────────────────────────
 
 interface CollectionData {
 	name: string;
@@ -133,7 +196,7 @@ const routeMap: Record<string, Record<string, string>> = {
 ${routeMaps}
 };
 
-// Global Shiki singleton — shared across dynamic.ts, source/node.ts, and renderer adapters
+// Global Shiki singleton — shared across dynamic.ts, source/node.ts, and renderer adapters.
 function _escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 async function _getHighlighter() {
   const g = globalThis;
@@ -175,6 +238,7 @@ export async function loadModule(
   } catch {
     // Node.js / Next.js fallback: compile markdown on-the-fly
     if (typeof window !== 'undefined') return undefined;
+    // Strip the literal "?docvia" query suffix to recover the file path.
     const cleanPath = modulePath.replace(/\\?docvia$/, '');
     const { fileURLToPath } = await import('node:url');
     const resolved = fileURLToPath(new URL(cleanPath, import.meta.url));
@@ -203,7 +267,7 @@ export async function getEagerModules(
 
 function generateRegistryTs(
 	resolvedOutDir: string,
-	components: Record<string, any>,
+	components: Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>,
 ): string {
 	const entries = Object.entries(components);
 	const parts: string[] = [
@@ -211,17 +275,14 @@ function generateRegistryTs(
 		"import type { ComponentRegistry } from '@docvia/renderer-core';",
 	];
 
-	for (const [, entry] of entries) {
+	entries.forEach(([, entry], idx) => {
 		const resolvedComponentPath = resolve(entry.path);
-		const relativePath = relative(
-			resolvedOutDir,
-			resolvedComponentPath,
-		).replace(/\\/g, "/");
-		const idx = entries.findIndex(([, e]) => e === entry);
-		parts.push(
-			`import _Component${idx} from ${JSON.stringify(relativePath)};`,
+		const relativePath = relative(resolvedOutDir, resolvedComponentPath).replace(
+			/\\/g,
+			"/",
 		);
-	}
+		parts.push(`import _Component${idx} from ${JSON.stringify(relativePath)};`);
+	});
 
 	const mapEntries = entries
 		.map(([name, entry], i) => {
@@ -229,9 +290,8 @@ function generateRegistryTs(
 			const props = defaultProps
 				? `, defaultProps: ${JSON.stringify(defaultProps)}`
 				: "";
-			const hydrateStr =
-				hydrate !== undefined ? `, hydrate: ${hydrate}` : "";
-			return `  ${JSON.stringify(name)}: { component: _Component${i}${hydrateStr}${props} }`;
+			const hydrateStr = hydrate !== undefined ? `, hydrate: ${hydrate}` : "";
+			return `    ${JSON.stringify(name)}: { component: _Component${i}${hydrateStr}${props} }`;
 		})
 		.join(",\n");
 
@@ -252,7 +312,7 @@ function generateRegistryTs(
 
 function generateSourceTs(
 	collections: readonly CollectionData[],
-	config: { components?: Record<string, any> },
+	config: { components?: Record<string, unknown> },
 ): string {
 	const parts: string[] = [
 		"// Auto-generated by @docvia/compiler — do not edit manually",
@@ -260,22 +320,16 @@ function generateSourceTs(
 		"import { loadModule, getEagerModules } from './dynamic';",
 	];
 
-	// Re-export registry if components configured
 	const hasRegistry =
 		config.components && Object.keys(config.components).length > 0;
-
 	if (hasRegistry) {
-		parts.push(
-			"export { registry } from './registry';",
-		);
+		parts.push("export { registry } from './registry';");
 	}
 
-	// Per-collection: load eager modules + create collection
 	for (const c of collections) {
 		const routeKeysLiteral = Object.keys(c.routes)
 			.map((k) => JSON.stringify(k))
 			.join(", ");
-
 		parts.push(
 			"",
 			`export const ${c.name} = createCollection<`,
@@ -292,11 +346,9 @@ function generateSourceTs(
 		);
 	}
 
-	// createSource
 	const collectionMap = collections
 		.map((c) => `    ${JSON.stringify(c.name)}: ${c.name}`)
 		.join(",\n");
-
 	parts.push(
 		"",
 		"export const docviaSource = createSource({",
@@ -311,10 +363,8 @@ function generateTypesTs(collections: readonly CollectionData[]): string {
 	const parts: string[] = [
 		"// Auto-generated by @docvia/compiler — do not edit manually",
 	];
-
 	for (const c of collections) {
 		const routeKeyUnion = toRouteKeyUnion(c.routes);
-
 		parts.push(
 			"",
 			`export type ${c.name}_RouteKey =`,
@@ -326,7 +376,6 @@ function generateTypesTs(collections: readonly CollectionData[]): string {
 			`export type ${c.name}_DocPage = import("@docvia/source/runtime").docviaPage<${c.name}_Frontmatter>;`,
 		);
 	}
-
 	return parts.join("\n");
 }
 
@@ -342,7 +391,6 @@ function createdocviaEnvDts(
 	const registryExport = hasRegistry
 		? "\n    export const registry: typeof source.registry;"
 		: "";
-
 	const registryModule = hasRegistry
 		? [
 				"",
@@ -365,50 +413,94 @@ function createdocviaEnvDts(
 	].join("\n");
 }
 
-// ── Compiler ─────────────────────────────────────────────────────────
+// ── Shiki language validation ───────────────────────────────────────
+
+// Cheap structural validation — the actual list of valid Shiki language IDs is
+// large and changes between Shiki releases. We catch only the obvious mistakes.
+function warnInvalidShikiLangs(langs: readonly string[]): void {
+	const seen = new Set<string>();
+	for (const lang of langs) {
+		if (typeof lang !== "string" || lang.length === 0) {
+			console.warn(
+				`[docvia] syntax.langs: ignoring non-string entry: ${JSON.stringify(lang)}`,
+			);
+			continue;
+		}
+		if (seen.has(lang)) {
+			console.warn(`[docvia] syntax.langs: duplicate language "${lang}"`);
+		}
+		seen.add(lang);
+	}
+}
+
+// ── Compiler ────────────────────────────────────────────────────────
 
 export async function compile(
 	options: CompilerOptions,
 ): Promise<CompileResult> {
 	const startTime = performance.now();
 	const { outDir, config } = options;
+	const projectRoot = resolve(options.projectRoot ?? process.cwd());
 	const resolvedOutDir = resolve(outDir);
+	const incremental = options.incremental !== false;
+
+	warnInvalidShikiLangs(config.syntax.langs);
 
 	const collections = config.collections || [
 		{ name: "docs", sourceDir: options.sourceDir, baseUrl: "/" },
 	];
 
 	const pluginRunner = new PluginRunner(options.plugins);
-	const configHash = xxh64(Buffer.from(JSON.stringify(config))).toString(36);
+	const configHash = hashConfig(config);
 	const pluginCacheKeys = pluginRunner.getPluginCacheKeys();
-
-	const allPages: PageMeta[] = [];
-	const collectionData: CollectionData[] = [];
-	let totalFiles = 0;
-	let totalCompiled = 0;
 
 	await mkdir(resolvedOutDir, { recursive: true });
 
-	for (const collection of collections) {
-		const resolvedSourceDir = resolve(collection.sourceDir);
+	// Load previous cache (if any)
+	const prevCache = incremental ? await readCache(resolvedOutDir) : null;
+	const cacheCompatible = cacheIsCompatible(
+		prevCache,
+		TOOL_VERSION,
+		configHash,
+		pluginCacheKeys,
+	);
 
-		// Step 1: Read file tree
+	const allPages: PageMeta[] = [];
+	const collectionData: CollectionData[] = [];
+	const newCacheEntries: Record<string, CachedEntry> = {};
+	let totalFiles = 0;
+	let totalCompiled = 0;
+	let totalCached = 0;
+
+	for (const collection of collections) {
+		const resolvedSourceDir = resolve(projectRoot, collection.sourceDir);
 		const files = await readFileTree(resolvedSourceDir);
 		totalFiles += files.length;
 
-		// Step 2: Compile each file
-		const irDocs: IRDocument[] = [];
 		const pages: PageMeta[] = [];
 		const routes: Record<string, string> = {};
+		const frontmatterSamples: string[] = [];
 
 		await compileParallel(files, async (file) => {
+			const cacheKey = `${collection.name}:${file.relativePath}`;
+			const prev = cacheCompatible ? prevCache!.entries[cacheKey] : undefined;
+
+			// Cache hit: file content unchanged AND cache is compatible.
+			if (prev && prev.fileHash === file.hash) {
+				pages.push(prev.page);
+				routes[prev.page.slug] = prev.route;
+				newCacheEntries[cacheKey] = prev;
+				totalCached++;
+				return;
+			}
+
+			// Cache miss: full pipeline.
 			const processedFile = await pluginRunner.runBeforeParse(file);
 			const extracted = extractFrontmatter(processedFile.content);
-			// biome-ignore lint/suspicious/noExplicitAny: config.schema satisfies ZodObject at runtime
 			const frontmatter = validateFrontmatter(
 				extracted.data,
 				file.path,
-				config.frontmatter as any,
+				config.frontmatter as never,
 			);
 
 			const { ast } = await parseMarkdown(extracted.content, {
@@ -424,28 +516,29 @@ export async function compile(
 				frontmatter,
 			)) as HastRoot;
 
-			let irDoc = transformToIR(finalAst, frontmatter, file.relativePath);
+			let irDoc: IRDocument = transformToIR(finalAst, frontmatter, file.relativePath);
 			const contentHash = computeContentHash({
 				fileContent: file.hash,
-				frontmatter: JSON.stringify(frontmatter),
+				frontmatter: stableStringify(frontmatter),
 				configHash,
 				pluginCacheKeys,
 				dependencyHashes: [],
 			});
-
 			irDoc = { ...irDoc, contentHash };
 			irDoc = await pluginRunner.runAfterTransform(irDoc);
 			irDoc = await pluginRunner.runBeforeRender(irDoc);
 
-			irDocs.push(irDoc);
 			totalCompiled++;
 
 			const slug = irDoc.slug;
-			// Path relative to .docvia/ output dir so browser.ts/server.ts imports resolve
-			const relPath = relative(resolvedOutDir, resolve(file.path)).replace(/\\/g, "/");
-			routes[slug] = `./${relPath}?docvia`;
+			const relPath = relative(resolvedOutDir, resolve(file.path)).replace(
+				/\\/g,
+				"/",
+			);
+			const route = `./${relPath}?docvia`;
+			routes[slug] = route;
 
-			pages.push({
+			const page: PageMeta = {
 				slug,
 				title: irDoc.frontmatter.title,
 				description: irDoc.frontmatter.description,
@@ -454,46 +547,51 @@ export async function compile(
 				lastModified: Date.now(),
 				tags: irDoc.frontmatter.tags || [],
 				order: irDoc.frontmatter.order,
-			});
+			};
+			pages.push(page);
+			frontmatterSamples.push(stableStringify(irDoc.frontmatter));
+
+			newCacheEntries[cacheKey] = {
+				fileHash: file.hash,
+				contentHash,
+				page,
+				route,
+			};
 		});
 
 		// Build frontmatter type definition
 		let frontmatterTypeDef: string;
 		if (config.frontmatter) {
-			// biome-ignore lint/suspicious/noExplicitAny: config.frontmatter satisfies ZodObject at runtime
 			frontmatterTypeDef = zodSchemaToFrontmatterTs(
-				config.frontmatter as any,
+				config.frontmatter as never,
 			);
 		} else {
-			const uniqueFrontmatters = Array.from(
-				new Set(irDocs.map((doc) => JSON.stringify(doc.frontmatter))),
-			);
+			const unique = Array.from(new Set(frontmatterSamples));
 			frontmatterTypeDef =
-				uniqueFrontmatters.length > 0
-					? uniqueFrontmatters.join(" | ")
-					: "Record<string, unknown>";
+				unique.length > 0 ? unique.join(" | ") : "Record<string, unknown>";
 		}
 
 		collectionData.push({
 			name: collection.name,
 			baseUrl: (
-				collection.baseUrl ??
-				`/${collection.name === "docs" ? "" : collection.name}`
+				collection.baseUrl ?? `/${collection.name === "docs" ? "" : collection.name}`
 			).replace(/\/+/g, "/"),
 			routes,
 			frontmatterTypeDef,
 		});
-
 		allPages.push(...pages);
 	}
 
-	// Step 3: Write exactly 5 module graph files
+	// Write the five-file module graph
 	const hasRegistry = !!(
 		config.components && Object.keys(config.components).length > 0
 	);
 
 	await Promise.all([
-		writeFile(join(resolvedOutDir, "dynamic.ts"), generateDynamicTs(collectionData, config.syntax)),
+		writeFile(
+			join(resolvedOutDir, "dynamic.ts"),
+			generateDynamicTs(collectionData, config.syntax),
+		),
 		writeFile(
 			join(resolvedOutDir, "source.ts"),
 			generateSourceTs(collectionData, config),
@@ -502,30 +600,42 @@ export async function compile(
 			join(resolvedOutDir, "types.d.ts"),
 			generateTypesTs(collectionData),
 		),
-		// Registry file (client-safe, only if components configured)
 		...(hasRegistry
 			? [
 					writeFile(
 						join(resolvedOutDir, "registry.ts"),
-						generateRegistryTs(resolvedOutDir, config.components!),
+						generateRegistryTs(
+							resolvedOutDir,
+							config.components as Record<string, { path: string; hydrate?: boolean; defaultProps?: Record<string, unknown> }>,
+						),
 					),
 				]
 			: []),
 	]);
 
-	// Emit docvia-env.d.ts at project root
-	const projectRoot = process.cwd();
+	// Emit docvia-env.d.ts at the project root (resolved relative to projectRoot)
 	const relativeOutDir = relative(projectRoot, resolvedOutDir).replace(
 		/\\/g,
 		"/",
 	);
 	const envFilePath = join(projectRoot, "docvia-env.d.ts");
 	const envRelativeOutDir = `./${relativeOutDir}`.replace(/\/\/+/g, "/");
-
 	await writeFile(
 		envFilePath,
 		createdocviaEnvDts(collectionData, envRelativeOutDir, hasRegistry),
 	);
+
+	// Persist cache
+	if (incremental) {
+		const cache: CacheFile = {
+			version: CACHE_VERSION,
+			toolVersion: TOOL_VERSION,
+			configHash,
+			pluginKeys: pluginCacheKeys,
+			entries: newCacheEntries,
+		};
+		await writeCache(resolvedOutDir, cache);
+	}
 
 	const duration = performance.now() - startTime;
 
@@ -536,7 +646,7 @@ export async function compile(
 		stats: {
 			total: totalFiles,
 			compiled: totalCompiled,
-			cached: 0,
+			cached: totalCached,
 		},
 	};
 }

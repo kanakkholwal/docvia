@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/source",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -43,5 +43,27 @@
 		"svelte": "^5.49.2",
 		"typescript": "^5.9.3",
 		"shiki": "^4.0.2"
-	}
+	},
+	"description": "Runtime collection helpers and Node markdown loader for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/source"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }
