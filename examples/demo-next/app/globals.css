@@ -107,6 +107,9 @@ a {
 }
 
 .docs-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.02em;
@@ -116,8 +119,60 @@ a {
 .docs-logo span {
   color: var(--muted);
   font-weight: 400;
-  margin-left: 8px;
+  margin-left: 6px;
   font-size: 13px;
+}
+
+.docs-logo-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #fff, #d4d4d8);
+  color: #000;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Demo identity badge */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  color: var(--muted);
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+
+.demo-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+.demo-badge-next .demo-badge-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.55);
+}
+
+.docs-header-link {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.docs-header-link:hover {
+  color: var(--fg);
+  background: var(--surface);
 }
 
 .docs-header-right {

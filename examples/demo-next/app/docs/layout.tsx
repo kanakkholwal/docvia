@@ -15,11 +15,25 @@ export default async function DocsLayout({
 			<header className="docs-header">
 				<div className="docs-header-inner">
 					<div className="docs-header-left">
-						<a href="/docs" className="docs-logo">
+						<a href="/" className="docs-logo">
+							<span className="docs-logo-mark" aria-hidden="true">
+								▲
+							</span>
 							docvia<span>docs</span>
 						</a>
+						<span className="demo-badge demo-badge-next">
+							<span className="demo-badge-dot" aria-hidden="true" />
+							Next.js demo
+						</span>
 					</div>
 					<div className="docs-header-right">
+						<a
+							href="/"
+							className="docs-header-link"
+							aria-label="Back to demo home"
+						>
+							← Demo home
+						</a>
 						<ThemeToggle />
 					</div>
 				</div>
