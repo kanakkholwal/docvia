@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: unified/remark/rehype AST nodes are intentionally loosely typed at the boundary.
 import type { Root as HastRoot } from "hast";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";

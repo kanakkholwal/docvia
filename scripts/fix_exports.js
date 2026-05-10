@@ -22,11 +22,11 @@ for (const pkg of packages) {
 
 	const hasDefault = /"default"\s*:/.test(content);
 	if (!hasDefault) {
-		content = content.replace(/("import": "[^"]+")(,?)/g, (match, p1, p2) => {
+		content = content.replace(/("import": "[^"]+")(,?)/g, (_match, p1, p2) => {
 			// p1 is "import": "./dist/index.mjs"
 			// p2 is , or empty
 			const defaultExport = p1.replace('"import"', '"default"');
-			return p1 + ",\n\t\t\t" + defaultExport + p2;
+			return `${p1},\n\t\t\t${defaultExport}${p2}`;
 		});
 
 		fs.writeFileSync(pkgJsonPath, content, "utf-8");

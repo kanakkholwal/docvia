@@ -1,4 +1,4 @@
-export type HydrationManifest = any;
+export type HydrationManifest = unknown;
 
 // PageTree types (Fumadocs-compatible)
 
@@ -28,18 +28,18 @@ export namespace PageTree {
 	export type Node = Item | Folder | Separator;
 }
 
-export interface docviaPage<TFrontmatter = any> {
+export interface docviaPage<TFrontmatter = unknown> {
 	slugs: string[];
 	url: string;
 	data: TFrontmatter;
-	content: any;
+	content: unknown;
 	manifest: HydrationManifest;
 	headings?: Array<{ depth: number; text: string; id: string }>;
 }
 
 export interface docviaCollection<
-	TFrontmatter = any,
-	TRouteKey extends string = string,
+	TFrontmatter = unknown,
+	_TRouteKey extends string = string,
 > {
 	/** Get a single page by slug segments. */
 	getPage(
@@ -62,5 +62,5 @@ export interface docviaCollection<
 }
 
 export interface docviaSource {
-	collections: Record<string, docviaCollection<any, any>>;
+	collections: Record<string, docviaCollection<unknown, string>>;
 }

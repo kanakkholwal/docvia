@@ -134,6 +134,7 @@ export function createDefaultRendererMap(): RendererMap {
 				name,
 				props: mergedProps,
 				hydrate,
+				// biome-ignore lint/style/noNonNullAssertion: IR transform always assigns ids to component nodes (see transform.ts)
 				id: node.id!,
 				children: await renderNodes(node.children, defaultMap, ctx),
 			};
@@ -154,6 +155,7 @@ export function createDefaultRendererMap(): RendererMap {
 				name,
 				props: mergedProps,
 				hydrate,
+				// biome-ignore lint/style/noNonNullAssertion: IR transform always assigns ids to component nodes (see transform.ts)
 				id: node.id!,
 				children: [],
 			};

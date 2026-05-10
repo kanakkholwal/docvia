@@ -96,10 +96,12 @@ export async function runDev(opts: DevOptions): Promise<void> {
 				log.error(formatError(err));
 				return;
 			}
-			if (!config.renderer) {
-				log.error("Config reloaded but no renderer configured.");
-				return;
-			}
+		}
+
+		const renderer = config.renderer;
+		if (!renderer) {
+			log.error("No renderer configured.");
+			return;
 		}
 
 		const start = performance.now();
@@ -107,7 +109,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			const result = await compile({
 				sourceDir,
 				outDir,
-				renderer: config.renderer!,
+				renderer,
 				plugins: [...config.plugins],
 				config,
 				projectRoot,

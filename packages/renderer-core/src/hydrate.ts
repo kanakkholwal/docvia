@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: framework component refs in the registry are intentionally erased to keep the renderer-core framework-agnostic.
 import type {
 	ComponentRegistry,
 	HydrationEntry,

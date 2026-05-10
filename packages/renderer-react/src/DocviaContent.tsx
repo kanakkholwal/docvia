@@ -199,10 +199,11 @@ function DocviaNode({
 			// and is compatible with React 18 and 19 (no forwardRef assumption).
 			const Component = resolved.component as React.ElementType;
 
+			const childNodes = children ?? [];
 			const childSlot =
-				(children ?? []).length > 0 ? (
+				childNodes.length > 0 ? (
 					<DocviaContent
-						nodes={children!}
+						nodes={childNodes}
 						registry={registry}
 						components={components}
 					/>

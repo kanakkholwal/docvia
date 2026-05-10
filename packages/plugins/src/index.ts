@@ -84,7 +84,7 @@ export class PluginRunner {
 		for (const plugin of this.plugins) {
 			if (plugin.beforeParse) {
 				result = await callHook(plugin, "beforeParse", file.path, () =>
-					plugin.beforeParse!(result),
+					plugin.beforeParse?.(result),
 				);
 			}
 		}
@@ -96,7 +96,7 @@ export class PluginRunner {
 		for (const plugin of this.plugins) {
 			if (plugin.afterParse) {
 				result = await callHook(plugin, "afterParse", file.path, () =>
-					plugin.afterParse!(result, file),
+					plugin.afterParse?.(result, file),
 				);
 			}
 		}
@@ -111,7 +111,7 @@ export class PluginRunner {
 		for (const plugin of this.plugins) {
 			if (plugin.beforeTransform) {
 				result = await callHook(plugin, "beforeTransform", undefined, () =>
-					plugin.beforeTransform!(result, meta),
+					plugin.beforeTransform?.(result, meta),
 				);
 			}
 		}
@@ -123,7 +123,7 @@ export class PluginRunner {
 		for (const plugin of this.plugins) {
 			if (plugin.afterTransform) {
 				result = await callHook(plugin, "afterTransform", undefined, () =>
-					plugin.afterTransform!(result),
+					plugin.afterTransform?.(result),
 				);
 			}
 		}
@@ -135,7 +135,7 @@ export class PluginRunner {
 		for (const plugin of this.plugins) {
 			if (plugin.beforeRender) {
 				result = await callHook(plugin, "beforeRender", undefined, () =>
-					plugin.beforeRender!(result),
+					plugin.beforeRender?.(result),
 				);
 			}
 		}
