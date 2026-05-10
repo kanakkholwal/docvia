@@ -113,13 +113,16 @@ pnpm typecheck   # tsc --noEmit across packages
 
 Each filtered script still rebuilds the packages it depends on (`turbo` resolves the dependency graph), so you can run `pnpm dev:next` without first running `pnpm dev:packages`.
 
-Releases are managed with [Changesets](https://github.com/changesets/changesets):
+Releases are managed with [Changesets](https://github.com/changesets/changesets) — see [RELEASING.md](./RELEASING.md) for the full workflow.
 
 ```bash
-pnpm changeset           # author a changeset
-pnpm version-packages    # bump versions + write CHANGELOGs
-pnpm release             # build + publish
+pnpm changeset           # author a changeset (run on every code-changing PR)
+pnpm changeset:status    # see what's pending
+pnpm version-packages    # consume changesets → bump versions, write CHANGELOGs
+pnpm release             # pnpm build && changeset publish
 ```
+
+CI handles version bumps and publishing automatically — see `.github/workflows/release.yml`.
 
 ## Status
 
