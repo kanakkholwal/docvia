@@ -1,6 +1,14 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: Next.js webpack/Turbopack config and phase context shapes are intentionally untyped passthroughs.
-import { closeSync, existsSync, openSync, rmSync } from "node:fs";
+import {
+	closeSync,
+	existsSync,
+	openSync,
+	readFileSync,
+	rmSync,
+	writeSync,
+} from "node:fs";
 import { relative, resolve } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 import type { docviaConfig } from "@docvia/ir";
 import type { NextConfig } from "next";
 
@@ -68,31 +76,151 @@ function _toTurbopackAliasPath(filePath: string, rootDir: string): string {
 	return filePath.replace(/\\/g, "/");
 }
 
-function acquireFileLock(dir: string): boolean {
-	const lockPath = resolve(dir, ".docvia-build.lock");
+// Lock files older than this are considered stale (left over from a crashed
+// process). 60s is a generous upper bound for the docvia compile step on the
+// largest realistic doc set; tune up if false-positive stale-detection ever
+// becomes a problem.
+const LOCK_MAX_AGE_MS = 60_000;
+
+interface LockMetadata {
+	readonly pid: number;
+	readonly startedAt: number;
+}
+
+function readLockMetadata(lockPath: string): LockMetadata | null {
 	try {
-		const fd = openSync(lockPath, "wx");
-		closeSync(fd);
-		const cleanup = () => {
-			try {
-				rmSync(lockPath, { force: true });
-			} catch {
-				/* ignore */
-			}
-		};
-		process.on("exit", cleanup);
-		process.on("SIGINT", () => {
-			cleanup();
-			process.exit();
-		});
-		process.on("SIGTERM", () => {
-			cleanup();
-			process.exit();
-		});
+		const raw = readFileSync(lockPath, "utf-8");
+		const parsed = JSON.parse(raw) as Partial<LockMetadata>;
+		if (
+			typeof parsed.pid !== "number" ||
+			typeof parsed.startedAt !== "number"
+		) {
+			return null;
+		}
+		return { pid: parsed.pid, startedAt: parsed.startedAt };
+	} catch {
+		return null;
+	}
+}
+
+function isProcessAlive(pid: number): boolean {
+	if (pid === process.pid) return true;
+	try {
+		// Signal 0 doesn't actually send a signal — it just checks if the
+		// process exists and we have permission to signal it.
+		process.kill(pid, 0);
 		return true;
 	} catch {
 		return false;
 	}
+}
+
+function lockIsStale(meta: LockMetadata | null): boolean {
+	if (!meta) return true; // unparseable / corrupt
+	if (Date.now() - meta.startedAt > LOCK_MAX_AGE_MS) return true;
+	if (!isProcessAlive(meta.pid)) return true;
+	return false;
+}
+
+function writeLockFile(lockPath: string): boolean {
+	try {
+		const fd = openSync(lockPath, "wx");
+		try {
+			writeSync(
+				fd,
+				JSON.stringify({ pid: process.pid, startedAt: Date.now() }),
+			);
+		} finally {
+			closeSync(fd);
+		}
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function attachCleanup(lockPath: string): void {
+	let released = false;
+	const release = () => {
+		if (released) return;
+		released = true;
+		try {
+			// Only remove the lock if we still own it. Avoids stomping on a
+			// successor process that recovered from our stale lock.
+			const meta = readLockMetadata(lockPath);
+			if (!meta || meta.pid === process.pid) {
+				rmSync(lockPath, { force: true });
+			}
+		} catch {
+			/* ignore */
+		}
+	};
+	process.on("exit", release);
+	process.on("SIGINT", () => {
+		release();
+		process.exit(130);
+	});
+	process.on("SIGTERM", () => {
+		release();
+		process.exit(143);
+	});
+	process.on("uncaughtException", (err) => {
+		release();
+		throw err;
+	});
+}
+
+/**
+ * Try to acquire the build lock for this directory.
+ *
+ * Returns:
+ *  - `"acquired"` — this process now owns the lock and should compile.
+ *  - `{ status: "held", pid }` — another live process holds the lock; the
+ *     caller should wait for that process's output instead of compiling.
+ */
+type LockResult = "acquired" | { status: "held"; pid: number };
+
+function acquireFileLock(dir: string): LockResult {
+	const lockPath = resolve(dir, ".docvia-build.lock");
+
+	if (writeLockFile(lockPath)) {
+		attachCleanup(lockPath);
+		return "acquired";
+	}
+
+	// Lock contended. Inspect it: if stale, take it over.
+	const meta = readLockMetadata(lockPath);
+	if (lockIsStale(meta)) {
+		try {
+			rmSync(lockPath, { force: true });
+		} catch {
+			/* ignore */
+		}
+		if (writeLockFile(lockPath)) {
+			attachCleanup(lockPath);
+			return "acquired";
+		}
+	}
+
+	return { status: "held", pid: meta?.pid ?? -1 };
+}
+
+/**
+ * Poll for `outDir/source.ts` to appear, with a hard timeout. Used by callers
+ * that lost the lock race — they need the generated module graph to exist
+ * before Next.js's bundler tries to resolve `docvia/source`.
+ */
+async function waitForCompilerOutput(
+	outDir: string,
+	timeoutMs = LOCK_MAX_AGE_MS,
+): Promise<boolean> {
+	const target = resolve(outDir, "source.ts");
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		if (existsSync(target)) return true;
+		await sleep(150);
+	}
+	return existsSync(target);
 }
 
 /**
@@ -173,11 +301,30 @@ async function init(
 		return config;
 	}
 
-	if (!acquireFileLock(process.cwd())) {
+	const lockResult = acquireFileLock(process.cwd());
+	if (lockResult !== "acquired") {
+		// Another live worker is compiling. Wait for its output to appear so
+		// Next.js can resolve `docvia/source` after this returns. If the wait
+		// times out (the holder crashed mid-compile), fall through and compile
+		// ourselves — `acquireFileLock` will have updated the staleness window
+		// on subsequent calls.
 		logger.info(
-			"Build already running in another process (file-lock detected), skipping start.",
+			`Build already running in pid ${lockResult.pid}; waiting for output...`,
 		);
-		return config; // Handled by another next worker
+		const ready = await waitForCompilerOutput(outDir);
+		if (ready) {
+			return config;
+		}
+		logger.warn(
+			"Timed out waiting for the other process; attempting to compile here.",
+		);
+		const retry = acquireFileLock(process.cwd());
+		if (retry !== "acquired") {
+			logger.error(
+				"Could not acquire build lock after timeout; giving up. Delete .docvia-build.lock to recover.",
+			);
+			return config;
+		}
 	}
 
 	try {

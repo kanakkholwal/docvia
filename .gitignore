@@ -7,5 +7,10 @@ dist/
 .svelte-kit/
 .vite/
 .claude
+.next/
+
+# docvia inter-process build lock — should never be committed
+*.docvia-build.lock
+.docvia-build.lock
 
 tmp-*
