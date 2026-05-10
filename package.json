@@ -14,10 +14,15 @@
 		"setup": "pnpm install && pnpm build && pnpm test",
 		"reset": "node ./scripts/clean-builds.js && pnpm run cleanup:dts",
 		"cleanup:dts": "node ./scripts/clean-src-dts.js",
-		"postinstall": "pnpm run reset"
+		"postinstall": "pnpm run reset",
+		"changeset": "changeset",
+		"version-packages": "changeset version",
+		"release": "pnpm build && changeset publish"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.9",
+		"@changesets/changelog-github": "^0.7.0",
+		"@changesets/cli": "^2.31.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.4.0",
 		"tsdown": "^0.21.7",
