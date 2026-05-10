@@ -1,14 +1,14 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": [
-    "@changesets/changelog-github",
-    { "repo": "kanakkholwal/docvia" }
-  ],
-  "commit": false,
-  "fixed": [],
-  "linked": [],
-  "access": "public",
-  "baseBranch": "main",
-  "updateInternalDependencies": "patch",
-  "ignore": ["demo-next", "demo-svelte"]
+	"$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+	"changelog": [
+		"@changesets/changelog-github",
+		{ "repo": "kanakkholwal/docvia" }
+	],
+	"commit": false,
+	"fixed": [],
+	"linked": [],
+	"access": "public",
+	"baseBranch": "main",
+	"updateInternalDependencies": "patch",
+	"ignore": ["demo-next", "demo-svelte", "@docvia/web", "@docvia/docs"]
 }
