@@ -89,15 +89,25 @@ function buildProgram(): Command {
 }
 
 /**
- * Detect whether this module is being executed as a CLI entry point vs being
- * imported as a library (e.g. from a docvia.config.ts that does
- * `import { defineConfig } from "@docvia/cli"`).
- *
- * We compare the resolved real path of the entry script (process.argv[1]) with
- * the resolved real path of this module. This handles symlinks, pnpm bin
- * shims, and `node ./dist/index.mjs` invocations.
+ * Programmatic entry point. The `bin.mjs` shim calls this directly, and any
+ * downstream tooling that wants to run the docvia CLI in-process can do the
+ * same. Resolves once the parsed command finishes; rejects on parser errors.
  */
-function isCliEntry(): boolean {
+export async function runCli(argv: readonly string[] = process.argv): Promise<void> {
+	const program = buildProgram();
+	await program.parseAsync(argv as string[]);
+}
+
+/**
+ * Detect direct invocation as `node ./dist/index.mjs` (vs being imported as a
+ * library from a `docvia.config.ts` or from `bin.mjs`).
+ *
+ * We compare the resolved real path of the entry script (`process.argv[1]`)
+ * with the resolved real path of this module. The bin shim sets argv[1] to
+ * `bin.mjs`, so this check stays false in that path — `bin.mjs` calls
+ * `runCli()` explicitly.
+ */
+function isDirectInvocation(): boolean {
 	const argv1 = process.argv[1];
 	if (!argv1) return false;
 	try {
@@ -107,15 +117,12 @@ function isCliEntry(): boolean {
 		).href;
 		return entryUrl === moduleUrl;
 	} catch {
-		// Fall back to substring check for edge cases (Windows .cmd shims etc.)
-		return /[\\/]docvia(\.m?js|\.cmd|\.ps1)?$/i.test(argv1);
+		return false;
 	}
 }
 
-if (isCliEntry()) {
-	const program = buildProgram();
-	program.parseAsync(process.argv).catch((err) => {
-		// Last-ditch error handler — individual commands already format their own.
+if (isDirectInvocation()) {
+	runCli().catch((err) => {
 		console.error(err);
 		process.exit(1);
 	});
