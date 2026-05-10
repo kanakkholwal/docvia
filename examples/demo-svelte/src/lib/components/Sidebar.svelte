@@ -8,8 +8,12 @@ interface Props {
 let { nav }: Props = $props();
 
 function isActive(url: string): boolean {
-	const current = `/${page.params.slug ?? ""}`;
-	return current === url || (!page.params.slug && url === "/");
+	const current = page.url.pathname;
+	if (current === url) return true;
+	// Treat /docs and /docs/index as equivalent so the index page highlights correctly
+	if (current === "/docs" && url === "/docs/index") return true;
+	if (current === "/docs/index" && url === "/docs") return true;
+	return false;
 }
 </script>
 

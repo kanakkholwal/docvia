@@ -54,7 +54,7 @@ export default defineConfig({
 				<span class="sk-brand-demo">sveltekit demo</span>
 			</div>
 			<nav class="sk-topbar-nav">
-				<a href="/getting-started">Docs</a>
+				<a href="/docs">Docs</a>
 				<a
 					href="https://github.com/kanakkholwal/docvia"
 					target="_blank"
@@ -81,7 +81,7 @@ export default defineConfig({
 				by any supported framework — open the Next.js demo to compare.
 			</p>
 			<div class="sk-cta-row">
-				<a href="/getting-started" class="sk-btn sk-btn-primary">
+				<a href="/docs" class="sk-btn sk-btn-primary">
 					Open the docs →
 				</a>
 				<a
@@ -118,7 +118,7 @@ export default defineConfig({
 				<code>src/docs/</code> mirrors the Next.js demo. Only the renderer
 				adapter and framework chrome differ.
 			</div>
-			<a href="/getting-started" class="sk-footnote-link">
+			<a href="/docs" class="sk-footnote-link">
 				Read the guide →
 			</a>
 		</section>
