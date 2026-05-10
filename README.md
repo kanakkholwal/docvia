@@ -93,8 +93,25 @@ pnpm install
 pnpm build       # build all packages
 pnpm test        # run vitest across packages
 pnpm typecheck   # tsc --noEmit across packages
-pnpm dev         # watch all packages (turbo)
 ```
+
+### Watch modes
+
+`pnpm dev` is intentionally focused — it only watches `packages/*` and `apps/*`, not the heavier `examples/*` demos. Run those explicitly when you need them.
+
+| Script | What it watches |
+|---|---|
+| `pnpm dev` | All packages + both apps (`apps/web`, `apps/docs`) |
+| `pnpm dev:packages` | Only `packages/*` (compiler, CLI, renderers, …) |
+| `pnpm dev:apps` | Only `apps/*` (landing + docs site) |
+| `pnpm dev:web` | Only `apps/web` |
+| `pnpm dev:docs` | Only `apps/docs` |
+| `pnpm dev:examples` | Both example demos (`demo-next`, `demo-svelte`) |
+| `pnpm dev:next` | Only `examples/demo-next` |
+| `pnpm dev:svelte` | Only `examples/demo-svelte` |
+| `pnpm dev:all` | Everything in the monorepo |
+
+Each filtered script still rebuilds the packages it depends on (`turbo` resolves the dependency graph), so you can run `pnpm dev:next` without first running `pnpm dev:packages`.
 
 Releases are managed with [Changesets](https://github.com/changesets/changesets):
 
