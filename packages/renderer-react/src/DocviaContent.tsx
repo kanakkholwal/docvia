@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: React.ElementType bridge for components stored in the registry — typed components would couple the registry to React internals.
 import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
 import React from "react";
 

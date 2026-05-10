@@ -7,7 +7,8 @@ import type {
 
 export interface ModuleExports {
 	meta: unknown;
-	content: unknown;
+	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters) — intentionally polymorphic.
+	content: any;
 	manifest: unknown;
 }
 
