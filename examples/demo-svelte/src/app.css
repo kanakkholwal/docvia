@@ -29,7 +29,7 @@
 	--transition: 150ms ease;
 }
 
-:global([data-theme="light"]) {
+[data-theme="light"] {
 	--bg: #ffffff;
 	--fg: #09090b;
 	--bg-subtle: #fafafa;

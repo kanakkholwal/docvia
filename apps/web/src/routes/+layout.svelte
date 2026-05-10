@@ -1,10 +1,10 @@
 <script lang="ts">
 import "../app.css";
+import { Github, Menu, X } from "@lucide/svelte";
+import type { Snippet } from "svelte";
 import Brand from "$lib/components/brand.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
-import { Github, Menu, X } from "@lucide/svelte";
-import type { Snippet } from "svelte";
 
 let { children }: { children: Snippet } = $props();
 let mobileOpen = $state(false);

@@ -4,7 +4,7 @@
 	"description": "Build-time documentation compiler — CLI entry point",
 	"type": "module",
 	"bin": {
-		"docvia": "./dist/index.mjs"
+		"docvia": "./bin.mjs"
 	},
 	"exports": {
 		".": {
@@ -16,6 +16,7 @@
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
 	"files": [
+		"bin.mjs",
 		"dist",
 		"README.md"
 	],

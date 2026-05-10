@@ -85,7 +85,6 @@ a {
 	z-index: 50;
 	height: var(--header-h);
 	border-bottom: 1px solid var(--border);
-	background: var(--bg);
 	backdrop-filter: blur(12px);
 	background: color-mix(in srgb, var(--bg) 80%, transparent);
 }

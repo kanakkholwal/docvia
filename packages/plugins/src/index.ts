@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import type {
 	docviaConfig,
 	docviaPlugin,
@@ -8,7 +9,6 @@ import type {
 } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { createJiti } from "jiti";
-import { resolve } from "node:path";
 
 // Plugin Resolution
 

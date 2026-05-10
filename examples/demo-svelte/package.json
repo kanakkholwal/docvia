@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"docvia:build": "node ../../packages/cli/dist/index.mjs build",
+		"docvia:build": "docvia build",
 		"predev": "pnpm docvia:build",
 		"dev": "vite dev",
 		"prebuild": "pnpm docvia:build",

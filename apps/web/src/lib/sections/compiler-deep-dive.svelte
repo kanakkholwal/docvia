@@ -1,6 +1,6 @@
 <script lang="ts">
-import { Badge } from "$lib/components/ui/badge";
 import { ArrowRight, FileCode2 } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
 
 const stages = [
 	{

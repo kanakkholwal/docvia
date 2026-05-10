@@ -1,6 +1,6 @@
 <script lang="ts">
-import { Button } from "$lib/components/ui/button";
 import { ArrowRight, Github } from "@lucide/svelte";
+import { Button } from "$lib/components/ui/button";
 </script>
 
 <section class="border-t border-border/60">
