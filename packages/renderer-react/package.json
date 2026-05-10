@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/renderer-react",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -38,5 +38,23 @@
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"typescript": "^5.9.3"
-	}
+	},
+	"description": "React renderer adapter for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/renderer-react"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }

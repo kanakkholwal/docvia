@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/compiler",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -30,5 +30,27 @@
 		"@types/mdast": "^4.0.4",
 		"@types/node": "^25.5.0",
 		"typescript": "^5.9.3"
-	}
+	},
+	"description": "Parallel build orchestrator and module-graph generator for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/compiler"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }

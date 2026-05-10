@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/plugin-vite",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -28,5 +28,27 @@
 		"svelte": "^5.49.2",
 		"typescript": "^5.5.0",
 		"vite": "^6.0.0"
-	}
+	},
+	"description": "Vite plugin for docvia (?docvia virtual modules)",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/plugin-vite"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }

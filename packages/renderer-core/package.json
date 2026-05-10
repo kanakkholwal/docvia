@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/renderer-core",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -25,5 +25,27 @@
 		"svelte": "^5.49.2",
 		"typescript": "^5.9.3",
 		"vitest": "^4.1.2"
-	}
+	},
+	"description": "Framework-agnostic rendering engine and default renderers for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/renderer-core"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	]
 }
