@@ -486,7 +486,7 @@ export async function compile(
 
 		await compileParallel(files, async (file) => {
 			const cacheKey = `${collection.name}:${file.relativePath}`;
-			const prev = cacheCompatible ? prevCache!.entries[cacheKey] : undefined;
+			const prev = cacheCompatible ? prevCache?.entries[cacheKey] : undefined;
 
 			// Cache hit: file content unchanged AND cache is compatible.
 			if (prev && prev.fileHash === file.hash) {

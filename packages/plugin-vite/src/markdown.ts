@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Vite plugin context is intentionally untyped passthrough.
 import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig } from "@docvia/ir";
 import { transformToIR } from "@docvia/ir";

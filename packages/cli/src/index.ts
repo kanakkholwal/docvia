@@ -93,7 +93,9 @@ function buildProgram(): Command {
  * downstream tooling that wants to run the docvia CLI in-process can do the
  * same. Resolves once the parsed command finishes; rejects on parser errors.
  */
-export async function runCli(argv: readonly string[] = process.argv): Promise<void> {
+export async function runCli(
+	argv: readonly string[] = process.argv,
+): Promise<void> {
 	const program = buildProgram();
 	await program.parseAsync(argv as string[]);
 }

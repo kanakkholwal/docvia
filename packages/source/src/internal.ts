@@ -6,9 +6,9 @@ import type {
 } from "./runtime.js";
 
 export interface ModuleExports {
-	meta: any;
-	content: any;
-	manifest: any;
+	meta: unknown;
+	content: unknown;
+	manifest: unknown;
 }
 
 export function createCollection<
@@ -217,10 +217,10 @@ export function createCollection<
 			return this.pageTree;
 		},
 
-		generateParams(slug = "slug" as any) {
+		generateParams(slug: string = "slug"): Array<Record<string, string[]>> {
 			return routeKeys.map((key) => {
 				const slugs = key === "index" ? [] : key.split("/");
-				return { [slug]: slugs } as any;
+				return { [slug]: slugs };
 			});
 		},
 	};

@@ -61,19 +61,14 @@ export function extractSections(doc: IRDocument): SearchDocument[] {
 			if (node.type === "heading") {
 				flush();
 				currentHeading = {
-					// biome-ignore lint/complexity/useLiteralKeys: not indexed
-					depth: node.props["depth"] as number,
+					depth: node.props.depth as number,
 					text: extractPlainTextFromIR(node),
-					// biome-ignore lint/complexity/useLiteralKeys: not indexed
-					id: node.props["id"] as string,
+					id: node.props.id as string,
 				};
 			}
-			// biome-ignore lint/complexity/useLiteralKeys: not indexed
-			if (node.type === "text")
-				currentParts.push(node.props["value"] as string);
-			// biome-ignore lint/complexity/useLiteralKeys: not indexed
+			if (node.type === "text") currentParts.push(node.props.value as string);
 			if (node.type === "code-block")
-				currentParts.push(node.props["value"] as string);
+				currentParts.push(node.props.value as string);
 			if (node.children.length) walk(node.children);
 		}
 	}

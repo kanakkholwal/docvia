@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Next.js webpack/Turbopack config and phase context shapes are intentionally untyped passthroughs.
 import { closeSync, existsSync, openSync, rmSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import type { docviaConfig } from "@docvia/ir";
@@ -27,7 +28,7 @@ const logger = {
 let _initPromise: Promise<docviaConfig | null> | null = null;
 let _watcherCleanup: (() => void) | null = null;
 
-function findTurbopackRoot(startDir: string): string {
+function _findTurbopackRoot(startDir: string): string {
 	let currentDir = startDir;
 
 	while (true) {
@@ -50,7 +51,7 @@ function findTurbopackRoot(startDir: string): string {
 	}
 }
 
-function toTurbopackAliasPath(filePath: string, rootDir: string): string {
+function _toTurbopackAliasPath(filePath: string, rootDir: string): string {
 	const normalizedRelativePath = relative(rootDir, filePath).replace(
 		/\\/g,
 		"/",
