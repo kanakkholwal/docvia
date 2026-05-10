@@ -1,7 +1,8 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: React.ElementType bridge for components stored in the registry — typed components would couple the registry to React internals.
 import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
 import React from "react";
 
-// Component override types 
+// Component override types
 /**
  * Props passed to a custom code block component.
  * `html` is the pre-rendered syntax-highlighted markup from shiki.
@@ -71,9 +72,8 @@ export function DocviaContent({
 	return (
 		<>
 			{nodeArray.map((node, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: nodes are static markdown output
 				<DocviaNode
-					key={i}
+					key={getNodeKey(node, i)}
 					node={node}
 					registry={registry}
 					components={components}
@@ -111,9 +111,8 @@ function DocviaNode({
 			return (
 				<>
 					{(node.children ?? []).map((child, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 						<DocviaNode
-							key={i}
+							key={getNodeKey(child, i)}
 							node={child}
 							registry={registry}
 							components={components}
@@ -201,10 +200,11 @@ function DocviaNode({
 			// and is compatible with React 18 and 19 (no forwardRef assumption).
 			const Component = resolved.component as React.ElementType;
 
+			const childNodes = children ?? [];
 			const childSlot =
-				(children ?? []).length > 0 ? (
+				childNodes.length > 0 ? (
 					<DocviaContent
-						nodes={children!}
+						nodes={childNodes}
 						registry={registry}
 						components={components}
 					/>
@@ -235,9 +235,8 @@ function renderChildrenArray(
 ): Array<React.ReactElement | null> {
 	if (!children?.length) return [];
 	return children.map((child, i) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 		<DocviaNode
-			key={i}
+			key={getNodeKey(child, i)}
 			node={child}
 			registry={registry}
 			components={components}
@@ -255,9 +254,8 @@ function renderChildren(
 	return (
 		<>
 			{children.map((child, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: static markdown output
 				<DocviaNode
-					key={i}
+					key={getNodeKey(child, i)}
 					node={child}
 					registry={registry}
 					components={components}
@@ -265,4 +263,18 @@ function renderChildren(
 			))}
 		</>
 	);
+}
+
+function getNodeKey(node: RenderOutput, index: number): string {
+	switch (node.kind) {
+		case "component":
+		case "element":
+			return node.id ?? `${node.kind}:${node.tag}:${index}`;
+		case "text":
+			return `text:${index}:${node.value}`;
+		case "html":
+			return `html:${index}:${node.value}`;
+		case "fragment":
+			return `fragment:${index}:${node.children.length}`;
+	}
 }

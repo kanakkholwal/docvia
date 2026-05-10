@@ -4,15 +4,14 @@ import type {
 	RenderedPage,
 	RendererAdapter,
 } from "@docvia/ir";
-import { type Highlighter, createHighlighter } from "shiki";
-
 import {
 	type ComponentRegistry,
-	type RenderContext,
-	type SyntaxHighlighter,
 	createDefaultRendererMap,
+	type RenderContext,
 	renderDocument,
+	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
+import { createHighlighter, type Highlighter } from "shiki";
 
 export function createShikiHighlighter(opts?: {
 	theme?: string;

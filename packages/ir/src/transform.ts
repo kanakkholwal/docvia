@@ -1,6 +1,7 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: HAST/MDAST node walking — `unified` AST types are intentionally loose at this boundary.
+import { dirname, normalize, resolve, sep } from "node:path";
 import GithubSlugger from "github-slugger";
 import type { Element, Root as HastRoot, Text } from "hast";
-import { dirname, normalize, resolve, sep } from "node:path";
 import type {
 	Dependency,
 	FrontmatterData,
@@ -86,13 +87,13 @@ export function normalizeProps(
 
 		if (key === "className") {
 			// HAST stores className as string[] — join to a plain string
-			out["class"] = Array.isArray(value) ? value.join(" ") : String(value);
+			out.class = Array.isArray(value) ? value.join(" ") : String(value);
 			continue;
 		}
 
 		if (key === "style" && typeof value === "object" && !Array.isArray(value)) {
 			// Convert style object to inline string
-			out["style"] = Object.entries(value as Record<string, unknown>)
+			out.style = Object.entries(value as Record<string, unknown>)
 				.filter(([, v]) => v !== undefined && v !== null)
 				.map(([k, v]) => `${k}:${v}`)
 				.join(";");
@@ -212,7 +213,8 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 			if (key.startsWith("data-prop-") || key.startsWith("dataProp")) {
 				const propName = key.startsWith("data-prop-")
 					? key.slice("data-prop-".length)
-					: key.charAt("dataProp".length).toLowerCase() + key.slice("dataProp".length + 1);
+					: key.charAt("dataProp".length).toLowerCase() +
+						key.slice("dataProp".length + 1);
 				if (propName === "hydrate") {
 					hydrate = String(value);
 				} else {
@@ -254,7 +256,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 			const codeProps = normalizeProps(
 				codeChild.properties as Record<string, unknown>,
 			);
-			const lang = extractLang(codeProps["class"] as string | undefined);
+			const lang = extractLang(codeProps.class as string | undefined);
 			const value = extractPlainText(codeChild);
 			return {
 				type: "code-block",
@@ -289,7 +291,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 
 	// --- Link ---
 	if (tag === "a") {
-		const href = (props["href"] as string) ?? "";
+		const href = (props.href as string) ?? "";
 		if (href.endsWith(".md") && !href.startsWith("http")) {
 			addDependency(ctx, {
 				type: "file",
@@ -299,14 +301,14 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 		return {
 			type: "link",
 			id: nodeId,
-			props: { href, title: props["title"] ?? null, ...filterClass(props) },
+			props: { href, title: props.title ?? null, ...filterClass(props) },
 			children: transformChildren(node.children, ctx),
 		};
 	}
 
 	// --- Image ---
 	if (tag === "img") {
-		const src = (props["src"] as string) ?? "";
+		const src = (props.src as string) ?? "";
 		if (src && !src.startsWith("http")) {
 			addDependency(ctx, {
 				type: "asset",
@@ -316,7 +318,7 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 		return {
 			type: "image",
 			id: nodeId,
-			props: { src, alt: props["alt"] ?? "", title: props["title"] ?? null },
+			props: { src, alt: props.alt ?? "", title: props.title ?? null },
 			children: [],
 		};
 	}

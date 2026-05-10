@@ -1,10 +1,10 @@
 <script lang="ts">
-	const stats = [
-		{ value: "<10ms", label: "Warm rebuild for unchanged content" },
-		{ value: "0kb", label: "Markdown parser shipped to the browser" },
-		{ value: "5", label: "Plugin hooks across the pipeline" },
-		{ value: "100%", label: "TypeScript, end to end" },
-	];
+const stats = [
+	{ value: "<10ms", label: "Warm rebuild for unchanged content" },
+	{ value: "0kb", label: "Markdown parser shipped to the browser" },
+	{ value: "5", label: "Plugin hooks across the pipeline" },
+	{ value: "100%", label: "TypeScript, end to end" },
+];
 </script>
 
 <section class="border-y border-border/60 bg-bg-subtle/40">

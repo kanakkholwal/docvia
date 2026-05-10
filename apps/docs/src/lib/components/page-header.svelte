@@ -1,6 +1,6 @@
 <script lang="ts">
-	type Props = { eyebrow?: string; title: string; description?: string };
-	let { eyebrow, title, description }: Props = $props();
+type Props = { eyebrow?: string; title: string; description?: string };
+let { eyebrow, title, description }: Props = $props();
 </script>
 
 <header class="mb-10 border-b border-border pb-8">

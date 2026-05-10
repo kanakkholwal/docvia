@@ -1,9 +1,9 @@
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { compile } from "@docvia/compiler";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { defineConfig, loadConfig } from "@docvia/plugins";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
 import { c, formatError, log, symbols } from "../logger";
 
 export interface BuildOptions {
@@ -67,8 +67,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 
 		const cached = result.stats.cached;
 		const compiled = result.stats.compiled;
-		const cachedNote =
-			cached > 0 ? ` ${c.gray(`(${cached} cached)`)}` : "";
+		const cachedNote = cached > 0 ? ` ${c.gray(`(${cached} cached)`)}` : "";
 
 		console.log("");
 		log.success(`Build complete in ${fmtMs(result.duration)}`);

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import PageHeader from "$lib/components/page-header.svelte";
-	import Prose from "$lib/components/prose.svelte";
+import PageHeader from "$lib/components/page-header.svelte";
+import Prose from "$lib/components/prose.svelte";
 </script>
 
 <svelte:head>

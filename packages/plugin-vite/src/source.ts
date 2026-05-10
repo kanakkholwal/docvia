@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: Vite plugin config object is intentionally untyped passthrough.
 import fs from "node:fs";
 import path from "node:path";
 

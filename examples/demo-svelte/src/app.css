@@ -1,44 +1,44 @@
 /* ─── Design Tokens ─── */
 
 :root {
-  --bg: #09090b;
-  --fg: #fafafa;
-  --bg-subtle: #0f0f11;
-  --muted: #a1a1aa;
-  --muted-fg: #71717a;
-  --border: #27272a;
-  --border-subtle: #1e1e21;
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
-  --surface: #18181b;
-  --surface-hover: #1f1f23;
-  --danger: #ef4444;
+	--bg: #09090b;
+	--fg: #fafafa;
+	--bg-subtle: #0f0f11;
+	--muted: #a1a1aa;
+	--muted-fg: #71717a;
+	--border: #27272a;
+	--border-subtle: #1e1e21;
+	--accent: #3b82f6;
+	--accent-hover: #60a5fa;
+	--surface: #18181b;
+	--surface-hover: #1f1f23;
+	--danger: #ef4444;
 
-  --radius: 8px;
-  --radius-sm: 6px;
-  --radius-lg: 12px;
+	--radius: 8px;
+	--radius-sm: 6px;
+	--radius-lg: 12px;
 
-  --header-h: 48px;
-  --sidebar-w: 240px;
-  --toc-w: 220px;
-  --content-max: 720px;
+	--header-h: 48px;
+	--sidebar-w: 240px;
+	--toc-w: 220px;
+	--content-max: 720px;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "SF Mono", "Fira Code", ui-monospace, monospace;
+	--font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-mono: "SF Mono", "Fira Code", ui-monospace, monospace;
 
-  --transition: 150ms ease;
+	--transition: 150ms ease;
 }
 
-:global([data-theme="light"]) {
-  --bg: #ffffff;
-  --fg: #09090b;
-  --bg-subtle: #fafafa;
-  --muted: #71717a;
-  --muted-fg: #a1a1aa;
-  --border: #e4e4e7;
-  --border-subtle: #f0f0f2;
-  --surface: #f4f4f5;
-  --surface-hover: #e8e8eb;
+[data-theme="light"] {
+	--bg: #ffffff;
+	--fg: #09090b;
+	--bg-subtle: #fafafa;
+	--muted: #71717a;
+	--muted-fg: #a1a1aa;
+	--border: #e4e4e7;
+	--border-subtle: #f0f0f2;
+	--surface: #f4f4f5;
+	--surface-hover: #e8e8eb;
 }
 
 /* ─── Reset ─── */
@@ -46,261 +46,261 @@
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
 html {
-  scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--header-h) + 24px);
+	scroll-behavior: smooth;
+	scroll-padding-top: calc(var(--header-h) + 24px);
 }
 
 body {
-  font-family: var(--font-sans);
-  background: var(--bg);
-  color: var(--fg);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+	font-family: var(--font-sans);
+	background: var(--bg);
+	color: var(--fg);
+	font-size: 15px;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
+	color: inherit;
+	text-decoration: none;
 }
 
 /* ─── Prose Typography ─── */
 
 .prose h1 {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  margin-bottom: 8px;
+	font-size: 32px;
+	font-weight: 700;
+	letter-spacing: -0.03em;
+	line-height: 1.2;
+	margin-bottom: 8px;
 }
 
 .prose h1 + p {
-  font-size: 16px;
-  color: var(--muted);
-  margin-bottom: 32px;
-  line-height: 1.6;
+	font-size: 16px;
+	color: var(--muted);
+	margin-bottom: 32px;
+	line-height: 1.6;
 }
 
 .prose h2 {
-  font-size: 22px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  margin-top: 48px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-  scroll-margin-top: calc(var(--header-h) + 24px);
+	font-size: 22px;
+	font-weight: 650;
+	letter-spacing: -0.02em;
+	margin-top: 48px;
+	margin-bottom: 16px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--border);
+	scroll-margin-top: calc(var(--header-h) + 24px);
 }
 
 .prose h3 {
-  font-size: 17px;
-  font-weight: 600;
-  margin-top: 32px;
-  margin-bottom: 12px;
-  scroll-margin-top: calc(var(--header-h) + 24px);
+	font-size: 17px;
+	font-weight: 600;
+	margin-top: 32px;
+	margin-bottom: 12px;
+	scroll-margin-top: calc(var(--header-h) + 24px);
 }
 
 .prose p {
-  margin-bottom: 16px;
-  line-height: 1.75;
+	margin-bottom: 16px;
+	line-height: 1.75;
 }
 
 .prose a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  transition: text-decoration-color var(--transition);
+	color: var(--accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+	transition: text-decoration-color var(--transition);
 }
 
 .prose a:hover {
-  text-decoration-color: var(--accent);
+	text-decoration-color: var(--accent);
 }
 
 .prose strong {
-  font-weight: 600;
+	font-weight: 600;
 }
 
 .prose code {
-  font-family: var(--font-mono);
-  font-size: 0.875em;
-  padding: 2px 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+	font-family: var(--font-mono);
+	font-size: 0.875em;
+	padding: 2px 6px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 4px;
 }
 
 .prose pre {
-  margin: 24px 0;
-  border-radius: var(--radius);
-  overflow-x: auto;
+	margin: 24px 0;
+	border-radius: var(--radius);
+	overflow-x: auto;
 }
 
 .prose .docvia-code-block pre {
-  padding: 16px 20px !important;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.7;
+	padding: 16px 20px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.7;
 }
 
 .prose pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  font-size: 13px;
+	background: transparent;
+	border: none;
+	padding: 0;
+	font-size: 13px;
 }
 
 .prose blockquote {
-  border-left: 2px solid var(--accent);
-  padding: 12px 16px;
-  margin: 24px 0;
-  background: var(--surface);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  color: var(--muted);
+	border-left: 2px solid var(--accent);
+	padding: 12px 16px;
+	margin: 24px 0;
+	background: var(--surface);
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	color: var(--muted);
 }
 
 .prose blockquote p {
-  margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 .prose ul,
 .prose ol {
-  margin: 0 0 16px 24px;
+	margin: 0 0 16px 24px;
 }
 
 .prose li {
-  margin-bottom: 6px;
-  line-height: 1.75;
+	margin-bottom: 6px;
+	line-height: 1.75;
 }
 
 .prose li::marker {
-  color: var(--muted-fg);
+	color: var(--muted-fg);
 }
 
 .prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 24px 0;
-  font-size: 14px;
+	width: 100%;
+	border-collapse: collapse;
+	margin: 24px 0;
+	font-size: 14px;
 }
 
 .prose thead {
-  border-bottom: 1px solid var(--border);
+	border-bottom: 1px solid var(--border);
 }
 
 .prose th {
-  padding: 10px 16px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+	padding: 10px 16px;
+	text-align: left;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--muted);
 }
 
 .prose td {
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border-subtle);
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--border-subtle);
 }
 
 .prose tbody tr:hover {
-  background: var(--surface);
+	background: var(--surface);
 }
 
 .prose hr {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 40px 0;
+	border: none;
+	border-top: 1px solid var(--border);
+	margin: 40px 0;
 }
 
 /* ─── Counter ─── */
 
 .counter-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  margin: 24px 0;
-  text-align: center;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	padding: 32px;
+	margin: 24px 0;
+	text-align: center;
 }
 
 .counter-value {
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--fg);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  margin-bottom: 4px;
+	font-size: 48px;
+	font-weight: 700;
+	color: var(--fg);
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	margin-bottom: 4px;
 }
 
 .counter-label {
-  font-size: 12px;
-  color: var(--muted-fg);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 500;
-  margin-bottom: 24px;
+	font-size: 12px;
+	color: var(--muted-fg);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-weight: 500;
+	margin-bottom: 24px;
 }
 
 .counter-controls {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
+	display: flex;
+	gap: 8px;
+	justify-content: center;
 }
 
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 36px;
-  padding: 0 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--transition);
-  background: transparent;
-  color: var(--fg);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 36px;
+	padding: 0 16px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	font-size: 14px;
+	font-weight: 500;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all var(--transition);
+	background: transparent;
+	color: var(--fg);
 }
 
 .btn:hover {
-  background: var(--surface-hover);
-  border-color: var(--fg);
+	background: var(--surface-hover);
+	border-color: var(--fg);
 }
 
 .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
+	background: var(--accent);
+	border-color: var(--accent);
+	color: white;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
 }
 
 /* ─── Component Wrappers ─── */
 
 .docvia-component-wrapper {
-  margin: 24px 0;
+	margin: 24px 0;
 }
 
 .docvia-render-error,
 .docvia-error {
-  padding: 12px 16px;
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
-  border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 13px;
+	padding: 12px 16px;
+	background: color-mix(in srgb, var(--danger) 10%, transparent);
+	border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+	border-radius: var(--radius-sm);
+	color: var(--danger);
+	font-size: 13px;
 }

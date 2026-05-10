@@ -1,10 +1,10 @@
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { performance } from "node:perf_hooks";
 import { compile } from "@docvia/compiler";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { defineConfig, loadConfig } from "@docvia/plugins";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { performance } from "node:perf_hooks";
 import { c, formatError, log, symbols } from "../logger";
 
 export interface DevOptions {
@@ -33,7 +33,10 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		process.exit(1);
 	}
 
-	const sourceDir = resolve(projectRoot, opts.docs ?? config.sourceDir ?? "docs");
+	const sourceDir = resolve(
+		projectRoot,
+		opts.docs ?? config.sourceDir ?? "docs",
+	);
 	const outDir = resolve(projectRoot, opts.out ?? config.outDir ?? ".docvia");
 
 	if (!existsSync(sourceDir)) {
@@ -41,7 +44,9 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		process.exit(1);
 	}
 	if (!config.renderer) {
-		log.error(formatError(new docviaError("CONFIG_ERROR", "No renderer configured")));
+		log.error(
+			formatError(new docviaError("CONFIG_ERROR", "No renderer configured")),
+		);
 		process.exit(1);
 	}
 
@@ -91,10 +96,12 @@ export async function runDev(opts: DevOptions): Promise<void> {
 				log.error(formatError(err));
 				return;
 			}
-			if (!config.renderer) {
-				log.error("Config reloaded but no renderer configured.");
-				return;
-			}
+		}
+
+		const renderer = config.renderer;
+		if (!renderer) {
+			log.error("No renderer configured.");
+			return;
 		}
 
 		const start = performance.now();
@@ -102,7 +109,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			const result = await compile({
 				sourceDir,
 				outDir,
-				renderer: config.renderer!,
+				renderer,
 				plugins: [...config.plugins],
 				config,
 				projectRoot,

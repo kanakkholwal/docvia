@@ -3,8 +3,8 @@ import { RenderError } from "./errors";
 import type {
 	HydrationManifest,
 	RenderContext,
-	RenderOutput,
 	RendererMap,
+	RenderOutput,
 } from "./types";
 
 export interface RenderResult {

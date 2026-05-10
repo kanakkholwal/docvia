@@ -3,9 +3,9 @@
 // is considered "fresh" when (fileHash, configHash, toolVersion, pluginKeys)
 // all match the previous run.
 
-import type { PageMeta } from "@docvia/ir";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import type { PageMeta } from "@docvia/ir";
 
 export const CACHE_FILE = ".docvia.cache.json";
 // Bump this whenever the on-disk shape changes incompatibly.
@@ -26,9 +26,7 @@ export interface CacheFile {
 	readonly entries: Record<string, CachedEntry>;
 }
 
-export async function readCache(
-	outDir: string,
-): Promise<CacheFile | null> {
+export async function readCache(outDir: string): Promise<CacheFile | null> {
 	try {
 		const raw = await readFile(join(outDir, CACHE_FILE), "utf-8");
 		const parsed = JSON.parse(raw) as CacheFile;

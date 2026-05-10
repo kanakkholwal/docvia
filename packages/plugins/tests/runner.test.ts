@@ -240,7 +240,7 @@ describe("PluginRunner", () => {
 			version: "1.0.0",
 			beforeParse: async (file) => ({
 				...file,
-				content: file.content + "-modified",
+				content: `${file.content}-modified`,
 			}),
 		};
 
@@ -249,7 +249,7 @@ describe("PluginRunner", () => {
 			version: "1.0.0",
 			beforeParse: async (file) => ({
 				...file,
-				content: file.content + "-again",
+				content: `${file.content}-again`,
 			}),
 		};
 

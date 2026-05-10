@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: framework component refs in the registry are intentionally erased to keep the renderer-core framework-agnostic.
 import type {
 	ComponentRegistry,
 	HydrationEntry,
@@ -54,7 +55,7 @@ async function doHydrate(
 	}
 
 	try {
-		// @ts-ignore - framework component instantiation (e.g. Svelte)
+		// @ts-expect-error - framework component instantiation (e.g. Svelte)
 		new (resolved.component as any)({
 			target: el,
 			props: entry.props,

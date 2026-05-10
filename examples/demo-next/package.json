@@ -1,29 +1,29 @@
 {
-    "name": "demo-next",
-    "private": true,
-    "version": "0.0.1",
-    "type": "module",
-    "scripts": {
-        "build": "next build",
-        "dev": "next dev --turbopack",
-        "start": "next start"
-    },
-    "dependencies": {
-        "react": "^19",
-        "react-dom": "^19",
-        "next": "^16",
-        "shiki": "^4.0.2"
-    },
-    "devDependencies": {
-        "@docvia/cli": "workspace:*",
-        "@docvia/plugin-next": "workspace:*",
-        "zod": "^4.3.6",
-        "@docvia/renderer-react": "workspace:*",
-        "@docvia/renderer-core": "workspace:*",
-        "@docvia/source": "workspace:*",
-        "@types/node": "^25.5.0",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "typescript": "^5.9.3"
-    }
+	"name": "demo-next",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"build": "next build",
+		"dev": "next dev --turbopack",
+		"start": "next start"
+	},
+	"dependencies": {
+		"react": "^19",
+		"react-dom": "^19",
+		"next": "^16",
+		"shiki": "^4.0.2"
+	},
+	"devDependencies": {
+		"@docvia/cli": "workspace:*",
+		"@docvia/plugin-next": "workspace:*",
+		"zod": "^4.3.6",
+		"@docvia/renderer-react": "workspace:*",
+		"@docvia/renderer-core": "workspace:*",
+		"@docvia/source": "workspace:*",
+		"@types/node": "^25.5.0",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"typescript": "^5.9.3"
+	}
 }

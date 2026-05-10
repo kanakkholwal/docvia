@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from "$lib/components/ui/button";
-	import { Badge } from "$lib/components/ui/badge";
-	import { ArrowRight, Sparkles } from "@lucide/svelte";
+import { ArrowRight, Sparkles } from "@lucide/svelte";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
 </script>
 
 <section class="relative overflow-hidden">

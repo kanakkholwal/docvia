@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+import { cn } from "$lib/utils";
 
-	type Props = {
-		class?: string;
-	};
-	let { class: className }: Props = $props();
+type Props = {
+	class?: string;
+};
+let { class: className }: Props = $props();
 </script>
 
 <a href="/" class={cn("group inline-flex items-center gap-2", className)}>

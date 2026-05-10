@@ -24,13 +24,13 @@
  *   hydrate(manifest, registry, { ssr: false });
  */
 
-import React from "react";
-import { createRoot, hydrateRoot } from "react-dom/client";
 import type {
 	ComponentRegistry,
 	HydrationEntry,
 	HydrationManifest,
 } from "@docvia/renderer-core";
+import React from "react";
+import { createRoot, hydrateRoot } from "react-dom/client";
 
 export interface HydrateOptions {
 	/**

@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: unified/remark/rehype AST nodes are intentionally loosely typed at the boundary.
 import type { Root as HastRoot } from "hast";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
@@ -9,7 +10,6 @@ import { unified } from "unified";
 import { visit } from "unist-util-visit";
 
 // Sanitize schema — HTML-native attribute names only, no React leakage
-// biome-ignore lint/suspicious/noExplicitAny: rehype-sanitize Schema type not exported directly
 const sanitizeSchema: any = {
 	...defaultSchema,
 	tagNames: [
@@ -82,7 +82,6 @@ function remarkDirectiveToHast() {
 }
 
 export interface ParseOptions {
-	// biome-ignore lint/suspicious/noExplicitAny: remark plugins are untyped
 	readonly remarkPlugins?: readonly any[];
 }
 
@@ -93,14 +92,10 @@ export interface ParseResult {
 // Cache processors by remarkPlugins array reference.
 // The array reference is stable within a single build (same config object),
 // so we avoid rebuilding the unified pipeline for every document.
-// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
 let baseProcessor: any | null = null;
-// biome-ignore lint/suspicious/noExplicitAny: plugin arrays are untyped
 const pluginProcessorCache = new WeakMap<readonly any[], any>();
 
-// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
 function buildProcessor(remarkPlugins: readonly any[]): any {
-	// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
 	let processor: any = unified()
 		.use(remarkParse)
 		.use(remarkGfm)
@@ -123,7 +118,6 @@ export async function parseMarkdown(
 ): Promise<ParseResult> {
 	const remarkPlugins = options?.remarkPlugins;
 
-	// biome-ignore lint/suspicious/noExplicitAny: unified processor chain widens type on each .use()
 	let processor: any;
 	if (!remarkPlugins || remarkPlugins.length === 0) {
 		if (!baseProcessor) baseProcessor = buildProcessor([]);
