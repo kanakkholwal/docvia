@@ -10,7 +10,7 @@
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"test": "turbo run test",
-		"dev": "turbo run dev --concurrency=15",
+		"dev": "turbo run dev --concurrency=20",
 		"prepare": "husky",
 		"setup": "pnpm install && pnpm build && pnpm test",
 		"clean": "node ./scripts/clean-builds.js && pnpm run cleanup:dts",
