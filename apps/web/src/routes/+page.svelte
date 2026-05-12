@@ -9,6 +9,7 @@ import Hero from "$lib/sections/hero.svelte";
 import Quickstart from "$lib/sections/quickstart.svelte";
 import Stats from "$lib/sections/stats.svelte";
 import UseCases from "$lib/sections/use-cases.svelte";
+
 </script>
 
 <svelte:head>

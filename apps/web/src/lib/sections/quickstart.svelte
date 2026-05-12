@@ -1,6 +1,5 @@
 <script lang="ts">
 import { ArrowRight } from "@lucide/svelte";
-import { Badge } from "$lib/components/ui/badge";
 import { Button } from "$lib/components/ui/button";
 
 const steps = [
@@ -22,33 +21,38 @@ const steps = [
 ];
 </script>
 
-<section id="quickstart" class="border-t border-border/60 bg-bg-subtle/30">
-	<div class="mx-auto max-w-[1200px] px-6 py-24 md:px-10 md:py-32">
-		<div class="mx-auto mb-16 max-w-2xl text-center">
-			<Badge variant="accent" class="mb-4">Quickstart</Badge>
-			<h2
-				class="font-display text-4xl font-semibold tracking-tight md:text-5xl"
+<section id="quickstart" class="bg-canvas">
+	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
+		<div class="mb-16 max-w-3xl">
+			<span
+				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
 			>
-				From zero to compiled in under a minute.
+				Quickstart
+			</span>
+			<h2
+				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
+				style="letter-spacing: -0.03em;"
+			>
+				Zero to compiled in under a minute.
 			</h2>
 		</div>
 
-		<ol class="mx-auto grid max-w-3xl gap-4">
+		<ol class="mx-auto grid max-w-3xl gap-3">
 			{#each steps as { step, cmd, label }}
 				<li
-					class="group flex flex-col gap-3 rounded-lg border border-border bg-bg-subtle p-5 transition-colors hover:border-accent/30 sm:flex-row sm:items-center"
+					class="flex flex-col gap-3 rounded-lg bg-surface-card p-5 sm:flex-row sm:items-center"
 				>
 					<span
-						class="font-mono text-xs uppercase tracking-[0.1em] text-fg-muted sm:w-10"
+						class="font-mono text-[11px] font-semibold uppercase tracking-widest text-brand-coral sm:w-10"
 					>
 						{step}
 					</span>
 					<code
-						class="flex-1 rounded-md bg-bg-muted px-3 py-2 font-mono text-sm text-fg"
+						class="flex-1 rounded-md bg-canvas px-3 py-2 font-mono text-[14px] text-ink"
 					>
 						{cmd}
 					</code>
-					<span class="text-sm text-fg-muted sm:max-w-[18rem]">
+					<span class="text-[14px] text-body sm:max-w-[18rem]">
 						{label}
 					</span>
 				</li>

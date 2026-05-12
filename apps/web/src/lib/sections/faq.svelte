@@ -1,19 +1,30 @@
 <script lang="ts">
 import { Accordion } from "$lib/components/ui/accordion";
-import { Badge } from "$lib/components/ui/badge";
 
 const faqs = [
 	{
-		q: "Which frameworks does docvia support?",
-		a: "First-party renderers ship for React (with Next.js integration via @docvia/plugin-next) and Svelte (with Vite integration via @docvia/plugin-vite). The renderer contract is small — any framework that can render a tree of nodes can implement an adapter.",
+		q: "Can I self-host docvia, or am I locked into a cloud?",
+		a: "docvia is a build pipeline you own. It produces a static module graph that you deploy wherever you want — Vercel, Cloudflare, an S3 bucket, your VPC, or an on-prem box. There is no required cloud, no proprietary runtime, and no telemetry calling home.",
+	},
+	{
+		q: "Do I have to use MDX? Can non-engineers contribute?",
+		a: "Plain Markdown works out of the box. MDX is opt-in for teams that want React components in content. Frontmatter is validated against your Zod schema, so PMs, support, and marketers can edit content with the same safety as engineers — typos and missing fields fail the build.",
+	},
+	{
+		q: "Will my docs be locked into one framework?",
+		a: "No. docvia parses Markdown into a framework-agnostic Intermediate Representation. Renderer adapters target React, Svelte, Vite, and Next.js today; the contract is small enough that Vue, Solid, or Astro adapters are a few hundred lines. Switch renderers without rewriting content.",
+	},
+	{
+		q: "How does pricing work?",
+		a: "The compiler and every renderer are MIT-licensed and free forever. The managed Team edition is on a waitlist with per-seat pricing — no per-credit metering for AI features. Bring your own Claude or OpenAI key and we never sit in the middle of that bill.",
 	},
 	{
 		q: "How is this different from a typical Markdown library?",
 		a: "Most Markdown tools either parse at request time (slow, large bundles) or at build time without caching (slow rebuilds). docvia parses, sanitizes, and transforms once at build time, persists a content-addressable cache, and emits a typed module graph the bundler can tree-shake.",
 	},
 	{
-		q: "Can I bring my own renderer?",
-		a: "Yes. RendererAdapter is a small interface — implement renderPage(doc) and renderManifest(pages) and you can target Vue, Solid, Astro, or anything else. The IR is intentionally framework-agnostic.",
+		q: "How are incremental builds handled?",
+		a: "A .docvia.cache.json file stores per-file content hashes alongside the config and plugin cache keys. Files whose hashes are unchanged are skipped; the rest go through the full pipeline. The cache is invalidated automatically when the tool, config, or plugin set changes.",
 	},
 	{
 		q: "How do I extend the frontmatter schema?",
@@ -24,33 +35,34 @@ const faqs = [
 		a: "No. The parser, sanitizer, and IR transformer all run at build time. The browser receives pre-rendered output plus, optionally, the Orama search index for client-side search.",
 	},
 	{
-		q: "How are incremental builds handled?",
-		a: "A .docvia.cache.json file stores per-file content hashes alongside the config and plugin cache keys. Files whose hashes are unchanged are skipped; the rest go through the full pipeline. The cache is invalidated automatically when the tool, config, or plugin set changes.",
-	},
-	{
 		q: "Is it production ready?",
 		a: "v0.1 is a public preview. The core compiler, CLI, and integrations are stable enough to use in real projects, but APIs may shift before v1.0. Each release ships with a changeset describing what changed.",
 	},
 	{
 		q: "What's the licence?",
-		a: "MIT, for every package in the workspace.",
+		a: "MIT, for every package in the workspace. The Team and Enterprise editions add managed services on top — they never replace the open core.",
 	},
 ];
 </script>
 
-<section class="border-t border-border/60">
-	<div class="mx-auto max-w-[1200px] px-6 py-24 md:px-10 md:py-32">
-		<div class="mx-auto mb-12 max-w-2xl text-center">
-			<Badge variant="accent" class="mb-4">FAQ</Badge>
-			<h2
-				class="font-display text-4xl font-semibold tracking-tight md:text-5xl"
+<section id="faq" class="bg-surface-soft">
+	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
+		<div class="mb-12 max-w-3xl">
+			<span
+				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
 			>
-				Questions, answered.
+				FAQ
+			</span>
+			<h2
+				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
+				style="letter-spacing: -0.03em;"
+			>
+				The honest questions, answered honestly.
 			</h2>
 		</div>
 
 		<div
-			class="mx-auto max-w-3xl divide-y divide-border/60 rounded-xl border border-border bg-bg-subtle px-6"
+			class="mx-auto max-w-3xl divide-y divide-hairline rounded-lg border border-hairline bg-canvas px-6"
 		>
 			{#each faqs as faq, i}
 				<Accordion question={faq.q} open={i === 0}>

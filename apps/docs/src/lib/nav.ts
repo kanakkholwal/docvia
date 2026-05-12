@@ -31,7 +31,8 @@ export const nav: NavGroup[] = [
 	{
 		title: "Pipeline",
 		items: [
-			{ label: "Plugins", href: "/plugins", soon: true },
+			{ label: "Plugins overview", href: "/plugins", soon: true },
+			{ label: "OpenAPI plugin", href: "/plugins/openapi" },
 			{ label: "Incremental builds", href: "/incremental-builds", soon: true },
 			{ label: "Search", href: "/search", soon: true },
 		],
