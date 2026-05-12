@@ -1,5 +1,5 @@
 /**
- * Svelte action: dispatches an `inview` CustomEvent the first time the node
+ * Svelte action: dispatches an `enter` CustomEvent the first time the node
  * enters the viewport. Use to gate scroll-triggered transitions.
  *
  *   <div use:inview onenter={() => (shown = true)}>

@@ -15,3 +15,6 @@ dist/
 
 tmp-*
 memory
+
+# Cloudflare Wrangler local state
+.wrangler/
