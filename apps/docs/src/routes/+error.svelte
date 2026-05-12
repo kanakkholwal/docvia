@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from "$app/state";
+import { dev } from "$app/environment";
 import { ArrowLeft, Home, Search } from "@lucide/svelte";
 import { onMount } from "svelte";
 import { fade, fly, scale } from "svelte/transition";
@@ -21,7 +22,14 @@ const tagline = $derived(
 		? "There's no Markdown file mapped to this path. Try the sidebar, the home page, or search the docs on GitHub."
 		: "An unexpected error reached the page renderer. The team has been notified.",
 );
-const errorMessage = $derived(page.error?.message ?? "Unknown error");
+const errorMessage = $derived(
+	dev
+		? (page.error?.message ?? "Unknown error")
+		: "An unexpected error occurred.",
+);
+$effect(() => {
+	if (dev && page.error) console.error("[+error.svelte]", page.error);
+});
 </script>
 
 <svelte:head>
