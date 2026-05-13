@@ -14,3 +14,7 @@ dist/
 .docvia-build.lock
 
 tmp-*
+memory
+
+# Cloudflare Wrangler local state
+.wrangler/

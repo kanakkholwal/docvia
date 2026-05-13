@@ -1,34 +1,90 @@
 @import "tailwindcss";
 
-/* ── Design tokens — kept identical between apps/web and apps/docs ── */
+/* ──────────────────────────────────────────────────────────────────
+   docvia design tokens — kept identical with apps/web/src/app.css.
+   Source of truth: apps/web/DESIGN.md
+   ────────────────────────────────────────────────────────────────── */
 
 :root,
 [data-theme="light"] {
-	--bg: oklch(0.99 0 0);
-	--bg-subtle: oklch(0.975 0 0);
-	--bg-muted: oklch(0.95 0.005 250);
-	--fg: oklch(0.145 0 0);
-	--fg-muted: oklch(0.45 0.005 250);
-	--fg-subtle: oklch(0.6 0.005 250);
-	--border: oklch(0.92 0.005 250);
-	--border-strong: oklch(0.85 0.005 250);
-	--accent: oklch(0.58 0.22 290);
-	--accent-fg: oklch(0.99 0 0);
-	--accent-subtle: oklch(0.96 0.04 290);
-	--success: oklch(0.6 0.15 155);
-	--warn: oklch(0.7 0.18 75);
-	--danger: oklch(0.58 0.22 25);
-	--info: oklch(0.6 0.18 230);
+	/* ── Surface ── */
+	--canvas: #fffaf0;
+	--surface-soft: #faf5e8;
+	--surface-card: #f5f0e0;
+	--surface-strong: #ebe6d6;
+	--surface-dark: #0a1a1a;
+	--surface-dark-elevated: #1a2a2a;
 
-	--radius-sm: 0.375rem;
-	--radius-md: 0.5rem;
-	--radius-lg: 0.75rem;
-	--radius-xl: 1rem;
+	/* ── Text ── */
+	--ink: #0a0a0a;
+	--body-strong: #1a1a1a;
+	--body: #3a3a3a;
+	--muted: #6a6a6a;
+	--muted-soft: #9a9a9a;
+	--on-primary: #ffffff;
 
-	--shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
-	--shadow-md: 0 4px 12px -2px oklch(0 0 0 / 0.08);
-	--shadow-lg: 0 16px 32px -8px oklch(0 0 0 / 0.12);
+	/* ── Borders ── */
+	--hairline: #e5e5e5;
+	--hairline-strong: #d4d4d4;
 
+	/* ── Brand (absolute) ── */
+	--brand-pink: #ff4d8b;
+	--brand-teal: #1a3a3a;
+	--brand-lavender: #b8a4ed;
+	--brand-peach: #ffb084;
+	--brand-ochre: #e8b94a;
+	--brand-mint: #a4d4c5;
+	--brand-coral: #ff6b5a;
+
+	/* ── Card-text tokens (theme-independent) ── */
+	--card-on-dark: #ffffff;
+	--card-on-light: #0a0a0a;
+
+	/* ── Check-indicator token — flips for visibility on both canvases ── */
+	--check: var(--brand-teal);
+
+	/* ── Semantic ── */
+	--success: #22c55e;
+	--warning: #f59e0b;
+	--error: #ef4444;
+
+	/* ── Legacy aliases ── */
+	--bg: var(--canvas);
+	--bg-subtle: var(--surface-soft);
+	--bg-muted: var(--surface-card);
+	--bg-strong: var(--surface-strong);
+	--fg: var(--ink);
+	--fg-strong: var(--body-strong);
+	--fg-muted: var(--muted);
+	--fg-subtle: var(--muted-soft);
+	--border: var(--hairline);
+	--border-strong: var(--hairline-strong);
+	--accent: var(--ink);
+	--accent-fg: var(--on-primary);
+	--accent-subtle: var(--surface-card);
+	--info: var(--brand-teal);
+	--warn: var(--warning);
+	--danger: var(--error);
+
+	/* ── Radius ── */
+	--radius-xs: 6px;
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
+	--radius-pill: 9999px;
+
+	/* ── Spacing ── */
+	--space-xxs: 4px;
+	--space-xs: 8px;
+	--space-sm: 12px;
+	--space-md: 16px;
+	--space-lg: 24px;
+	--space-xl: 32px;
+	--space-xxl: 48px;
+	--space-section: 96px;
+
+	/* ── Motion ── */
 	--motion-fast: 100ms;
 	--motion-base: 180ms;
 	--motion-slow: 280ms;
@@ -38,33 +94,70 @@
 	color-scheme: light;
 }
 
+/* Dark mode — neutral near-black canvas with warm cream text. */
 [data-theme="dark"] {
-	--bg: oklch(0.145 0 0);
-	--bg-subtle: oklch(0.18 0 0);
-	--bg-muted: oklch(0.21 0.005 250);
-	--fg: oklch(0.985 0 0);
-	--fg-muted: oklch(0.7 0.005 250);
-	--fg-subtle: oklch(0.55 0.005 250);
-	--border: oklch(0.27 0.005 250);
-	--border-strong: oklch(0.34 0.005 250);
-	--accent: oklch(0.7 0.21 290);
-	--accent-fg: oklch(0.145 0 0);
-	--accent-subtle: oklch(0.25 0.08 290);
-	--success: oklch(0.7 0.15 155);
-	--warn: oklch(0.78 0.18 75);
-	--danger: oklch(0.7 0.2 25);
-	--info: oklch(0.72 0.18 230);
+	--canvas: #0c0c0c;
+	--surface-soft: #161616;
+	--surface-card: #1f1f1f;
+	--surface-strong: #2a2a2a;
+	--surface-dark: #050505;
+	--surface-dark-elevated: #1a1a1a;
+
+	--ink: #fffaf0;
+	--body-strong: #f0eadb;
+	--body: #c8c0ad;
+	--muted: #8a8378;
+	--muted-soft: #585350;
+	--on-primary: #0a0a0a;
+
+	--hairline: #262626;
+	--hairline-strong: #363636;
+
+	--check: var(--brand-mint);
 
 	color-scheme: dark;
 }
 
-/* ── Tailwind v4 theme bridge ── */
-
 @theme inline {
+	--color-canvas: var(--canvas);
+	--color-surface-soft: var(--surface-soft);
+	--color-surface-card: var(--surface-card);
+	--color-surface-strong: var(--surface-strong);
+	--color-surface-dark: var(--surface-dark);
+	--color-surface-dark-elevated: var(--surface-dark-elevated);
+
+	--color-ink: var(--ink);
+	--color-body-strong: var(--body-strong);
+	--color-body: var(--body);
+	--color-muted: var(--muted);
+	--color-muted-soft: var(--muted-soft);
+	--color-on-primary: var(--on-primary);
+
+	--color-card-on-dark: var(--card-on-dark);
+	--color-card-on-light: var(--card-on-light);
+	--color-check: var(--check);
+
+	--color-hairline: var(--hairline);
+	--color-hairline-strong: var(--hairline-strong);
+
+	--color-brand-pink: var(--brand-pink);
+	--color-brand-teal: var(--brand-teal);
+	--color-brand-lavender: var(--brand-lavender);
+	--color-brand-peach: var(--brand-peach);
+	--color-brand-ochre: var(--brand-ochre);
+	--color-brand-mint: var(--brand-mint);
+	--color-brand-coral: var(--brand-coral);
+
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-error: var(--error);
+
 	--color-bg: var(--bg);
 	--color-bg-subtle: var(--bg-subtle);
 	--color-bg-muted: var(--bg-muted);
+	--color-bg-strong: var(--bg-strong);
 	--color-fg: var(--fg);
+	--color-fg-strong: var(--fg-strong);
 	--color-fg-muted: var(--fg-muted);
 	--color-fg-subtle: var(--fg-subtle);
 	--color-border: var(--border);
@@ -72,25 +165,26 @@
 	--color-accent: var(--accent);
 	--color-accent-fg: var(--accent-fg);
 	--color-accent-subtle: var(--accent-subtle);
-	--color-success: var(--success);
+	--color-info: var(--info);
 	--color-warn: var(--warn);
 	--color-danger: var(--danger);
-	--color-info: var(--info);
 
-	--font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+	--font-sans:
+		"Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif,
+		system-ui, sans-serif;
 	--font-display:
-		"Geist", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+		"Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif,
+		system-ui, sans-serif;
 	--font-mono:
-		"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo,
-		monospace;
+		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
+		"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-	--radius-sm: 0.375rem;
-	--radius-md: 0.5rem;
-	--radius-lg: 0.75rem;
-	--radius-xl: 1rem;
+	--radius-xs: 6px;
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
 }
-
-/* ── Base ── */
 
 html {
 	-webkit-font-smoothing: antialiased;
@@ -99,25 +193,26 @@ html {
 }
 
 body {
-	background: var(--bg);
-	color: var(--fg);
+	background: var(--canvas);
+	color: var(--ink);
 	min-height: 100vh;
 }
 
 ::selection {
-	background: var(--accent-subtle);
-	color: var(--fg);
+	background: var(--brand-peach);
+	color: #0a0a0a;
 }
 
-/* ── Focus ring ── */
+.font-display {
+	font-weight: 500;
+	letter-spacing: -0.025em;
+}
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-	outline: 2px solid var(--accent);
+	outline: 2px solid var(--ink);
 	outline-offset: 2px;
 	border-radius: var(--radius-sm);
 }
-
-/* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
 	*,

@@ -33,7 +33,8 @@
 			"@docvia/search": ["./packages/search/src"],
 			"@docvia/source": ["./packages/source/src"],
 			"@docvia/plugin-vite": ["./packages/plugin-vite/src"],
-			"@docvia/plugin-next": ["./packages/plugin-next/src"]
+			"@docvia/plugin-next": ["./packages/plugin-next/src"],
+			"@docvia/plugin-openapi": ["./packages/plugin-openapi/src"]
 		}
 	}
 }

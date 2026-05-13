@@ -9,10 +9,11 @@ import Hero from "$lib/sections/hero.svelte";
 import Quickstart from "$lib/sections/quickstart.svelte";
 import Stats from "$lib/sections/stats.svelte";
 import UseCases from "$lib/sections/use-cases.svelte";
+
 </script>
 
 <svelte:head>
-	<title>docvia — The build-time documentation compiler</title>
+	<title>Docvia · The build-time documentation compiler</title>
 	<meta
 		name="description"
 		content="docvia compiles your Markdown into typed, pre-rendered modules for React, Svelte, and any framework with a renderer adapter. Incremental builds, full-text search, zero runtime parsing."

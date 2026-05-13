@@ -1,9 +1,9 @@
 import type {
-	docviaCollection,
-	docviaPage,
-	docviaSource,
-	PageTree,
-} from "./runtime.js";
+    docviaCollection,
+    docviaPage,
+    docviaSource,
+    PageTree,
+} from "./runtime";
 
 export interface ModuleExports {
 	meta: unknown;
