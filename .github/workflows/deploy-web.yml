@@ -7,10 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Cloudflare environment (leave blank for default)"
+        description: 'Cloudflare environment to deploy to (e.g. "production", "staging", etc.)'
         required: false
-        default: ""
-        type: string
+        default: 'production'
 
 concurrency:
   group: deploy-web
@@ -25,7 +24,7 @@ jobs:
       contents: read
       deployments: write
     environment:
-      name: production
+      name: ${{ inputs.environment }}
       url: https://docvia.dev
     steps:
       - name: Checkout
