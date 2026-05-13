@@ -1,192 +1,193 @@
 <script lang="ts">
-import { ArrowRight, Sparkles } from "@lucide/svelte";
-import { Badge } from "$lib/components/ui/badge";
+import { ArrowRight, Check } from "@lucide/svelte";
+import { onMount } from "svelte";
+import { fade, fly, scale } from "svelte/transition";
+import { cubicOut } from "svelte/easing";
 import { Button } from "$lib/components/ui/button";
+
+const buildLog = [
+	{ label: "parse", detail: "docs/  ·  24 files", duration: "38ms" },
+	{ label: "ir", detail: "transform → 312 nodes", duration: "21ms" },
+	{ label: "react", detail: "emit .docvia/react", duration: "104ms" },
+	{ label: "svelte", detail: "emit .docvia/svelte", duration: "98ms" },
+	{ label: "static", detail: "emit .docvia/html", duration: "61ms" },
+];
+
+const frameworks = ["React", "Svelte", "Next.js", "Vite", "Astro", "Static"];
+
+let mounted = $state(false);
+onMount(() => {
+	mounted = true;
+});
 </script>
 
-<section class="relative overflow-hidden">
-	<!-- Backdrop glow -->
+<section class="relative overflow-hidden bg-canvas">
 	<div
-		aria-hidden="true"
-		class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] bg-[radial-gradient(60%_60%_at_50%_0%,var(--accent-subtle)_0%,transparent_70%)] opacity-80"
-	></div>
-	<div
-		aria-hidden="true"
-		class="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,transparent_0%,var(--bg)_70%)]"
-	></div>
-	<!-- Grid backdrop -->
-	<div
-		aria-hidden="true"
-		class="pointer-events-none absolute inset-0 -z-20 opacity-[0.05]"
-		style="background-image: linear-gradient(var(--fg) 1px, transparent 1px), linear-gradient(to right, var(--fg) 1px, transparent 1px); background-size: 40px 40px;"
-	></div>
-
-	<div
-		class="mx-auto max-w-[1200px] px-6 pt-20 pb-16 md:px-10 md:pt-32 md:pb-24"
+		class="mx-auto grid max-w-7xl gap-12 px-6 pt-20 pb-24 md:px-10 md:pt-28 md:pb-32 lg:grid-cols-12 lg:gap-10"
 	>
-		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
-			<Badge variant="accent" class="mb-6">
-				<Sparkles class="h-3 w-3" />
-				v0.1 preview · open source
-			</Badge>
-
-			<h1
-				class="font-display text-5xl font-semibold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl"
-			>
-				The fastest way to ship
-				<br class="hidden sm:block" />
-				<span class="text-accent">developer documentation.</span>
-			</h1>
-
-			<p class="mt-6 max-w-2xl text-lg leading-relaxed text-fg-muted md:text-xl">
-				docvia compiles your Markdown into typed, pre-rendered modules for
-				React, Svelte, or any framework. Incremental builds, full-text
-				search, and zero runtime parsing — all from a single config file.
-			</p>
-
-			<div class="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-				<Button size="lg" href="/docs">
-					Start building
-					<ArrowRight />
-				</Button>
-				<Button
-					variant="outline"
-					size="lg"
-					href="https://github.com/kanakkholwal/docvia"
+		<!-- ── Left: editorial copy (7 cols) ────────────────────────── -->
+		<div class="flex flex-col justify-center lg:col-span-7">
+			{#if mounted}
+				<span
+					in:fly={{ y: 8, duration: 280, easing: cubicOut, delay: 40 }}
+					class="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-surface-card px-3 py-1.5 text-[13px] font-medium text-body-strong"
 				>
-					View on GitHub
-				</Button>
-			</div>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand-coral"></span>
+					Open source · self-host anywhere
+				</span>
 
-			<p class="mt-4 font-mono text-xs text-fg-subtle">
-				$ pnpm add -D @docvia/cli
-			</p>
+				<h1
+					in:fly={{ y: 16, duration: 360, easing: cubicOut, delay: 120 }}
+					class="font-display text-[44px] leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-[72px]"
+					style="letter-spacing: -0.035em;"
+				>
+					Docs that compile.
+					<br />
+					Ship them anywhere.
+				</h1>
+
+				<p
+					in:fly={{ y: 12, duration: 320, easing: cubicOut, delay: 280 }}
+					class="mt-8 max-w-xl text-lg leading-[1.55] text-body"
+				>
+					Markdown in. Typed modules out. Render for React, Svelte, Vite, or
+					any framework with an adapter.
+				</p>
+
+				<div
+					in:fly={{ y: 12, duration: 320, easing: cubicOut, delay: 360 }}
+					class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
+				>
+					<Button size="lg" href="/docs">
+						Get started
+						<ArrowRight />
+					</Button>
+					<Button variant="outline" size="lg" href="/#editions">
+						Join Team waitlist
+					</Button>
+				</div>
+
+				<div
+					in:fade={{ duration: 360, delay: 480 }}
+					class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted"
+				>
+					<span class="inline-flex items-center gap-1.5">
+						<Check class="h-4 w-4 text-check" />
+						Open source MIT
+					</span>
+					<span class="inline-flex items-center gap-1.5">
+						<Check class="h-4 w-4 text-check" />
+						No vendor lock-in
+					</span>
+					<span class="inline-flex items-center gap-1.5">
+						<Check class="h-4 w-4 text-check" />
+						Self-host or BYO cloud
+					</span>
+				</div>
+			{/if}
 		</div>
 
-		<!-- Hero product preview: docs site mock -->
-		<div class="relative mx-auto mt-20 max-w-5xl">
-			<!-- Floating accent halos -->
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute -left-12 -top-8 h-32 w-32 rounded-full bg-accent/20 blur-3xl"
-			></div>
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute -right-12 bottom-12 h-40 w-40 rounded-full bg-info/10 blur-3xl"
-			></div>
-
-			<div
-				class="overflow-hidden rounded-xl border border-border bg-bg-subtle shadow-[var(--shadow-lg)]"
-			>
-				<!-- Window chrome -->
+		<!-- ── Right: hero illustration card (5 cols) ────────────────── -->
+		<div class="relative lg:col-span-5">
+			{#if mounted}
 				<div
-					class="flex items-center gap-2 border-b border-border bg-bg-muted/40 px-4 py-2.5"
+					in:fly={{ y: 24, duration: 480, easing: cubicOut, delay: 200 }}
+					class="relative rounded-xl bg-surface-soft p-6 md:p-8"
 				>
-					<span class="h-2.5 w-2.5 rounded-full bg-fg-subtle/30"></span>
-					<span class="h-2.5 w-2.5 rounded-full bg-fg-subtle/30"></span>
-					<span class="h-2.5 w-2.5 rounded-full bg-fg-subtle/30"></span>
+					<!-- Floating brand-accent shapes for warmth -->
 					<div
-						class="ml-3 flex flex-1 items-center justify-center"
-					>
-						<span
-							class="rounded-md bg-bg px-3 py-1 font-mono text-[11px] text-fg-subtle"
-						>
-							docs.example.com
-						</span>
-					</div>
-				</div>
+						aria-hidden="true"
+						in:scale={{ duration: 480, delay: 520, start: 0.6 }}
+						class="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full bg-brand-peach"
+					></div>
+					<div
+						aria-hidden="true"
+						in:scale={{ duration: 480, delay: 640, start: 0.6 }}
+						class="pointer-events-none absolute -bottom-3 -left-3 h-10 w-10 rounded-full bg-brand-mint"
+					></div>
 
-				<!-- Mock docs layout -->
-				<div class="grid grid-cols-12">
-					<!-- Sidebar -->
-					<aside
-						class="col-span-3 hidden border-r border-border bg-bg-subtle/40 p-4 md:block"
+					<!-- Build console (product UI fragment) -->
+					<div
+						class="relative overflow-hidden rounded-lg border border-hairline bg-canvas"
 					>
-						<div class="mb-3 flex items-center gap-2">
-							<span
-								class="grid h-5 w-5 place-items-center rounded bg-accent text-[10px] font-bold text-accent-fg"
-							>d</span>
-							<span class="text-xs font-semibold">Acme Docs</span>
+						<!-- Console chrome -->
+						<div
+							class="flex items-center gap-2 border-b border-hairline bg-surface-card/60 px-4 py-2.5"
+						>
+							<span class="h-2.5 w-2.5 rounded-full bg-brand-coral/70"></span>
+							<span class="h-2.5 w-2.5 rounded-full bg-brand-ochre/70"></span>
+							<span class="h-2.5 w-2.5 rounded-full bg-brand-mint/80"></span>
+							<span class="ml-3 font-mono text-[11px] text-muted-soft">
+								docvia · build
+							</span>
 						</div>
-						<div class="space-y-3">
-							{#each ["Introduction", "Quickstart", "Concepts", "Reference"] as group, i}
-								<div>
-									<div
-										class="mb-1.5 px-2 text-[10px] uppercase tracking-[0.05em] text-fg-subtle"
-									>
-										{group}
-									</div>
-									<div class="space-y-0.5">
-										{#each Array(3) as _, j}
-											<div
-												class={`flex items-center gap-2 rounded-md px-2 py-1 text-xs ${i === 0 && j === 1 ? "bg-bg-muted text-fg" : "text-fg-muted"}`}
-											>
-												{#if i === 0 && j === 1}
-													<span class="h-1 w-1 rounded-full bg-accent"></span>
-												{:else}
-													<span class="h-1 w-1 rounded-full bg-transparent"></span>
-												{/if}
-												<span class="h-2 flex-1 rounded-sm bg-fg/10"></span>
-											</div>
-										{/each}
-									</div>
+
+						<!-- Build log (staggered reveal) -->
+						<div class="space-y-2.5 p-5 font-mono text-[13px]">
+							<div
+								in:fade={{ duration: 200, delay: 400 }}
+								class="text-muted"
+							>
+								$ docvia build
+							</div>
+							{#each buildLog as step, i}
+								<div
+									in:fly={{
+										x: -6,
+										duration: 280,
+										easing: cubicOut,
+										delay: 500 + i * 90,
+									}}
+									class="flex items-center gap-3"
+								>
+									<Check class="h-3.5 w-3.5 shrink-0 text-check" />
+									<span class="w-14 font-semibold text-ink">
+										{step.label}
+									</span>
+									<span class="flex-1 truncate text-body">
+										{step.detail}
+									</span>
+									<span class="text-muted-soft">{step.duration}</span>
 								</div>
 							{/each}
-						</div>
-					</aside>
-
-					<!-- Content -->
-					<div class="col-span-12 p-6 md:col-span-9 md:p-8">
-						<div class="text-[10px] font-medium uppercase tracking-[0.05em] text-accent">
-							Quickstart
-						</div>
-						<div class="mt-2 h-7 w-3/4 rounded-md bg-fg/15"></div>
-						<div class="mt-3 h-3 w-full rounded bg-fg/10"></div>
-						<div class="mt-1.5 h-3 w-5/6 rounded bg-fg/10"></div>
-						<div class="mt-1.5 h-3 w-4/6 rounded bg-fg/10"></div>
-
-						<!-- Code block -->
-						<div
-							class="mt-6 overflow-hidden rounded-lg border border-border bg-bg"
-						>
 							<div
-								class="flex items-center justify-between border-b border-border px-3 py-1.5 text-[10px] text-fg-subtle"
+								in:fade={{
+									duration: 320,
+									delay: 500 + buildLog.length * 90,
+								}}
+								class="border-t border-hairline pt-2.5 text-body-strong"
 							>
-								<span class="font-mono">app.ts</span>
-								<div class="flex items-center gap-2">
-									<span class="h-1.5 w-1.5 rounded-full bg-success/60"></span>
-									<span class="font-mono">typed</span>
-								</div>
-							</div>
-							<div class="space-y-2 p-3">
-								{#each [80, 60, 75, 45, 70, 55] as w}
-									<div
-										class="h-2 rounded bg-fg/10"
-										style="width: {w}%"
-									></div>
-								{/each}
-							</div>
-						</div>
-
-						<div class="mt-6 grid grid-cols-2 gap-3">
-							<div
-								class="rounded-md border border-border bg-bg p-3"
-							>
-								<div class="h-3 w-2/3 rounded bg-fg/15"></div>
-								<div class="mt-2 h-2 w-full rounded bg-fg/10"></div>
-								<div class="mt-1 h-2 w-3/4 rounded bg-fg/10"></div>
-							</div>
-							<div
-								class="rounded-md border border-border bg-bg p-3"
-							>
-								<div class="h-3 w-2/3 rounded bg-fg/15"></div>
-								<div class="mt-2 h-2 w-full rounded bg-fg/10"></div>
-								<div class="mt-1 h-2 w-3/4 rounded bg-fg/10"></div>
+								<span class="text-check">✓</span> Built 24 pages in
+								<span class="font-semibold">412ms</span>
 							</div>
 						</div>
 					</div>
+
+					<!-- Framework targets -->
+					<div class="mt-5">
+						<div
+							class="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
+						>
+							Render targets
+						</div>
+						<div class="flex flex-wrap gap-2">
+							{#each frameworks as fw, i}
+								<span
+									in:scale={{
+										duration: 280,
+										easing: cubicOut,
+										start: 0.85,
+										delay: 1100 + i * 50,
+									}}
+									class="rounded-full border border-hairline bg-canvas px-3 py-1 text-[13px] font-medium text-body-strong"
+								>
+									{fw}
+								</span>
+							{/each}
+						</div>
+					</div>
 				</div>
-			</div>
+			{/if}
 		</div>
 	</div>
 </section>
