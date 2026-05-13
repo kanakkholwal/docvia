@@ -1,10 +1,11 @@
 import { resolveRef } from "./spec";
 import type {
-    OpenAPIDocument,
-    OpenAPIMediaType,
-    OpenAPIOperation,
-    OpenAPIParameter,
-    OpenAPISchema,
+	OpenAPIDocument,
+	OpenAPIMediaType,
+	OpenAPIOperation,
+	OpenAPIParameter,
+	OpenAPIParameterOrRef,
+	OpenAPISchema,
 } from "./types";
 
 // Minimal mdast node shapes — kept structural so we don't depend on @types/mdast.
@@ -77,11 +78,7 @@ export function renderOperation(
 	out.push({
 		type: "heading",
 		depth: 3,
-		children: [
-			strong([text(method.toUpperCase())]),
-			text("  "),
-			code(path),
-		],
+		children: [strong([text(method.toUpperCase())]), text("  "), code(path)],
 	});
 
 	// Summary / description
@@ -172,9 +169,24 @@ export function renderOperation(
 	return out;
 }
 
+function resolveParameter(
+	doc: OpenAPIDocument,
+	param: OpenAPIParameterOrRef,
+): OpenAPIParameter | undefined {
+	if ("$ref" in param) {
+		const resolved = resolveRef(doc, param.$ref) as
+			| OpenAPIParameter
+			| undefined;
+		return resolved && "name" in resolved && "in" in resolved
+			? resolved
+			: undefined;
+	}
+	return param;
+}
+
 function renderParameterTable(
 	doc: OpenAPIDocument,
-	params: readonly OpenAPIParameter[],
+	params: readonly OpenAPIParameterOrRef[],
 ): MdTable {
 	const header: MdTableRow = {
 		type: "tableRow",
@@ -187,19 +199,22 @@ function renderParameterTable(
 		],
 	};
 
-	const rows: MdTableRow[] = params.map((p) => {
-		const schema = resolveSchema(doc, p.schema);
-		return {
-			type: "tableRow",
-			children: [
-				cell([code(p.name)]),
-				cell([text(p.in)]),
-				cell([code(formatSchemaType(schema))]),
-				cell([text(p.required ? "yes" : "no")]),
-				cell([text(p.description ?? "")]),
-			],
-		};
-	});
+	const rows: MdTableRow[] = params
+		.map((p) => resolveParameter(doc, p))
+		.filter((p): p is OpenAPIParameter => p !== undefined)
+		.map((p) => {
+			const schema = resolveSchema(doc, p.schema);
+			return {
+				type: "tableRow",
+				children: [
+					cell([code(p.name)]),
+					cell([text(p.in)]),
+					cell([code(formatSchemaType(schema))]),
+					cell([text(p.required ? "yes" : "no")]),
+					cell([text(p.description ?? "")]),
+				],
+			};
+		});
 
 	return {
 		type: "table",
@@ -262,41 +277,48 @@ function synthesizeExample(
 	schema: OpenAPISchema,
 	seen: Set<string>,
 ): unknown {
-	const resolved = resolveSchema(doc, schema);
-	if (!resolved) return null;
-	if (resolved.$ref) {
-		if (seen.has(resolved.$ref)) return null;
-		seen.add(resolved.$ref);
+	// Track the $ref we're about to follow so cycles short-circuit, but unwind
+	// after recursion so sibling branches can revisit the same schema.
+	const followingRef = schema.$ref;
+	if (followingRef) {
+		if (seen.has(followingRef)) return null;
+		seen.add(followingRef);
 	}
-	if (resolved.example !== undefined) return resolved.example;
-	if (resolved.enum && resolved.enum.length > 0) return resolved.enum[0];
-	switch (resolved.type) {
-		case "string":
-			return resolved.format === "date-time"
-				? new Date().toISOString()
-				: resolved.format === "uuid"
-					? "00000000-0000-0000-0000-000000000000"
-					: "string";
-		case "integer":
-		case "number":
-			return 0;
-		case "boolean":
-			return true;
-		case "array":
-			return resolved.items
-				? [synthesizeExample(doc, resolved.items, seen)]
-				: [];
-		case "object": {
-			const obj: Record<string, unknown> = {};
-			if (resolved.properties) {
-				for (const [k, v] of Object.entries(resolved.properties)) {
-					obj[k] = synthesizeExample(doc, v, seen);
+	try {
+		const resolved = resolveSchema(doc, schema);
+		if (!resolved) return null;
+		if (resolved.example !== undefined) return resolved.example;
+		if (resolved.enum && resolved.enum.length > 0) return resolved.enum[0];
+		switch (resolved.type) {
+			case "string":
+				return resolved.format === "date-time"
+					? "2020-01-01T00:00:00.000Z"
+					: resolved.format === "uuid"
+						? "00000000-0000-0000-0000-000000000000"
+						: "string";
+			case "integer":
+			case "number":
+				return 0;
+			case "boolean":
+				return true;
+			case "array":
+				return resolved.items
+					? [synthesizeExample(doc, resolved.items, seen)]
+					: [];
+			case "object": {
+				const obj: Record<string, unknown> = {};
+				if (resolved.properties) {
+					for (const [k, v] of Object.entries(resolved.properties)) {
+						obj[k] = synthesizeExample(doc, v, seen);
+					}
 				}
+				return obj;
 			}
-			return obj;
+			default:
+				return null;
 		}
-		default:
-			return null;
+	} finally {
+		if (followingRef) seen.delete(followingRef);
 	}
 }
 

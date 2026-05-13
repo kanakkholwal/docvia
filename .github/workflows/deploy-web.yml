@@ -26,7 +26,7 @@ jobs:
       deployments: write
     environment:
       name: production
-      url: https://docvia-web.<your-subdomain>.workers.dev
+      url: https://docvia.dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
