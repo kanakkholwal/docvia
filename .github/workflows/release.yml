@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - main
-
+    tags: 
+      - 'v*.*.*'  # Match version tags like v1.2.3
+    paths:
+      - 'apps/packages/**'  # Only trigger if changes in this directory
+    
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
