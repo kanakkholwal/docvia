@@ -37,6 +37,12 @@ export interface OpenAPIParameter {
 	readonly schema?: OpenAPISchema;
 }
 
+export interface OpenAPIReference {
+	readonly $ref: string;
+}
+
+export type OpenAPIParameterOrRef = OpenAPIParameter | OpenAPIReference;
+
 export interface OpenAPISchema {
 	readonly type?: string;
 	readonly format?: string;
@@ -74,13 +80,13 @@ export interface OpenAPIOperation {
 	readonly operationId?: string;
 	readonly tags?: readonly string[];
 	readonly deprecated?: boolean;
-	readonly parameters?: readonly OpenAPIParameter[];
+	readonly parameters?: readonly OpenAPIParameterOrRef[];
 	readonly requestBody?: OpenAPIRequestBody;
 	readonly responses?: Readonly<Record<string, OpenAPIResponse>>;
 }
 
 export type OpenAPIPathItem = Partial<Record<HttpMethod, OpenAPIOperation>> & {
-	readonly parameters?: readonly OpenAPIParameter[];
+	readonly parameters?: readonly OpenAPIParameterOrRef[];
 };
 
 export interface OpenAPIDocument {

@@ -1,14 +1,14 @@
-import { docviaError } from "@docvia/ir";
-import yaml from "js-yaml";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
+import { docviaError } from "@docvia/ir";
+import yaml from "js-yaml";
 import {
-    HTTP_METHODS,
-    type HttpMethod,
-    type OpenAPIDocument,
-    type OpenAPIOperation,
-    type OpenAPISchema,
+	HTTP_METHODS,
+	type HttpMethod,
+	type OpenAPIDocument,
+	type OpenAPIOperation,
+	type OpenAPISchema,
 } from "./types";
 
 export interface LoadedSpec {
@@ -88,7 +88,10 @@ export function resolveRef(
 	ref: string,
 ): OpenAPISchema | undefined {
 	if (!ref.startsWith("#/")) return undefined;
-	const segments = ref.slice(2).split("/");
+	const segments = ref
+		.slice(2)
+		.split("/")
+		.map((seg) => seg.replace(/~1/g, "/").replace(/~0/g, "~"));
 	let cursor: unknown = doc;
 	for (const seg of segments) {
 		if (!cursor || typeof cursor !== "object") return undefined;
@@ -107,7 +110,7 @@ export function parseBlockMeta(
 	if (!meta) return null;
 	const trimmed = meta.trim();
 	const m = trimmed.match(/^([a-zA-Z]+)\s+(\S+)/);
-	if (!m || !m[1] || !m[2]) return null;
+	if (!m?.[1] || !m[2]) return null;
 	const method = m[1].toLowerCase() as HttpMethod;
 	if (!HTTP_METHODS.includes(method)) return null;
 	return { method, path: m[2] };
