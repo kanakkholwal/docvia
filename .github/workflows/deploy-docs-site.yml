@@ -16,6 +16,8 @@ on:
         required: false
         default: ''
       
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
   group: deploy-docs-site
