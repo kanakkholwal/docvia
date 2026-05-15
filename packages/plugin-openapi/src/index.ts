@@ -1,5 +1,5 @@
-export { openapi } from "./plugin";
 export type { OpenAPIPluginOptions } from "./plugin";
+export { openapi } from "./plugin";
 export type {
 	HttpMethod,
 	OpenAPIDocument,
@@ -10,6 +10,5 @@ export type {
 	OpenAPIPathItem,
 	OpenAPIRequestBody,
 	OpenAPIResponse,
-	OpenAPISchema
+	OpenAPISchema,
 } from "./types";
-

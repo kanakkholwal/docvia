@@ -1,8 +1,8 @@
 import type {
-    docviaCollection,
-    docviaPage,
-    docviaSource,
-    PageTree,
+	docviaCollection,
+	docviaPage,
+	docviaSource,
+	PageTree,
 } from "./runtime";
 
 export interface ModuleExports {

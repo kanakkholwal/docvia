@@ -1,6 +1,5 @@
 <script lang="ts">
 import { Github, Menu, X } from "@lucide/svelte";
-import type { Snippet } from "svelte";
 import { slide } from "svelte/transition";
 import { cubicOut } from "svelte/easing";
 import Brand from "$lib/components/brand.svelte";
@@ -11,7 +10,9 @@ import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import "../app.css";
 
-let { children }: { children: Snippet } = $props();
+import type { LayoutProps } from "./$types";
+
+let { children, data }: LayoutProps = $props();
 let mobileNavOpen = $state(false);
 </script>
 
@@ -42,16 +43,16 @@ let mobileNavOpen = $state(false);
 				class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex"
 			>
 				<a
-					href="/"
+					href="/getting-started"
 					class="rounded-full px-3 py-1.5 text-[14px] font-medium text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
 				>
 					Guides
 				</a>
 				<a
-					href="/config"
+					href="/packages"
 					class="rounded-full px-3 py-1.5 text-[14px] font-medium text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
 				>
-					Reference
+					Packages
 				</a>
 				<a
 					href="https://github.com/kanakkholwal/docvia"
@@ -100,7 +101,7 @@ let mobileNavOpen = $state(false);
 				transition:slide={{ duration: 240, easing: cubicOut }}
 				class="mt-2 max-h-[70vh] overflow-y-auto rounded-xl border border-hairline bg-canvas p-4 shadow-[0_4px_24px_-12px_rgba(10,10,10,0.18)] lg:hidden"
 			>
-				<Sidebar />
+				<Sidebar tree={data.tree} />
 			</div>
 		{/if}
 	</div>
@@ -111,7 +112,7 @@ let mobileNavOpen = $state(false);
 		<div
 			class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2"
 		>
-			<Sidebar />
+			<Sidebar tree={data.tree} />
 		</div>
 	</aside>
 	<main id="main" class="min-w-0 flex-1 pb-24 pt-6 md:pt-10">

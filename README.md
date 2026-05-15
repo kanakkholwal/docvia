@@ -54,10 +54,86 @@ export default defineConfig({
 After `docvia build`, import the generated source:
 
 ```ts
-import { docviaSource } from "docvia/source";
+import { docs } from "docvia/source"; // generated into .docvia/
 
-const page = await docviaSource.docs.get("index");
+const page = await docs.getPage(["getting-started"]); // slug segments
+const all = docs.getPages();                          // metadata for every page
+const tree = docs.pageTree;                           // navigation tree
 ```
+
+## Framework integration
+
+`docvia build` only produces a typed module graph in `.docvia/` — it does not
+run a server. To render docs inside a real app, pair the build step with one of
+the framework integrations. The pattern is always the same: run `docvia build`
+before the framework dev/build, then import from `docvia/source`.
+
+### SvelteKit (Vite)
+
+```bash
+pnpm add -D @docvia/cli @docvia/plugin-vite
+pnpm add @docvia/renderer-svelte @docvia/source @docvia/compiler @docvia/renderer-core
+```
+
+```ts
+// vite.config.ts
+import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
+import docviaConfig from "./docvia.config";
+
+export default defineConfig({
+  plugins: [sveltekit(), docviaSourcePlugin(), docviaMarkdownPlugin(docviaConfig)],
+  build: {
+    rollupOptions: {
+      external: ["@docvia/source", "@docvia/source/internal"],
+    },
+  },
+});
+```
+
+```jsonc
+// package.json — build docs before Vite starts
+{
+  "scripts": {
+    "predev": "docvia build",
+    "dev": "vite dev",
+    "prebuild": "docvia build",
+    "build": "vite build"
+  }
+}
+```
+
+The `docvia.config.ts` must use the Svelte renderer (`createSvelteRenderer`
+from `@docvia/renderer-svelte/node`). Consume pages in a catch-all route via
+`docs.getPage(...)` and render them with the `Renderer` component from
+`@docvia/renderer-svelte`. See [`examples/demo-svelte`](./examples/demo-svelte)
+and [`apps/docs`](./apps/docs) for working setups.
+
+### Next.js
+
+```bash
+pnpm add -D @docvia/cli @docvia/plugin-next
+pnpm add @docvia/renderer-react @docvia/source react react-dom
+```
+
+```js
+// next.config.mjs
+import { withDocvia } from "@docvia/plugin-next";
+
+export default withDocvia({ configPath: "./docvia.config.ts" })({
+  reactStrictMode: true,
+});
+```
+
+`withDocvia` compiles the docs when the Next config is evaluated, aliases
+`docvia/source` to the compiled output, and starts an incremental watcher in
+dev. See [`examples/demo-next`](./examples/demo-next).
+
+### Standalone preview
+
+`docvia preview` serves `.docvia/` over `sirv` — a sanity check for the compiled
+output only. It is not a runtime; use a framework integration for a real site.
 
 ## Packages
 

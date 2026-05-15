@@ -4,6 +4,11 @@ name: Deploy web
 # — Cloudflare deploys are gated behind a human pressing "Run workflow"
 # in the GitHub UI (or via `gh workflow run deploy-web.yml`).
 on:
+  push:
+    branches: 
+      - main
+    paths:
+      - 'apps/web/**'  # Only trigger if changes in this directory
   workflow_dispatch:
     inputs:
       environment:

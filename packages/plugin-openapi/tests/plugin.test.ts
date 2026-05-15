@@ -67,7 +67,11 @@ describe("openapi plugin", () => {
 		const headings = children.filter((c) => c.type === "heading");
 		expect(headings.length).toBeGreaterThanOrEqual(2);
 		// The fenced openapi block must be gone.
-		expect(children.some((c) => c.type === "code" && (c as { lang?: string }).lang === "openapi")).toBe(false);
+		expect(
+			children.some(
+				(c) => c.type === "code" && (c as { lang?: string }).lang === "openapi",
+			),
+		).toBe(false);
 	});
 
 	it("descends into nested parent nodes", async () => {
@@ -89,7 +93,9 @@ describe("openapi plugin", () => {
 			],
 		};
 		await plugin.afterParse?.(ast, file);
-		const blockquote = (ast.children as Array<{ children: Array<{ type: string }> }>)[0]!;
+		const blockquote = (
+			ast.children as Array<{ children: Array<{ type: string }> }>
+		)[0]!;
 		expect(blockquote.children[0]!.type).toBe("heading");
 	});
 
