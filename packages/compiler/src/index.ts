@@ -176,6 +176,7 @@ interface CollectionData {
 function generateDynamicTs(
 	collections: readonly CollectionData[],
 	syntaxConfig: { theme: string; langs: readonly string[] },
+	resolvedOutDir: string,
 ): string {
 	const routeMaps = collections
 		.map((c) => {
@@ -195,6 +196,13 @@ function generateDynamicTs(
 const routeMap: Record<string, Record<string, string>> = {
 ${routeMaps}
 };
+
+// Absolute path to the docvia outDir, embedded at generation time. The
+// filesystem fallback in loadModule() resolves markdown paths against this
+// rather than import.meta.url — once this module is bundled (e.g. SvelteKit
+// SSR / prerender), import.meta.url points into the build output dir, not
+// .docvia/, which would break the relative routeMap paths.
+const _DOCVIA_OUT_DIR = ${JSON.stringify(resolvedOutDir)};
 
 // Global Shiki singleton — shared across dynamic.ts, source/node.ts, and renderer adapters.
 function _escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -240,8 +248,10 @@ export async function loadModule(
     if (typeof window !== 'undefined') return undefined;
     // Strip the literal "?docvia" query suffix to recover the file path.
     const cleanPath = modulePath.replace(/\\?docvia$/, '');
-    const { fileURLToPath } = await import('node:url');
-    const resolved = fileURLToPath(new URL(cleanPath, import.meta.url));
+    // routeMap paths are relative to the docvia outDir; resolve against its
+    // absolute location (not import.meta.url, which moves when bundled).
+    const { resolve: _resolvePath } = await import('node:path');
+    const resolved = _resolvePath(_DOCVIA_OUT_DIR, cleanPath);
     const hl = await _getHighlighter();
     const { loadMarkdown } = await import('@docvia/source/node');
     return loadMarkdown(resolved, { highlighter: hl });
@@ -598,7 +608,7 @@ export async function compile(
 	await Promise.all([
 		writeFile(
 			join(resolvedOutDir, "dynamic.ts"),
-			generateDynamicTs(collectionData, config.syntax),
+			generateDynamicTs(collectionData, config.syntax, resolvedOutDir),
 		),
 		writeFile(
 			join(resolvedOutDir, "source.ts"),

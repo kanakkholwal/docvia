@@ -10,14 +10,10 @@ on:
     paths:
       - 'apps/web/**'  # Only trigger if changes in this directory
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Cloudflare environment to deploy to (e.g. "production", "staging", etc.)'
-        required: false
-        default: 'production'
+
   
 concurrency:
-  group: deploy-web
+  group: deploy-web 
   cancel-in-progress: false
 
 env:
