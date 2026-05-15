@@ -18,7 +18,7 @@ const navLinks = [
 	{ label: "Features", href: "/#features" },
 	{ label: "Compare", href: "/#comparison" },
 	{ label: "Editions", href: "/#editions" },
-	{ label: "Docs", href: "/docs" },
+	{ label: "Docs", href: "https://docs.docvia.dev?utm_source=docvia.dev&utm_medium=referral&utm_campaign=navbar" },
 ];
 </script>
 
@@ -97,7 +97,7 @@ const navLinks = [
 				<Button
 					variant="primary"
 					size="sm"
-					href="/docs"
+					href="https://docs.docvia.dev?utm_source=docvia.dev&utm_medium=referral&utm_campaign=navbar"
 					class="hidden h-9 rounded-full sm:inline-flex"
 				>
 					Get started
@@ -191,7 +191,7 @@ const navLinks = [
 					Get notified when Team and Enterprise editions go live — and when v1.0 ships.
 				</p>
 				<a
-					href="mailto:hello@docvia.dev?subject=Subscribe"
+					href="mailto:docviajs@gmail.com?subject=Subscribe"
 					class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ink px-4 text-[13px] font-semibold text-on-primary transition-colors hover:bg-body-strong"
 				>
 					Join the list
@@ -232,10 +232,10 @@ const navLinks = [
 					</h4>
 				</div>
 				<ul class="space-y-2 text-[14px]">
-					<li><a href="/docs" class="text-body hover:text-ink">Documentation</a></li>
-					<li><a href="/docs/getting-started" class="text-body hover:text-ink">Getting started</a></li>
-					<li><a href="/docs/config" class="text-body hover:text-ink">Config reference</a></li>
-					<li><a href="/docs/plugins/openapi" class="text-body hover:text-ink">OpenAPI plugin</a></li>
+					<li><a href="https://docs.docvia.dev" class="text-body hover:text-ink">Documentation</a></li>
+					<li><a href="https://docs.docvia.dev/getting-started" class="text-body hover:text-ink">Getting started</a></li>
+					<li><a href="https://docs.docvia.dev/config" class="text-body hover:text-ink">Config reference</a></li>
+					<li><a href="https://docs.docvia.dev/plugins/openapi" class="text-body hover:text-ink">OpenAPI plugin</a></li>
 					<li><a href="https://github.com/kanakkholwal/docvia/releases" class="text-body hover:text-ink">Changelog</a></li>
 				</ul>
 			</div>
