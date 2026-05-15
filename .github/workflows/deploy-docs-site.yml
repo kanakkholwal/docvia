@@ -1,23 +1,23 @@
-name: Deploy web
+name: Deploy docs
 
 # Manual-only. There is intentionally no `push:` or `pull_request:` trigger
 # — Cloudflare deploys are gated behind a human pressing "Run workflow"
-# in the GitHub UI (or via `gh workflow run deploy-web.yml`).
+# in the GitHub UI (or via `gh workflow run deploy-docs-site.yml`).
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Cloudflare environment to deploy to (e.g. "production", "staging", etc.)'
-        required: false
-        default: 'production'
-  
+    push:
+      branches:
+        - main
+      paths:
+        - 'apps/docs/**'  # Only trigger if changes in this directory
+      
+
 concurrency:
-  group: deploy-web
+  group: deploy-docs-site
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Build & deploy apps/web to Cloudflare Workers
+    name: Build & deploy apps/docs to Cloudflare Workers
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -25,7 +25,7 @@ jobs:
       deployments: write
     environment:
       name: ${{ inputs.environment }}
-      url: https://docvia.dev
+      url: https://docs.docvia.dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,15 +42,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build apps/web
-        run: pnpm -F @docvia/web build
+      - name: Build apps/docs
+        run: pnpm -F @docvia/docs build
 
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/web
+          workingDirectory: apps/docs
           command: >-
             deploy
             ${{ inputs.environment != '' && format('--env {0}', inputs.environment) || '' }}
