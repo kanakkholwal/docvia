@@ -1,0 +1,24 @@
+# Cloudflare Worker config for the docvia documentation site (apps/docs).
+#
+# Built output is produced by @sveltejs/adapter-cloudflare into
+# .svelte-kit/cloudflare/. Wrangler ships the _worker.js entry plus the
+# static assets in the same directory.
+#
+# Deployment is via .github/workflows/deploy-docs-site.yml.
+
+name = "docvia-docs"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Tail logs on production for the first weeks of public preview.
+observability = { enabled = true }
+
+[assets]
+directory = ".svelte-kit/cloudflare"
+binding = "ASSETS"
+
+# When you connect a custom domain, uncomment and set zone_name:
+# [[routes]]
+# pattern = "docs.docvia.dev"
+# custom_domain = true
