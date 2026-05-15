@@ -10,11 +10,6 @@ on:
       paths:
         - 'apps/docs/**'  # Only trigger if changes in this directory
    workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment (e.g., production, staging). Leave blank for default.'
-        required: false
-        default: ''
       
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

@@ -24,8 +24,12 @@ export default defineConfig({
 			// emits a `createRequire(import.meta.url)` interop shim that
 			// crashes the Worker at startup ("path must be ... Received
 			// 'undefined'"). Dropping `node` makes them resolve their ESM
-			// (`browser`/`default`) build instead, so no shim is generated.
-			conditions: ["workerd", "worker", "browser", "module", "import", "default"],
+			// (`default`) build instead, so no shim is generated.
+			//
+			// NB: `browser` is intentionally NOT included — it would make
+			// SvelteKit resolve its *client* runtime (top-level `window.fetch`)
+			// into the server bundle and crash SSR/prerender.
+			conditions: ["workerd", "worker", "module", "import", "default"],
 		},
 	},
 });
