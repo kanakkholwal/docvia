@@ -257,51 +257,63 @@ body {
 	}
 }
 .scrollbar-transparent {
-   scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color:
-    color-mix(in srgb, var(--foreground) 15%, transparent) transparent;
-  scroll-behavior: smooth;
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: color-mix(in srgb, var(--foreground) 15%, transparent)
+		transparent;
+	scroll-behavior: smooth;
 }
 
 .scrollbar-transparent::-webkit-scrollbar {
-  width: 8px;
-  height: 8px
+	width: 8px;
+	height: 8px;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: .5rem
+	background: hsl(var(--muted));
+	border-radius: 0.5rem;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, hsl(var(--primary) / .6), hsl(var(--secondary) / .8));
-  border: 2px solid hsl(var(--background));
-  border-radius: .5rem;
-  transition: all .2s ease-in-out
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary) / 0.6),
+		hsl(var(--secondary) / 0.8)
+	);
+	border: 2px solid hsl(var(--background));
+	border-radius: 0.5rem;
+	transition: all 0.2s ease-in-out;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, hsl(var(--primary) / .8), hsl(var(--secondary) / 1));
-  transform: scale(1.1)
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary) / 0.8),
+		hsl(var(--secondary) / 1)
+	);
+	transform: scale(1.1);
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary)),
+		hsl(var(--secondary))
+	);
 }
 
 .scrollbar-transparent::-webkit-scrollbar-corner {
-  background: hsl(var(--background))
+	background: hsl(var(--background));
 }
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
 
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+	-ms-overflow-style: none;
+	/* IE and Edge */
+	scrollbar-width: none;
+	/* Firefox */
+}

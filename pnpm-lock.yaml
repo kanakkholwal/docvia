@@ -38,6 +38,18 @@ importers:
 
   apps/docs:
     dependencies:
+      '@docvia/compiler':
+        specifier: workspace:*
+        version: link:../../packages/compiler
+      '@docvia/renderer-core':
+        specifier: workspace:*
+        version: link:../../packages/renderer-core
+      '@docvia/renderer-svelte':
+        specifier: workspace:*
+        version: link:../../packages/renderer-svelte
+      '@docvia/source':
+        specifier: workspace:*
+        version: link:../../packages/source
       '@fontsource-variable/geist':
         specifier: ^5.2.5
         version: 5.2.8
@@ -45,6 +57,12 @@ importers:
         specifier: ^5.2.5
         version: 5.2.7
     devDependencies:
+      '@docvia/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@docvia/plugin-vite':
+        specifier: workspace:*
+        version: link:../../packages/plugin-vite
       '@lucide/svelte':
         specifier: ^0.479.0
         version: 0.479.0(svelte@5.55.0)

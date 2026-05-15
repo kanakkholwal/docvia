@@ -4,7 +4,10 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
+		"docvia:build": "docvia build",
+		"predev": "pnpm docvia:build",
 		"dev": "vite dev",
+		"prebuild": "pnpm docvia:build",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -12,6 +15,8 @@
 		"typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
 	},
 	"devDependencies": {
+		"@docvia/cli": "workspace:*",
+		"@docvia/plugin-vite": "workspace:*",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -28,6 +33,10 @@
 		"vite": "^8.0.3"
 	},
 	"dependencies": {
+		"@docvia/compiler": "workspace:*",
+		"@docvia/renderer-core": "workspace:*",
+		"@docvia/renderer-svelte": "workspace:*",
+		"@docvia/source": "workspace:*",
 		"@fontsource-variable/geist": "^5.2.5",
 		"@fontsource-variable/geist-mono": "^5.2.5"
 	}

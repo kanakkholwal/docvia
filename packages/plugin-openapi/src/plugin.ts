@@ -1,6 +1,11 @@
 import type { docviaPlugin, FileEntry } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
-import { findOperation, loadSpec, parseBlockMeta, type LoadedSpec } from "./spec";
+import {
+	findOperation,
+	type LoadedSpec,
+	loadSpec,
+	parseBlockMeta,
+} from "./spec";
 import { renderOperation } from "./transform";
 
 export interface OpenAPIPluginOptions {
@@ -100,7 +105,8 @@ function transformTree(
 	if (!isParent(root)) return;
 	const stack: MdParent[] = [root];
 	while (stack.length) {
-		const parent = stack.pop()!;
+		const parent = stack.pop();
+		if (!parent) continue;
 		const children = parent.children;
 		for (let i = 0; i < children.length; i++) {
 			const node = children[i];
