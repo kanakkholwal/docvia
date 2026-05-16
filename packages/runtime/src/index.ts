@@ -18,5 +18,5 @@ export {
 export { compileParallel, readFileEntry, readFileTree } from "./fs";
 export type { HashInputs } from "./hash";
 export { computeContentHash, hashConfig, stableStringify } from "./hash";
-export type { ServiceEntry } from "./service";
+export type { InvalidationResult, ServiceEntry } from "./service";
 export { CompileService, TOOL_VERSION } from "./service";
