@@ -15,15 +15,17 @@
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
 		"typecheck": "tsc --noEmit",
-		"test": "echo \"no tests yet\""
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@docvia/core": "workspace:*",
 		"@docvia/ir": "workspace:*",
+		"@docvia/runtime": "workspace:*",
 		"@docvia/schema": "workspace:*",
 		"@docvia/source": "workspace:*"
 	},
 	"devDependencies": {
+		"@docvia/plugins": "workspace:*",
 		"@types/node": "^20.0.0",
 		"svelte": "^5.49.2",
 		"typescript": "^5.5.0",

@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import { compile } from "@docvia/compiler";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { defineConfig, loadConfig } from "@docvia/plugins";
+import { CompileService } from "@docvia/runtime";
 import { c, formatError, log, symbols } from "../logger";
 
 export interface DevOptions {
@@ -17,6 +17,13 @@ function fmtMs(ms: number): string {
 	return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(ms)}ms`;
 }
 
+/**
+ * `docvia dev` — the generic, framework-agnostic watch loop. Frameworks with a
+ * dedicated integration (Vite via `@docvia/plugin-vite`, Next via
+ * `@docvia/plugin-next`) compile in-process; this command is the fallback for
+ * everything else. It drives the same `CompileService` so output is identical,
+ * and recompiles incrementally via `service.invalidate()`.
+ */
 export async function runDev(opts: DevOptions): Promise<void> {
 	const configPath = resolve(opts.config ?? "docvia.config.ts");
 	const projectRoot = existsSync(configPath)
@@ -50,25 +57,37 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		process.exit(1);
 	}
 
+	function createService(cfg: docviaConfig): CompileService {
+		const renderer = cfg.renderer;
+		if (!renderer) {
+			throw new docviaError("CONFIG_ERROR", "No renderer configured");
+		}
+		return new CompileService({
+			sourceDir,
+			outDir,
+			renderer,
+			plugins: [...cfg.plugins],
+			config: cfg,
+			projectRoot,
+			incremental: true,
+		});
+	}
+
+	let service = createService(config);
+
 	log.info("Starting dev mode...");
 
 	// Initial build
 	try {
-		const result = await compile({
-			sourceDir,
-			outDir,
-			renderer: config.renderer,
-			plugins: [...config.plugins],
-			config,
-			projectRoot,
-			incremental: true,
-		});
+		const start = performance.now();
+		const result = await service.compileAll();
+		await service.emitDiskModuleGraph();
 		log.success(
-			`Initial build: ${fmtMs(result.duration)} ${c.gray(`(${result.stats.total} files, ${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
+			`Initial build: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.stats.total} files, ${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
 		);
 	} catch (err) {
 		log.error(formatError(err));
-		// Don't exit on initial build failure — keep watching so the user can fix it
+		// Don't exit — keep watching so the user can fix the error.
 	}
 
 	const { watch } = await import("chokidar");
@@ -81,53 +100,52 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
 	});
 
-	let pending = new Set<string>();
+	const pending = new Set<string>();
 	let timer: ReturnType<typeof setTimeout> | null = null;
 	let building: Promise<unknown> | null = null;
 	let queued = false;
 
-	async function rebuild(reason: string): Promise<void> {
-		// Reload config if it changed
-		if (reason === "config") {
-			try {
-				config = await loadConfig(configPath);
-				log.info(`Config reloaded ${c.gray(`(${configPath})`)}`);
-			} catch (err) {
-				log.error(formatError(err));
-				return;
-			}
-		}
-
-		const renderer = config.renderer;
-		if (!renderer) {
-			log.error("No renderer configured.");
-			return;
-		}
-
+	async function rebuild(
+		reason: "config" | "files",
+		files: string[],
+	): Promise<void> {
 		const start = performance.now();
 		try {
-			const result = await compile({
-				sourceDir,
-				outDir,
-				renderer,
-				plugins: [...config.plugins],
-				config,
-				projectRoot,
-				incremental: true,
-			});
-			const ms = fmtMs(performance.now() - start);
-			log.success(
-				`Rebuild: ${ms} ${c.gray(`(${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
-			);
+			if (reason === "config") {
+				// Config change rebuilds everything — a new service is needed
+				// because config (plugins, renderer, schema) is baked in at
+				// construction.
+				config = await loadConfig(configPath);
+				log.info(`Config reloaded ${c.gray(`(${configPath})`)}`);
+				service = createService(config);
+				const result = await service.compileAll();
+				await service.emitDiskModuleGraph();
+				log.success(
+					`Rebuild: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
+				);
+			} else {
+				const result = await service.invalidate(files);
+				await service.emitDiskModuleGraph();
+				log.success(
+					`Rebuild: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.changed.length} recompiled)`)}`,
+				);
+			}
 		} catch (err) {
 			log.error(formatError(err));
 		}
 	}
 
 	function flush(): void {
-		if (pending.size === 0 && !queued) return;
+		if (pending.size === 0) return;
+		// Serialize: if a rebuild is in flight, leave changes in `pending` and
+		// re-flush when it settles.
+		if (building) {
+			queued = true;
+			return;
+		}
+
 		const files = [...pending];
-		pending = new Set();
+		pending.clear();
 		timer = null;
 
 		const reason = files.includes(configPath) ? "config" : "files";
@@ -135,22 +153,11 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			reason === "config"
 				? "config change"
 				: `${files.length} file${files.length === 1 ? "" : "s"}`;
-
 		log.info(`Rebuilding ${c.gray(`(${label})`)}...`);
 
-		// Build lock: serialize concurrent rebuilds
-		if (building) {
-			queued = true;
-			building.finally(() => {
-				queued = false;
-				flush();
-			});
-			return;
-		}
-
-		building = rebuild(reason).finally(() => {
+		building = rebuild(reason, files).finally(() => {
 			building = null;
-			if (queued) {
+			if (queued || pending.size > 0) {
 				queued = false;
 				flush();
 			}

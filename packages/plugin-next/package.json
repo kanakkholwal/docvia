@@ -14,12 +14,13 @@
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/compiler": "workspace:*",
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
+		"@docvia/runtime": "workspace:*",
 		"chokidar": "^4.0.0"
 	},
 	"devDependencies": {

@@ -46,6 +46,7 @@
 		"@docvia/compiler": "workspace:*",
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
+		"@docvia/runtime": "workspace:*",
 		"chokidar": "^5.0.0",
 		"commander": "^14.0.3",
 		"sirv": "^3.0.2"

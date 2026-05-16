@@ -1,0 +1,58 @@
+{
+	"name": "@docvia/ssr",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		},
+		"./node": {
+			"types": "./dist/node.d.mts",
+			"import": "./dist/node.mjs",
+			"default": "./dist/node.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch --no-clean",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@docvia/ir": "workspace:*",
+		"@docvia/renderer-core": "workspace:*",
+		"@docvia/runtime": "workspace:*"
+	},
+	"devDependencies": {
+		"@docvia/plugins": "workspace:*",
+		"@types/node": "^25.5.0",
+		"typescript": "^5.9.3"
+	},
+	"description": "Request-time SSR rendering for docvia — Node and edge content providers with an LRU render cache",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/ssr"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia",
+		"ssr"
+	]
+}

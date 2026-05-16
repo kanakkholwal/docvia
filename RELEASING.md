@@ -1,6 +1,6 @@
 # Releasing docvia
 
-This monorepo publishes 13 packages under the `@docvia/*` scope. Releases are
+This monorepo publishes 17 packages under the `@docvia/*` scope. Releases are
 managed with [changesets](https://github.com/changesets/changesets); the
 workspace `package.json` exposes the standard scripts.
 
@@ -19,15 +19,17 @@ publishing automatically once changesets land on `main`.
 
 ## What's in scope
 
-**Published** (13 packages, all `@docvia/*`):
+**Published** (17 packages, all `@docvia/*`):
 
 ```
 @docvia/cli              @docvia/renderer-core
 @docvia/compiler         @docvia/renderer-react
 @docvia/core             @docvia/renderer-svelte
-@docvia/ir               @docvia/schema
-@docvia/plugins          @docvia/search
-@docvia/plugin-next      @docvia/source
+@docvia/ir               @docvia/runtime
+@docvia/plugins          @docvia/schema
+@docvia/plugin-next      @docvia/search
+@docvia/plugin-openapi   @docvia/source
+@docvia/plugin-shiki     @docvia/ssr
 @docvia/plugin-vite
 ```
 

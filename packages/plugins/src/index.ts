@@ -82,9 +82,10 @@ export class PluginRunner {
 	async runBeforeParse(file: FileEntry): Promise<FileEntry> {
 		let result = file;
 		for (const plugin of this.plugins) {
-			if (plugin.beforeParse) {
+			const hook = plugin.beforeParse;
+			if (hook) {
 				result = await callHook(plugin, "beforeParse", file.path, () =>
-					plugin.beforeParse?.(result),
+					hook(result),
 				);
 			}
 		}
@@ -121,9 +122,10 @@ export class PluginRunner {
 	async runAfterTransform(doc: IRDocument): Promise<IRDocument> {
 		let result = doc;
 		for (const plugin of this.plugins) {
-			if (plugin.afterTransform) {
+			const hook = plugin.afterTransform;
+			if (hook) {
 				result = await callHook(plugin, "afterTransform", undefined, () =>
-					plugin.afterTransform?.(result),
+					hook(result),
 				);
 			}
 		}
@@ -133,9 +135,10 @@ export class PluginRunner {
 	async runBeforeRender(doc: IRDocument): Promise<IRDocument> {
 		let result = doc;
 		for (const plugin of this.plugins) {
-			if (plugin.beforeRender) {
+			const hook = plugin.beforeRender;
+			if (hook) {
 				result = await callHook(plugin, "beforeRender", undefined, () =>
-					plugin.beforeRender?.(result),
+					hook(result),
 				);
 			}
 		}

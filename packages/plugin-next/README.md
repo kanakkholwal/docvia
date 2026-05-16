@@ -2,7 +2,7 @@
 
 Next.js integration for docvia
 
-Part of [docvia](https://github.com/kanakkholwal/docvia) — a build-time
+Part of [docvia](https://github.com/kanakkholwal/docvia) — a Markdown
 documentation compiler for React, Svelte, and any framework with a renderer
 adapter.
 

@@ -35,6 +35,18 @@ export function createDefaultRendererMap(): RendererMap {
 		}),
 
 		"code-block": async (n, ctx) => {
+			// Build-time highlighted (e.g. by @docvia/plugin-shiki) — emit the
+			// stored HTML directly so no syntax highlighter runs at render time.
+			const prehighlighted = n.props.html;
+			if (typeof prehighlighted === "string") {
+				return {
+					kind: "element",
+					tag: "div",
+					props: { class: "docvia-code-block" },
+					children: [{ kind: "html", value: prehighlighted }],
+					id: n.id,
+				};
+			}
 			try {
 				const res = await ctx.highlighter.highlight(
 					n.props.value as string,
