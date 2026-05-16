@@ -215,15 +215,9 @@ importers:
       '@docvia/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@docvia/compiler':
-        specifier: workspace:*
-        version: link:../../packages/compiler
       '@docvia/plugin-vite':
         specifier: workspace:*
         version: link:../../packages/plugin-vite
-      '@docvia/renderer-core':
-        specifier: workspace:*
-        version: link:../../packages/renderer-core
       '@docvia/renderer-svelte':
         specifier: workspace:*
         version: link:../../packages/renderer-svelte

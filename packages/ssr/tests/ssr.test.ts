@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
 	BundledContentProvider,
 	createDocviaSSR,
+	createGlobChunkLoader,
 	LRUCache,
 } from "../src/index";
 
@@ -86,6 +87,53 @@ describe("createDocviaSSR", () => {
 		expect(v1?.contentHash).toBe("v1");
 		expect(v2?.contentHash).toBe("v2");
 		expect(v2).not.toBe(v1);
+	});
+});
+
+describe("createGlobChunkLoader", () => {
+	it("resolves a chunk from an import.meta.glob map", async () => {
+		const ir = fixtureIr();
+		const loader = createGlobChunkLoader({
+			"/.docvia/ir/docs/intro.json": async () => ({ default: ir }),
+		});
+		expect(await loader("docs", "intro")).toBe(ir);
+	});
+
+	it("unwraps a chunk exported without a default", async () => {
+		const ir = fixtureIr();
+		const loader = createGlobChunkLoader({
+			"/.docvia/ir/docs/intro.json": async () => ir,
+		});
+		expect(await loader("docs", "intro")).toBe(ir);
+	});
+
+	it("returns undefined for a slug absent from the glob", async () => {
+		const loader = createGlobChunkLoader({
+			"/.docvia/ir/docs/intro.json": async () => ({ default: fixtureIr() }),
+		});
+		expect(await loader("docs", "missing")).toBeUndefined();
+	});
+
+	it("honours a custom IR base path", async () => {
+		const ir = fixtureIr();
+		const loader = createGlobChunkLoader(
+			{ "/dist/ir/docs/intro.json": async () => ({ default: ir }) },
+			"/dist/ir/",
+		);
+		expect(await loader("docs", "intro")).toBe(ir);
+	});
+
+	it("feeds BundledContentProvider", async () => {
+		const ir = fixtureIr();
+		const ssr = createDocviaSSR({
+			provider: BundledContentProvider(
+				createGlobChunkLoader({
+					"/.docvia/ir/docs/intro.json": async () => ({ default: ir }),
+				}),
+			),
+		});
+		const page = await ssr.render("docs", "intro");
+		expect(page?.contentHash).toBe("hash-1");
 	});
 });
 

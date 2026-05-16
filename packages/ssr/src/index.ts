@@ -126,3 +126,38 @@ export function BundledContentProvider(load: ChunkLoader): ContentProvider {
 		},
 	};
 }
+
+/**
+ * A Vite `import.meta.glob` map of the build's per-route IR chunks — keys are
+ * absolute module paths, values are lazy importers of the chunk JSON.
+ */
+export type ChunkGlob = Record<
+	string,
+	() => Promise<{ default: IRDocument } | IRDocument>
+>;
+
+/**
+ * Turn a Vite `import.meta.glob("/.docvia/ir/`**`/*.json")` map into a
+ * `ChunkLoader` for `BundledContentProvider`. The glob is statically analysable
+ * by the bundler, so every IR chunk is code-split and shipped — no `node:fs`,
+ * edge-safe.
+ *
+ * @example
+ * const loader = createGlobChunkLoader(
+ *   import.meta.glob("/.docvia/ir/**\/*.json"),
+ * );
+ * const ssr = createDocviaSSR({ provider: BundledContentProvider(loader) });
+ */
+export function createGlobChunkLoader(
+	glob: ChunkGlob,
+	irBasePath = "/.docvia/ir/",
+): ChunkLoader {
+	return async (collection, slug) => {
+		const importer = glob[`${irBasePath}${collection}/${slug}.json`];
+		if (!importer) return undefined;
+		const mod = await importer();
+		return (
+			mod && typeof mod === "object" && "default" in mod ? mod.default : mod
+		) as IRDocument;
+	};
+}
