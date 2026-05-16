@@ -1,18 +1,14 @@
-import type { CompilerOptions, FileEntry, IRDocument } from "@docvia/ir";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { FileEntry, IRDocument } from "@docvia/ir";
+import { describe, expect, it } from "vitest";
 
-describe("compiler integration", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
-	it("should have exposed public API", async () => {
-		// Import to verify module structure
+describe("compiler public API", () => {
+	it("exposes compile and hashing helpers", async () => {
 		const module = await import("../src/index");
 
-		// Check that computeContentHash is exported (already tested in hash.test)
-		expect(module.computeContentHash).toBeDefined();
+		expect(typeof module.compile).toBe("function");
 		expect(typeof module.computeContentHash).toBe("function");
+		// hashContent is the backwards-compatible alias of computeContentHash.
+		expect(module.hashContent).toBe(module.computeContentHash);
 	});
 
 	it("validates FileEntry structure", () => {
@@ -48,19 +44,5 @@ describe("compiler integration", () => {
 		expect(Array.isArray(doc.children)).toBe(true);
 		expect(Array.isArray(doc.headings)).toBe(true);
 		expect(Array.isArray(doc.dependencies)).toBe(true);
-	});
-
-	it("validates CompilerOptions type", () => {
-		const options: CompilerOptions = {
-			contentDir: "/docs",
-			configHash: "cfg123",
-			outDir: "/out",
-			plugins: [],
-		};
-
-		expect(options.contentDir).toBe("/docs");
-		expect(options.configHash).toBe("cfg123");
-		expect(options.outDir).toBe("/out");
-		expect(Array.isArray(options.plugins)).toBe(true);
 	});
 });

@@ -282,31 +282,13 @@ importers:
 
   packages/compiler:
     dependencies:
-      '@docvia/core':
-        specifier: workspace:*
-        version: link:../core
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@docvia/plugins':
+      '@docvia/runtime':
         specifier: workspace:*
-        version: link:../plugins
-      '@docvia/schema':
-        specifier: workspace:*
-        version: link:../schema
-      '@docvia/search':
-        specifier: workspace:*
-        version: link:../search
-      '@node-rs/xxhash':
-        specifier: ^1.7.6
-        version: 1.7.6
+        version: link:../runtime
     devDependencies:
-      '@types/hast':
-        specifier: ^3.0.4
-        version: 3.0.4
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -550,6 +532,37 @@ importers:
       vite:
         specifier: ^8.0.3
         version: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)
+
+  packages/runtime:
+    dependencies:
+      '@docvia/core':
+        specifier: workspace:*
+        version: link:../core
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@docvia/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@node-rs/xxhash':
+        specifier: ^1.7.6
+        version: 1.7.6
+    devDependencies:
+      '@types/hast':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/schema:
     dependencies:
