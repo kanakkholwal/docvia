@@ -35,6 +35,7 @@
 			"@docvia/source": ["./packages/source/src"],
 			"@docvia/plugin-vite": ["./packages/plugin-vite/src"],
 			"@docvia/plugin-next": ["./packages/plugin-next/src"],
+			"@docvia/plugin-shiki": ["./packages/plugin-shiki/src"],
 			"@docvia/plugin-openapi": ["./packages/plugin-openapi/src"]
 		}
 	}

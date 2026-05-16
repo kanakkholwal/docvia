@@ -50,6 +50,35 @@ describe("default-renderers", () => {
 		}
 	});
 
+	it("emits build-time highlighted HTML without calling the highlighter", async () => {
+		const renderers = createDefaultRendererMap();
+		const node: IRNode = {
+			type: "code-block",
+			id: "node-pre",
+			props: {
+				lang: "ts",
+				value: "const x = 1;",
+				html: '<pre class="shiki">prehighlighted</pre>',
+			},
+			children: [],
+		};
+
+		mockHighlighter.highlight.mockClear();
+		const output = await renderers?.["code-block"]?.(node, ctx);
+
+		expect(mockHighlighter.highlight).not.toHaveBeenCalled();
+		expect(output?.kind).toBe("element");
+		if (output?.kind === "element") {
+			expect(output.props?.class).toBe("docvia-code-block");
+			expect(output.children?.[0]?.kind).toBe("html");
+			if (output.children?.[0]?.kind === "html") {
+				expect(output.children[0].value).toBe(
+					'<pre class="shiki">prehighlighted</pre>',
+				);
+			}
+		}
+	});
+
 	it("renders inline-code as element kind", async () => {
 		const renderers = createDefaultRendererMap();
 		const node: IRNode = {
