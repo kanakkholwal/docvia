@@ -13,10 +13,18 @@ a `ContentProvider`:
   `CompileService`, compiling markdown from disk. Use for Node servers and dev.
 
 ```ts
-import { createDocviaSSR, BundledContentProvider } from "@docvia/ssr";
+import {
+  createDocviaSSR,
+  BundledContentProvider,
+  createGlobChunkLoader,
+} from "@docvia/ssr";
 
+// `createGlobChunkLoader` turns a Vite `import.meta.glob` of the build's IR
+// chunks into a `ChunkLoader` — statically code-split, edge-safe.
 const ssr = createDocviaSSR({
-  provider: BundledContentProvider((collection, slug) => loadChunk(collection, slug)),
+  provider: BundledContentProvider(
+    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
+  ),
 });
 const page = await ssr.render("docs", "getting-started");
 ```
