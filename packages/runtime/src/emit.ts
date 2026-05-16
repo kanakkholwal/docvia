@@ -115,17 +115,13 @@ export async function loadModule(
     // Next.js/Turbopack: computed string prevents static analysis, falls to catch
     return await import(/* @vite-ignore */ /* webpackIgnore: true */ modulePath);
   } catch {
-    // Node.js / Next.js fallback: compile markdown on-the-fly
+    // Node.js / Next.js: no ?docvia transform available — render the pre-built
+    // per-route IR chunk. The build already applied every docvia plugin to it,
+    // so this stays consistent with the bundler-transformed output.
     if (typeof window !== 'undefined') return undefined;
-    // Strip the literal "?docvia" query suffix to recover the file path.
-    const cleanPath = modulePath.replace(/\\?docvia$/, '');
-    // routeMap paths are relative to the docvia outDir; resolve against its
-    // absolute location (not import.meta.url, which moves when bundled).
-    const { resolve: _resolvePath } = await import('node:path');
-    const resolved = _resolvePath(_DOCVIA_OUT_DIR, cleanPath);
     const hl = await _getHighlighter();
-    const { loadMarkdown } = await import('@docvia/source/node');
-    return loadMarkdown(resolved, { highlighter: hl });
+    const { loadIRChunk } = await import('@docvia/source/node');
+    return loadIRChunk(_DOCVIA_OUT_DIR, collection, slug, { highlighter: hl });
   }
 }
 

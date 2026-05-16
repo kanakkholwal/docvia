@@ -1,5 +1,6 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and rendered content shapes vary per renderer; typing them here would couple the loader to a single framework.
 import fs from "node:fs/promises";
+import { join } from "node:path";
 import { parseMarkdown } from "@docvia/core";
 import { transformToIR } from "@docvia/ir";
 import {
@@ -31,7 +32,8 @@ async function getShikiHighlighter(): Promise<SyntaxHighlighter> {
 
 	g.__docvia_shiki_pending__ = (async (): Promise<SyntaxHighlighter> => {
 		try {
-			// @ts-expect-error — shiki is an optional peer dependency
+			// shiki is an optional peer dependency — the surrounding try/catch
+			// handles it not being installed at runtime.
 			const { createHighlighter } = await import(/* @vite-ignore */ "shiki");
 			const instance = await createHighlighter({
 				themes: ["github-dark"],
@@ -111,4 +113,53 @@ export async function loadMarkdown(
 		meta,
 		manifest,
 	};
+}
+
+/**
+ * Render a pre-built per-route IR chunk (emitted to `<outDir>/ir/` by the
+ * docvia build). The chunk already has every docvia plugin applied — including
+ * build-time syntax highlighting — so this is the consistent server-render
+ * path for bundlers without a `?docvia` transform (Next.js / Turbopack).
+ *
+ * `options.highlighter` only highlights code blocks that were *not* already
+ * pre-highlighted at build time (i.e. projects not using a highlighter plugin).
+ */
+export async function loadIRChunk(
+	outDir: string,
+	collection: string,
+	slug: string,
+	options?: { highlighter?: SyntaxHighlighter },
+) {
+	const chunkPath = join(outDir, "ir", collection, `${slug}.json`);
+	let ir: any;
+	try {
+		ir = JSON.parse(await fs.readFile(chunkPath, "utf-8"));
+	} catch {
+		return undefined;
+	}
+
+	const highlighter = options?.highlighter ?? (await getShikiHighlighter());
+
+	// Superset of frontmatter + page metadata: `data` keeps custom frontmatter
+	// fields, and headings/contentHash are available for navigation.
+	const meta = {
+		...ir.frontmatter,
+		slug: ir.slug,
+		headings: ir.headings ?? [],
+		contentHash: ir.contentHash,
+		lastModified: Date.now(),
+	};
+
+	const { output, manifest } = await renderDocument(
+		ir,
+		createDefaultRendererMap(),
+		{
+			slug: ir.slug,
+			meta: meta as any,
+			registry: { resolve: () => null },
+			highlighter,
+		},
+	);
+
+	return { content: output, meta, manifest };
 }
