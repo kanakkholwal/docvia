@@ -8,8 +8,13 @@ export {
 	readCache,
 	writeCache,
 } from "./cache";
-export type { CollectionData, EmitModuleGraphArgs } from "./emit";
-export { emitModuleGraphFiles, warnInvalidShikiLangs } from "./emit";
+export type { CollectionData, EmitModuleGraphArgs, RouteFile } from "./emit";
+export {
+	emitModuleGraphFiles,
+	emitTypeDeclarations,
+	generateVirtualSource,
+	warnInvalidShikiLangs,
+} from "./emit";
 export { compileParallel, readFileEntry, readFileTree } from "./fs";
 export type { HashInputs } from "./hash";
 export { computeContentHash, hashConfig, stableStringify } from "./hash";

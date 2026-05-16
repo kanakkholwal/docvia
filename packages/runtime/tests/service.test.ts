@@ -135,3 +135,18 @@ describe("CompileService.emitDiskModuleGraph", () => {
 		}
 	});
 });
+
+describe("CompileService.getVirtualSourceModule", () => {
+	it("generates a self-contained docvia/source module", async () => {
+		const service = new CompileService(options(".out-virtual", false));
+		const result = await service.compileAll();
+
+		const mod = service.getVirtualSourceModule();
+		expect(mod).toContain("createSource");
+		expect(mod).toContain("createCollection");
+		expect(mod).toContain("?docvia");
+		for (const page of result.pages) {
+			expect(mod).toContain(JSON.stringify(page.slug));
+		}
+	});
+});

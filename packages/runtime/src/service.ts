@@ -38,7 +38,10 @@ import {
 import {
 	type CollectionData,
 	emitModuleGraphFiles,
+	generateVirtualSource,
+	type RouteFile,
 	warnInvalidShikiLangs,
+	emitTypeDeclarations as writeTypeDeclarations,
 } from "./emit";
 import { compileParallel, readFileEntry, readFileTree } from "./fs";
 import { computeContentHash, hashConfig, stableStringify } from "./hash";
@@ -345,6 +348,61 @@ export class CompileService {
 			return fresh.ir;
 		}
 		return undefined;
+	}
+
+	/**
+	 * Resolve a document's IR by its absolute source-file path. Used by the dev
+	 * plugin's `.md?docvia` transform so its output matches the build pipeline
+	 * (same plugins, same highlighting).
+	 */
+	async getDocumentByPath(absPath: string): Promise<IRDocument | undefined> {
+		const target = resolvePath(absPath);
+		for (const entry of this.entries.values()) {
+			if (resolvePath(entry.filePath) !== target) continue;
+			if (entry.ir) return entry.ir;
+
+			const collection = this.collections.find(
+				(c) => c.name === entry.collectionName,
+			);
+			if (!collection) return undefined;
+			const file = await readFileEntry(entry.filePath, entry.relativePath);
+			const fresh = await this.runPipeline(collection, file);
+			return fresh.ir;
+		}
+		return undefined;
+	}
+
+	/**
+	 * Generate the consolidated `docvia/source` module as a string — the
+	 * dev-server virtual-module form of the on-disk module graph. Call after
+	 * `compileAll()`.
+	 */
+	getVirtualSourceModule(): string {
+		const routeFiles = new Map<string, RouteFile[]>();
+		for (const entry of this.entries.values()) {
+			let list = routeFiles.get(entry.collectionName);
+			if (!list) {
+				list = [];
+				routeFiles.set(entry.collectionName, list);
+			}
+			list.push({ slug: entry.page.slug, absPath: entry.filePath });
+		}
+		return generateVirtualSource(
+			this.collectionData,
+			routeFiles,
+			this.config,
+			this.projectRoot,
+		);
+	}
+
+	/** Write only the IDE type declarations (`types.d.ts` + `docvia-env.d.ts`). */
+	async emitTypeDeclarations(): Promise<void> {
+		await writeTypeDeclarations({
+			outDir: this.resolvedOutDir,
+			projectRoot: this.projectRoot,
+			config: this.config,
+			collections: this.collectionData,
+		});
 	}
 
 	/**
