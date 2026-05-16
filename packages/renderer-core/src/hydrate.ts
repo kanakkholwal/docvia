@@ -55,7 +55,8 @@ async function doHydrate(
 	}
 
 	try {
-		// @ts-expect-error - framework component instantiation (e.g. Svelte)
+		// Framework component instantiation (e.g. Svelte) — `component` is
+		// already `any`, so the constructor call needs no further suppression.
 		new (resolved.component as any)({
 			target: el,
 			props: entry.props,

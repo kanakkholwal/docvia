@@ -649,6 +649,28 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/ssr:
+    dependencies:
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@docvia/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+    devDependencies:
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
 packages:
 
   '@babel/generator@8.0.0-rc.3':

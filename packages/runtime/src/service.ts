@@ -6,7 +6,9 @@
 // `compileAll()` + `emitDiskModuleGraph()`; dev and SSR adapters (later
 // milestones) drive the same instance so all modes share one render path.
 
-import { relative, resolve as resolvePath } from "node:path";
+import { existsSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, join, relative, resolve as resolvePath } from "node:path";
 import { performance } from "node:perf_hooks";
 import { parseMarkdown } from "@docvia/core";
 import type {
@@ -345,7 +347,47 @@ export class CompileService {
 		return undefined;
 	}
 
-	/** Write the disk module graph and persist the incremental cache. */
+	/**
+	 * Emit one serialized IR chunk per route under `<outDir>/ir/`, plus an
+	 * `ir/manifest.json` index. These per-route chunks are the SSR/edge content
+	 * source: a `BundledContentProvider` loads a single chunk per request
+	 * without parsing markdown or touching the source tree.
+	 *
+	 * Cache hits whose chunk already exists on disk are skipped — an unchanged
+	 * `contentHash` guarantees the existing chunk is still valid.
+	 */
+	private async emitIrChunks(): Promise<void> {
+		const irDir = join(this.resolvedOutDir, "ir");
+		await mkdir(irDir, { recursive: true });
+
+		const manifest: Record<string, Record<string, string>> = {};
+		for (const entry of this.entries.values()) {
+			const rel = `${entry.collectionName}/${entry.page.slug}.json`;
+			let collectionMap = manifest[entry.collectionName];
+			if (!collectionMap) {
+				collectionMap = {};
+				manifest[entry.collectionName] = collectionMap;
+			}
+			collectionMap[entry.page.slug] = rel;
+
+			const chunkPath = join(irDir, rel);
+			if (entry.cached && existsSync(chunkPath)) continue;
+
+			const ir =
+				entry.ir ??
+				(await this.getDocument(entry.collectionName, entry.page.slug));
+			if (!ir) continue;
+			await mkdir(dirname(chunkPath), { recursive: true });
+			await writeFile(chunkPath, JSON.stringify(ir));
+		}
+
+		await writeFile(
+			join(irDir, "manifest.json"),
+			JSON.stringify(manifest, null, 2),
+		);
+	}
+
+	/** Write the disk module graph + IR chunks and persist the cache. */
 	async emitDiskModuleGraph(): Promise<void> {
 		await emitModuleGraphFiles({
 			outDir: this.resolvedOutDir,
@@ -353,6 +395,7 @@ export class CompileService {
 			config: this.config,
 			collections: this.collectionData,
 		});
+		await this.emitIrChunks();
 
 		if (this.incremental) {
 			const cache: CacheFile = {
