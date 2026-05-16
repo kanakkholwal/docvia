@@ -3,5 +3,5 @@
 	"compilerOptions": {
 		"lib": ["esnext", "dom"]
 	},
-	"include": ["src"]
+	"include": ["src", "tests/**/*.test.ts"]
 }

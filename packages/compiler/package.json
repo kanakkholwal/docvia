@@ -18,16 +18,10 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/core": "workspace:*",
 		"@docvia/ir": "workspace:*",
-		"@docvia/plugins": "workspace:*",
-		"@docvia/schema": "workspace:*",
-		"@docvia/search": "workspace:*",
-		"@node-rs/xxhash": "^1.7.6"
+		"@docvia/runtime": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/hast": "^3.0.4",
-		"@types/mdast": "^4.0.4",
 		"@types/node": "^25.5.0",
 		"typescript": "^5.9.3"
 	},

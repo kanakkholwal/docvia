@@ -1,19 +1,31 @@
 # docvia
 
-A build-time documentation compiler. docvia turns a directory of Markdown into
-typed, pre-rendered modules for React, Svelte, or any framework with a renderer
-adapter — no runtime Markdown parser ships to the browser.
+A Markdown documentation compiler. docvia turns a directory of Markdown into
+typed, pre-rendered content for React, Svelte, or any framework with a renderer
+adapter — and runs in three modes from one shared compile core:
 
-- **Build-time first.** Markdown is parsed, sanitized, and transformed into an
-  Intermediate Representation (IR) once.
+- **Build** — compile the whole tree ahead of time into a typed module graph.
+- **Dev** — compile in-process inside the framework dev server, recompiling
+  incrementally on every file change (no separate build script).
+- **SSR** — render a single document per request, on Node or the edge.
+
+All three sit on the same long-lived `CompileService` (`@docvia/runtime`), so
+output is byte-identical regardless of mode. See [MODES.md](./MODES.md) for the
+full breakdown.
+
+- **IR-based.** Markdown is parsed, sanitized, and transformed into an
+  Intermediate Representation (IR) once; renderers turn IR into framework output.
 - **Typed frontmatter.** Extend the built-in schema with a Zod object and
   docvia generates a `Frontmatter` interface for every collection.
-- **Incremental builds.** A `.docvia.cache.json` skips unchanged files between
-  runs. Subsequent builds for unchanged content take milliseconds.
+- **Incremental.** A content-addressed cache skips unchanged files — across
+  builds and, in dev, on every keystroke via `service.invalidate()`.
 - **Pluggable pipeline.** Five hook points (`beforeParse`, `afterParse`,
   `beforeTransform`, `afterTransform`, `beforeRender`).
-- **Framework adapters.** First-party React and Svelte renderers; Vite plugin
-  and Next.js wrapper for direct integration.
+- **Pluggable syntax highlighting.** Highlighting is a build-time plugin
+  (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR — zero
+  highlighter ships to the browser or the edge bundle.
+- **Framework adapters.** First-party React and Svelte renderers; an in-process
+  Vite plugin and a Next.js wrapper (webpack + Turbopack).
 
 ## Install
 
@@ -27,27 +39,21 @@ pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
 ```bash
 npx docvia init                  # scaffold docs/ + docvia.config.ts
 npx docvia build                 # compile to .docvia/
-npx docvia dev                   # watch & rebuild on change
+npx docvia dev                   # watch & recompile incrementally
 ```
 
 Minimal `docvia.config.ts`:
 
 ```ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createReactRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "github-dark",
-      langs: ["typescript", "bash", "json"],
-    }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 
@@ -63,46 +69,32 @@ const tree = docs.pageTree;                           // navigation tree
 
 ## Framework integration
 
-`docvia build` only produces a typed module graph in `.docvia/` — it does not
-run a server. To render docs inside a real app, pair the build step with one of
-the framework integrations. The pattern is always the same: run `docvia build`
-before the framework dev/build, then import from `docvia/source`.
+The recommended setup runs docvia **in-process** inside your bundler — no
+separate `docvia build` step, incremental recompilation in dev, and a virtual
+`docvia/source` module so nothing is written to disk during development.
 
 ### SvelteKit (Vite)
 
 ```bash
-pnpm add -D @docvia/cli @docvia/plugin-vite
-pnpm add @docvia/renderer-svelte @docvia/source @docvia/compiler @docvia/renderer-core
+pnpm add -D @docvia/plugin-vite @docvia/cli
+pnpm add @docvia/renderer-svelte @docvia/source
 ```
 
 ```ts
 // vite.config.ts
-import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/plugin-vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docviaSourcePlugin(), docviaMarkdownPlugin(docviaConfig)],
-  build: {
-    rollupOptions: {
-      external: ["@docvia/source", "@docvia/source/internal"],
-    },
-  },
+  plugins: [sveltekit(), docvia(docviaConfig)],
 });
 ```
 
-```jsonc
-// package.json — build docs before Vite starts
-{
-  "scripts": {
-    "predev": "docvia build",
-    "dev": "vite dev",
-    "prebuild": "docvia build",
-    "build": "vite build"
-  }
-}
-```
+That's it — no `predev` / `prebuild` hook. `docvia()` runs the `CompileService`
+in-process: it serves `docvia/source` as a virtual module in dev with
+incremental HMR, and emits the on-disk module graph for production builds.
 
 The `docvia.config.ts` must use the Svelte renderer (`createSvelteRenderer`
 from `@docvia/renderer-svelte/node`). Consume pages in a catch-all route via
@@ -110,10 +102,13 @@ from `@docvia/renderer-svelte/node`). Consume pages in a catch-all route via
 `@docvia/renderer-svelte`. See [`examples/demo-svelte`](./examples/demo-svelte)
 and [`apps/docs`](./apps/docs) for working setups.
 
+> The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` exports remain
+> available for setups that still run a separate `docvia build` step.
+
 ### Next.js
 
 ```bash
-pnpm add -D @docvia/cli @docvia/plugin-next
+pnpm add -D @docvia/plugin-next @docvia/cli
 pnpm add @docvia/renderer-react @docvia/source react react-dom
 ```
 
@@ -126,9 +121,30 @@ export default withDocvia({ configPath: "./docvia.config.ts" })({
 });
 ```
 
-`withDocvia` compiles the docs when the Next config is evaluated, aliases
-`docvia/source` to the compiled output, and starts an incremental watcher in
-dev. See [`examples/demo-next`](./examples/demo-next).
+`withDocvia` drives the `CompileService` when the Next config is evaluated,
+aliases `docvia/source` for **both webpack and Turbopack**, and runs an
+incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
+
+### Server-side rendering
+
+For request-time rendering (Node or Cloudflare Workers / edge) use
+`@docvia/ssr`:
+
+```ts
+import { createDocviaSSR, BundledContentProvider, createGlobChunkLoader } from "@docvia/ssr";
+
+// Edge-safe: serves per-route IR chunks built into .docvia/ir/.
+const ssr = createDocviaSSR({
+  provider: BundledContentProvider(
+    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
+  ),
+});
+
+const page = await ssr.render("docs", "getting-started");
+```
+
+On Node, `@docvia/ssr/node`'s `FsContentProvider` wraps a live `CompileService`
+instead. Rendered pages are cached in an in-memory LRU keyed by content hash.
 
 ### Standalone preview
 
@@ -140,18 +156,22 @@ output only. It is not a runtime; use a framework integration for a real site.
 | Package | Purpose |
 |---|---|
 | `@docvia/cli` | `init` / `build` / `dev` / `preview` commands. |
-| `@docvia/compiler` | Build orchestrator, content hashing, incremental cache, module-graph generation. |
+| `@docvia/runtime` | `CompileService` — the stateful compile core shared by build, dev, and SSR. |
+| `@docvia/compiler` | Batch build entry (`compile()`), a thin wrapper over `CompileService`. |
 | `@docvia/core` | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
 | `@docvia/ir` | Intermediate representation, error system, AST → IR transform. |
 | `@docvia/schema` | Frontmatter validation (Zod), YAML extraction, TS codegen. |
 | `@docvia/plugins` | `defineConfig`, `loadConfig`, `PluginRunner`. |
+| `@docvia/ssr` | Request-time rendering for Node and edge runtimes. |
 | `@docvia/renderer-core` | Framework-agnostic rendering engine and default renderers. |
 | `@docvia/renderer-react` | React renderer adapter (server + `./client` hydration). |
 | `@docvia/renderer-svelte` | Svelte renderer adapter. |
 | `@docvia/search` | Section-level Orama indexing and client search helper. |
-| `@docvia/source` | Runtime collection helpers and Node markdown loader. |
-| `@docvia/plugin-vite` | Vite plugin for `?docvia` virtual modules. |
-| `@docvia/plugin-next` | Next.js wrapper (`withDocvia`). |
+| `@docvia/source` | Runtime collection helpers and Node markdown / IR-chunk loader. |
+| `@docvia/plugin-vite` | In-process Vite plugin (`docvia()`) with virtual modules + HMR. |
+| `@docvia/plugin-next` | Next.js wrapper (`withDocvia`) — webpack + Turbopack. |
+| `@docvia/plugin-shiki` | Build-time syntax highlighting via Shiki (pluggable). |
+| `@docvia/plugin-openapi` | Generate reference pages from an OpenAPI spec. |
 
 ## Apps
 
@@ -202,9 +222,10 @@ CI handles version bumps and publishing automatically — see `.github/workflows
 
 ## Status
 
-v0.1 preview. APIs are stabilizing; expect breaking changes before v1.0. See
-[`.changeset/`](./.changeset) for in-flight release notes and
-[`documentation.md`](./documentation.md) for architecture notes.
+v0.2 preview. APIs are stabilizing; expect breaking changes before v1.0. See
+[`.changeset/`](./.changeset) for in-flight release notes, [MODES.md](./MODES.md)
+for the build/dev/SSR breakdown, and [`documentation.md`](./documentation.md)
+for architecture notes.
 
 ## License
 

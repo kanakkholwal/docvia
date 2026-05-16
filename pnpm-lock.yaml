@@ -215,15 +215,9 @@ importers:
       '@docvia/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@docvia/compiler':
-        specifier: workspace:*
-        version: link:../../packages/compiler
       '@docvia/plugin-vite':
         specifier: workspace:*
         version: link:../../packages/plugin-vite
-      '@docvia/renderer-core':
-        specifier: workspace:*
-        version: link:../../packages/renderer-core
       '@docvia/renderer-svelte':
         specifier: workspace:*
         version: link:../../packages/renderer-svelte
@@ -263,6 +257,9 @@ importers:
       '@docvia/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
@@ -282,31 +279,13 @@ importers:
 
   packages/compiler:
     dependencies:
-      '@docvia/core':
-        specifier: workspace:*
-        version: link:../core
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
-      '@docvia/plugins':
+      '@docvia/runtime':
         specifier: workspace:*
-        version: link:../plugins
-      '@docvia/schema':
-        specifier: workspace:*
-        version: link:../schema
-      '@docvia/search':
-        specifier: workspace:*
-        version: link:../search
-      '@node-rs/xxhash':
-        specifier: ^1.7.6
-        version: 1.7.6
+        version: link:../runtime
     devDependencies:
-      '@types/hast':
-        specifier: ^3.0.4
-        version: 3.0.4
-      '@types/mdast':
-        specifier: ^4.0.4
-        version: 4.0.4
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -378,15 +357,15 @@ importers:
 
   packages/plugin-next:
     dependencies:
-      '@docvia/compiler':
-        specifier: workspace:*
-        version: link:../compiler
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
       '@docvia/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       chokidar:
         specifier: ^4.0.0
         version: 4.0.3
@@ -423,6 +402,22 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/plugin-shiki:
+    dependencies:
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      shiki:
+        specifier: ^4.0.2
+        version: 4.0.2
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/plugin-vite:
     dependencies:
       '@docvia/core':
@@ -431,6 +426,9 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
@@ -438,6 +436,9 @@ importers:
         specifier: workspace:*
         version: link:../source
     devDependencies:
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37
@@ -551,6 +552,37 @@ importers:
         specifier: ^8.0.3
         version: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)
 
+  packages/runtime:
+    dependencies:
+      '@docvia/core':
+        specifier: workspace:*
+        version: link:../core
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@docvia/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@node-rs/xxhash':
+        specifier: ^1.7.6
+        version: 1.7.6
+    devDependencies:
+      '@types/hast':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/schema:
     dependencies:
       '@docvia/ir':
@@ -616,6 +648,28 @@ importers:
       svelte:
         specifier: ^5.49.2
         version: 5.55.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/ssr:
+    dependencies:
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../ir
+      '@docvia/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+    devDependencies:
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

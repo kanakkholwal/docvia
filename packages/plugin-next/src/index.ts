@@ -10,6 +10,7 @@ import {
 import { relative, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import type { docviaConfig } from "@docvia/ir";
+import type { CompileService } from "@docvia/runtime";
 import type { NextConfig } from "next";
 
 export interface DocviaNextOptions {
@@ -36,44 +37,15 @@ const logger = {
 let _initPromise: Promise<docviaConfig | null> | null = null;
 let _watcherCleanup: (() => void) | null = null;
 
-function _findTurbopackRoot(startDir: string): string {
-	let currentDir = startDir;
-
-	while (true) {
-		if (
-			existsSync(resolve(currentDir, "pnpm-lock.yaml")) ||
-			existsSync(resolve(currentDir, "package-lock.json")) ||
-			existsSync(resolve(currentDir, "yarn.lock")) ||
-			existsSync(resolve(currentDir, "bun.lock")) ||
-			existsSync(resolve(currentDir, "bun.lockb"))
-		) {
-			return currentDir;
-		}
-
-		const parentDir = resolve(currentDir, "..");
-		if (parentDir === currentDir) {
-			return startDir;
-		}
-
-		currentDir = parentDir;
-	}
-}
-
-function _toTurbopackAliasPath(filePath: string, rootDir: string): string {
-	const normalizedRelativePath = relative(rootDir, filePath).replace(
-		/\\/g,
-		"/",
-	);
-
-	if (normalizedRelativePath.startsWith(".")) {
-		return normalizedRelativePath;
-	}
-
-	if (!normalizedRelativePath.startsWith("..")) {
-		return `./${normalizedRelativePath}`;
-	}
-
-	return filePath.replace(/\\/g, "/");
+/**
+ * Turbopack resolves a relative `resolveAlias` value from the project root
+ * (the directory containing next.config). Convert an absolute path to that
+ * form — always with a leading `./` so a dotfile dir like `.docvia` is never
+ * mistaken for a bare package specifier.
+ */
+function _toTurbopackAliasPath(filePath: string, projectRoot: string): string {
+	const rel = relative(projectRoot, filePath).replace(/\\/g, "/");
+	return rel.startsWith("../") ? filePath.replace(/\\/g, "/") : `./${rel}`;
 }
 
 // Lock files older than this are considered stale (left over from a crashed
@@ -254,6 +226,11 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 			const sourceAlias = resolve(outDir, "source.ts");
 			const registryAlias = resolve(outDir, "registry.ts");
 
+			// Turbopack has no plugin API — point its `resolveAlias` at the
+			// same on-disk module graph webpack's alias uses.
+			const turbopackRoot = process.cwd();
+			const existingTurbopack = (resolvedConfig as any).turbopack ?? {};
+
 			return {
 				...resolvedConfig,
 				webpack(config: any, webpackOptions: any) {
@@ -264,6 +241,17 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 
 					return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
 				},
+				turbopack: {
+					...existingTurbopack,
+					resolveAlias: {
+						...existingTurbopack.resolveAlias,
+						"docvia/source": _toTurbopackAliasPath(sourceAlias, turbopackRoot),
+						"docvia/registry": _toTurbopackAliasPath(
+							registryAlias,
+							turbopackRoot,
+						),
+					},
+				},
 			};
 		};
 	};
@@ -273,7 +261,7 @@ async function init(
 	dev: boolean,
 	options: DocviaNextOptions,
 ): Promise<docviaConfig | null> {
-	const { compile } = await import("@docvia/compiler");
+	const { CompileService } = await import("@docvia/runtime");
 	const { loadConfig, defineConfig } = await import("@docvia/plugins");
 	const { docviaError } = await import("@docvia/ir");
 
@@ -327,19 +315,24 @@ async function init(
 		}
 	}
 
+	let service: CompileService | null = null;
 	try {
 		logger.info("Compiling documentation...");
-		const result = await compile({
+		service = new CompileService({
 			sourceDir,
 			outDir,
 			renderer,
 			plugins: [...(config.plugins ?? [])],
 			config,
+			projectRoot: process.cwd(),
 		});
+		const result = await service.compileAll();
+		await service.emitDiskModuleGraph();
 		logger.success(
 			`Built ${result.stats.total} files in ${Math.round(result.duration)}ms`,
 		);
 	} catch (err) {
+		service = null;
 		if (err instanceof docviaError) {
 			logger.error(
 				`Build failed: [${err.code}] ${err.message}`,
@@ -353,22 +346,19 @@ async function init(
 		}
 	}
 
-	if (dev) {
-		await startDevWatcher(sourceDir, outDir, renderer, config);
+	if (dev && service) {
+		await startDevWatcher(service, sourceDir);
 	}
 
 	return config;
 }
 
 async function startDevWatcher(
+	service: CompileService,
 	sourceDir: string,
-	outDir: string,
-	renderer: NonNullable<docviaConfig["renderer"]>,
-	config: docviaConfig,
 ): Promise<void> {
 	if (_watcherCleanup) return; // singleton
 
-	const { compile } = await import("@docvia/compiler");
 	const { docviaError } = await import("@docvia/ir");
 	const { watch } = await import("chokidar");
 
@@ -405,23 +395,21 @@ async function startDevWatcher(
 			return;
 		}
 
-		const count = pending.size;
+		const files = [...pending];
 		pending.clear();
 		timer = null;
 		isRebuilding = true;
 		rebuildQueued = false;
 
-		logger.info(`Rebuilding (${count} file(s) changed)...`);
+		logger.info(`Rebuilding (${files.length} file(s) changed)...`);
 
-		compile({
-			sourceDir,
-			outDir,
-			renderer,
-			plugins: [...(config.plugins ?? [])],
-			config,
-		})
-			.then((r) => {
-				logger.success(`Rebuilt in ${Math.round(r.duration)}ms`);
+		// Incremental: recompile only the changed files, then re-flush the
+		// on-disk module graph that both webpack and Turbopack resolve.
+		service
+			.invalidate(files)
+			.then(() => service.emitDiskModuleGraph())
+			.then(() => {
+				logger.success("Rebuilt documentation");
 			})
 			.catch((err: unknown) => {
 				if (err instanceof docviaError) {

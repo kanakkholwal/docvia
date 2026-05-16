@@ -30,7 +30,7 @@
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
 		"typecheck": "tsc --noEmit",
-		"test": "echo \"no tests yet\""
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@docvia/core": "workspace:*",

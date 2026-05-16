@@ -4,10 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"docvia:build": "docvia build",
-		"predev": "pnpm docvia:build",
 		"dev": "vite dev",
-		"prebuild": "pnpm docvia:build",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -16,8 +13,6 @@
 	},
 	"devDependencies": {
 		"@docvia/cli": "workspace:*",
-		"@docvia/compiler": "workspace:*",
-		"@docvia/renderer-core": "workspace:*",
 		"@docvia/renderer-svelte": "workspace:*",
 		"@docvia/source": "workspace:*",
 		"@docvia/plugin-vite": "workspace:*",
