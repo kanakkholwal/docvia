@@ -360,15 +360,15 @@ importers:
 
   packages/plugin-next:
     dependencies:
-      '@docvia/compiler':
-        specifier: workspace:*
-        version: link:../compiler
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
       '@docvia/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       chokidar:
         specifier: ^4.0.0
         version: 4.0.3

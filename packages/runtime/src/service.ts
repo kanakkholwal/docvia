@@ -71,6 +71,22 @@ export interface ServiceEntry {
 	readonly ir?: IRDocument;
 }
 
+/** Outcome of an incremental `invalidate()` call. */
+export interface InvalidationResult {
+	/** Routes that were recompiled (added or content-changed). */
+	readonly changed: ReadonlyArray<{
+		readonly collection: string;
+		readonly slug: string;
+		readonly contentHash: string;
+	}>;
+	/**
+	 * True when a slug appeared, disappeared, or was renamed. The route map —
+	 * and therefore the virtual `docvia/source` module — must be regenerated,
+	 * which a dev server handles with a full reload rather than a hot-swap.
+	 */
+	readonly routeMapChanged: boolean;
+}
+
 export class CompileService {
 	readonly config: docviaConfig;
 
@@ -253,7 +269,6 @@ export class CompileService {
 		warnInvalidShikiLangs(this.config.syntax.langs);
 
 		const allPages: PageMeta[] = [];
-		this.collectionData = [];
 		let totalFiles = 0;
 		let totalCompiled = 0;
 		let totalCached = 0;
@@ -266,47 +281,18 @@ export class CompileService {
 			const files = await readFileTree(resolvedSourceDir);
 			totalFiles += files.length;
 
-			const pages: PageMeta[] = [];
-			const routes: Record<string, string> = {};
-			const frontmatterSamples: string[] = [];
-
 			await compileParallel(files, async (file) => {
 				const entry = await this.compileFile(collection, file);
-				pages.push(entry.page);
-				routes[entry.page.slug] = entry.route;
+				allPages.push(entry.page);
 				if (entry.cached) {
 					totalCached++;
 				} else {
 					totalCompiled++;
-					if (entry.ir) {
-						frontmatterSamples.push(stableStringify(entry.ir.frontmatter));
-					}
 				}
 			});
-
-			// Build frontmatter type definition
-			let frontmatterTypeDef: string;
-			if (this.config.frontmatter) {
-				frontmatterTypeDef = zodSchemaToFrontmatterTs(
-					this.config.frontmatter as never,
-				);
-			} else {
-				const unique = Array.from(new Set(frontmatterSamples));
-				frontmatterTypeDef =
-					unique.length > 0 ? unique.join(" | ") : "Record<string, unknown>";
-			}
-
-			this.collectionData.push({
-				name: collection.name,
-				baseUrl: (
-					collection.baseUrl ??
-					`/${collection.name === "docs" ? "" : collection.name}`
-				).replace(/\/+/g, "/"),
-				routes,
-				frontmatterTypeDef,
-			});
-			allPages.push(...pages);
 		}
+
+		this.rebuildCollectionData();
 
 		return {
 			pages: allPages,
@@ -318,6 +304,113 @@ export class CompileService {
 				cached: totalCached,
 			},
 		};
+	}
+
+	/** Rebuild `collectionData` (routes + frontmatter types) from `entries`. */
+	private rebuildCollectionData(): void {
+		this.collectionData = this.collections.map((collection) => {
+			const routes: Record<string, string> = {};
+			const frontmatterSamples: string[] = [];
+			for (const entry of this.entries.values()) {
+				if (entry.collectionName !== collection.name) continue;
+				routes[entry.page.slug] = entry.route;
+				if (entry.ir) {
+					frontmatterSamples.push(stableStringify(entry.ir.frontmatter));
+				}
+			}
+
+			let frontmatterTypeDef: string;
+			if (this.config.frontmatter) {
+				frontmatterTypeDef = zodSchemaToFrontmatterTs(
+					this.config.frontmatter as never,
+				);
+			} else {
+				const unique = Array.from(new Set(frontmatterSamples));
+				frontmatterTypeDef =
+					unique.length > 0 ? unique.join(" | ") : "Record<string, unknown>";
+			}
+
+			return {
+				name: collection.name,
+				baseUrl: (
+					collection.baseUrl ??
+					`/${collection.name === "docs" ? "" : collection.name}`
+				).replace(/\/+/g, "/"),
+				routes,
+				frontmatterTypeDef,
+			};
+		});
+	}
+
+	/** Find which collection (if any) owns a source file. */
+	private collectionForPath(
+		absPath: string,
+	): { collection: ResolvedCollection; relativePath: string } | undefined {
+		for (const collection of this.collections) {
+			const sourceDirAbs = resolvePath(this.projectRoot, collection.sourceDir);
+			const rel = relative(sourceDirAbs, absPath).replace(/\\/g, "/");
+			if (rel && rel !== ".." && !rel.startsWith("../")) {
+				return { collection, relativePath: rel };
+			}
+		}
+		return undefined;
+	}
+
+	/**
+	 * Incrementally recompile a set of changed source files. Recompiles changed
+	 * files, drops deleted ones, and reports whether the route map changed (a
+	 * slug appeared, disappeared, or was renamed) so the caller can choose
+	 * between a content hot-swap and a full reload.
+	 */
+	async invalidate(filePaths: readonly string[]): Promise<InvalidationResult> {
+		const changed: Array<{
+			collection: string;
+			slug: string;
+			contentHash: string;
+		}> = [];
+		let routeMapChanged = false;
+
+		for (const rawPath of filePaths) {
+			const absPath = resolvePath(rawPath);
+			const match = this.collectionForPath(absPath);
+			if (!match) continue;
+			const { collection, relativePath } = match;
+			const cacheKey = this.cacheKeyFor(collection.name, relativePath);
+			const existing = this.entries.get(cacheKey);
+
+			// Deleted file — drop the entry.
+			if (!existsSync(absPath)) {
+				if (existing) {
+					this.entries.delete(cacheKey);
+					delete this.newCacheEntries[cacheKey];
+					routeMapChanged = true;
+				}
+				continue;
+			}
+
+			// Added or changed — recompile through the full pipeline.
+			const file = await readFileEntry(absPath, relativePath);
+			const entry = await this.runPipeline(collection, file);
+			this.entries.set(cacheKey, entry);
+			this.newCacheEntries[cacheKey] = {
+				fileHash: entry.fileHash,
+				contentHash: entry.contentHash,
+				page: entry.page,
+				route: entry.route,
+			};
+
+			if (!existing || existing.page.slug !== entry.page.slug) {
+				routeMapChanged = true;
+			}
+			changed.push({
+				collection: collection.name,
+				slug: entry.page.slug,
+				contentHash: entry.contentHash,
+			});
+		}
+
+		this.rebuildCollectionData();
+		return { changed, routeMapChanged };
 	}
 
 	/** The collection/route data backing the module graph. */

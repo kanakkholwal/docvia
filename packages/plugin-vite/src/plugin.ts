@@ -8,10 +8,10 @@
 import { resolve } from "node:path";
 import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig, IRDocument, RendererAdapter } from "@docvia/ir";
-import { transformToIR } from "@docvia/ir";
+import { docviaError, transformToIR } from "@docvia/ir";
 import { CompileService } from "@docvia/runtime";
 import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
-import type { Plugin, ViteDevServer } from "vite";
+import type { HmrContext, Plugin, ViteDevServer } from "vite";
 
 const SOURCE_IDS = new Set(["docvia/source", "docvia:source", "docvia-source"]);
 const VIRTUAL_SOURCE_ID = "\0docvia:virtual-source";
@@ -19,6 +19,21 @@ const VIRTUAL_SOURCE_ID = "\0docvia:virtual-source";
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
 	readonly noCache?: boolean;
+}
+
+/** Shape a compile error into a Vite HMR error-overlay payload. */
+function toErrorPayload(err: unknown): { message: string; stack: string } {
+	if (err instanceof docviaError) {
+		const where = err.file ? ` (${err.file})` : "";
+		return {
+			message: `[docvia ${err.code}] ${err.message}${where}`,
+			stack: err.stack ?? "",
+		};
+	}
+	return {
+		message: err instanceof Error ? err.message : String(err),
+		stack: err instanceof Error ? (err.stack ?? "") : "",
+	};
 }
 
 /**
@@ -119,42 +134,68 @@ export function docvia(
 			return { code: rendered.code, map: (rendered.map as any) ?? null };
 		},
 
+		/**
+		 * Markdown content change. Recompile the one file; a route-map change
+		 * (new/renamed/removed slug) needs a full reload, otherwise let Vite
+		 * hot-swap the `.md?docvia` module — the re-transform reads fresh IR.
+		 */
+		async handleHotUpdate(ctx: HmrContext) {
+			if (!service || !ctx.file.endsWith(".md")) return;
+			const sourceDirAbs = resolve(root, config.sourceDir);
+			if (!resolve(ctx.file).startsWith(sourceDirAbs)) return;
+
+			try {
+				const result = await service.invalidate([ctx.file]);
+				await service.emitTypeDeclarations();
+
+				if (result.routeMapChanged) {
+					const vmod = ctx.server.moduleGraph.getModuleById(VIRTUAL_SOURCE_ID);
+					if (vmod) ctx.server.moduleGraph.invalidateModule(vmod);
+					ctx.server.ws.send({ type: "full-reload" });
+					return [];
+				}
+				return ctx.modules;
+			} catch (err) {
+				ctx.server.ws.send({ type: "error", err: toErrorPayload(err) });
+				return [];
+			}
+		},
+
 		configureServer(server: ViteDevServer) {
 			const sourceDirAbs = resolve(root, config.sourceDir);
 			server.watcher.add(sourceDirAbs);
 
+			// Added/removed markdown files always change the route map, so the
+			// virtual source module is regenerated and the page is reloaded.
+			// Plain content edits are handled by `handleHotUpdate` instead.
 			let timer: ReturnType<typeof setTimeout> | null = null;
+			const pending = new Set<string>();
 
-			async function recompile(): Promise<void> {
-				if (!service) return;
+			async function flush(): Promise<void> {
+				if (!service || pending.size === 0) return;
+				const files = [...pending];
+				pending.clear();
 				try {
-					await service.compileAll();
+					await service.invalidate(files);
 					await service.emitTypeDeclarations();
 					const mod = server.moduleGraph.getModuleById(VIRTUAL_SOURCE_ID);
 					if (mod) server.moduleGraph.invalidateModule(mod);
-					// Fine-grained content hot-swap is M4; a full reload is correct.
 					server.ws.send({ type: "full-reload" });
 				} catch (err) {
-					server.ws.send({
-						type: "error",
-						err: {
-							message: err instanceof Error ? err.message : String(err),
-							stack: err instanceof Error ? (err.stack ?? "") : "",
-						},
-					});
+					server.ws.send({ type: "error", err: toErrorPayload(err) });
 				}
 			}
 
 			function schedule(file: string): void {
 				if (!file.endsWith(".md")) return;
 				if (!resolve(file).startsWith(sourceDirAbs)) return;
+				pending.add(file);
 				if (timer) clearTimeout(timer);
 				timer = setTimeout(() => {
-					void recompile();
+					void flush();
 				}, 30);
 			}
 
-			server.watcher.on("change", schedule);
 			server.watcher.on("add", schedule);
 			server.watcher.on("unlink", schedule);
 		},

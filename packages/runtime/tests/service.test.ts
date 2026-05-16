@@ -150,3 +150,87 @@ describe("CompileService.getVirtualSourceModule", () => {
 		}
 	});
 });
+
+describe("CompileService.invalidate", () => {
+	// Each test gets its own isolated project so file mutations never leak.
+	async function freshProject(files: Record<string, string>): Promise<string> {
+		const dir = await mkdtemp(join(tmpdir(), "docvia-inv-"));
+		for (const [rel, content] of Object.entries(files)) {
+			const full = join(dir, "docs", rel);
+			await mkdir(join(full, ".."), { recursive: true });
+			await writeFile(full, content, "utf-8");
+		}
+		return dir;
+	}
+
+	function serviceFor(dir: string): CompileService {
+		return new CompileService({
+			sourceDir: "docs",
+			outDir: join(dir, ".docvia"),
+			renderer: stubRenderer,
+			plugins: [],
+			config: defineConfig({}),
+			projectRoot: dir,
+			incremental: false,
+		});
+	}
+
+	it("recompiles a changed file without a route-map change", async () => {
+		const dir = await freshProject({
+			"a.md": "---\ntitle: A\n---\n\nOriginal body.\n",
+		});
+		const service = serviceFor(dir);
+		const before = await service.compileAll();
+		const beforeHash = before.pages[0]?.contentHash;
+
+		await writeFile(
+			join(dir, "docs", "a.md"),
+			"---\ntitle: A\n---\n\nEdited body.\n",
+			"utf-8",
+		);
+		const result = await service.invalidate([join(dir, "docs", "a.md")]);
+
+		expect(result.routeMapChanged).toBe(false);
+		expect(result.changed).toHaveLength(1);
+		expect(result.changed[0]?.contentHash).not.toBe(beforeHash);
+
+		await rm(dir, { recursive: true, force: true });
+	});
+
+	it("flags a route-map change for a newly added file", async () => {
+		const dir = await freshProject({
+			"a.md": "---\ntitle: A\n---\n\nA.\n",
+		});
+		const service = serviceFor(dir);
+		await service.compileAll();
+
+		await writeFile(
+			join(dir, "docs", "new.md"),
+			"---\ntitle: New\n---\n\nNew.\n",
+			"utf-8",
+		);
+		const result = await service.invalidate([join(dir, "docs", "new.md")]);
+
+		expect(result.routeMapChanged).toBe(true);
+		expect(result.changed.some((c) => c.slug === "new")).toBe(true);
+
+		await rm(dir, { recursive: true, force: true });
+	});
+
+	it("drops a deleted file and flags a route-map change", async () => {
+		const dir = await freshProject({
+			"a.md": "---\ntitle: A\n---\n\nA.\n",
+			"b.md": "---\ntitle: B\n---\n\nB.\n",
+		});
+		const service = serviceFor(dir);
+		await service.compileAll();
+
+		await rm(join(dir, "docs", "b.md"));
+		const result = await service.invalidate([join(dir, "docs", "b.md")]);
+
+		expect(result.routeMapChanged).toBe(true);
+		expect(service.getVirtualSourceModule()).not.toContain('"b"');
+
+		await rm(dir, { recursive: true, force: true });
+	});
+});
