@@ -429,6 +429,9 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
@@ -436,6 +439,9 @@ importers:
         specifier: workspace:*
         version: link:../source
     devDependencies:
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37

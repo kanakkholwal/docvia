@@ -297,6 +297,133 @@ function createdocviaEnvDts(
 	].join("\n");
 }
 
+// ── Virtual source module (dev) ─────────────────────────────────────
+
+/** A route's slug and the absolute path of its source markdown file. */
+export interface RouteFile {
+	readonly slug: string;
+	readonly absPath: string;
+}
+
+/**
+ * Generate a single self-contained `docvia/source` module — the dev-server
+ * virtual-module equivalent of the on-disk `source.ts` + `dynamic.ts` +
+ * `registry.ts` graph. Everything is inlined (no relative inter-file imports);
+ * markdown and component paths are absolute so a bundler resolves them
+ * wherever the virtual module is placed.
+ */
+export function generateVirtualSource(
+	collections: readonly CollectionData[],
+	routeFiles: ReadonlyMap<string, readonly RouteFile[]>,
+	config: docviaConfig,
+	projectRoot: string,
+): string {
+	const components = config.components ?? {};
+	const componentEntries = Object.entries(components);
+	const hasRegistry = componentEntries.length > 0;
+	const posix = (p: string) => p.replace(/\\/g, "/");
+
+	// Markdown imports use root-relative paths ("/src/docs/x.md") — the form
+	// Vite resolves natively. Files outside the project root fall back to an
+	// absolute path.
+	const toImportPath = (absPath: string): string => {
+		const rel = posix(relative(projectRoot, absPath));
+		return rel.startsWith("..") ? posix(absPath) : `/${rel}`;
+	};
+
+	const parts: string[] = [
+		"// Auto-generated docvia virtual source module — do not edit.",
+		"import { createCollection, createSource } from '@docvia/source/internal';",
+	];
+
+	componentEntries.forEach(([, entry], i) => {
+		parts.push(
+			`import _Component${i} from ${JSON.stringify(posix(resolve(entry.path)))};`,
+		);
+	});
+
+	const routeMapBody = collections
+		.map((c) => {
+			const files = routeFiles.get(c.name) ?? [];
+			const inner = files
+				.map(
+					(f) =>
+						`    ${JSON.stringify(f.slug)}: ${JSON.stringify(`${toImportPath(f.absPath)}?docvia`)}`,
+				)
+				.join(",\n");
+			return `  ${JSON.stringify(c.name)}: {\n${inner}\n  }`;
+		})
+		.join(",\n");
+
+	parts.push(
+		"",
+		`const routeMap = {\n${routeMapBody}\n};`,
+		"",
+		"async function loadModule(collection, slug) {",
+		"  const p = routeMap[collection] && routeMap[collection][slug];",
+		"  if (!p) return undefined;",
+		"  return await import(/* @vite-ignore */ p);",
+		"}",
+		"",
+		"async function getEagerModules(collection) {",
+		"  if (typeof window !== 'undefined') return null;",
+		"  const slugs = Object.keys(routeMap[collection] || {});",
+		"  const out = {};",
+		"  for (const s of slugs) { const m = await loadModule(collection, s); if (m) out[s] = m; }",
+		"  return Object.keys(out).length ? out : null;",
+		"}",
+	);
+
+	if (hasRegistry) {
+		const mapEntries = componentEntries
+			.map(([name, entry], i) => {
+				const props = entry.defaultProps
+					? `, defaultProps: ${JSON.stringify(entry.defaultProps)}`
+					: "";
+				const hydrate =
+					entry.hydrate !== undefined ? `, hydrate: ${entry.hydrate}` : "";
+				return `      ${JSON.stringify(name)}: { component: _Component${i}${hydrate}${props} }`;
+			})
+			.join(",\n");
+		parts.push(
+			"",
+			"export const registry = {",
+			"  resolve(name) {",
+			`    const map = {\n${mapEntries}\n    };`,
+			"    return map[name] || null;",
+			"  },",
+			"};",
+		);
+	}
+
+	for (const c of collections) {
+		const routeKeys = (routeFiles.get(c.name) ?? [])
+			.map((f) => JSON.stringify(f.slug))
+			.join(", ");
+		parts.push(
+			"",
+			`export const ${c.name} = createCollection({`,
+			`  name: ${JSON.stringify(c.name)},`,
+			`  baseUrl: ${JSON.stringify(c.baseUrl)},`,
+			`  routeKeys: [${routeKeys}],`,
+			`  getModule: (slug) => loadModule(${JSON.stringify(c.name)}, slug),`,
+			`  getEagerModules: () => getEagerModules(${JSON.stringify(c.name)}),`,
+			`  sourceModuleUrl: import.meta.url,`,
+			`});`,
+		);
+	}
+
+	const collectionMap = collections
+		.map((c) => `  ${JSON.stringify(c.name)}: ${c.name}`)
+		.join(",\n");
+	parts.push(
+		"",
+		`export const docviaSource = createSource({\n${collectionMap}\n});`,
+	);
+
+	return parts.join("\n");
+}
+
 // ── Disk emit ───────────────────────────────────────────────────────
 
 export interface EmitModuleGraphArgs {
@@ -304,6 +431,43 @@ export interface EmitModuleGraphArgs {
 	readonly projectRoot: string;
 	readonly config: docviaConfig;
 	readonly collections: readonly CollectionData[];
+}
+
+function hasComponentRegistry(config: docviaConfig): boolean {
+	return !!(config.components && Object.keys(config.components).length > 0);
+}
+
+/**
+ * Write only the TypeScript declaration files — `types.d.ts` into `outDir` and
+ * the ambient `docvia-env.d.ts` at the project root. These exist purely for
+ * IDE type-checking, so the dev plugin emits them even when the runtime module
+ * graph is served virtually.
+ */
+export async function emitTypeDeclarations(
+	args: EmitModuleGraphArgs,
+): Promise<void> {
+	const { outDir, projectRoot, config, collections } = args;
+	const resolvedOutDir = resolve(outDir);
+	await mkdir(resolvedOutDir, { recursive: true });
+
+	await writeFile(
+		join(resolvedOutDir, "types.d.ts"),
+		generateTypesTs(collections),
+	);
+
+	const relativeOutDir = relative(projectRoot, resolvedOutDir).replace(
+		/\\/g,
+		"/",
+	);
+	const envRelativeOutDir = `./${relativeOutDir}`.replace(/\/\/+/g, "/");
+	await writeFile(
+		join(projectRoot, "docvia-env.d.ts"),
+		createdocviaEnvDts(
+			collections,
+			envRelativeOutDir,
+			hasComponentRegistry(config),
+		),
+	);
 }
 
 /**
@@ -314,11 +478,8 @@ export interface EmitModuleGraphArgs {
 export async function emitModuleGraphFiles(
 	args: EmitModuleGraphArgs,
 ): Promise<void> {
-	const { outDir, projectRoot, config, collections } = args;
+	const { outDir, config, collections } = args;
 	const resolvedOutDir = resolve(outDir);
-	const hasRegistry = !!(
-		config.components && Object.keys(config.components).length > 0
-	);
 
 	await mkdir(resolvedOutDir, { recursive: true });
 
@@ -331,8 +492,7 @@ export async function emitModuleGraphFiles(
 			join(resolvedOutDir, "source.ts"),
 			generateSourceTs(collections, config),
 		),
-		writeFile(join(resolvedOutDir, "types.d.ts"), generateTypesTs(collections)),
-		...(hasRegistry
+		...(hasComponentRegistry(config)
 			? [
 					writeFile(
 						join(resolvedOutDir, "registry.ts"),
@@ -352,15 +512,5 @@ export async function emitModuleGraphFiles(
 			: []),
 	]);
 
-	// Emit docvia-env.d.ts at the project root (resolved relative to projectRoot)
-	const relativeOutDir = relative(projectRoot, resolvedOutDir).replace(
-		/\\/g,
-		"/",
-	);
-	const envFilePath = join(projectRoot, "docvia-env.d.ts");
-	const envRelativeOutDir = `./${relativeOutDir}`.replace(/\/\/+/g, "/");
-	await writeFile(
-		envFilePath,
-		createdocviaEnvDts(collections, envRelativeOutDir, hasRegistry),
-	);
+	await emitTypeDeclarations(args);
 }
