@@ -1,6 +1,6 @@
 # @docvia/cli
 
-CLI for [docvia](https://github.com/kanakkholwal/docvia) — a build-time
+CLI for [docvia](https://github.com/kanakkholwal/docvia) — a Markdown
 documentation compiler.
 
 ## Install
@@ -33,14 +33,14 @@ small:
 
 ```ts
 import { defineConfig } from "@docvia/cli";
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 
