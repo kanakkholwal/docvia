@@ -1,5 +1,11 @@
 # @docvia/search
 
+## 0.2.1
+
+### Patch Changes
+
+- 73fd1b9: Better search API exposed
+
 ## 0.2.0
 
 ### Minor Changes
