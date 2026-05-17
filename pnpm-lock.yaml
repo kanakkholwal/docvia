@@ -60,6 +60,9 @@ importers:
       '@docvia/cli':
         specifier: workspace:*
         version: link:../../packages/cli
+      '@docvia/plugin-shiki':
+        specifier: workspace:*
+        version: link:../../packages/plugin-shiki
       '@docvia/plugin-vite':
         specifier: workspace:*
         version: link:../../packages/plugin-vite

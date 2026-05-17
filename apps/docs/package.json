@@ -4,10 +4,7 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"docvia:build": "docvia build",
-		"predev": "pnpm docvia:build",
 		"dev": "vite dev",
-		"prebuild": "pnpm docvia:build",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -17,6 +14,7 @@
 	},
 	"devDependencies": {
 		"@docvia/cli": "workspace:*",
+		"@docvia/plugin-shiki": "workspace:*",
 		"@docvia/plugin-vite": "workspace:*",
 		"@sveltejs/adapter-cloudflare": "^5.0.0",
 		"@sveltejs/kit": "^2.55.0",
