@@ -1,8 +1,6 @@
 import { defineConfig } from "@docvia/cli";
-import {
-	createShikiHighlighter,
-	createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
 	sourceDir: "src/docs",
@@ -11,12 +9,17 @@ export default defineConfig({
 		{
 			name: "docs",
 			sourceDir: "src/docs",
-			baseUrl: "/"
-		}
+			baseUrl: "/",
+		},
 	],
 
-	renderer: createSvelteRenderer({
-		highlighter: createShikiHighlighter({
+	renderer: createSvelteRenderer(),
+
+	// Syntax highlighting is a build-time plugin: `shiki()` highlights every
+	// fenced code block during compilation and bakes the HTML into the IR, so
+	// no highlighter ships to the browser or the Cloudflare Worker bundle.
+	plugins: [
+		shiki({
 			theme: "github-dark",
 			langs: [
 				"javascript",
@@ -32,5 +35,5 @@ export default defineConfig({
 				"markdown",
 			],
 		}),
-	}),
+	],
 });
