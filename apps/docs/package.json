@@ -34,8 +34,10 @@
 	},
 	"dependencies": {
 		"@docvia/compiler": "workspace:*",
+		"@docvia/ir": "workspace:*",
 		"@docvia/renderer-core": "workspace:*",
 		"@docvia/renderer-svelte": "workspace:*",
+		"@docvia/search": "workspace:*",
 		"@docvia/source": "workspace:*",
 		"@fontsource-variable/geist": "^5.2.5",
 		"@fontsource-variable/geist-mono": "^5.2.5"
