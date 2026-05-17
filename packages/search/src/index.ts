@@ -7,9 +7,11 @@ import type {
 import {
 	create,
 	insertMultiple,
+	load,
 	type Orama,
 	search as oramaSearch,
 	removeMultiple,
+	save,
 } from "@orama/orama";
 
 // Text Extraction (lazy, not stored in IR)
@@ -134,7 +136,10 @@ export async function createSearchIndexer(): Promise<SearchIndexer> {
 		},
 
 		async exportIndex() {
-			return JSON.stringify(db);
+			// `save()` returns Orama's plain serializable index data — the raw
+			// `Orama` instance carries component *functions* that would not
+			// survive `JSON.stringify`, so the index must be saved, not cloned.
+			return JSON.stringify(save(db));
 		},
 	};
 }
@@ -150,7 +155,11 @@ export interface SearchResult {
 }
 
 export async function createSearch(indexData: string) {
-	const db = JSON.parse(indexData) as Orama<typeof searchSchema>;
+	// Rehydrate into a fresh Orama instance: `load()` restores the saved index
+	// data onto a db that still has its component functions wired up. Parsing
+	// the JSON straight into an `Orama` would yield a functionless object.
+	const db: Orama<typeof searchSchema> = await create({ schema: searchSchema });
+	load(db, JSON.parse(indexData));
 
 	return {
 		async search(
