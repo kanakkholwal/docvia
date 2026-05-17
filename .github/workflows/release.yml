@@ -8,11 +8,7 @@ on:
     paths:
       - "apps/packages/**" # Only trigger if changes in this directory
   workflow_dispatch: # Allow manual triggering from the Actions tab
-    inputs:
-      version:
-        description: "Release version (e.g. v1.0.0)"
-        required: true
-        type: string
+
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
