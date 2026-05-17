@@ -7,6 +7,11 @@
 			"types": "./dist/index.d.mts",
 			"import": "./dist/index.mjs",
 			"default": "./dist/index.mjs"
+		},
+		"./node": {
+			"types": "./dist/node.d.mts",
+			"import": "./dist/node.mjs",
+			"default": "./dist/node.mjs"
 		}
 	},
 	"main": "./dist/index.mjs",

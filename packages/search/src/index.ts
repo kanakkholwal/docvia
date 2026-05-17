@@ -151,6 +151,8 @@ export interface SearchResult {
 	sectionId: string;
 	sectionTitle: string;
 	pageTitle: string;
+	/** Full section text — lets callers render a highlighted match snippet. */
+	content: string;
 	score: number;
 }
 
@@ -169,6 +171,11 @@ export async function createSearch(indexData: string) {
 			const results = await oramaSearch(db, {
 				term: query,
 				limit: options?.limit ?? 10,
+				// `threshold: 0` keeps only sections matching the *most* query
+				// tokens. The Orama default (1) returns every section matching
+				// even a single token, which floods multi-word searches with
+				// loosely-related noise.
+				threshold: 0,
 				boost: {
 					sectionTitle: 3,
 					pageTitle: 2,
@@ -181,6 +188,7 @@ export async function createSearch(indexData: string) {
 				sectionId: hit.document.sectionId as string,
 				sectionTitle: hit.document.sectionTitle as string,
 				pageTitle: hit.document.pageTitle as string,
+				content: hit.document.content as string,
 				score: hit.score,
 			}));
 		},

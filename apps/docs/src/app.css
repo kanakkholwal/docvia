@@ -208,7 +208,7 @@ body {
 	letter-spacing: -0.025em;
 }
 
-:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+:where(a, button, input, select, textarea, [tabindex]):not([class]):focus-visible {
 	outline: 2px solid var(--ink);
 	outline-offset: 2px;
 	border-radius: var(--radius-sm);
@@ -223,4 +223,55 @@ body {
 		transition-duration: 0.01ms;
 		scroll-behavior: auto;
 	}
+}
+
+.scrollbar-transparent {
+	scrollbar-gutter: stable;
+	scrollbar-width: thin;
+	scrollbar-color: color-mix(in srgb, var(--foreground) 15%, transparent)
+		transparent;
+	scroll-behavior: smooth;
+	scrollbar-width: thin;
+}
+
+.scrollbar-transparent::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.scrollbar-transparent::-webkit-scrollbar-track {
+	background: hsl(var(--muted));
+	border-radius: 0.5rem;
+}
+
+.scrollbar-transparent::-webkit-scrollbar-thumb {
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary) / 0.6),
+		hsl(var(--secondary) / 0.8)
+	);
+	border: 2px solid hsl(var(--background));
+	border-radius: 0.5rem;
+	transition: all 0.2s ease-in-out;
+}
+
+.scrollbar-transparent::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary) / 0.8),
+		hsl(var(--secondary) / 1)
+	);
+	transform: scale(1.1);
+}
+
+.scrollbar-transparent::-webkit-scrollbar-thumb:active {
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary)),
+		hsl(var(--secondary))
+	);
+}
+
+.scrollbar-transparent::-webkit-scrollbar-corner {
+	background: hsl(var(--background));
 }

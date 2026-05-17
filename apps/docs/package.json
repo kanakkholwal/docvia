@@ -34,7 +34,6 @@
 	},
 	"dependencies": {
 		"@docvia/compiler": "workspace:*",
-		"@docvia/ir": "workspace:*",
 		"@docvia/renderer-core": "workspace:*",
 		"@docvia/renderer-svelte": "workspace:*",
 		"@docvia/search": "workspace:*",

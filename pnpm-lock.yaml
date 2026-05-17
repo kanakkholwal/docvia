@@ -41,9 +41,6 @@ importers:
       '@docvia/compiler':
         specifier: workspace:*
         version: link:../../packages/compiler
-      '@docvia/ir':
-        specifier: workspace:*
-        version: link:../../packages/ir
       '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../../packages/renderer-core
