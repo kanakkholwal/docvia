@@ -1,5 +1,12 @@
 # @docvia/ssr
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [55a3826]
+  - @docvia/renderer-core@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
