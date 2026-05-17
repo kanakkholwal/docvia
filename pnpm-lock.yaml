@@ -41,12 +41,18 @@ importers:
       '@docvia/compiler':
         specifier: workspace:*
         version: link:../../packages/compiler
+      '@docvia/ir':
+        specifier: workspace:*
+        version: link:../../packages/ir
       '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../../packages/renderer-core
       '@docvia/renderer-svelte':
         specifier: workspace:*
         version: link:../../packages/renderer-svelte
+      '@docvia/search':
+        specifier: workspace:*
+        version: link:../../packages/search
       '@docvia/source':
         specifier: workspace:*
         version: link:../../packages/source

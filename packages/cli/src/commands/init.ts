@@ -2,12 +2,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { c, log, symbols } from "../logger";
+import { isPackageManager, promptPackageManager } from "../pm";
 import { getScaffold, installHint, type RendererTemplate } from "../templates";
 
 export interface InitOptions {
 	dir: string;
 	renderer?: RendererTemplate;
 	force?: boolean;
+	/** Preferred package manager from `--pm`; prompts when omitted. */
+	pm?: string;
 }
 
 const VALID_RENDERERS: RendererTemplate[] = ["react", "svelte", "none"];
@@ -52,9 +55,19 @@ export async function runInit(opts: InitOptions): Promise<void> {
 		return;
 	}
 
+	// Pick the package manager — drives every suggested install command.
+	if (opts.pm !== undefined && !isPackageManager(opts.pm)) {
+		log.warn(
+			`Unknown --pm "${opts.pm}", expected one of: npm, pnpm, yarn, bun. Asking instead.`,
+		);
+	}
+	const pm = await promptPackageManager(
+		opts.pm !== undefined && isPackageManager(opts.pm) ? opts.pm : undefined,
+	);
+
 	await mkdir(docsDir, { recursive: true });
 
-	const scaffold = getScaffold(renderer);
+	const scaffold = getScaffold(renderer, pm);
 	await Promise.all([
 		writeFile(join(docsDir, "index.md"), scaffold.indexMd, "utf-8"),
 		writeFile(
@@ -73,14 +86,14 @@ export async function runInit(opts: InitOptions): Promise<void> {
 	if (renderer === "none") {
 		console.log("");
 		log.warn("No renderer detected. Install one to enable builds:");
-		log.plain(`    ${c.cyan(installHint(renderer))}`);
+		log.plain(`    ${c.cyan(installHint(renderer, pm))}`);
 		log.plain(
 			`  Then edit ${c.cyan("docvia.config.ts")} to wire the renderer.`,
 		);
 	} else {
 		console.log("");
-		log.plain(`  Install runtime peers if you haven't already:`);
-		log.plain(`    ${c.cyan(installHint(renderer))}`);
+		log.plain(`  Install runtime peers with ${c.bold(pm)}:`);
+		log.plain(`    ${c.cyan(installHint(renderer, pm))}`);
 	}
 
 	console.log("");

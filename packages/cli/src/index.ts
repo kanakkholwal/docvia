@@ -31,12 +31,22 @@ function buildProgram(): Command {
 			"-r, --renderer <renderer>",
 			"Renderer template: react | svelte | none (default: autodetect)",
 		)
+		.option(
+			"--pm <manager>",
+			"Package manager: npm | pnpm | yarn | bun (default: prompt)",
+		)
 		.option("-f, --force", "Overwrite existing docvia.config.ts", false)
 		.action(
-			async (opts: { dir: string; renderer?: string; force?: boolean }) => {
+			async (opts: {
+				dir: string;
+				renderer?: string;
+				pm?: string;
+				force?: boolean;
+			}) => {
 				await runInit({
 					dir: opts.dir,
 					renderer: opts.renderer as RendererTemplate | undefined,
+					pm: opts.pm,
 					force: opts.force,
 				});
 			},
@@ -49,12 +59,14 @@ function buildProgram(): Command {
 		.option("--out <dir>", "Output directory (overrides config)")
 		.option("--config <path>", "Config file path", "./docvia.config.ts")
 		.option("--no-cache", "Disable incremental cache; force full rebuild")
+		.option("-v, --verbose", "Show intermediate build steps in detail", false)
 		.action(
 			async (opts: {
 				docs?: string;
 				out?: string;
 				config?: string;
 				cache?: boolean;
+				verbose?: boolean;
 			}) => {
 				// commander maps --no-cache to opts.cache === false
 				await runBuild({
@@ -62,6 +74,7 @@ function buildProgram(): Command {
 					out: opts.out,
 					config: opts.config,
 					noCache: opts.cache === false,
+					verbose: opts.verbose,
 				});
 			},
 		);
@@ -72,9 +85,17 @@ function buildProgram(): Command {
 		.option("--docs <dir>", "Docs directory (overrides config)")
 		.option("--out <dir>", "Output directory (overrides config)")
 		.option("--config <path>", "Config file path", "./docvia.config.ts")
-		.action(async (opts: { docs?: string; out?: string; config?: string }) => {
-			await runDev(opts);
-		});
+		.option("-v, --verbose", "Show each changed file as it rebuilds", false)
+		.action(
+			async (opts: {
+				docs?: string;
+				out?: string;
+				config?: string;
+				verbose?: boolean;
+			}) => {
+				await runDev(opts);
+			},
+		);
 
 	program
 		.command("preview")

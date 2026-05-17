@@ -1,20 +1,23 @@
 import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { defineConfig, loadConfig } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
-import { c, formatError, log, symbols } from "../logger";
+import { c, formatError, header, log, step, symbols } from "../logger";
 
 export interface DevOptions {
 	docs?: string;
 	out?: string;
 	config?: string;
+	verbose?: boolean;
 }
 
-function fmtMs(ms: number): string {
-	return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${Math.round(ms)}ms`;
+/** Path relative to the cwd — friendlier than an absolute path. */
+function rel(p: string): string {
+	const r = relative(process.cwd(), p);
+	return r === "" ? "." : r;
 }
 
 /**
@@ -25,6 +28,8 @@ function fmtMs(ms: number): string {
  * and recompiles incrementally via `service.invalidate()`.
  */
 export async function runDev(opts: DevOptions): Promise<void> {
+	const verbose = opts.verbose === true;
+	header("dev");
 	const configPath = resolve(opts.config ?? "docvia.config.ts");
 	const projectRoot = existsSync(configPath)
 		? dirname(configPath)
@@ -75,18 +80,26 @@ export async function runDev(opts: DevOptions): Promise<void> {
 
 	let service = createService(config);
 
-	log.info("Starting dev mode...");
-
 	// Initial build
 	try {
-		const start = performance.now();
+		const tCompile = performance.now();
 		const result = await service.compileAll();
-		await service.emitDiskModuleGraph();
-		log.success(
-			`Initial build: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.stats.total} files, ${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
+		const { total, compiled, cached } = result.stats;
+		step(
+			"compile",
+			`${rel(sourceDir)} ${symbols.dot} ${total} file${total === 1 ? "" : "s"}`,
+			performance.now() - tCompile,
 		);
+		if (verbose) {
+			const cacheNote = cached > 0 ? `, ${cached} cached` : "";
+			log.plain(c.gray(`      ${compiled} compiled${cacheNote}`));
+		}
+		const tEmit = performance.now();
+		await service.emitDiskModuleGraph();
+		step("emit", rel(outDir), performance.now() - tEmit);
 	} catch (err) {
-		log.error(formatError(err));
+		console.log("");
+		log.error(`  ${formatError(err)}`);
 		// Don't exit — keep watching so the user can fix the error.
 	}
 
@@ -116,22 +129,32 @@ export async function runDev(opts: DevOptions): Promise<void> {
 				// because config (plugins, renderer, schema) is baked in at
 				// construction.
 				config = await loadConfig(configPath);
-				log.info(`Config reloaded ${c.gray(`(${configPath})`)}`);
 				service = createService(config);
 				const result = await service.compileAll();
 				await service.emitDiskModuleGraph();
-				log.success(
-					`Rebuild: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.stats.compiled} compiled, ${result.stats.cached} cached)`)}`,
+				step(
+					"reload",
+					`config changed ${symbols.dot} ${result.stats.compiled} recompiled`,
+					performance.now() - start,
 				);
 			} else {
 				const result = await service.invalidate(files);
 				await service.emitDiskModuleGraph();
-				log.success(
-					`Rebuild: ${fmtMs(performance.now() - start)} ${c.gray(`(${result.changed.length} recompiled)`)}`,
+				const n = result.changed.length;
+				step(
+					"rebuild",
+					`${n} file${n === 1 ? "" : "s"} recompiled`,
+					performance.now() - start,
 				);
+				if (verbose) {
+					for (const f of files) {
+						log.plain(c.gray(`      ${symbols.dot} ${rel(f)}`));
+					}
+				}
 			}
 		} catch (err) {
-			log.error(formatError(err));
+			console.log("");
+			log.error(`  ${formatError(err)}`);
 		}
 	}
 
@@ -149,11 +172,10 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		timer = null;
 
 		const reason = files.includes(configPath) ? "config" : "files";
-		const label =
-			reason === "config"
-				? "config change"
-				: `${files.length} file${files.length === 1 ? "" : "s"}`;
-		log.info(`Rebuilding ${c.gray(`(${label})`)}...`);
+		if (verbose && reason === "files") {
+			const names = files.map((f) => basename(f)).join(", ");
+			log.plain(c.gray(`  ${symbols.arrow} changed: ${names}`));
+		}
 
 		building = rebuild(reason, files).finally(() => {
 			building = null;
@@ -174,11 +196,13 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	watcher.on("add", schedule);
 	watcher.on("unlink", schedule);
 
-	log.info(`Watching ${c.cyan(sourceDir)} for changes...`);
-	if (existsSync(configPath)) {
-		log.plain(`  ${symbols.arrow} also watching ${c.cyan(configPath)}`);
-	}
-	log.plain("  Press Ctrl+C to stop\n");
+	const watching = existsSync(configPath)
+		? `${c.cyan(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.cyan(rel(configPath))}`
+		: c.cyan(rel(sourceDir));
+	console.log("");
+	console.log(`  ${c.gray("watching")} ${watching}`);
+	console.log(`  ${c.gray("press Ctrl+C to stop")}`);
+	console.log("");
 
 	// Graceful shutdown
 	const shutdown = async (signal: string) => {
