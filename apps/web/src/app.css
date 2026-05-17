@@ -238,7 +238,9 @@ body {
 
 /* ── Focus ring ── */
 
-:where(a, button, input, select, textarea, [tabindex]):not([class]):focus-visible {
+:where(a, button, input, select, textarea, [tabindex]):not(
+		[class]
+	):focus-visible {
 	outline: 2px solid var(--ink);
 	outline-offset: 2px;
 	border-radius: var(--radius-sm);

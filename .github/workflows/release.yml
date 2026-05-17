@@ -57,5 +57,9 @@ jobs:
           title: "chore(release): version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The .npmrc written by actions/setup-node authenticates with
+          # NODE_AUTH_TOKEN — without it `npm publish` runs unauthenticated
+          # and the registry rejects the scoped-package write with E404.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
