@@ -20,7 +20,7 @@ pnpm add @docvia/source
 | `.` | Re-exports `./node` + `./runtime` | The default entry. **Does not** re-export the `./internal` factories. |
 | `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, `HydrationManifest`. |
 | `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated `.docvia/source.ts`. |
-| `./node` | `loadMarkdown` | Node-only Markdown loader. |
+| `./node` | `loadMarkdown`, `loadIRChunk` | Node-only Markdown / IR-chunk loaders. |
 
 > `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly — the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
 
@@ -221,6 +221,33 @@ The default highlighter is a lazily-created Shiki singleton. When `shiki` is not
 import { loadMarkdown } from "@docvia/source/node";
 
 const { content, meta, manifest } = await loadMarkdown("docs/index.md");
+```
+
+### `loadIRChunk`
+
+```ts
+function loadIRChunk(
+  outDir: string,
+  collection: string,
+  slug: string,
+  options?: { highlighter?: SyntaxHighlighter },
+): Promise<{ content: any; meta: unknown; manifest: unknown } | undefined>;
+```
+
+Renders a **pre-built per-route IR chunk** — the `<outDir>/ir/<collection>/<slug>.json`
+file the build emits. Unlike `loadMarkdown`, it does not re-parse Markdown: the
+chunk already has every docvia plugin applied (including build-time syntax
+highlighting), so this is the consistent server-render path for bundlers
+without a `?docvia` transform — notably Next.js and Turbopack. Returns
+`undefined` when the chunk does not exist.
+
+`options.highlighter` only highlights code blocks that were *not* already
+pre-highlighted at build time (i.e. projects not using a highlighter plugin).
+
+```ts
+import { loadIRChunk } from "@docvia/source/node";
+
+const page = await loadIRChunk(".docvia", "docs", "getting-started");
 ```
 
 ## Generated source example

@@ -21,7 +21,7 @@ env:
   
 jobs:
   deploy:
-    name: Build & deploy apps/web to Cloudflare Workers
+    name: Build & deploy to CF Workers
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

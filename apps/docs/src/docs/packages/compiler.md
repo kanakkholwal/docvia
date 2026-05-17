@@ -5,7 +5,9 @@ eyebrow: "Packages"
 order: 13
 ---
 
-`@docvia/compiler` is the build engine of docvia. It walks a source tree of markdown files, runs each one through the full pipeline — plugin hooks, parsing (`@docvia/core`), frontmatter validation (`@docvia/schema`), the AST to IR transform (`@docvia/ir`) — and emits a **module graph**: a small set of generated `.ts`/`.d.ts` files that frameworks like Vite and Next.js consume to load documentation pages.
+`@docvia/compiler` is the batch build entry point of docvia. It walks a source tree of markdown files, runs each one through the full pipeline — plugin hooks, parsing (`@docvia/core`), frontmatter validation (`@docvia/schema`), the AST to IR transform (`@docvia/ir`) — and emits a **module graph**: a small set of generated `.ts`/`.d.ts` files that frameworks like Vite and Next.js consume to load documentation pages.
+
+> `compile()` is a thin wrapper over the [`CompileService`](/packages/runtime) in `@docvia/runtime` — it constructs the service, runs `compileAll()`, and emits the disk module graph. The same service backs the dev server and SSR, so all three modes share one render path. See [Architecture](/guide/architecture).
 
 Two things make the compiler fast. First, it processes files **in parallel** across a worker pool. Second, it is **incremental**: it persists a `.docvia.cache.json` file in the output directory and skips any file whose content hash and pipeline cache key match the previous run.
 
@@ -100,13 +102,15 @@ The build proceeds as follows:
 
 ### The generated module graph
 
-`compile` writes a five-file module graph. Three files are always emitted into `outDir`, one is conditional, and one is emitted at the project root:
+`compile` writes the module graph below. Several files are always emitted into `outDir`, one is conditional, and one is emitted at the project root:
 
 | File | Location | Emitted | Purpose |
 | --- | --- | --- | --- |
-| `dynamic.ts` | `outDir` | always | The route map plus `loadModule` / `getEagerModules` loaders, including the shared Shiki highlighter singleton. |
+| `dynamic.ts` | `outDir` | always | The route map plus `loadModule` / `getEagerModules` loaders. |
 | `source.ts` | `outDir` | always | Builds collections and the `docviaSource` object via `@docvia/source`. |
 | `types.d.ts` | `outDir` | always | Per-collection `_RouteKey`, `_Frontmatter`, and `_DocPage` type declarations. |
+| `ir/<collection>/<slug>.json` | `outDir` | always | Per-route IR chunks — pre-built, all plugins applied. Consumed by [`@docvia/ssr`](/packages/ssr) and by `loadIRChunk`. |
+| `ir/manifest.json` | `outDir` | always | The index of emitted IR chunks. |
 | `registry.ts` | `outDir` | only when `config.components` is non-empty | The component registry, importing each configured component. |
 | `docvia-env.d.ts` | `projectRoot` | always | Ambient `declare module 'docvia/source'` (and `'docvia/registry'`) declarations. |
 

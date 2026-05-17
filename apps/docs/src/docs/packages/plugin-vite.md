@@ -1,59 +1,69 @@
 ---
 title: "@docvia/plugin-vite"
-description: "Vite plugins that transform docvia Markdown imports and resolve compiled docvia virtual modules."
+description: "The in-process docvia() Vite plugin — virtual modules, incremental HMR, and a production module graph."
 eyebrow: "Packages"
 order: 40
 ---
 
-`@docvia/plugin-vite` provides two Vite plugins. `docviaMarkdownPlugin` transforms `*.md?docvia` imports into renderer output at build time. `docviaSourcePlugin` resolves the `docvia:source` and `docvia:registry` virtual modules to compiled `.docvia/` artifacts — with a stub fallback when they don't exist yet — and whitelists `.docvia` in Vite's `server.fs.allow`.
-
-## Install
+`@docvia/plugin-vite` integrates docvia into any Vite-based app (plain Vite or
+SvelteKit). The recommended export is **`docvia()`** — a single plugin that
+runs the [`CompileService`](/packages/runtime) in-process, so there is no
+separate `docvia build` step.
 
 ```bash
 pnpm add -D @docvia/plugin-vite
 ```
 
+Requires Node.js `>=20.0.0`. ESM only.
+
 ## Package exports
 
 | Subpath | Contents |
 |---|---|
-| `.` | `docviaMarkdownPlugin`, `docviaSourcePlugin`. |
+| `.` | `docvia` (recommended); `docviaMarkdownPlugin`, `docviaSourcePlugin` (legacy). |
 
-The package's `index.ts` re-exports `./markdown` and `./source`. There is no `bin` and no other subpath.
-
-## API reference
-
-### `docviaMarkdownPlugin`
+## `docvia()` — the in-process plugin
 
 ```ts
-function docviaMarkdownPlugin(config: docviaConfig): Plugin;
+function docvia(config: docviaConfig, options?: DocviaVitePluginOptions): Plugin;
 ```
 
-Returns a Vite plugin named `docvia:markdown` with a `transform(code, id)` hook.
+A single Vite plugin that owns the whole docvia integration:
 
-It throws `Error("[docvia] No renderer configured")` at construction time if `config.renderer` is falsy — a Markdown plugin without a renderer cannot produce output.
-
-The `transform` hook:
-
-- Returns `null` (no transformation) unless `id` ends with `.md?docvia`.
-- Otherwise runs the pipeline: `extractFrontmatter` → `validateFrontmatter` → `parseMarkdown` (with `config.markdown.remarkPlugins`) → `transformToIR` → `renderer.renderPage`.
-- Returns `{ code, map }` — the renderer's output module and its source map.
+- **Dev** — runs `CompileService` in-process, serves `docvia/source` as an
+  in-memory **virtual module**, and recompiles incrementally. `handleHotUpdate`
+  hot-swaps a `.md?docvia` module on a content change and triggers a reload on
+  a route-map change; a `configureServer` watcher picks up added and removed
+  files. Compile errors surface in Vite's error overlay.
+- **Build** — emits the on-disk module graph (`emitDiskModuleGraph()`), which
+  Vite then resolves normally.
+- **`.md?docvia` transform** — routes single-file Markdown imports through the
+  same service.
 
 ```ts
 // vite.config.ts
+import { docvia } from "@docvia/plugin-vite";
 import { defineConfig } from "vite";
-import { docviaMarkdownPlugin } from "@docvia/plugin-vite";
 import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [docviaMarkdownPlugin(docviaConfig)],
+  plugins: [docvia(docviaConfig)],
 });
 ```
 
+That is the complete setup — no `predev` / `prebuild` script, and no
+`rollupOptions.external` block. See
+[Framework integration](/guide/frameworks) for the full SvelteKit walkthrough.
+
 ```ts
-// Importing a Markdown file with the ?docvia query triggers the transform.
-import Page from "./docs/index.md?docvia";
+// A single page can still be imported directly through the ?docvia transform.
+import page from "./docs/index.md?docvia";
 ```
+
+## Legacy exports
+
+The pre–in-process plugins remain exported for projects that still run a
+separate `docvia build` step. New projects should use `docvia()` instead.
 
 ### `docviaSourcePlugin`
 
@@ -61,59 +71,30 @@ import Page from "./docs/index.md?docvia";
 function docviaSourcePlugin(): Plugin;
 ```
 
-Returns a Vite plugin named `docvia:source` with `config`, `resolveId`, and `load` hooks. It takes no arguments.
+Resolves the `docvia/source` and `docvia/registry` virtual module ids to the
+compiled `.docvia/` artifacts (with a stub fallback before the first build),
+and whitelists `.docvia` in Vite's `server.fs.allow`.
 
-#### `config()`
-
-Pushes `path.resolve(root, ".docvia")` into `server.fs.allow`, so Vite's dev server is permitted to serve files from the compiled output directory.
-
-#### `resolveId()`
-
-Resolves two families of virtual module ids:
-
-| Imported id | Resolves to (if file exists) | Fallback virtual id |
-|---|---|---|
-| `docvia:source`, `docvia/source`, `docvia-source` | `.docvia/source.ts` | `\0docvia:source` |
-| `docvia:registry`, `docvia/registry`, `docvia-registry` | `.docvia/registry.ts` | `\0docvia:registry` |
-
-When the compiled file exists on disk it is resolved directly. Otherwise the id is rewritten to a `\0`-prefixed virtual id so `load` can serve a stub.
-
-#### `load()`
-
-Returns stub module source for the virtual ids:
-
-- `\0docvia:source` → a stub that calls `createSource({})` from `@docvia/source/internal` (an empty source with no collections).
-- `\0docvia:registry` → a stub whose `resolve()` always returns `null`.
-
-The stubs let your app type-check and boot before the first `docvia build` runs; once the real `.docvia/` artifacts exist, `resolveId` picks them up automatically.
+### `docviaMarkdownPlugin`
 
 ```ts
-// vite.config.ts
-import { defineConfig } from "vite";
-import { docviaSourcePlugin } from "@docvia/plugin-vite";
-
-export default defineConfig({
-  plugins: [docviaSourcePlugin()],
-});
+function docviaMarkdownPlugin(config: docviaConfig): Plugin;
 ```
 
-```ts
-// Application code can import the virtual module regardless of build state.
-import { source } from "docvia:source";
-```
-
-## Using both plugins together
+Transforms `*.md?docvia` imports into renderer output. Throws at construction
+time if `config.renderer` is falsy.
 
 ```ts
-// vite.config.ts
-import { defineConfig } from "vite";
+// Legacy setup — requires a separate `docvia build` step.
 import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
 import docviaConfig from "./docvia.config";
 
-export default defineConfig({
-  plugins: [
-    docviaMarkdownPlugin(docviaConfig),
-    docviaSourcePlugin(),
-  ],
-});
+export default {
+  plugins: [docviaSourcePlugin(), docviaMarkdownPlugin(docviaConfig)],
+};
 ```
+
+## See also
+
+- [Framework integration](/guide/frameworks) — SvelteKit and plain Vite setups.
+- [`@docvia/runtime`](/packages/runtime) — the `CompileService` the plugin runs.

@@ -22,9 +22,11 @@ task-oriented walkthroughs, see the [Guides](/guide).
 - [`@docvia/schema`](/packages/schema) — frontmatter validation (Zod), YAML
   extraction, and TypeScript codegen.
 
-## Orchestration
+## Compile core
 
-- [`@docvia/compiler`](/packages/compiler) — the parallel build orchestrator,
+- [`@docvia/runtime`](/packages/runtime) — `CompileService`, the stateful
+  compile core shared by build, dev, and SSR.
+- [`@docvia/compiler`](/packages/compiler) — the batch build entry (`compile()`),
   content hashing, the incremental cache, and module-graph generation.
 - [`@docvia/plugins`](/packages/plugins) — `defineConfig`, `loadConfig`, and
   the `PluginRunner`.
@@ -38,8 +40,10 @@ task-oriented walkthroughs, see the [Guides](/guide).
 
 ## Runtime
 
-- [`@docvia/source`](/packages/source) — the runtime collection model and the
-  Node Markdown loader.
+- [`@docvia/source`](/packages/source) — the runtime collection model, the Node
+  Markdown loader, and the per-route IR-chunk loader.
+- [`@docvia/ssr`](/packages/ssr) — request-time rendering for Node and edge
+  runtimes.
 - [`@docvia/search`](/packages/search) — section-level Orama indexing and the
   client search helper.
 
@@ -47,9 +51,11 @@ task-oriented walkthroughs, see the [Guides](/guide).
 
 - [`@docvia/cli`](/packages/cli) — the `docvia` command (`init`, `build`,
   `dev`, `preview`).
-- [`@docvia/plugin-vite`](/packages/plugin-vite) — Vite plugins for the
-  `docvia/source` and `*.md?docvia` virtual modules.
+- [`@docvia/plugin-vite`](/packages/plugin-vite) — the in-process `docvia()`
+  Vite plugin, with virtual modules and incremental HMR.
 - [`@docvia/plugin-next`](/packages/plugin-next) — the Next.js `withDocvia`
-  wrapper.
+  wrapper (webpack and Turbopack).
+- [`@docvia/plugin-shiki`](/packages/plugin-shiki) — build-time syntax
+  highlighting via Shiki.
 - [`@docvia/plugin-openapi`](/packages/plugin-openapi) — render OpenAPI 3.x
   endpoints inline in Markdown.

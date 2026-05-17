@@ -1,11 +1,11 @@
 ---
 title: "@docvia/plugin-next"
-description: "Next.js integration that compiles docvia docs and aliases the compiled artifacts in webpack."
+description: "Next.js integration that compiles docvia docs and aliases the compiled artifacts for webpack and Turbopack."
 eyebrow: "Packages"
 order: 41
 ---
 
-`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs via `@docvia/compiler`'s `compile()`, aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts in webpack, and — in development — starts a chokidar watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
+`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and — in development — starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
 
 ## Install
 
@@ -55,7 +55,7 @@ On the first invocation, `withDocvia` runs an `init()` step exactly once (the re
 2. Resolves `sourceDir` (default `docs`) and `outDir` (default `.docvia`).
 3. **Skips** compilation entirely when there is no renderer configured or the source directory is missing.
 4. Acquires the `.docvia-build.lock` cross-process file lock. If another process already holds the lock, it waits up to **60 seconds** for that process to produce `outDir/source.ts`.
-5. Runs `compile()`.
+5. Constructs a `CompileService` and runs `compileAll()` followed by `emitDiskModuleGraph()`.
 
 Failure handling depends on `phase`:
 
@@ -64,18 +64,20 @@ Failure handling depends on `phase`:
 
 #### Development watcher
 
-In dev, `withDocvia` starts a **singleton** chokidar watcher over the source directory. Only one watcher is created regardless of how many times the config function runs.
+In dev, `withDocvia` starts a **singleton** watcher over the source directory. Only one watcher is created regardless of how many times the config function runs. Each change recompiles only the affected files through `service.invalidate()` and re-emits the module graph — incremental, not a full rebuild.
 
 #### Returned config
 
-The returned `NextConfig` adds (or extends) a `webpack()` hook that registers two resolve aliases:
+The returned `NextConfig` registers two resolve aliases for **both bundlers** — Next.js may run on webpack or Turbopack, and docvia resolves under either:
 
 | Alias | Target |
 |---|---|
 | `docvia/source` | `<outDir>/source.ts` |
 | `docvia/registry` | `<outDir>/registry.ts` |
 
-Any `webpack()` hook already present on your config is preserved and composed.
+The aliases are added to a `webpack()` hook *and* to `turbopack.resolveAlias`. Any `webpack()` hook already present on your config is preserved and composed.
+
+> The on-disk module graph is used for both webpack and Turbopack — Turbopack has no plugin API, so there is a single resolution path.
 
 ## Usage
 
