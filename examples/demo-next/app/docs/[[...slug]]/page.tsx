@@ -1,9 +1,9 @@
+import { DocviaHydrator } from "@/components/DocviaHydrator";
 import { DocviaContent } from "@docvia/renderer-react";
 import { docs, registry } from "docvia/source";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DocviaHydrator } from "@/components/DocviaHydrator";
 
 interface PageProps {
 	params: Promise<{ slug?: string[] }>;
@@ -60,7 +60,7 @@ export default async function DocPage({ params }: PageProps) {
 				{(prev || next) && (
 					<nav className="pagination" aria-label="Pagination">
 						{prev ? (
-							<Link href={`/docs${prev.url}`} className="pagination-link">
+							<Link href={`${prev.url}`} className="pagination-link">
 								<span className="pagination-label">Previous</span>
 								<span className="pagination-title">
 									{prev.data?.title || "Previous"}
@@ -71,7 +71,7 @@ export default async function DocPage({ params }: PageProps) {
 						)}
 						{next ? (
 							<Link
-								href={`/docs${next.url}`}
+								href={`${next.url}`}
 								className="pagination-link pagination-link--next"
 							>
 								<span className="pagination-label">Next</span>

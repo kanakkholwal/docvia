@@ -1,8 +1,6 @@
 import { defineConfig } from "@docvia/cli";
-import {
-	createShikiHighlighter,
-	createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
 	sourceDir: "src/docs",
@@ -21,13 +19,17 @@ export default defineConfig({
 		},
 	},
 
-	// Configure your renderer with the Shiki highlighter
-	renderer: createSvelteRenderer({
-		highlighter: createShikiHighlighter({
-			// Set your preferred Shiki theme (default is 'github-dark')
+	renderer: createSvelteRenderer(),
+
+	// Syntax highlighting is a build-time plugin: it highlights every code block
+	// during compilation and bakes the HTML into the IR, so no highlighter ships
+	// to the browser.
+	plugins: [
+		shiki({
+			// Set your preferred Shiki theme (default is 'github-dark').
 			theme: "dracula",
 
-			// Register languages you want to highlight
+			// Register languages you want to highlight.
 			langs: [
 				"javascript",
 				"typescript",
@@ -38,5 +40,5 @@ export default defineConfig({
 				"json",
 			],
 		}),
-	}),
+	],
 });

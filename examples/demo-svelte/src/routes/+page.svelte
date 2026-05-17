@@ -20,20 +20,16 @@ const features = [
 
 const codeSnippet = `// docvia.config.ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createShikiHighlighter,
-  createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "src/docs",
   outDir: ".docvia",
-  renderer: createSvelteRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "dracula",
-      langs: ["typescript", "svelte", "bash"],
-    }),
-  }),
+  renderer: createSvelteRenderer(),
+  plugins: [
+    shiki({ theme: "dracula", langs: ["typescript", "svelte", "bash"] }),
+  ],
 });`;
 </script>
 

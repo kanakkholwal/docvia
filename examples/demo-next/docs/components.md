@@ -72,6 +72,9 @@ Here is an interactive counter component embedded via directive:
 :::counter{initial=42 hydrate="client:load"}
 :::
 
+:::greeting{initial=42 hydrate="client:load"}
+:::
+
 The counter above is server-rendered, then hydrated on the client. Try clicking the buttons — the component state is fully interactive.
 
 ## How it works

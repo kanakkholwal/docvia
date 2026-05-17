@@ -1,4 +1,4 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and Svelte component bridge types are intentionally erased to keep the adapter loose.
+// biome-ignore-all lint/suspicious/noExplicitAny: Svelte component bridge and Vite server types are intentionally erased to keep the adapter loose.
 import type {
 	IRDocument,
 	PageMeta,
@@ -11,66 +11,19 @@ import {
 	createDefaultRendererMap,
 	type RenderContext,
 	renderDocument,
-	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
-
-// Browser-safe highlighter creator that only loads shiki on demand (server-side)
-export function createShikiHighlighter(opts?: {
-	theme?: string;
-	langs?: string[];
-}): SyntaxHighlighter {
-	const theme = opts?.theme ?? "github-dark";
-	const langs = opts?.langs ?? [
-		"javascript",
-		"typescript",
-		"bash",
-		"json",
-		"css",
-		"html",
-		"svelte",
-	];
-
-	return {
-		async highlight(code: string, lang: string) {
-			const g = globalThis as any;
-
-			if (!g.__docvia_shiki__ && !g.__docvia_shiki_pending__) {
-				g.__docvia_shiki_pending__ = (async () => {
-					const { createHighlighter } = await import("shiki");
-					const h = await createHighlighter({ themes: [theme], langs });
-					g.__docvia_shiki__ = h;
-					delete g.__docvia_shiki_pending__;
-					return h;
-				})();
-			}
-
-			const h = g.__docvia_shiki__ ?? (await g.__docvia_shiki_pending__);
-			try {
-				return { html: h.codeToHtml(code, { lang, theme }) };
-			} catch {
-				return { html: `<pre><code>${escapeHtml(code)}</code></pre>` };
-			}
-		},
-	};
-}
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;");
-}
 
 // Svelte Renderer Adapter
 
+/**
+ * Creates a docvia RendererAdapter for Svelte.
+ *
+ * Syntax highlighting is a build-time plugin (e.g. `@docvia/plugin-shiki`), not
+ * a renderer concern — add it to `plugins` in your docvia config.
+ */
 export function createSvelteRenderer(
-	options: {
-		highlighter?: SyntaxHighlighter;
-		registry?: ComponentRegistry;
-	} = {},
+	options: { registry?: ComponentRegistry } = {},
 ): RendererAdapter {
-	const hl = options.highlighter ?? createShikiHighlighter();
 	const registry = options.registry ?? {
 		resolve: () => null,
 	};
@@ -92,7 +45,6 @@ export function createSvelteRenderer(
 					order: doc.frontmatter.order,
 				},
 				registry,
-				highlighter: hl,
 			};
 
 			const { output, manifest } = await renderDocument(

@@ -120,10 +120,8 @@ export default defineConfig({
 `;
 
 const reactConfig = `import { defineConfig } from "@docvia/cli";
-import {
-  createReactRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
@@ -134,20 +132,22 @@ export default defineConfig({
   //   counter: { path: "./components/Counter", hydrate: true },
   // },
 
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({
+  renderer: createReactRenderer(),
+
+  // Syntax highlighting is a build-time plugin — the highlighted HTML is baked
+  // into the IR, so no highlighter ships to the browser.
+  plugins: [
+    shiki({
       theme: "github-dark",
       langs: ["javascript", "typescript", "tsx", "jsx", "bash", "json", "css", "html"],
     }),
-  }),
+  ],
 });
 `;
 
 const svelteConfig = `import { defineConfig } from "@docvia/cli";
-import {
-  createShikiHighlighter,
-  createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
@@ -158,12 +158,16 @@ export default defineConfig({
   //   counter: { path: "./src/lib/components/Counter.svelte", hydrate: true },
   // },
 
-  renderer: createSvelteRenderer({
-    highlighter: createShikiHighlighter({
+  renderer: createSvelteRenderer(),
+
+  // Syntax highlighting is a build-time plugin — the highlighted HTML is baked
+  // into the IR, so no highlighter ships to the browser.
+  plugins: [
+    shiki({
       theme: "github-dark",
       langs: ["javascript", "typescript", "svelte", "html", "css", "bash", "json"],
     }),
-  }),
+  ],
 });
 `;
 
@@ -173,14 +177,18 @@ const stubConfig = `import { defineConfig } from "@docvia/cli";
 //   pnpm add @docvia/renderer-react   (for React/Next.js)
 //   pnpm add @docvia/renderer-svelte  (for Svelte/SvelteKit)
 //
-// Then uncomment the renderer block below.
+// For syntax highlighting, also install the build-time plugin:
+//   pnpm add -D @docvia/plugin-shiki
+//
+// Then uncomment the renderer and plugin blocks below.
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
   plugins: [],
 
-  // renderer: createReactRenderer({ highlighter: createShikiHighlighter({ theme: "github-dark" }) }),
+  // renderer: createReactRenderer(),
+  // plugins: [shiki({ theme: "github-dark" })],
 });
 `;
 
@@ -197,9 +205,9 @@ export function getScaffold(renderer: RendererTemplate): ScaffoldFiles {
 export function installHint(renderer: RendererTemplate): string {
 	switch (renderer) {
 		case "react":
-			return "pnpm add @docvia/renderer-react react react-dom";
+			return "pnpm add @docvia/renderer-react react react-dom && pnpm add -D @docvia/plugin-shiki";
 		case "svelte":
-			return "pnpm add @docvia/renderer-svelte svelte";
+			return "pnpm add @docvia/renderer-svelte svelte && pnpm add -D @docvia/plugin-shiki";
 		case "none":
 			return "pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte";
 	}

@@ -47,6 +47,27 @@ export function createDefaultRendererMap(): RendererMap {
 					id: n.id,
 				};
 			}
+			// Not pre-highlighted and no render-time highlighter configured —
+			// emit a plain, un-highlighted code block. Highlighting is opt-in
+			// via a build-time plugin such as @docvia/plugin-shiki.
+			if (!ctx.highlighter) {
+				return {
+					kind: "element",
+					tag: "pre",
+					props: { class: "docvia-code-block" },
+					children: [
+						{
+							kind: "element",
+							tag: "code",
+							props: n.props.lang
+								? { "data-lang": n.props.lang as string }
+								: {},
+							children: [{ kind: "text", value: n.props.value as string }],
+						},
+					],
+					id: n.id,
+				};
+			}
 			try {
 				const res = await ctx.highlighter.highlight(
 					n.props.value as string,

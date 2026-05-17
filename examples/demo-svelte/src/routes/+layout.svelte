@@ -1,5 +1,6 @@
 <script lang="ts">
 import "../app.css";
+import '@fontsource-variable/geist/wght.css';
 
 let { children } = $props();
 </script>

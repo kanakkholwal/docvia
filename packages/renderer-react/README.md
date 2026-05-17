@@ -15,12 +15,14 @@ pnpm add @docvia/renderer-react react react-dom
 ## Usage
 
 ```ts
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
 
-const renderer = createReactRenderer({
-  highlighter: createShikiHighlighter({ theme: "github-dark" }),
-});
+const renderer = createReactRenderer();
 ```
+
+Syntax highlighting is a build-time plugin, not a renderer option — add
+[`@docvia/plugin-shiki`](https://github.com/kanakkholwal/docvia/tree/main/packages/plugin-shiki)
+to `plugins` in your docvia config.
 
 ## Documentation
 

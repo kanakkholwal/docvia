@@ -38,14 +38,13 @@ The package has two entry points with a strict server/browser boundary.
 
 | Subpath | Environment | Purpose |
 | --- | --- | --- |
-| `.` | RSC, SSR, and browser — **server-safe** | The build-time adapter (`createReactRenderer`), the shiki highlighter factory, the Vite virtual-module plugin, the in-memory store helpers, and the `DocviaContent` component. Safe everywhere except hydration. Does **not** import `react-dom/client`. |
+| `.` | RSC, SSR, and browser — **server-safe** | The build-time adapter (`createReactRenderer`), the Vite virtual-module plugin, the in-memory store helpers, and the `DocviaContent` component. Safe everywhere except hydration. Does **not** import `react-dom/client`. |
 | `./client` | **Browser only** | The island hydrator. Imports `react-dom/client` (`hydrateRoot`, `createRoot`). Exports `hydrate` and `HydrateOptions`. Must never be imported in an RSC or a Node SSR path. |
 
 ```ts
 // server-safe — RSC / SSR / build / client bundles
 import {
   createReactRenderer,
-  createShikiHighlighter,
   createInMemoryStore,
   docviaVitePlugin,
   invalidateModules,
@@ -151,32 +150,18 @@ interface CodeBlockOverrideProps {
 
 ```ts
 function createReactRenderer(options?: {
-  highlighter?: SyntaxHighlighter;
   registry?: ComponentRegistry;
 }): RendererAdapter;
 ```
 
 Creates the build-time React `RendererAdapter` (`name: "react"`). It runs at build time or server-side in dev. Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
 
-If no `highlighter` is supplied, a default `createShikiHighlighter()` is used. If no `registry` is supplied, an empty one (`resolve: () => null`) is used.
+If no `registry` is supplied, an empty one (`resolve: () => null`) is used.
 
-### createShikiHighlighter()
-
-```ts
-function createShikiHighlighter(opts?: {
-  theme?: string;
-  langs?: string[];
-}): SyntaxHighlighter;
-```
-
-Returns a lazy, shiki-backed `SyntaxHighlighter`.
-
-| Option | Default |
-| --- | --- |
-| `theme` | `"github-dark"` |
-| `langs` | `["javascript", "typescript", "bash", "json", "css", "html", "jsx", "tsx"]` |
-
-`shiki` is imported dynamically on first highlight and the instance is cached on `globalThis` (`__docvia_shiki__`), so concurrent calls share a single highlighter. If a highlight call throws (e.g. an unregistered language), it falls back to an escaped `<pre><code>` block.
+Syntax highlighting is **not** a renderer option. It is a build-time plugin —
+add [`@docvia/plugin-shiki`](/packages/plugin-shiki) to `plugins` in your
+docvia config, and the highlighted HTML is baked into the IR before the
+renderer ever runs.
 
 ### createInMemoryStore()
 
@@ -247,13 +232,13 @@ interface HydrateOptions {
 ### Wiring the adapter in `docvia.config.ts`
 
 ```ts
-import { defineConfig } from "@docvia/core";
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/cli";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 

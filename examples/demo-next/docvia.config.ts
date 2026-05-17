@@ -1,8 +1,6 @@
 import { defineConfig } from "@docvia/cli";
-import {
-	createReactRenderer,
-	createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
+import { createReactRenderer } from "@docvia/renderer-react";
 import { z } from "zod/v3";
 
 export default defineConfig({
@@ -29,10 +27,20 @@ export default defineConfig({
 				initial: 0,
 			},
 		},
+		greeting: {
+			path: "./components/Greeting",
+			hydrate: true,
+			
+		},
 	},
 
-	renderer: createReactRenderer({
-		highlighter: createShikiHighlighter({
+	renderer: createReactRenderer(),
+
+	// Syntax highlighting is a build-time plugin: it highlights every code block
+	// during compilation and bakes the HTML into the IR, so no highlighter ships
+	// to the browser.
+	plugins: [
+		shiki({
 			theme: "github-dark",
 			langs: [
 				"javascript",
@@ -45,5 +53,5 @@ export default defineConfig({
 				"html",
 			],
 		}),
-	}),
+	],
 });

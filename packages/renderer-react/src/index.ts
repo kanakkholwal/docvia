@@ -15,7 +15,6 @@ export type { InMemoryStore } from "./adapter";
 export {
 	createInMemoryStore,
 	createReactRenderer,
-	createShikiHighlighter,
 	docviaVitePlugin,
 	invalidateModules,
 } from "./adapter";

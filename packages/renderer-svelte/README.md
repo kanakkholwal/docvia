@@ -15,12 +15,14 @@ pnpm add @docvia/renderer-svelte svelte
 ## Usage
 
 ```ts
-import { createSvelteRenderer, createShikiHighlighter } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
-const renderer = createSvelteRenderer({
-  highlighter: createShikiHighlighter({ theme: "github-dark" }),
-});
+const renderer = createSvelteRenderer();
 ```
+
+Syntax highlighting is a build-time plugin, not a renderer option — add
+[`@docvia/plugin-shiki`](https://github.com/kanakkholwal/docvia/tree/main/packages/plugin-shiki)
+to `plugins` in your docvia config.
 
 ## Documentation
 

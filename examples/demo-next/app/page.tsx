@@ -18,7 +18,7 @@ const features = [
 	},
 	{
 		title: "React 19",
-		body: "Renders with @docvia/renderer-react, using createShikiHighlighter for code.",
+		body: "Renders with @docvia/renderer-react; code is highlighted at build time by @docvia/plugin-shiki.",
 	},
 	{
 		title: "Static export",
@@ -28,20 +28,16 @@ const features = [
 
 const codeSnippet = `// docvia.config.ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createReactRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "github-dark",
-      langs: ["typescript", "tsx", "bash"],
-    }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [
+    shiki({ theme: "github-dark", langs: ["typescript", "tsx", "bash"] }),
+  ],
 });`;
 
 export default function Home() {
@@ -59,6 +55,7 @@ export default function Home() {
 					</div>
 					<nav className="nx-topbar-nav">
 						<Link href="/docs">Docs</Link>
+
 						<a
 							href="https://github.com/kanakkholwal/docvia"
 							target="_blank"

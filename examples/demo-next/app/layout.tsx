@@ -1,7 +1,7 @@
+import '@fontsource-variable/geist/wght.css';
 import type { Metadata } from "next";
 import "./globals.css";
 
-const themeBootstrapScript = `try{const t=localStorage.getItem("docvia-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch{}`;
 
 export const metadata: Metadata = {
 	title: {
@@ -18,10 +18,6 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" data-theme="dark" suppressHydrationWarning>
-			<head>
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<script>{themeBootstrapScript}</script>
-			</head>
 			<body>{children}</body>
 		</html>
 	);

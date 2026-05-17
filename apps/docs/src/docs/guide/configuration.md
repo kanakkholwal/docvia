@@ -38,21 +38,18 @@ editor completion on every field.
 | `collections` | `CollectionConfig[]` | one default `docs` collection | One or more named source roots. |
 | `frontmatter` | `z.ZodObject` | — | Extends the built-in frontmatter schema. |
 | `markdown.remarkPlugins` | `unknown[]` | `[]` | Extra remark plugins inserted into the parse pipeline. |
-| `syntax.highlighter` | `"shiki" \| "prism"` | `"shiki"` | Syntax highlighter backend. |
-| `syntax.theme` | `string` | `"github-dark"` | Highlighter theme name. |
-| `syntax.langs` | `string[]` | 7 common languages | Languages preloaded into the highlighter. |
 | `theme.name` | `string` | `"default"` | UI theme name. |
 | `theme.options` | `Record<string, unknown>` | `{}` | Theme-specific options. |
 
-The default `syntax.langs` set is `javascript`, `typescript`, `bash`, `json`,
-`css`, `html`, `svelte`.
-
-> **Recommended: highlight with a plugin.** The current approach to syntax
-> highlighting is the [`@docvia/plugin-shiki`](/packages/plugin-shiki) plugin —
-> add `shiki({ theme, langs })` to `plugins`. It highlights at build time and
-> bakes the HTML into the IR, so no highlighter ships to the browser. The
-> `syntax.*` options and the renderer `highlighter` argument below remain as a
-> fallback for projects without a highlighter plugin.
+> **Syntax highlighting is a plugin.** Add the
+> [`@docvia/plugin-shiki`](/packages/plugin-shiki) plugin — `shiki({ theme, langs })`
+> — to `plugins`. It highlights every code block at build time and bakes the
+> HTML into the IR, so no highlighter ships to the browser. Highlighting is no
+> longer a renderer option.
+>
+> A `syntax` config block (`syntax.highlighter` / `syntax.theme` / `syntax.langs`)
+> still exists in the config schema for backward compatibility, but it no longer
+> drives highlighting — configure the `shiki()` plugin instead.
 
 ## Renderers
 
@@ -61,21 +58,20 @@ no renderer throws a `CONFIG_ERROR`. Choose the adapter that matches your app:
 
 ```ts
 // React
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
 
-renderer: createReactRenderer({
-  highlighter: createShikiHighlighter({ theme: "github-dark" }),
-});
+renderer: createReactRenderer();
 ```
 
 ```ts
 // Svelte — note the /node subpath, the build-time entry
-import { createSvelteRenderer, createShikiHighlighter } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
-renderer: createSvelteRenderer({
-  highlighter: createShikiHighlighter({ theme: "github-dark" }),
-});
+renderer: createSvelteRenderer();
 ```
+
+Syntax highlighting is no longer a renderer option — add the
+[`shiki()`](/packages/plugin-shiki) plugin to `plugins` instead.
 
 See [`@docvia/renderer-react`](/packages/renderer-react) and
 [`@docvia/renderer-svelte`](/packages/renderer-svelte) for the full adapter
@@ -161,20 +157,16 @@ Each `ComponentConfig` has a `path`, an optional `hydrate` flag, and optional
 
 ```ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createShikiHighlighter,
-  createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "src/docs",
   outDir: ".docvia",
   collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/" }],
-  renderer: createSvelteRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "github-dark",
-      langs: ["typescript", "svelte", "bash", "json"],
-    }),
-  }),
+  renderer: createSvelteRenderer(),
+  plugins: [
+    shiki({ theme: "github-dark", langs: ["typescript", "svelte", "bash", "json"] }),
+  ],
 });
 ```

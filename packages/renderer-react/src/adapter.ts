@@ -1,4 +1,4 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Shiki highlighter and React component bridge types are intentionally erased to keep the adapter loose.
+// biome-ignore-all lint/suspicious/noExplicitAny: React component bridge types are intentionally erased to keep the adapter loose.
 import type {
 	IRDocument,
 	PageMeta,
@@ -10,67 +10,7 @@ import {
 	createDefaultRendererMap,
 	type RenderContext,
 	renderDocument,
-	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
-
-// ---------------------------------------------------------------------------
-// Shiki highlighter
-// ---------------------------------------------------------------------------
-
-/**
- * Creates a lazy-initialised shiki highlighter.
- *
- * The shiki instance is created on first use and reused for all subsequent
- * highlight calls. Dynamic import keeps shiki out of any browser bundle if
- * this factory is only ever called server-side (build / SSR).
- */
-export function createShikiHighlighter(opts?: {
-	theme?: string;
-	langs?: string[];
-}): SyntaxHighlighter {
-	const theme = opts?.theme ?? "github-dark";
-	const langs = opts?.langs ?? [
-		"javascript",
-		"typescript",
-		"bash",
-		"json",
-		"css",
-		"html",
-		"jsx",
-		"tsx",
-	];
-
-	return {
-		async highlight(code: string, lang: string) {
-			const g = globalThis as any;
-
-			if (!g.__docvia_shiki__ && !g.__docvia_shiki_pending__) {
-				g.__docvia_shiki_pending__ = (async () => {
-					const { createHighlighter } = await import("shiki");
-					const h = await createHighlighter({ themes: [theme], langs });
-					g.__docvia_shiki__ = h;
-					delete g.__docvia_shiki_pending__;
-					return h;
-				})();
-			}
-
-			const h = g.__docvia_shiki__ ?? (await g.__docvia_shiki_pending__);
-			try {
-				return { html: h.codeToHtml(code, { lang, theme }) };
-			} catch {
-				return { html: `<pre><code>${escapeHtml(code)}</code></pre>` };
-			}
-		},
-	};
-}
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;");
-}
 
 // React renderer adapter
 
@@ -84,14 +24,13 @@ function escapeHtml(str: string): string {
  * The exported `content` is consumed at runtime by `<DocviaContent nodes={content}>`.
  * This keeps the adapter output framework-agnostic — it is pure JSON that any
  * React environment (Next.js App Router, Pages Router, Vite SPA) can consume.
+ *
+ * Syntax highlighting is a build-time plugin (e.g. `@docvia/plugin-shiki`), not
+ * a renderer concern — add it to `plugins` in your docvia config.
  */
 export function createReactRenderer(
-	options: {
-		highlighter?: SyntaxHighlighter;
-		registry?: ComponentRegistry;
-	} = {},
+	options: { registry?: ComponentRegistry } = {},
 ): RendererAdapter {
-	const hl = options.highlighter ?? createShikiHighlighter();
 	const registry = options.registry ?? { resolve: () => null };
 
 	return {
@@ -111,7 +50,6 @@ export function createReactRenderer(
 					order: doc.frontmatter.order,
 				},
 				registry,
-				highlighter: hl,
 			};
 
 			const { output, manifest } = await renderDocument(
