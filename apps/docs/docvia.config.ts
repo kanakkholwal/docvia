@@ -7,7 +7,13 @@ import {
 export default defineConfig({
 	sourceDir: "src/docs",
 	outDir: ".docvia",
-	collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/" }],
+	collections: [
+		{
+			name: "docs",
+			sourceDir: "src/docs",
+			baseUrl: "/"
+		}
+	],
 
 	renderer: createSvelteRenderer({
 		highlighter: createShikiHighlighter({

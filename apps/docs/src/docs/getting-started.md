@@ -66,32 +66,28 @@ reloads the config when it changes and shuts down cleanly on `Ctrl+C`.
 
 ## Use it in an app
 
-`docvia build` only produces the `.docvia/` module graph — it does not run a
-server. To render docs in a real app, pair the build with a framework
-integration. The pattern is always: run `docvia build` before the framework
-dev/build step, then import from `docvia/source`.
+To render docs in a real app, pair docvia with a framework integration. The
+recommended setup runs docvia **in-process** inside your bundler — the Vite
+plugin or the Next.js wrapper — so there is no separate `docvia build` step,
+and dev recompiles incrementally as you edit.
 
-See [Framework integration](/guide/frameworks) for SvelteKit, Next.js, and
-plain Vite setups.
+See [Framework integration](/guide/frameworks) for SvelteKit, Next.js, plain
+Vite, and server-side rendering setups.
 
 ## A minimal config
 
 ```ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createReactRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "github-dark",
-      langs: ["typescript", "bash", "json"],
-    }),
-  }),
+  renderer: createReactRenderer(),
+  // Syntax highlighting is a build-time plugin — the highlighted HTML is baked
+  // into the IR, so no highlighter ships to the browser.
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 

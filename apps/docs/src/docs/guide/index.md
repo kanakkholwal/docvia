@@ -25,13 +25,16 @@ the [Packages](/packages) reference.
 
 ## The mental model
 
-docvia has two halves that meet at the `.docvia/` directory:
+docvia has two halves:
 
-1. **The compiler** reads Markdown, runs it through the pipeline, and writes a
-   typed module graph to `.docvia/`.
+1. **The compile core** (`CompileService`) reads Markdown, runs it through the
+   pipeline, and produces a typed module graph — at build time, in the dev
+   server, or per request.
 2. **A framework integration** consumes that module graph — `docvia/source`
    gives you `getPage`, `getPages`, and `pageTree`, and a renderer turns each
    page's content into framework-native output.
 
-Everything else — plugins, the frontmatter schema, the incremental cache — is a
-detail of how the compiler produces that module graph.
+The same core runs in three modes — build, dev, and SSR — so their output is
+identical. Everything else — plugins, the frontmatter schema, the incremental
+cache, syntax highlighting — is a detail of how the core produces that module
+graph. See [Architecture](/guide/architecture) for the full picture.

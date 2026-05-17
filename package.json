@@ -27,7 +27,7 @@
 		"changeset": "changeset",
 		"changeset:status": "changeset status --since=origin/main",
 		"version-packages": "changeset version",
-		"release": "pnpm build && changeset publish",
+		"release": "pnpm build:packages && changeset publish",
 		"ci": "pnpm lint && pnpm build && pnpm test"
 	},
 	"devDependencies": {

@@ -48,7 +48,9 @@ next plugin and then the next stage.
 Use `beforeParse` to rewrite raw text, `afterParse` to manipulate Markdown
 nodes (this is where [`@docvia/plugin-openapi`](/packages/plugin-openapi) does
 its work), and `afterTransform` / `beforeRender` to act on the
-framework-agnostic IR.
+framework-agnostic IR. Build-time syntax highlighting is itself a plugin:
+[`@docvia/plugin-shiki`](/packages/plugin-shiki) uses `beforeRender` to walk
+the IR and bake highlighted HTML onto `code-block` nodes.
 
 ## Execution order
 

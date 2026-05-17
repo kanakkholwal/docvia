@@ -1,112 +1,83 @@
 ---
 title: "Framework integration"
-description: "Wire docvia into SvelteKit, Next.js, or a plain Vite app — with a live dev server and a production build."
+description: "Wire docvia into SvelteKit, Next.js, a plain Vite app, or a server — with in-process compilation and a production build."
 eyebrow: "Guide"
 order: 2
 ---
 
-`docvia build` only produces a typed module graph in `.docvia/` — it does not
-run a server. The `docvia dev` and `docvia preview` commands are standalone
-sanity checks, not the way you ship a docs site. To render docs inside a real
-app you pair the build step with a framework integration.
+The recommended way to use docvia is to run it **in-process** inside your
+bundler. The Vite plugin and the Next.js wrapper both drive the compile core
+directly — so there is no separate `docvia build` step, dev recompiles
+incrementally as you edit, and the compiled `docvia/source` module is resolved
+for you.
 
 The pattern is the same everywhere:
 
 1. Author a `docvia.config.ts` with the renderer that matches your framework.
-2. Run `docvia build` **before** the framework's dev/build step.
+2. Add the framework's docvia plugin / wrapper.
 3. Import compiled pages from `docvia/source` and render them with the
    framework renderer.
 
-This page covers SvelteKit, Next.js, and plain Vite.
+This page covers SvelteKit, Next.js, plain Vite, and server-side rendering.
 
 ## SvelteKit
 
-SvelteKit runs on Vite, so the integration is two Vite plugins from
-[`@docvia/plugin-vite`](/packages/plugin-vite) plus a build step.
+SvelteKit runs on Vite, so the integration is the single `docvia()` plugin
+from [`@docvia/plugin-vite`](/packages/plugin-vite).
 
 ### 1. Install
 
 ```bash
-pnpm add -D @docvia/cli @docvia/plugin-vite
-pnpm add @docvia/renderer-svelte @docvia/source @docvia/compiler @docvia/renderer-core
+pnpm add -D @docvia/plugin-vite @docvia/cli
+pnpm add @docvia/renderer-svelte @docvia/source
 ```
 
 ### 2. Configure docvia
 
 Use the Svelte renderer — note the `/node` subpath, which is the build-time
-entry point.
+entry point. Add `@docvia/plugin-shiki` for syntax highlighting.
 
 ```ts
 // docvia.config.ts
 import { defineConfig } from "@docvia/cli";
-import {
-  createShikiHighlighter,
-  createSvelteRenderer,
-} from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "src/docs",
   outDir: ".docvia",
   collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" }],
-  renderer: createSvelteRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createSvelteRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 
-### 3. Wire the Vite plugins
+### 3. Add the Vite plugin
 
-`docviaSourcePlugin()` resolves the `docvia/source` virtual module to the
-compiled `.docvia/` artifacts; `docviaMarkdownPlugin()` handles `*.md?docvia`
-imports and gives you HMR on Markdown changes through SvelteKit's own dev
-server.
+`docvia()` runs the `CompileService` in-process. In dev it serves
+`docvia/source` as a virtual module and recompiles incrementally (HMR); for
+production builds it emits the on-disk module graph.
 
 ```ts
 // vite.config.ts
-import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/plugin-vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [
-    sveltekit(),
-    docviaSourcePlugin(),
-    docviaMarkdownPlugin(docviaConfig),
-  ],
-  build: {
-    rollupOptions: {
-      external: ["@docvia/source", "@docvia/source/internal"],
-    },
-  },
+  plugins: [sveltekit(), docvia(docviaConfig)],
 });
 ```
 
-The `external` block is **required** — without it the production `vite build`
-fails resolving `@docvia/source`.
+That is the whole setup — **no `predev` / `prebuild` hook**, and no
+`rollupOptions.external` block. Your workflow is just `pnpm dev` and
+`pnpm build`.
 
-### 4. Build before Vite starts
+> The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` exports remain
+> available for projects that still run a separate `docvia build` step.
 
-The routes import from `docvia/source`, which only exists after `docvia build`.
-A `predev` / `prebuild` hook runs the build automatically:
-
-```jsonc
-// package.json
-{
-  "scripts": {
-    "docvia:build": "docvia build",
-    "predev": "pnpm docvia:build",
-    "dev": "vite dev",
-    "prebuild": "pnpm docvia:build",
-    "build": "vite build"
-  }
-}
-```
-
-Your workflow is then just `pnpm dev` (live) and `pnpm build` (production) —
-docvia builds first in both cases.
-
-### 5. Declare the module types
+### 4. Declare the module types
 
 So `docvia/source` resolves in TypeScript, add a `docvia-env.d.ts` at the
 project root:
@@ -124,7 +95,7 @@ declare module "docvia/registry" {
 }
 ```
 
-### 6. Consume pages in a route
+### 5. Consume pages in a route
 
 A catch-all route loads the page on the server and renders it with the
 `Renderer` component from `@docvia/renderer-svelte`.
@@ -164,14 +135,14 @@ its own documentation.
 
 ## Next.js
 
-For Next.js, [`@docvia/plugin-next`](/packages/plugin-next) does the wiring: it
-compiles the docs when the Next config is evaluated and aliases
-`docvia/source` to the compiled output.
+For Next.js, [`@docvia/plugin-next`](/packages/plugin-next) does the wiring. It
+drives the compile core when the Next config is evaluated and aliases
+`docvia/source` for **both webpack and Turbopack**.
 
 ### 1. Install
 
 ```bash
-pnpm add -D @docvia/cli @docvia/plugin-next
+pnpm add -D @docvia/plugin-next @docvia/cli
 pnpm add @docvia/renderer-react @docvia/source react react-dom
 ```
 
@@ -180,14 +151,14 @@ pnpm add @docvia/renderer-react @docvia/source react react-dom
 ```ts
 // docvia.config.ts
 import { defineConfig } from "@docvia/cli";
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 
@@ -202,10 +173,11 @@ export default withDocvia({ configPath: "./docvia.config.ts" })({
 });
 ```
 
-`withDocvia` compiles the docs on config evaluation, aliases `docvia/source`
-and `docvia/registry` to the compiled `.docvia/` files in webpack, and in dev
-starts an incremental `chokidar` watcher. A cross-process lock
-(`.docvia-build.lock`) keeps concurrent Next.js workers from compiling at once.
+`withDocvia` runs `CompileService` on config evaluation, aliases
+`docvia/source` and `docvia/registry` for webpack and Turbopack alike, and in
+dev starts an incremental watcher that recompiles changed files through
+`service.invalidate()`. A cross-process lock (`.docvia-build.lock`) keeps
+concurrent Next.js workers from compiling at once.
 
 ### 4. Consume pages in a route
 
@@ -235,26 +207,52 @@ with `hydrate` from `@docvia/renderer-react/client`.
 
 ## Plain Vite (React or Svelte)
 
-Without SvelteKit or Next.js, use the same two `@docvia/plugin-vite` plugins
-directly in `vite.config.ts`:
+Without SvelteKit or Next.js, use the same `docvia()` plugin directly in
+`vite.config.ts`:
 
 ```ts
-import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/plugin-vite";
 import docviaConfig from "./docvia.config";
 
 export default {
-  plugins: [docviaSourcePlugin(), docviaMarkdownPlugin(docviaConfig)],
+  plugins: [docvia(docviaConfig)],
 };
 ```
 
-Then import a page directly through the markdown plugin:
+You can also import a single page directly through the `?docvia` transform:
 
 ```ts
 import page from "./docs/index.md?docvia";
 ```
 
-Add the `docvia build` `predev`/`prebuild` hooks exactly as in the SvelteKit
-section so `docvia/source` exists before Vite starts.
+## Server-side rendering
+
+For request-time rendering — rather than a pre-built static site — use
+[`@docvia/ssr`](/packages/ssr). It renders one document per request and caches
+rendered pages in an in-memory LRU keyed by content hash.
+
+On an **edge runtime** (Cloudflare Workers, etc.), serve the per-route IR
+chunks the build emitted into `.docvia/ir/`. There is no `node:fs` and no
+Markdown parsing at request time:
+
+```ts
+import {
+  createDocviaSSR,
+  BundledContentProvider,
+  createGlobChunkLoader,
+} from "@docvia/ssr";
+
+const ssr = createDocviaSSR({
+  provider: BundledContentProvider(
+    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
+  ),
+});
+
+const page = await ssr.render("docs", "getting-started");
+```
+
+On a **Node server**, `@docvia/ssr/node`'s `FsContentProvider` wraps a live
+`CompileService` instead, compiling Markdown from disk on a cache miss.
 
 ## Standalone preview
 
@@ -265,14 +263,15 @@ docvia preview --out .docvia --port 4173
 ```
 
 This is a sanity check for the compiled module graph — it is **not** a runtime.
-For an actual site, use one of the framework integrations above.
+For an actual site, use one of the integrations above.
 
 ## Choosing an approach
 
 | Your app | Integration | Renderer |
 |---|---|---|
-| SvelteKit | `@docvia/plugin-vite` | `@docvia/renderer-svelte` |
-| Next.js | `@docvia/plugin-next` | `@docvia/renderer-react` |
-| Plain Vite (Svelte) | `@docvia/plugin-vite` | `@docvia/renderer-svelte` |
-| Plain Vite (React) | `@docvia/plugin-vite` | `@docvia/renderer-react` |
-| Any other framework | run `docvia build` in a script | write a `RendererAdapter` |
+| SvelteKit | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-svelte` |
+| Next.js (webpack or Turbopack) | `@docvia/plugin-next` | `@docvia/renderer-react` |
+| Plain Vite (Svelte) | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-svelte` |
+| Plain Vite (React) | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-react` |
+| Request-time / edge SSR | `@docvia/ssr` | `@docvia/renderer-core` |
+| Any other framework | `docvia build` + `@docvia/source` | write a `RendererAdapter` |

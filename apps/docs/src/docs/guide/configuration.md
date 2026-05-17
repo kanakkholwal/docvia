@@ -47,6 +47,13 @@ editor completion on every field.
 The default `syntax.langs` set is `javascript`, `typescript`, `bash`, `json`,
 `css`, `html`, `svelte`.
 
+> **Recommended: highlight with a plugin.** The current approach to syntax
+> highlighting is the [`@docvia/plugin-shiki`](/packages/plugin-shiki) plugin —
+> add `shiki({ theme, langs })` to `plugins`. It highlights at build time and
+> bakes the HTML into the IR, so no highlighter ships to the browser. The
+> `syntax.*` options and the renderer `highlighter` argument below remain as a
+> fallback for projects without a highlighter plugin.
+
 ## Renderers
 
 The `renderer` field is required for `docvia build` to succeed — a build with

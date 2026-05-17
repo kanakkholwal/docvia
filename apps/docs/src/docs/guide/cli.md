@@ -73,16 +73,17 @@ docvia dev [--docs <dir>] [--out <dir>] [--config <path>]
 | `--out <dir>` | from config | Override `outDir`. |
 | `--config <path>` | `./docvia.config.ts` | Path to the config file. |
 
-`dev` does an initial build, then watches both `sourceDir` and the config file.
-Changes are debounced and rebuilds are serialized behind a build lock, so
-concurrent saves never race on the generated module graph. When the config
-file changes, it is reloaded. An initial-build failure does not stop the
-watcher — fix the error and save again. `Ctrl+C` shuts the watcher down
-cleanly.
+`dev` does an initial build, then watches both `sourceDir` and the config file
+on a single long-lived `CompileService`. Each change recompiles only the
+affected files through the service's incremental `invalidate()` — a full
+rebuild is not repeated per change. A config change recreates the service. An
+initial-build failure does not stop the watcher — fix the error and save again.
+`Ctrl+C` shuts the watcher down cleanly.
 
 > `docvia dev` is a standalone watcher for the `.docvia/` output. When docvia
-> is embedded in a Vite or Next.js app, the framework integration handles
-> watching — see [Framework integration](/guide/frameworks).
+> is embedded in a Vite or Next.js app, the framework integration runs the
+> compile core in-process and handles watching itself — see
+> [Framework integration](/guide/frameworks).
 
 ## docvia preview
 
