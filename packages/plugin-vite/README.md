@@ -23,13 +23,9 @@ export default {
 };
 ```
 
-`docvia()` runs the `CompileService` in-process — no separate `docvia build`
-step. In dev it serves `docvia/source` as a virtual module and recompiles
-incrementally on every change (HMR); for production builds it emits the on-disk
-module graph.
-
-The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` exports remain for
-setups that still run a separate `docvia build` step.
+`docvia()` runs the `CompileService` in-process. In dev it serves
+`docvia/source` as a virtual module and recompiles incrementally on every
+change (HMR); for production builds it emits the on-disk module graph.
 
 ## Documentation
 

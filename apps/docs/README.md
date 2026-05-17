@@ -16,9 +16,9 @@ the [Framework integration](./src/docs/guide/frameworks.md) guide:
 
 - [`docvia.config.ts`](./docvia.config.ts) — sources `src/docs`, renders with
   the Svelte renderer, outputs the module graph to `.docvia/`.
-- [`vite.config.ts`](./vite.config.ts) — adds `docviaSourcePlugin()` and
-  `docviaMarkdownPlugin()` alongside `sveltekit()` and `tailwindcss()`.
-- `predev` / `prebuild` scripts run `docvia build` before Vite starts.
+- [`vite.config.ts`](./vite.config.ts) — adds the single `docvia()` plugin
+  alongside `sveltekit()` and `tailwindcss()`. It runs the compiler in-process,
+  so there is no separate build step.
 - [`src/routes/[...slug]/`](./src/routes) — a catch-all route loads each page
   from `docvia/source` and renders it with the `Renderer` component.
 - The sidebar is generated from `docs.pageTree` — see
@@ -40,12 +40,13 @@ with an `index.md` becomes a sidebar section.
 
 ```bash
 pnpm install
-pnpm --filter @docvia/docs dev     # runs `docvia build`, then `vite dev`
+pnpm --filter @docvia/docs dev
 ```
 
-The dev server runs on http://localhost:5173. Editing a Markdown file
-hot-reloads through `docviaMarkdownPlugin`.
+The dev server runs on http://localhost:5173. The `docvia()` plugin compiles
+`src/docs/` on startup and recompiles incrementally — editing a Markdown file
+hot-reloads in place.
 
 ```bash
-pnpm --filter @docvia/docs build   # docvia build + vite build
+pnpm --filter @docvia/docs build
 ```

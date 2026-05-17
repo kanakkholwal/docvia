@@ -32,15 +32,17 @@ All heavy work happens at build time. At runtime, your pages are pre-compiled JS
 ## Quick start
 
 ```bash
-npm install @docvia/cli @docvia/renderer-react @docvia/plugin-next
+npm install -D @docvia/cli @docvia/plugin-next @docvia/plugin-shiki
+npm install @docvia/renderer-react @docvia/source
 ```
 
 ```bash
 npx docvia init
-npx docvia build
 ```
 
-Then import and render in your Next.js pages:
+`docvia init` scaffolds a `docvia.config.ts` and sample docs. Wrap your Next
+config with `withDocvia` — see [Getting Started](/docs/getting-started) — then
+import and render pages in your Next.js routes:
 
 ```tsx
 import { docs } from "docvia/source";

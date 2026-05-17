@@ -12,12 +12,10 @@ All Docvia settings live in `docvia.config.ts` at your project root. The `define
 
 ```typescript
 import { defineConfig } from "@docvia/cli";
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createReactRenderer(),
 });
 ```
 
@@ -53,31 +51,39 @@ Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are a
 
 ## Syntax highlighting
 
-Docvia uses Shiki for build-time syntax highlighting. Configure themes and languages:
+Syntax highlighting is a build-time plugin from `@docvia/plugin-shiki`. It
+highlights every code block during compilation and bakes the HTML into the IR,
+so no highlighter ships to the browser.
 
 ```typescript
-createShikiHighlighter({
-  theme: "github-dark",
-  langs: ["typescript", "tsx", "bash", "json", "css", "html"],
-})
-```
+import { shiki } from "@docvia/plugin-shiki";
 
-Highlighting happens at build time — no client-side JavaScript is needed.
+export default defineConfig({
+  // ...
+  plugins: [
+    shiki({
+      theme: "github-dark",
+      langs: ["typescript", "tsx", "bash", "json", "css", "html"],
+    }),
+  ],
+});
+```
 
 ## Renderer
 
-The renderer converts IR nodes into framework-specific output. For Next.js:
+The renderer converts IR nodes into framework-specific output. For Next.js,
+use `createReactRenderer`:
 
 ```typescript
-import { createReactRenderer, createShikiHighlighter } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
 
 createReactRenderer({
-  highlighter: createShikiHighlighter({ theme: "github-dark" }),
   registry: optionalCustomRegistry,
 })
 ```
 
-The renderer also accepts an optional `registry` for resolving components at build time. If omitted, components pass through to runtime resolution.
+The renderer accepts an optional `registry` for resolving components at build
+time. If omitted, components pass through to runtime resolution.
 
 ## Components
 
