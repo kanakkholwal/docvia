@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    # Match version tags like v1.2.3
     paths:
-      - "apps/packages/**" # Only trigger if changes in this directory
+      - "packages/**" # workspace packages live here, not apps/packages
+      - ".changeset/**" # so a newly-added changeset triggers the version PR
   workflow_dispatch: # Allow manual triggering from the Actions tab
 
 
