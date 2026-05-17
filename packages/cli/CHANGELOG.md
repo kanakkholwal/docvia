@@ -1,5 +1,11 @@
 # @docvia/cli
 
+## 0.2.2
+
+### Patch Changes
+
+- Better DX-UX for cli init
+
 ## 0.2.1
 
 ### Patch Changes
