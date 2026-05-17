@@ -14,13 +14,28 @@ pnpm add @docvia/search
 
 ## Usage
 
-```ts
-import { createSearchIndexer, createSearch } from "@docvia/search";
+Build the index from a docvia build output directory (Node / build time):
 
-const indexer = createSearchIndexer();
-await indexer.buildIndex(pages);
-const { search } = createSearch(indexer.exportIndex());
+```ts
+import { buildSearchIndex } from "@docvia/search/node";
+
+// Reads the IR chunks docvia emits to `<outDir>/ir/`. `outDir` defaults to
+// ".docvia"; pass `collection` to scope the index to one collection.
+const indexJson = await buildSearchIndex({ collection: "docs" });
+// → serve `indexJson` as a static asset
 ```
+
+Search the index (browser / runtime):
+
+```ts
+import { createSearch } from "@docvia/search";
+
+const { search } = await createSearch(indexJson);
+const hits = await search("getting started", { limit: 8 });
+```
+
+For full control, `createSearchIndexer()` and `loadIRDocuments()` expose the
+indexing and document-loading steps separately.
 
 ## Documentation
 

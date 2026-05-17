@@ -1,13 +1,14 @@
 <script lang="ts">
-import { Github, Menu, X } from "@lucide/svelte";
-import { slide } from "svelte/transition";
-import { cubicOut } from "svelte/easing";
 import Brand from "$lib/components/brand.svelte";
+import SearchDialog from "$lib/components/search-dialog.svelte";
 import Sidebar from "$lib/components/sidebar.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
+import { Github, Menu, X } from "@lucide/svelte";
+import { cubicOut } from "svelte/easing";
+import { slide } from "svelte/transition";
 import "../app.css";
 
 import type { LayoutProps } from "./$types";
@@ -63,6 +64,7 @@ let mobileNavOpen = $state(false);
 			</nav>
 
 			<div class="flex items-center gap-1">
+				<SearchDialog />
 				<a
 					href="https://github.com/kanakkholwal/docvia"
 					aria-label="GitHub"
@@ -76,7 +78,7 @@ let mobileNavOpen = $state(false);
 				<Button
 					variant="primary"
 					size="sm"
-					href="/"
+					href="https://docvia.dev"
 					class="hidden h-9 rounded-full sm:inline-flex"
 				>
 					Home
