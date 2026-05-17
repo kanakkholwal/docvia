@@ -1,6 +1,6 @@
+import type { IRDocument } from "@docvia/ir";
 import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import type { IRDocument } from "@docvia/ir";
 import { createSearchIndexer } from "./index";
 
 // Node-only entry point: reading the docvia build output touches the
@@ -24,9 +24,7 @@ export interface SearchSourceOptions {
 async function collectChunks(dir: string): Promise<IRDocument[]> {
 	// A missing directory (e.g. an unknown collection name) yields no
 	// documents rather than throwing — callers get an empty index.
-	const entries = await readdir(dir, { withFileTypes: true }).catch(
-		() => null,
-	);
+	const entries = await readdir(dir, { withFileTypes: true }).catch(() => null);
 	if (!entries) return [];
 
 	const docs: IRDocument[] = [];
@@ -34,10 +32,7 @@ async function collectChunks(dir: string): Promise<IRDocument[]> {
 		const full = join(dir, entry.name);
 		if (entry.isDirectory()) {
 			docs.push(...(await collectChunks(full)));
-		} else if (
-			entry.name.endsWith(".json") &&
-			entry.name !== "manifest.json"
-		) {
+		} else if (entry.name.endsWith(".json") && entry.name !== "manifest.json") {
 			docs.push(JSON.parse(await readFile(full, "utf-8")) as IRDocument);
 		}
 	}
@@ -53,9 +48,7 @@ export async function loadIRDocuments(
 	options: SearchSourceOptions = {},
 ): Promise<IRDocument[]> {
 	const irRoot = resolve(options.outDir ?? ".docvia", "ir");
-	const target = options.collection
-		? join(irRoot, options.collection)
-		: irRoot;
+	const target = options.collection ? join(irRoot, options.collection) : irRoot;
 	return collectChunks(target);
 }
 
