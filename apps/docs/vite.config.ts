@@ -14,7 +14,10 @@ import docviaConfig from "./docvia.config";
 // nothing CJS gets bundled. The subpath isn't in yaml's `exports` map, so we
 // resolve it via the package directory rather than a bare specifier.
 const require = createRequire(import.meta.url);
-const yamlEsm = join(dirname(require.resolve("yaml/package.json")), "browser/index.js");
+const yamlEsm = join(
+	dirname(require.resolve("yaml/package.json")),
+	"browser/index.js",
+);
 
 export default defineConfig({
 	resolve: {
@@ -25,5 +28,4 @@ export default defineConfig({
 	// `docvia()` runs the CompileService in-process — no separate `docvia build`
 	// step, a virtual `docvia/source` module in dev, and incremental HMR.
 	plugins: [tailwindcss(), sveltekit(), docvia(docviaConfig)],
-
 });
