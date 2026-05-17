@@ -70,12 +70,8 @@ export default defineConfig({
 });
 ```
 
-That is the whole setup — **no `predev` / `prebuild` hook**, and no
-`rollupOptions.external` block. Your workflow is just `pnpm dev` and
-`pnpm build`.
-
-> The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` exports remain
-> available for projects that still run a separate `docvia build` step.
+That is the whole setup. Your workflow is just `pnpm dev` and `pnpm build` —
+`docvia()` compiles your Markdown as part of each.
 
 ### 4. Declare the module types
 

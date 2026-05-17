@@ -20,7 +20,7 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Contents |
 |---|---|
-| `.` | `docvia` (recommended); `docviaMarkdownPlugin`, `docviaSourcePlugin` (legacy). |
+| `.` | `docvia` — the in-process Vite plugin. |
 
 ## `docvia()` — the in-process plugin
 
@@ -51,47 +51,12 @@ export default defineConfig({
 });
 ```
 
-That is the complete setup — no `predev` / `prebuild` script, and no
-`rollupOptions.external` block. See
+That is the complete setup. See
 [Framework integration](/guide/frameworks) for the full SvelteKit walkthrough.
 
 ```ts
-// A single page can still be imported directly through the ?docvia transform.
+// A single page can also be imported directly through the ?docvia transform.
 import page from "./docs/index.md?docvia";
-```
-
-## Legacy exports
-
-The pre–in-process plugins remain exported for projects that still run a
-separate `docvia build` step. New projects should use `docvia()` instead.
-
-### `docviaSourcePlugin`
-
-```ts
-function docviaSourcePlugin(): Plugin;
-```
-
-Resolves the `docvia/source` and `docvia/registry` virtual module ids to the
-compiled `.docvia/` artifacts (with a stub fallback before the first build),
-and whitelists `.docvia` in Vite's `server.fs.allow`.
-
-### `docviaMarkdownPlugin`
-
-```ts
-function docviaMarkdownPlugin(config: docviaConfig): Plugin;
-```
-
-Transforms `*.md?docvia` imports into renderer output. Throws at construction
-time if `config.renderer` is falsy.
-
-```ts
-// Legacy setup — requires a separate `docvia build` step.
-import { docviaMarkdownPlugin, docviaSourcePlugin } from "@docvia/plugin-vite";
-import docviaConfig from "./docvia.config";
-
-export default {
-  plugins: [docviaSourcePlugin(), docviaMarkdownPlugin(docviaConfig)],
-};
 ```
 
 ## See also

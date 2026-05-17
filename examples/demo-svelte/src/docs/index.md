@@ -32,15 +32,17 @@ All heavy work happens at build time. At runtime, your pages are pre-compiled JS
 ## Quick start
 
 ```bash
-npm install @docvia/cli @docvia/renderer-svelte @docvia/plugin-vite
+npm install -D @docvia/cli @docvia/plugin-vite @docvia/plugin-shiki
+npm install @docvia/renderer-svelte @docvia/source
 ```
 
 ```bash
 npx docvia init
-npx docvia build
 ```
 
-Then load and render in your SvelteKit routes:
+`docvia init` scaffolds a `docvia.config.ts` and sample docs. Add the
+`docvia()` Vite plugin — see [Getting Started](/getting-started) — then load
+and render pages in your SvelteKit routes:
 
 ```typescript
 import { docs } from "docvia/source";

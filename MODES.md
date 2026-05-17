@@ -58,7 +58,3 @@ Two content providers:
 | Next.js (webpack)     | `withDocvia` (`@docvia/plugin-next`) | Drives `CompileService`; disk module graph + webpack alias. |
 | Next.js (Turbopack)   | `withDocvia` (`@docvia/plugin-next`) | Same wrapper; adds `turbopack.resolveAlias`. Disk graph (no plugin API). |
 | Generic / no bundler  | `docvia dev` / `docvia build` (`@docvia/cli`) | Long-lived `CompileService` with incremental `invalidate()`. |
-
-The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` Vite exports remain
-for setups that still run a separate `docvia build` step, but new projects should
-use `docvia()`.
