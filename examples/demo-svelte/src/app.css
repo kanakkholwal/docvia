@@ -23,7 +23,8 @@
 	--toc-w: 220px;
 	--content-max: 720px;
 
-	--font-sans: 'Geist Variable', system-ui, -apple-system, "Segoe UI", sans-serif;
+	--font-sans:
+		"Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 	--font-mono: "SF Mono", "Fira Code", ui-monospace, monospace;
 
 	--transition: 150ms ease;

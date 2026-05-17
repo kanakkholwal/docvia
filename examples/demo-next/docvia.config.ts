@@ -30,7 +30,6 @@ export default defineConfig({
 		greeting: {
 			path: "./components/Greeting",
 			hydrate: true,
-			
 		},
 	},
 

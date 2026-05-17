@@ -1,7 +1,6 @@
-import '@fontsource-variable/geist/wght.css';
+import "@fontsource-variable/geist/wght.css";
 import type { Metadata } from "next";
 import "./globals.css";
-
 
 export const metadata: Metadata = {
 	title: {
