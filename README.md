@@ -92,18 +92,15 @@ export default defineConfig({
 });
 ```
 
-That's it — no `predev` / `prebuild` hook. `docvia()` runs the `CompileService`
-in-process: it serves `docvia/source` as a virtual module in dev with
-incremental HMR, and emits the on-disk module graph for production builds.
+That's it. `docvia()` runs the `CompileService` in-process: it serves
+`docvia/source` as a virtual module in dev with incremental HMR, and emits the
+on-disk module graph for production builds.
 
 The `docvia.config.ts` must use the Svelte renderer (`createSvelteRenderer`
 from `@docvia/renderer-svelte/node`). Consume pages in a catch-all route via
 `docs.getPage(...)` and render them with the `Renderer` component from
 `@docvia/renderer-svelte`. See [`examples/demo-svelte`](./examples/demo-svelte)
 and [`apps/docs`](./apps/docs) for working setups.
-
-> The legacy `docviaSourcePlugin()` + `docviaMarkdownPlugin()` exports remain
-> available for setups that still run a separate `docvia build` step.
 
 ### Next.js
 
