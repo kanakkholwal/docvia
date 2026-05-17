@@ -13,9 +13,10 @@
 	},
 	"devDependencies": {
 		"@docvia/cli": "workspace:*",
+		"@docvia/plugin-shiki": "workspace:*",
+		"@docvia/plugin-vite": "workspace:*",
 		"@docvia/renderer-svelte": "workspace:*",
 		"@docvia/source": "workspace:*",
-		"@docvia/plugin-vite": "workspace:*",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.55.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -23,5 +24,8 @@
 		"svelte-check": "^4.4.5",
 		"typescript": "^5.9.3",
 		"vite": "^8.0.3"
+	},
+	"dependencies": {
+		"@fontsource-variable/geist": "^5.2.9"
 	}
 }

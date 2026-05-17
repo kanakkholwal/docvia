@@ -7,7 +7,7 @@ interface Props {
 	children?: React.ReactNode;
 }
 
-export function Counter({ initial = 0 }: Props) {
+function Counter({ initial = 0 }: Props) {
 	const [count, setCount] = useState(initial);
 
 	return (

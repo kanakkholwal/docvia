@@ -169,6 +169,9 @@ importers:
 
   examples/demo-next:
     dependencies:
+      '@fontsource-variable/geist':
+        specifier: ^5.2.8
+        version: 5.2.8
       next:
         specifier: ^16
         version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -178,9 +181,6 @@ importers:
       react-dom:
         specifier: ^19
         version: 19.2.4(react@19.2.4)
-      shiki:
-        specifier: ^4.0.2
-        version: 4.0.2
     devDependencies:
       '@docvia/cli':
         specifier: workspace:*
@@ -188,6 +188,9 @@ importers:
       '@docvia/plugin-next':
         specifier: workspace:*
         version: link:../../packages/plugin-next
+      '@docvia/plugin-shiki':
+        specifier: workspace:*
+        version: link:../../packages/plugin-shiki
       '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../../packages/renderer-core
@@ -214,10 +217,17 @@ importers:
         version: 4.3.6
 
   examples/demo-svelte:
+    dependencies:
+      '@fontsource-variable/geist':
+        specifier: ^5.2.9
+        version: 5.2.9
     devDependencies:
       '@docvia/cli':
         specifier: workspace:*
         version: link:../../packages/cli
+      '@docvia/plugin-shiki':
+        specifier: workspace:*
+        version: link:../../packages/plugin-shiki
       '@docvia/plugin-vite':
         specifier: workspace:*
         version: link:../../packages/plugin-vite
@@ -507,9 +517,6 @@ importers:
       react-dom:
         specifier: '>=19'
         version: 19.2.4(react@19.2.4)
-      shiki:
-        specifier: ^4.0.2
-        version: 4.0.2
     devDependencies:
       '@types/node':
         specifier: ^25.5.0
@@ -532,9 +539,6 @@ importers:
       '@docvia/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
-      shiki:
-        specifier: ^4.0.2
-        version: 4.0.2
       svelte:
         specifier: ^5.49.2
         version: 5.55.0
@@ -1651,6 +1655,9 @@ packages:
 
   '@fontsource-variable/geist@5.2.8':
     resolution: {integrity: sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw==}
+
+  '@fontsource-variable/geist@5.2.9':
+    resolution: {integrity: sha512-TP+QSBG3wxKGPE33CbMy/L0Nu3qvJ6Fy81Yc4LnQ95xH+i+cfEp8fyU8/kfV14YwszxIFPhnoMTbjL71waVpyQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -5133,6 +5140,8 @@ snapshots:
   '@fontsource-variable/geist-mono@5.2.7': {}
 
   '@fontsource-variable/geist@5.2.8': {}
+
+  '@fontsource-variable/geist@5.2.9': {}
 
   '@img/colour@1.1.0': {}
 

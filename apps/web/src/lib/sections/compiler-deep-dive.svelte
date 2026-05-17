@@ -14,20 +14,16 @@ const stages = [
 ];
 
 const codeConfig = `import { defineConfig } from "@docvia/cli";
-import {
-  createReactRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: createReactRenderer({
-    highlighter: createShikiHighlighter({
-      theme: "github-dark",
-      langs: ["typescript", "bash", "json"],
-    }),
-  }),
+  renderer: createReactRenderer(),
+  plugins: [
+    shiki({ theme: "github-dark", langs: ["typescript", "bash", "json"] }),
+  ],
 });`;
 </script>
 

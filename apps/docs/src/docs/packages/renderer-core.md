@@ -101,7 +101,7 @@ interface RenderContext {
   readonly slug: string;
   readonly meta: PageMeta;
   readonly registry: ComponentRegistry;
-  readonly highlighter: SyntaxHighlighter;
+  readonly highlighter?: SyntaxHighlighter;
   readonly manifest: HydrationManifest;
   readonly onError?: (err: RenderError) => void;
 }
@@ -112,7 +112,7 @@ interface RenderContext {
 | `slug` | `string` | The slug of the page currently being rendered. |
 | `meta` | `PageMeta` | Page metadata (title, description, headings, tags, order, content hash) from `@docvia/ir`. |
 | `registry` | `ComponentRegistry` | Resolver used to look up custom components by name. |
-| `highlighter` | `SyntaxHighlighter` | Used by the `code-block` renderer to produce highlighted HTML. |
+| `highlighter` | `SyntaxHighlighter` (optional) | Optional render-time highlighter, consulted only as a fallback for code blocks not already pre-highlighted by a build-time plugin. When omitted, such blocks render as plain `<pre>`. |
 | `manifest` | `HydrationManifest` | The mutable array that hydratable components are pushed onto during the walk. |
 | `onError` | `(err: RenderError) => void` | Optional callback invoked for every render error instead of throwing. |
 
@@ -150,7 +150,7 @@ interface SyntaxHighlighter {
 }
 ```
 
-A minimal contract for code highlighting. The adapters supply a shiki-backed implementation via `createShikiHighlighter()`.
+A minimal contract for code highlighting. Highlighting is normally a build-time plugin ([`@docvia/plugin-shiki`](/packages/plugin-shiki)) that bakes highlighted HTML onto `code-block` nodes; the `SyntaxHighlighter` contract is only used for an optional render-time fallback.
 
 ### HydrationEntry and HydrationManifest
 
@@ -222,7 +222,7 @@ Builds a `RendererMap` covering every standard IR node type. The returned map ha
 Notable behaviours:
 
 - **`heading`** emits `h1`–`h6` from `node.props.depth` and copies `node.props.id` so anchored links work.
-- **`code-block`** calls `ctx.highlighter.highlight()` and wraps the result in `<div class="docvia-code-block">` with a single `html` child. On failure it reports a `HIGHLIGHT_ERROR` and falls back to a plain `<pre>` of the raw source.
+- **`code-block`** emits a node's pre-highlighted `props.html` directly when present (set by a build-time plugin such as `@docvia/plugin-shiki`). Otherwise, if `ctx.highlighter` is set, it calls `highlight()` and wraps the result in `<div class="docvia-code-block">`; if no highlighter is configured, it emits a plain `<pre><code>` block. A failing highlight call reports a `HIGHLIGHT_ERROR` and falls back to a plain `<pre>`.
 - **`list`** emits `ol` (carrying `start`) or `ul` based on `node.props.ordered`.
 - **`table-cell`** emits `th` or `td` based on `node.props.tag`.
 - **`component`** and **`component-inline`** resolve the name through the registry, merge `defaultProps` under the directive attributes, read the `hydrate` mode (defaulting to `"none"`), and emit a `component` output. `component-inline` always has empty children.

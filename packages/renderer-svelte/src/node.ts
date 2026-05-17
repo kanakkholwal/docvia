@@ -9,67 +9,19 @@ import {
 	createDefaultRendererMap,
 	type RenderContext,
 	renderDocument,
-	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
-import { createHighlighter, type Highlighter } from "shiki";
 
-export function createShikiHighlighter(opts?: {
-	theme?: string;
-	langs?: string[];
-}): SyntaxHighlighter {
-	let instance: Highlighter | null = null;
+// Svelte Renderer Adapter (build-time / Node entry)
 
-	async function getHighlighter(): Promise<Highlighter> {
-		if (!instance) {
-			instance = await createHighlighter({
-				themes: [opts?.theme ?? "github-dark"],
-				langs: opts?.langs ?? [
-					"javascript",
-					"typescript",
-					"bash",
-					"json",
-					"css",
-					"html",
-					"svelte",
-				],
-			});
-		}
-		return instance;
-	}
-
-	return {
-		async highlight(code: string, lang: string) {
-			const h = await getHighlighter();
-			try {
-				const html = h.codeToHtml(code, {
-					lang,
-					theme: opts?.theme ?? "github-dark",
-				});
-				return { html };
-			} catch {
-				return { html: `<pre><code>${escapeHtml(code)}</code></pre>` };
-			}
-		},
-	};
-}
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;");
-}
-
-// Svelte Renderer Adapter
-
+/**
+ * Creates a docvia RendererAdapter for Svelte.
+ *
+ * Syntax highlighting is a build-time plugin (e.g. `@docvia/plugin-shiki`), not
+ * a renderer concern — add it to `plugins` in your docvia config.
+ */
 export function createSvelteRenderer(
-	options: {
-		highlighter?: SyntaxHighlighter;
-		registry?: ComponentRegistry;
-	} = {},
+	options: { registry?: ComponentRegistry } = {},
 ): RendererAdapter {
-	const hl = options.highlighter ?? createShikiHighlighter();
 	const registry = options.registry ?? {
 		has: () => false,
 		get: () => null,
@@ -93,7 +45,6 @@ export function createSvelteRenderer(
 					order: doc.frontmatter.order,
 				},
 				registry,
-				highlighter: hl,
 			};
 
 			const { output, manifest } = await renderDocument(

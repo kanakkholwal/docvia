@@ -70,7 +70,7 @@ function NavNode({
 	return (
 		<li>
 			<Link
-				href={`/docs${node.url}`}
+				href={`${node.url}`}
 				className={`nav-link${isActive ? " nav-link--active" : ""}`}
 			>
 				{node.name}

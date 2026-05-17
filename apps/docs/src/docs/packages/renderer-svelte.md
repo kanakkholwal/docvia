@@ -7,7 +7,7 @@ order: 22
 
 `@docvia/renderer-svelte` is the Svelte 5 adapter for docvia. It pairs a **build-time `RendererAdapter`** that compiles IR documents into JS modules with a **recursive `Renderer.svelte` component** that renders the resulting `RenderOutput` tree at runtime.
 
-It is built on `@docvia/renderer-core` and uses Svelte 5 runes throughout. Dependencies: `svelte ^5`, `shiki`, `@docvia/ir`, and `@docvia/renderer-core`.
+It is built on `@docvia/renderer-core` and uses Svelte 5 runes throughout. Dependencies: `svelte ^5`, `@docvia/ir`, and `@docvia/renderer-core`.
 
 ## Architecture
 
@@ -33,13 +33,12 @@ There are two entry points. Choosing the right one matters because one ships a `
 | Subpath | Environment | Purpose |
 | --- | --- | --- |
 | `.` | App routes / browser | Exports the `Renderer` component **and** everything from the adapter module. Uses package export *conditions*: the `svelte` condition resolves to the raw `./src/index.ts` source so a Svelte-aware bundler compiles the `.svelte` component itself; `import`/`default` resolve to the prebuilt `./dist/index.js`. |
-| `./node` | Build / SSR — `docvia.config.ts` | The build/SSR entry. Exports the adapter, the shiki highlighter factory, and the Vite plugin helpers — **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
+| `./node` | Build / SSR — `docvia.config.ts` | The build/SSR entry. Exports the adapter and the Vite plugin helpers — **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
 
 ```ts
 // docvia.config.ts — build-time
 import {
   createSvelteRenderer,
-  createShikiHighlighter,
   createInMemoryStore,
   docviaVitePlugin,
   invalidateModules,
@@ -100,32 +99,18 @@ Because the component recurses into itself for `element`, `component`, and `frag
 
 ```ts
 function createSvelteRenderer(options?: {
-  highlighter?: SyntaxHighlighter;
   registry?: ComponentRegistry;
 }): RendererAdapter;
 ```
 
 Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`). Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
 
-If no `highlighter` is supplied, a default `createShikiHighlighter()` is used. If no `registry` is supplied, an empty one is used.
+If no `registry` is supplied, an empty one is used.
 
-### createShikiHighlighter()
-
-```ts
-function createShikiHighlighter(opts?: {
-  theme?: string;
-  langs?: string[];
-}): SyntaxHighlighter;
-```
-
-Returns a lazy, shiki-backed `SyntaxHighlighter`.
-
-| Option | Default |
-| --- | --- |
-| `theme` | `"github-dark"` |
-| `langs` | `["javascript", "typescript", "bash", "json", "css", "html", "svelte"]` |
-
-The shiki instance is created on first highlight and reused for all later calls. If a highlight call throws (e.g. an unregistered language), it falls back to an escaped `<pre><code>` block.
+Syntax highlighting is **not** a renderer option. It is a build-time plugin —
+add [`@docvia/plugin-shiki`](/packages/plugin-shiki) to `plugins` in your
+docvia config, and the highlighted HTML is baked into the IR before the
+renderer ever runs.
 
 ### createInMemoryStore()
 
@@ -179,16 +164,13 @@ hydrate(manifest, registry);
 ### Wiring the adapter in `docvia.config.ts`
 
 ```ts
-import { defineConfig } from "@docvia/core";
-import {
-  createSvelteRenderer,
-  createShikiHighlighter,
-} from "@docvia/renderer-svelte/node";
+import { defineConfig } from "@docvia/cli";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  renderer: createSvelteRenderer({
-    highlighter: createShikiHighlighter({ theme: "github-dark" }),
-  }),
+  renderer: createSvelteRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
 });
 ```
 

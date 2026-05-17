@@ -30,8 +30,7 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
-		"@docvia/renderer-core": "workspace:*",
-		"shiki": "^4.0.2"
+		"@docvia/renderer-core": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/node": "^25.5.0",

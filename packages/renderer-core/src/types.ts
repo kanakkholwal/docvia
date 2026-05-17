@@ -25,7 +25,15 @@ export interface RenderContext {
 	readonly slug: string;
 	readonly meta: PageMeta;
 	readonly registry: ComponentRegistry;
-	readonly highlighter: SyntaxHighlighter;
+	/**
+	 * Optional render-time syntax highlighter.
+	 *
+	 * Highlighting is normally a build-time plugin (e.g. `@docvia/plugin-shiki`)
+	 * that bakes highlighted HTML onto `code-block` nodes, so the renderer never
+	 * needs this. It is only consulted as a fallback for code blocks that were
+	 * not pre-highlighted. When omitted, such blocks render as plain `<pre>`.
+	 */
+	readonly highlighter?: SyntaxHighlighter;
 	readonly manifest: HydrationManifest;
 	readonly onError?: (err: RenderError) => void;
 }
