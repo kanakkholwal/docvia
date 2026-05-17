@@ -1,5 +1,6 @@
 // Scaffold templates emitted by `docvia init`.
 // Kept separate from the command file so each template is easy to update.
+import { addCmd, type PackageManager } from "./pm";
 
 export type RendererTemplate = "react" | "svelte" | "none";
 
@@ -171,14 +172,17 @@ export default defineConfig({
 });
 `;
 
-const stubConfig = `import { defineConfig } from "@docvia/cli";
+// `stubConfig` is a function because its install hints depend on the chosen
+// package manager.
+function stubConfig(pm: PackageManager): string {
+	return `import { defineConfig } from "@docvia/cli";
 
 // IMPORTANT: docvia needs a renderer to build. Install one of:
-//   pnpm add @docvia/renderer-react   (for React/Next.js)
-//   pnpm add @docvia/renderer-svelte  (for Svelte/SvelteKit)
+//   ${addCmd(pm, "@docvia/renderer-react")}   (for React/Next.js)
+//   ${addCmd(pm, "@docvia/renderer-svelte")}  (for Svelte/SvelteKit)
 //
 // For syntax highlighting, also install the build-time plugin:
-//   pnpm add -D @docvia/plugin-shiki
+//   ${addCmd(pm, "@docvia/plugin-shiki", true)}
 //
 // Then uncomment the renderer and plugin blocks below.
 
@@ -191,24 +195,32 @@ export default defineConfig({
   // plugins: [shiki({ theme: "github-dark" })],
 });
 `;
+}
 
-export function getScaffold(renderer: RendererTemplate): ScaffoldFiles {
+export function getScaffold(
+	renderer: RendererTemplate,
+	pm: PackageManager,
+): ScaffoldFiles {
 	const configFile =
 		renderer === "react"
 			? reactConfig
 			: renderer === "svelte"
 				? svelteConfig
-				: stubConfig;
+				: stubConfig(pm);
 	return { configFile, indexMd, gettingStartedMd, componentsMd };
 }
 
-export function installHint(renderer: RendererTemplate): string {
+/** The runtime-peer install command suggested after `docvia init`. */
+export function installHint(
+	renderer: RendererTemplate,
+	pm: PackageManager,
+): string {
 	switch (renderer) {
 		case "react":
-			return "pnpm add @docvia/renderer-react react react-dom && pnpm add -D @docvia/plugin-shiki";
+			return `${addCmd(pm, "@docvia/renderer-react react react-dom")} && ${addCmd(pm, "@docvia/plugin-shiki", true)}`;
 		case "svelte":
-			return "pnpm add @docvia/renderer-svelte svelte && pnpm add -D @docvia/plugin-shiki";
+			return `${addCmd(pm, "@docvia/renderer-svelte svelte")} && ${addCmd(pm, "@docvia/plugin-shiki", true)}`;
 		case "none":
-			return "pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte";
+			return `${addCmd(pm, "@docvia/renderer-react")}   # or @docvia/renderer-svelte`;
 	}
 }
