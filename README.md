@@ -150,25 +150,25 @@ output only. It is not a runtime; use a framework integration for a real site.
 
 ## Packages
 
-| Package | Purpose |
-|---|---|
-| `@docvia/cli` | `init` / `build` / `dev` / `preview` commands. |
-| `@docvia/runtime` | `CompileService` — the stateful compile core shared by build, dev, and SSR. |
-| `@docvia/compiler` | Batch build entry (`compile()`), a thin wrapper over `CompileService`. |
-| `@docvia/core` | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
-| `@docvia/ir` | Intermediate representation, error system, AST → IR transform. |
-| `@docvia/schema` | Frontmatter validation (Zod), YAML extraction, TS codegen. |
-| `@docvia/plugins` | `defineConfig`, `loadConfig`, `PluginRunner`. |
-| `@docvia/ssr` | Request-time rendering for Node and edge runtimes. |
-| `@docvia/renderer-core` | Framework-agnostic rendering engine and default renderers. |
-| `@docvia/renderer-react` | React renderer adapter (server + `./client` hydration). |
-| `@docvia/renderer-svelte` | Svelte renderer adapter. |
-| `@docvia/search` | Section-level Orama indexing and client search helper. |
-| `@docvia/source` | Runtime collection helpers and Node markdown / IR-chunk loader. |
-| `@docvia/plugin-vite` | In-process Vite plugin (`docvia()`) with virtual modules + HMR. |
-| `@docvia/plugin-next` | Next.js wrapper (`withDocvia`) — webpack + Turbopack. |
-| `@docvia/plugin-shiki` | Build-time syntax highlighting via Shiki (pluggable). |
-| `@docvia/plugin-openapi` | Generate reference pages from an OpenAPI spec. |
+| Package | Version | Purpose |
+|---|---|---|
+| [`@docvia/cli`](https://www.npmjs.com/package/@docvia/cli) | [![npm](https://img.shields.io/npm/v/@docvia/cli.svg)](https://www.npmjs.com/package/@docvia/cli) | `init` / `build` / `dev` / `preview` commands. |
+| [`@docvia/runtime`](https://www.npmjs.com/package/@docvia/runtime) | [![npm](https://img.shields.io/npm/v/@docvia/runtime.svg)](https://www.npmjs.com/package/@docvia/runtime) | `CompileService` — the stateful compile core shared by build, dev, and SSR. |
+| [`@docvia/compiler`](https://www.npmjs.com/package/@docvia/compiler) | [![npm](https://img.shields.io/npm/v/@docvia/compiler.svg)](https://www.npmjs.com/package/@docvia/compiler) | Batch build entry (`compile()`), a thin wrapper over `CompileService`. |
+| [`@docvia/core`](https://www.npmjs.com/package/@docvia/core) | [![npm](https://img.shields.io/npm/v/@docvia/core.svg)](https://www.npmjs.com/package/@docvia/core) | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
+| [`@docvia/ir`](https://www.npmjs.com/package/@docvia/ir) | [![npm](https://img.shields.io/npm/v/@docvia/ir.svg)](https://www.npmjs.com/package/@docvia/ir) | Intermediate representation, error system, AST → IR transform. |
+| [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Zod), YAML extraction, TS codegen. |
+| [`@docvia/plugins`](https://www.npmjs.com/package/@docvia/plugins) | [![npm](https://img.shields.io/npm/v/@docvia/plugins.svg)](https://www.npmjs.com/package/@docvia/plugins) | `defineConfig`, `loadConfig`, `PluginRunner`. |
+| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for Node and edge runtimes. |
+| [`@docvia/renderer-core`](https://www.npmjs.com/package/@docvia/renderer-core) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-core.svg)](https://www.npmjs.com/package/@docvia/renderer-core) | Framework-agnostic rendering engine and default renderers. |
+| [`@docvia/renderer-react`](https://www.npmjs.com/package/@docvia/renderer-react) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-react.svg)](https://www.npmjs.com/package/@docvia/renderer-react) | React renderer adapter (server + `./client` hydration). |
+| [`@docvia/renderer-svelte`](https://www.npmjs.com/package/@docvia/renderer-svelte) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-svelte.svg)](https://www.npmjs.com/package/@docvia/renderer-svelte) | Svelte renderer adapter. |
+| [`@docvia/search`](https://www.npmjs.com/package/@docvia/search) | [![npm](https://img.shields.io/npm/v/@docvia/search.svg)](https://www.npmjs.com/package/@docvia/search) | Section-level Orama indexing and client search helper. |
+| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | Runtime collection helpers and Node markdown / IR-chunk loader. |
+| [`@docvia/plugin-vite`](https://www.npmjs.com/package/@docvia/plugin-vite) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-vite.svg)](https://www.npmjs.com/package/@docvia/plugin-vite) | In-process Vite plugin (`docvia()`) with virtual modules + HMR. |
+| [`@docvia/plugin-next`](https://www.npmjs.com/package/@docvia/plugin-next) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-next.svg)](https://www.npmjs.com/package/@docvia/plugin-next) | Next.js wrapper (`withDocvia`) — webpack + Turbopack. |
+| [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Build-time syntax highlighting via Shiki (pluggable). |
+| [`@docvia/plugin-openapi`](https://www.npmjs.com/package/@docvia/plugin-openapi) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-openapi.svg)](https://www.npmjs.com/package/@docvia/plugin-openapi) | Generate reference pages from an OpenAPI spec. |
 
 ## Apps
 

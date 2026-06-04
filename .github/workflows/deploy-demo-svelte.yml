@@ -1,0 +1,62 @@
+name: Deploy demo-svelte
+
+# Runs only when the Svelte demo changes on main, or when manually triggered
+# from the GitHub UI ("Run workflow") / `gh workflow run deploy-demo-svelte.yml`.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'examples/demo-svelte/**'  # Only trigger on changes to the Svelte demo
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-demo-svelte
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    name: Build & deploy to CF Workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: ${{ inputs.environment }}
+      url: https://svelte-demo.docvia.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Wrangler 4.x requires Node >= 22.
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build examples/demo-svelte
+        # Build through Turbo so workspace dependencies (@docvia/cli,
+        # @docvia/plugin-vite, etc.) are compiled before the demo's Vite build
+        # runs the docvia plugin in-process.
+        run: pnpm turbo run build --filter=demo-svelte
+
+      - name: Deploy via Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: examples/demo-svelte
+          command: >-
+            deploy
+            ${{ inputs.environment != '' && format('--env {0}', inputs.environment) || '' }}

@@ -1,0 +1,25 @@
+# Cloudflare Worker config for the docvia Svelte demo (examples/demo-svelte).
+#
+# Built output is produced by @sveltejs/adapter-cloudflare into
+# .svelte-kit/cloudflare/. Wrangler ships the _worker.js entry plus the
+# static assets in the same directory.
+#
+# Deployment is via .github/workflows/deploy-demo-svelte.yml.
+
+name = "docvia-demo-svelte"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Tail logs on production for the first weeks of public preview.
+observability = { enabled = true }
+
+[assets]
+directory = ".svelte-kit/cloudflare"
+binding = "ASSETS"
+
+# Custom domain — the demo is served at svelte-demo.docvia.dev.
+# Requires the docvia.dev zone to live on the same Cloudflare account.
+[[routes]]
+pattern = "svelte-demo.docvia.dev"
+custom_domain = true
