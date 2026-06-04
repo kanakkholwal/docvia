@@ -1,4 +1,4 @@
-import { redirect, type Handle } from "@sveltejs/kit";
+import { type Handle, redirect } from "@sveltejs/kit";
 
 /** The docs site lives on its own subdomain. */
 const DOCS_ORIGIN = "https://docs.docvia.dev";
