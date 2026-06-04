@@ -1,6 +1,12 @@
 import { error } from "@sveltejs/kit";
 import { docs } from "docvia/source";
-import type { PageServerLoad } from "./$types";
+import type { EntryGenerator, PageServerLoad } from "./$types";
+
+// Enumerate every doc slug so the prerenderer knows all [...slug] routes — the
+// crawler can't discover rest-parameter routes on its own.
+export const entries: EntryGenerator = () => {
+	return docs.getPages().map((page) => ({ slug: page.slugs.join("/") }));
+};
 
 export const load: PageServerLoad = async ({ params }) => {
 	const slugs = params.slug?.split("/") || [];
