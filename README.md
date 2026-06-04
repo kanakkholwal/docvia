@@ -2,30 +2,29 @@
 
 A Markdown documentation compiler. docvia turns a directory of Markdown into
 typed, pre-rendered content for React, Svelte, or any framework with a renderer
-adapter — and runs in three modes from one shared compile core:
+adapter — and it runs in three modes from one shared compile core:
 
 - **Build** — compile the whole tree ahead of time into a typed module graph.
 - **Dev** — compile in-process inside the framework dev server, recompiling
-  incrementally on every file change (no separate build script).
+  incrementally on every file change.
 - **SSR** — render a single document per request, on Node or the edge.
 
 All three sit on the same long-lived `CompileService` (`@docvia/runtime`), so
 output is byte-identical regardless of mode. See [MODES.md](./MODES.md) for the
 full breakdown.
 
+## Why docvia
+
 - **IR-based.** Markdown is parsed, sanitized, and transformed into an
-  Intermediate Representation (IR) once; renderers turn IR into framework output.
-- **Typed frontmatter.** Extend the built-in schema with a Zod object and
-  docvia generates a `Frontmatter` interface for every collection.
+  Intermediate Representation once; renderers turn that IR into framework output.
+- **Typed frontmatter.** Extend the built-in schema with a Zod object and docvia
+  generates a `Frontmatter` interface for every collection.
 - **Incremental.** A content-addressed cache skips unchanged files — across
-  builds and, in dev, on every keystroke via `service.invalidate()`.
-- **Pluggable pipeline.** Five hook points (`beforeParse`, `afterParse`,
-  `beforeTransform`, `afterTransform`, `beforeRender`).
-- **Pluggable syntax highlighting.** Highlighting is a build-time plugin
-  (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR — zero
-  highlighter ships to the browser or the edge bundle.
-- **Framework adapters.** First-party React and Svelte renderers; an in-process
-  Vite plugin and a Next.js wrapper (webpack + Turbopack).
+  builds and, in dev, on every keystroke.
+- **Pluggable.** Five hook points across the pipeline, plus build-time syntax
+  highlighting that bakes HTML into the IR so no highlighter ships to the browser.
+- **Framework adapters.** First-party React and Svelte renderers, an in-process
+  Vite plugin, and a Next.js wrapper (webpack + Turbopack).
 
 ## Install
 
@@ -92,15 +91,14 @@ export default defineConfig({
 });
 ```
 
-That's it. `docvia()` runs the `CompileService` in-process: it serves
-`docvia/source` as a virtual module in dev with incremental HMR, and emits the
-on-disk module graph for production builds.
-
-The `docvia.config.ts` must use the Svelte renderer (`createSvelteRenderer`
-from `@docvia/renderer-svelte/node`). Consume pages in a catch-all route via
-`docs.getPage(...)` and render them with the `Renderer` component from
-`@docvia/renderer-svelte`. See [`examples/demo-svelte`](./examples/demo-svelte)
-and [`apps/docs`](./apps/docs) for working setups.
+`docvia()` runs the `CompileService` in-process: it serves `docvia/source` as a
+virtual module in dev with incremental HMR, and emits the on-disk module graph
+for production builds. The config must use the Svelte renderer
+(`createSvelteRenderer` from `@docvia/renderer-svelte/node`). Consume pages in a
+catch-all route via `docs.getPage(...)` and render them with the `Renderer`
+component from `@docvia/renderer-svelte`. See
+[`examples/demo-svelte`](./examples/demo-svelte) and [`apps/docs`](./apps/docs)
+for working setups.
 
 ### Next.js
 
@@ -124,8 +122,7 @@ incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
 
 ### Server-side rendering
 
-For request-time rendering (Node or Cloudflare Workers / edge) use
-`@docvia/ssr`:
+For request-time rendering (Node or Cloudflare Workers / edge) use `@docvia/ssr`:
 
 ```ts
 import { createDocviaSSR, BundledContentProvider, createGlobChunkLoader } from "@docvia/ssr";
@@ -170,59 +167,16 @@ output only. It is not a runtime; use a framework integration for a real site.
 | [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Build-time syntax highlighting via Shiki (pluggable). |
 | [`@docvia/plugin-openapi`](https://www.npmjs.com/package/@docvia/plugin-openapi) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-openapi.svg)](https://www.npmjs.com/package/@docvia/plugin-openapi) | Generate reference pages from an OpenAPI spec. |
 
-## Apps
-
-| App | Purpose |
-|---|---|
-| `apps/web` | Marketing/landing site (SvelteKit + Tailwind + shadcn-svelte). |
-| `apps/docs` | Documentation site (SvelteKit + docvia). |
-| `examples/demo-next` | End-to-end React/Next.js example. |
-| `examples/demo-svelte` | End-to-end Svelte/SvelteKit example. |
-
-## Development
-
-```bash
-pnpm install
-pnpm build       # build all packages
-pnpm test        # run vitest across packages
-pnpm typecheck   # tsc --noEmit across packages
-```
-
-### Watch modes
-
-`pnpm dev` is intentionally focused — it only watches `packages/*` and `apps/*`, not the heavier `examples/*` demos. Run those explicitly when you need them.
-
-| Script | What it watches |
-|---|---|
-| `pnpm dev` | All packages + both apps (`apps/web`, `apps/docs`) |
-| `pnpm dev:packages` | Only `packages/*` (compiler, CLI, renderers, …) |
-| `pnpm dev:apps` | Only `apps/*` (landing + docs site) |
-| `pnpm dev:web` | Only `apps/web` |
-| `pnpm dev:docs` | Only `apps/docs` |
-| `pnpm dev:examples` | Both example demos (`demo-next`, `demo-svelte`) |
-| `pnpm dev:next` | Only `examples/demo-next` |
-| `pnpm dev:svelte` | Only `examples/demo-svelte` |
-| `pnpm dev:all` | Everything in the monorepo |
-
-Each filtered script still rebuilds the packages it depends on (`turbo` resolves the dependency graph), so you can run `pnpm dev:next` without first running `pnpm dev:packages`.
-
-Releases are managed with [Changesets](https://github.com/changesets/changesets) — see [RELEASING.md](./RELEASING.md) for the full workflow.
-
-```bash
-pnpm changeset           # author a changeset (run on every code-changing PR)
-pnpm changeset:status    # see what's pending
-pnpm version-packages    # consume changesets → bump versions, write CHANGELOGs
-pnpm release             # pnpm build && changeset publish
-```
-
-CI handles version bumps and publishing automatically — see `.github/workflows/release.yml`.
-
 ## Status
 
 v0.2 preview. APIs are stabilizing; expect breaking changes before v1.0. See
-[`.changeset/`](./.changeset) for in-flight release notes, [MODES.md](./MODES.md)
-for the build/dev/SSR breakdown, and [`documentation.md`](./documentation.md)
-for architecture notes.
+[`.changeset/`](./.changeset) for in-flight release notes and
+[documentation.md](./documentation.md) for architecture notes.
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the local
+setup, watch modes, and release workflow.
 
 ## License
 

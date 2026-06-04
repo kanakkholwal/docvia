@@ -41,7 +41,7 @@ npx docvia init
 ```
 
 `docvia init` scaffolds a `docvia.config.ts` and sample docs. Add the
-`docvia()` Vite plugin — see [Getting Started](/getting-started) — then load
+`docvia()` Vite plugin — see [Getting Started](/docs/getting-started) — then load
 and render pages in your SvelteKit routes:
 
 ```typescript
@@ -52,6 +52,6 @@ const page = await docs.getPage(["getting-started"]);
 
 ## Next steps
 
-- [Getting Started](/getting-started) — Set up Docvia with SvelteKit
-- [Source API](/source-api) — Work with pages, navigation, and routes
-- [Rendering](/rendering) — Render content with the Svelte Renderer
+- [Getting Started](/docs/getting-started) — Set up Docvia with SvelteKit
+- [Source API](/docs/source-api) — Work with pages, navigation, and routes
+- [Rendering](/docs/rendering) — Render content with the Svelte Renderer
