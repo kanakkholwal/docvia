@@ -7,8 +7,7 @@
 // milestones) drive the same instance so all modes share one render path.
 
 import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, relative, resolve as resolvePath } from "node:path";
+import { relative, resolve as resolvePath } from "node:path";
 import { performance } from "node:perf_hooks";
 import { parseMarkdown } from "@docvia/core";
 import type {
@@ -516,7 +515,6 @@ export class CompileService {
 			collections: this.collectionData,
 		});
 	}
-
 
 	/** Write the disk module graph (markdown imported in place) and persist the cache. */
 	async emitDiskModuleGraph(): Promise<void> {

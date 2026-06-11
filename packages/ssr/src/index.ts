@@ -12,12 +12,7 @@ import {
 	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 import { LRUCache } from "./lru";
-import type {
-	ContentProvider,
-	SSROptions,
-	SSRPage,
-	SSRRenderer,
-} from "./types";
+import type { SSROptions, SSRPage, SSRRenderer } from "./types";
 
 export { LRUCache } from "./lru";
 export type {
@@ -61,8 +56,7 @@ export function createDocviaSSR(options: SSROptions): SSRRenderer {
 	// Accept a ContentProvider, a live CompileService, or a plain function —
 	// normalize to the `{ getDocument }` shape the renderer uses.
 	const src = options.provider;
-	const provider =
-		typeof src === "function" ? { getDocument: src } : src;
+	const provider = typeof src === "function" ? { getDocument: src } : src;
 	const baseUrl = options.baseUrl ?? "/";
 	const registry = options.registry ?? { resolve: () => null };
 	const cache = new LRUCache<string, SSRPage>(options.cacheMax ?? 100);

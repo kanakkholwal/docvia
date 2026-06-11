@@ -1,7 +1,7 @@
-import { docvia } from "@docvia/plugin-vite";
-import { sveltekit } from "@sveltejs/kit/vite";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
+import { docvia } from "@docvia/plugin-vite";
+import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 import docviaConfig from "./docvia.config";
 
