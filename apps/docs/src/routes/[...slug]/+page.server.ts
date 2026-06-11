@@ -1,5 +1,5 @@
-import { error } from "@sveltejs/kit";
 import { docs } from "virtual:docvia/source";
+import { error } from "@sveltejs/kit";
 import type { EntryGenerator, PageServerLoad } from "./$types";
 
 // Enumerate every doc slug so the prerenderer knows all [...slug] routes —
