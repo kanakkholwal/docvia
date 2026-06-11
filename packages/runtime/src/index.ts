@@ -1,6 +1,11 @@
 // @docvia/runtime — the stateful compile service shared by build, dev, and SSR.
 
 export type { CachedEntry, CacheFile } from "./cache";
+export type {
+	CompiledModule,
+	CompileMarkdownToModuleArgs,
+} from "./compile-module";
+export { compileMarkdownToModule } from "./compile-module";
 export {
 	CACHE_FILE,
 	CACHE_VERSION,

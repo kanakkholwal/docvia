@@ -1,12 +1,9 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: Vite plugin context is intentionally untyped passthrough.
-import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig } from "@docvia/ir";
-import { transformToIR } from "@docvia/ir";
-import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
+import { compileMarkdownToModule } from "@docvia/runtime";
 
 export function docviaMarkdownPlugin(config: docviaConfig) {
-	const renderer = config.renderer;
-	if (!renderer) {
+	if (!config.renderer) {
 		throw new Error("[docvia] No renderer configured");
 	}
 
@@ -16,20 +13,16 @@ export function docviaMarkdownPlugin(config: docviaConfig) {
 		async transform(code: string, id: string) {
 			if (!id.endsWith(".md?docvia")) return null;
 
-			const filePath = id.split("?")[0];
-			if (!filePath) return null;
-			const extracted = extractFrontmatter(code);
-			const meta = validateFrontmatter(extracted.data, filePath);
-			const { ast } = await parseMarkdown(extracted.content, {
-				remarkPlugins: config.markdown.remarkPlugins,
+			const filePath = id.slice(0, -"?docvia".length);
+			// Single source of truth for the markdown→module transform — the same
+			// core helper the Next.js loader uses, so output stays identical.
+			const { code: output, map } = await compileMarkdownToModule({
+				code,
+				filePath,
+				relativePath: filePath,
+				config,
 			});
-			const ir = transformToIR(ast, meta, filePath);
-			const rendered = await renderer.renderPage(ir);
-
-			return {
-				code: rendered.code,
-				map: (rendered.map as any) ?? null,
-			};
+			return { code: output, map: (map as any) ?? null };
 		},
 	};
 }

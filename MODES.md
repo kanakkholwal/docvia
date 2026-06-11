@@ -7,20 +7,22 @@ mode.
 
 | Mode  | When it runs            | Where compilation happens                  |
 | ----- | ----------------------- | ------------------------------------------- |
-| Build | Ahead of time           | Once, emits an on-disk module graph + IR chunks |
+| Build | Ahead of time           | Once, emits the on-disk glue; the bundler compiles each `.md?docvia` in place |
 | Dev   | While the dev server runs | In-process, incremental on every file change |
-| SSR   | Per request             | Render-only, from pre-built IR chunks        |
+| SSR   | Per request             | Render-only, via the in-place module                |
 
 ## Build mode
 
-`CompileService.compileAll()` + `emitDiskModuleGraph()` parse every markdown
-file, run the plugin pipeline, and emit:
+`CompileService.compileAll()` + `emitDiskModuleGraph()` write the thin on-disk
+glue — `source.ts` + `dynamic.ts` (plus `registry.ts` / `types.d.ts`) — that
+**statically imports each markdown module** as `./x.md?docvia`. The host
+bundler's `?docvia` loader (Vite, webpack, Turbopack) transforms each one
+through the plugin pipeline and configured renderer, in place. No per-route IR
+JSON is emitted; content lives once in the `.md`, and the bundler code-splits,
+tree-shakes, and (for SSR/edge) bundles it directly.
 
-- the on-disk module graph (`.docvia/*.ts`) consumed via the `docvia/source` alias,
-- per-route IR chunks (`.docvia/ir/<collection>/<slug>.json`) + `ir/manifest.json`.
-
-The IR chunks are fully pre-processed — including build-time syntax
-highlighting — so neither SSR nor the client ships a highlighter.
+Build-time syntax highlighting is baked into the module by the loader, so
+neither SSR nor the client ships a highlighter.
 
 `@docvia/compiler`'s `compile()` is a thin wrapper over this path.
 
@@ -37,24 +39,22 @@ In dev, `docvia/source` is served as an in-memory **virtual module** (Vite) — 
 
 ## SSR mode
 
-Request-time rendering via `@docvia/ssr`. `createDocviaSSR()` resolves an IR
-document through a `ContentProvider`, renders it with `@docvia/renderer-core`,
-and caches rendered pages in an in-memory LRU keyed by `contentHash`.
+A framework app renders the in-place `?docvia` module directly through its
+renderer. `docvia/source` (static, eager) lands content in the SSR bundle —
+works on Node and the edge (Cloudflare Workers); `docvia/source/browser` (lazy,
+code-split per page) loads content client-side without a server round-trip.
 
-Two content providers:
-
-- **`FsContentProvider`** (`@docvia/ssr/node`) — reads IR chunks from disk via a
-  `CompileService`. Node only.
-- **`BundledContentProvider`** (`@docvia/ssr`) — serves IR chunks through a
-  caller-supplied `ChunkLoader`. No `node:fs`, edge-safe (Cloudflare Workers).
-  `createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json"))` turns the
-  build's IR chunks into a loader the bundler can statically code-split.
+For a **non-framework Node server**, `@docvia/ssr`'s `createDocviaSSR()` renders
+an IR document through a content source — a `ContentProvider`, a live
+`CompileService` (pass it directly), or a `(collection, slug) => IR` function —
+with `@docvia/renderer-core`, caching rendered pages in an in-memory LRU keyed
+by `contentHash`.
 
 ## Which plugin per framework
 
 | Framework             | Plugin / entry            | Notes                                              |
 | --------------------- | ------------------------- | -------------------------------------------------- |
-| Vite + SvelteKit      | `docvia()` (`@docvia/plugin-vite`) | In-process compile, virtual `docvia/source`, HMR. |
-| Next.js (webpack)     | `withDocvia` (`@docvia/plugin-next`) | Drives `CompileService`; disk module graph + webpack alias. |
-| Next.js (Turbopack)   | `withDocvia` (`@docvia/plugin-next`) | Same wrapper; adds `turbopack.resolveAlias`. Disk graph (no plugin API). |
+| Vite + SvelteKit      | `docvia()` (`@docvia/plugin-vite`) | In-process compile, virtual `docvia/source`, HMR, in-place `?docvia` transform. |
+| Next.js (webpack)     | `withDocvia` (`@docvia/plugin-next`) | Disk glue + `docvia/source` alias + webpack `?docvia` loader rule. |
+| Next.js (Turbopack)   | `withDocvia` (`@docvia/plugin-next`) | Same wrapper; `turbopack.resolveAlias` + Turbopack `?docvia` loader rule. |
 | Generic / no bundler  | `docvia dev` / `docvia build` (`@docvia/cli`) | Long-lived `CompileService` with incremental `invalidate()`. |

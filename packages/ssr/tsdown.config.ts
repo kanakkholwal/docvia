@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-	entry: ["src/index.ts", "src/node.ts"],
+	entry: ["src/index.ts"],
 	sourcemap: true,
 
 	clean: true,

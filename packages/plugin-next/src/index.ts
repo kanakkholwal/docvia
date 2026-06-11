@@ -224,10 +224,19 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 				? resolve(docviaConfigInfo.outDir ?? ".docvia")
 				: resolve(".docvia");
 			const sourceAlias = resolve(outDir, "source.ts");
+			const browserAlias = resolve(outDir, "browser.ts");
 			const registryAlias = resolve(outDir, "registry.ts");
 
-			// Turbopack has no plugin API — point its `resolveAlias` at the
-			// same on-disk module graph webpack's alias uses.
+			// Loader options must be JSON-serializable (Turbopack passes them
+			// across a worker boundary), so the loader receives paths and loads
+			// the config itself rather than the renderer/plugin functions.
+			const loaderOptions = {
+				configPath: resolve(options.configPath ?? "./docvia.config.ts"),
+				sourceDir: docviaConfigInfo
+					? resolve(docviaConfigInfo.sourceDir ?? "docs")
+					: resolve("docs"),
+			};
+
 			const turbopackRoot = process.cwd();
 			const existingTurbopack = (resolvedConfig as any).turbopack ?? {};
 
@@ -236,8 +245,24 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 				webpack(config: any, webpackOptions: any) {
 					config.resolve = config.resolve || {};
 					config.resolve.alias = config.resolve.alias || {};
+					config.resolve.alias["docvia/source/browser"] = browserAlias;
 					config.resolve.alias["docvia/source"] = sourceAlias;
 					config.resolve.alias["docvia/registry"] = registryAlias;
+
+					// In-place markdown loader: transform `*.md?docvia` imports
+					// (emitted into .docvia/dynamic.ts) through docvia's compiler.
+					config.module = config.module || {};
+					config.module.rules = config.module.rules || [];
+					config.module.rules.push({
+						test: /\.md$/,
+						resourceQuery: /docvia/,
+						use: [
+							{
+								loader: "@docvia/plugin-next/loader",
+								options: loaderOptions,
+							},
+						],
+					});
 
 					return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
 				},
@@ -245,11 +270,30 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 					...existingTurbopack,
 					resolveAlias: {
 						...existingTurbopack.resolveAlias,
+						"docvia/source/browser": _toTurbopackAliasPath(
+							browserAlias,
+							turbopackRoot,
+						),
 						"docvia/source": _toTurbopackAliasPath(sourceAlias, turbopackRoot),
 						"docvia/registry": _toTurbopackAliasPath(
 							registryAlias,
 							turbopackRoot,
 						),
+					},
+					rules: {
+						...existingTurbopack.rules,
+						// Turbopack matches by filename glob (no query), so this
+						// runs for every `.md`; the loader passes through any import
+						// lacking the `?docvia` query.
+						"*.md": {
+							loaders: [
+								{
+									loader: "@docvia/plugin-next/loader",
+									options: loaderOptions,
+								},
+							],
+							as: "*.js",
+						},
 					},
 				},
 			};

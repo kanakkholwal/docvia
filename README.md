@@ -122,23 +122,34 @@ incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
 
 ### Server-side rendering
 
-For request-time rendering (Node or Cloudflare Workers / edge) use `@docvia/ssr`:
+Markdown is loaded **in place** as a module via the `?docvia` loader (Vite,
+webpack, and Turbopack), so a framework app renders pages directly through its
+renderer — including on the edge — with no separate content store. Generated
+`.docvia/` is just thin glue: `source.ts` statically imports the markdown
+modules (server/SSR, bundled), and `browser.ts` imports them lazily for the
+client:
 
 ```ts
-import { createDocviaSSR, BundledContentProvider, createGlobChunkLoader } from "@docvia/ssr";
+// Server / SSR — eager, in the SSR bundle:
+import { docs } from "docvia/source";
+// Browser — lazy, code-split per page:
+import { docs } from "docvia/source/browser";
 
-// Edge-safe: serves per-route IR chunks built into .docvia/ir/.
-const ssr = createDocviaSSR({
-  provider: BundledContentProvider(
-    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
-  ),
-});
+const page = await docs.getPage(["getting-started"]);
+```
 
+For a **non-framework Node server** that renders per request, `@docvia/ssr`
+renders IR resolved by a content source — a live `CompileService` already is
+one, so pass it directly:
+
+```ts
+import { createDocviaSSR } from "@docvia/ssr";
+
+const ssr = createDocviaSSR({ provider: service }); // or a (collection, slug) => IR fn
 const page = await ssr.render("docs", "getting-started");
 ```
 
-On Node, `@docvia/ssr/node`'s `FsContentProvider` wraps a live `CompileService`
-instead. Rendered pages are cached in an in-memory LRU keyed by content hash.
+Rendered pages are cached in an in-memory LRU keyed by content hash.
 
 ### Standalone preview
 
@@ -156,7 +167,7 @@ output only. It is not a runtime; use a framework integration for a real site.
 | [`@docvia/ir`](https://www.npmjs.com/package/@docvia/ir) | [![npm](https://img.shields.io/npm/v/@docvia/ir.svg)](https://www.npmjs.com/package/@docvia/ir) | Intermediate representation, error system, AST → IR transform. |
 | [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Zod), YAML extraction, TS codegen. |
 | [`@docvia/plugins`](https://www.npmjs.com/package/@docvia/plugins) | [![npm](https://img.shields.io/npm/v/@docvia/plugins.svg)](https://www.npmjs.com/package/@docvia/plugins) | `defineConfig`, `loadConfig`, `PluginRunner`. |
-| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for Node and edge runtimes. |
+| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for non-framework Node servers. |
 | [`@docvia/renderer-core`](https://www.npmjs.com/package/@docvia/renderer-core) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-core.svg)](https://www.npmjs.com/package/@docvia/renderer-core) | Framework-agnostic rendering engine and default renderers. |
 | [`@docvia/renderer-react`](https://www.npmjs.com/package/@docvia/renderer-react) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-react.svg)](https://www.npmjs.com/package/@docvia/renderer-react) | React renderer adapter (server + `./client` hydration). |
 | [`@docvia/renderer-svelte`](https://www.npmjs.com/package/@docvia/renderer-svelte) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-svelte.svg)](https://www.npmjs.com/package/@docvia/renderer-svelte) | Svelte renderer adapter. |

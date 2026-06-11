@@ -14,7 +14,12 @@ import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
 import type { HmrContext, Plugin, ViteDevServer } from "vite";
 
 const SOURCE_IDS = new Set(["docvia/source", "docvia:source", "docvia-source"]);
+const BROWSER_SOURCE_IDS = new Set([
+	"docvia/source/browser",
+	"docvia:source/browser",
+]);
 const VIRTUAL_SOURCE_ID = "\0docvia:virtual-source";
+const VIRTUAL_BROWSER_ID = "\0docvia:virtual-browser";
 
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
@@ -114,6 +119,11 @@ export function docvia(
 		},
 
 		resolveId(id) {
+			if (BROWSER_SOURCE_IDS.has(id)) {
+				return isDev
+					? VIRTUAL_BROWSER_ID
+					: resolve(root, config.outDir, "browser.ts");
+			}
 			if (!SOURCE_IDS.has(id)) return null;
 			return isDev
 				? VIRTUAL_SOURCE_ID
@@ -121,6 +131,9 @@ export function docvia(
 		},
 
 		load(id) {
+			if (id === VIRTUAL_BROWSER_ID) {
+				return service ? service.getVirtualBrowserModule() : null;
+			}
 			if (id !== VIRTUAL_SOURCE_ID) return null;
 			return service ? service.getVirtualSourceModule() : null;
 		},

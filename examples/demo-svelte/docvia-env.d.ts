@@ -6,6 +6,14 @@ declare module 'docvia/source' {
     export const registry: typeof source.registry;
 }
 
+declare module 'docvia/source/browser' {
+    const browser: typeof import('./.docvia/browser');
+    export const docviaSource: typeof browser.docviaSource;
+    export const docs: typeof browser.docs;
+
+    export const registry: typeof source.registry;
+}
+
 declare module 'docvia/registry' {
     const mod: typeof import('./.docvia/registry');
     export const registry: typeof mod.registry;
