@@ -124,15 +124,17 @@ incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
 
 Markdown is loaded **in place** as a module via the `?docvia` loader (Vite,
 webpack, and Turbopack), so a framework app renders pages directly through its
-renderer — including on the edge — with no separate content store. Generated
-`.docvia/` is just thin glue: `source.ts` statically imports the markdown
-modules (server/SSR, bundled), and `browser.ts` imports them lazily for the
-client:
+renderer — including on the edge — with no separate content store. One module
+imports the pages eagerly (server/SSR, bundled), another lazily (client,
+code-split per page):
 
 ```ts
-// Server / SSR — eager, in the SSR bundle:
+// Vite (SvelteKit, etc.) — Vite virtual-module convention:
+import { docs } from "virtual:docvia/source";          // server / SSR (eager)
+import { docs } from "virtual:docvia/source/browser";  // browser (lazy, code-split)
+
+// Next.js — the wrapper aliases the bare specifier instead:
 import { docs } from "docvia/source";
-// Browser — lazy, code-split per page:
 import { docs } from "docvia/source/browser";
 
 const page = await docs.getPage(["getting-started"]);

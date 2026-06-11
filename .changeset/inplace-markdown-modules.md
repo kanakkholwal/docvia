@@ -28,6 +28,9 @@ the edge with no filesystem access.
 
 **Breaking**
 
+- The Vite plugin now follows the Vite virtual-module convention: import from
+  `virtual:docvia/source` (and `virtual:docvia/source/browser`) instead of the
+  bare `docvia/source`. Next.js keeps the `docvia/source` alias.
 - `.docvia/ir/**/*.json` chunks are no longer emitted.
 - Removed `@docvia/source/node` (`loadIRChunk`, `loadMarkdown`).
 - Removed `@docvia/ssr`'s `BundledContentProvider` and `createGlobChunkLoader`,

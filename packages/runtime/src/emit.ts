@@ -298,13 +298,38 @@ function createdocviaEnvDts(
 	const exports = collections
 		.map((c) => `    export const ${c.name}: typeof source.${c.name};`)
 		.join("\n");
-
+	const browserExports = collections
+		.map((c) => `    export const ${c.name}: typeof browser.${c.name};`)
+		.join("\n");
 	const registryExport = hasRegistry
 		? "\n    export const registry: typeof source.registry;"
 		: "";
+
+	// Each module is declared under both the Vite virtual id
+	// (`virtual:docvia/source`) and the bare specifier the Next.js alias uses
+	// (`docvia/source`), so imports type-check in either project.
+	const sourceModule = (name: string): string =>
+		[
+			`declare module '${name}' {`,
+			`    const source: typeof import('${relativeOutDir}/source');`,
+			"    export const docviaSource: typeof source.docviaSource;",
+			exports,
+			registryExport,
+			"}",
+		].join("\n");
+
+	const browserModule = (name: string): string =>
+		[
+			`declare module '${name}' {`,
+			`    const browser: typeof import('${relativeOutDir}/browser');`,
+			"    export const docviaSource: typeof browser.docviaSource;",
+			browserExports,
+			registryExport,
+			"}",
+		].join("\n");
+
 	const registryModule = hasRegistry
 		? [
-				"",
 				"declare module 'docvia/registry' {",
 				`    const mod: typeof import('${relativeOutDir}/registry');`,
 				"    export const registry: typeof mod.registry;",
@@ -312,24 +337,15 @@ function createdocviaEnvDts(
 			].join("\n")
 		: "";
 
-	const browserExports = collections
-		.map((c) => `    export const ${c.name}: typeof browser.${c.name};`)
-		.join("\n");
-
 	return [
-		"declare module 'docvia/source' {",
-		`    const source: typeof import('${relativeOutDir}/source');`,
-		"    export const docviaSource: typeof source.docviaSource;",
-		exports,
-		registryExport,
-		"}",
+		sourceModule("virtual:docvia/source"),
 		"",
-		"declare module 'docvia/source/browser' {",
-		`    const browser: typeof import('${relativeOutDir}/browser');`,
-		"    export const docviaSource: typeof browser.docviaSource;",
-		browserExports,
-		registryExport,
-		"}",
+		sourceModule("docvia/source"),
+		"",
+		browserModule("virtual:docvia/source/browser"),
+		"",
+		browserModule("docvia/source/browser"),
+		"",
 		registryModule,
 		"",
 	].join("\n");

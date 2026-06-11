@@ -34,15 +34,18 @@ step. The compiler watches the source dir and recompiles incrementally via
 `.md?docvia` module, a route-map change triggers a reload. Errors surface in the
 dev-server error overlay.
 
-In dev, `docvia/source` is served as an in-memory **virtual module** (Vite) — no
-`.docvia/*.ts` files are written, except `types.d.ts` for the editor.
+In Vite, `virtual:docvia/source` is served as an in-memory **virtual module**
+([Vite convention](https://vite.dev/guide/api-plugin#importing-a-virtual-file)) —
+in dev *and* build, so no `source.ts` wrapper is bundled. Next.js instead aliases
+the bare `docvia/source` specifier to the on-disk glue.
 
 ## SSR mode
 
 A framework app renders the in-place `?docvia` module directly through its
-renderer. `docvia/source` (static, eager) lands content in the SSR bundle —
-works on Node and the edge (Cloudflare Workers); `docvia/source/browser` (lazy,
-code-split per page) loads content client-side without a server round-trip.
+renderer. The eager source module (`virtual:docvia/source` on Vite,
+`docvia/source` on Next) lands content in the SSR bundle — works on Node and the
+edge (Cloudflare Workers); the `…/browser` variant (lazy, code-split per page)
+loads content client-side without a server round-trip.
 
 For a **non-framework Node server**, `@docvia/ssr`'s `createDocviaSSR()` renders
 an IR document through a content source — a `ContentProvider`, a live
@@ -54,7 +57,7 @@ by `contentHash`.
 
 | Framework             | Plugin / entry            | Notes                                              |
 | --------------------- | ------------------------- | -------------------------------------------------- |
-| Vite + SvelteKit      | `docvia()` (`@docvia/plugin-vite`) | In-process compile, virtual `docvia/source`, HMR, in-place `?docvia` transform. |
+| Vite + SvelteKit      | `docvia()` (`@docvia/plugin-vite`) | In-process compile, `virtual:docvia/source` virtual module (dev + build), HMR, in-place `?docvia` transform. |
 | Next.js (webpack)     | `withDocvia` (`@docvia/plugin-next`) | Disk glue + `docvia/source` alias + webpack `?docvia` loader rule. |
 | Next.js (Turbopack)   | `withDocvia` (`@docvia/plugin-next`) | Same wrapper; `turbopack.resolveAlias` + Turbopack `?docvia` loader rule. |
 | Generic / no bundler  | `docvia dev` / `docvia build` (`@docvia/cli`) | Long-lived `CompileService` with incremental `invalidate()`. |

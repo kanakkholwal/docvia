@@ -13,13 +13,14 @@ import { CompileService } from "@docvia/runtime";
 import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
 import type { HmrContext, Plugin, ViteDevServer } from "vite";
 
-const SOURCE_IDS = new Set(["docvia/source", "docvia:source", "docvia-source"]);
-const BROWSER_SOURCE_IDS = new Set([
-	"docvia/source/browser",
-	"docvia:source/browser",
-]);
-const VIRTUAL_SOURCE_ID = "\0docvia:virtual-source";
-const VIRTUAL_BROWSER_ID = "\0docvia:virtual-browser";
+// Vite virtual-module convention (https://vite.dev/guide/api-plugin#importing-a-virtual-file):
+// the public id is `virtual:docvia/source`; the resolved id is prefixed with
+// `\0` so other plugins leave it alone. Served from the `load` hook in dev and
+// build alike — no on-disk `source.ts` wrapper for Vite.
+const SOURCE_ID = "virtual:docvia/source";
+const BROWSER_ID = "virtual:docvia/source/browser";
+const VIRTUAL_SOURCE_ID = `\0${SOURCE_ID}`;
+const VIRTUAL_BROWSER_ID = `\0${BROWSER_ID}`;
 
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
@@ -119,23 +120,19 @@ export function docvia(
 		},
 
 		resolveId(id) {
-			if (BROWSER_SOURCE_IDS.has(id)) {
-				return isDev
-					? VIRTUAL_BROWSER_ID
-					: resolve(root, config.outDir, "browser.ts");
-			}
-			if (!SOURCE_IDS.has(id)) return null;
-			return isDev
-				? VIRTUAL_SOURCE_ID
-				: resolve(root, config.outDir, "source.ts");
+			if (id === SOURCE_ID) return VIRTUAL_SOURCE_ID;
+			if (id === BROWSER_ID) return VIRTUAL_BROWSER_ID;
+			return null;
 		},
 
 		load(id) {
+			if (id === VIRTUAL_SOURCE_ID) {
+				return service ? service.getVirtualSourceModule() : null;
+			}
 			if (id === VIRTUAL_BROWSER_ID) {
 				return service ? service.getVirtualBrowserModule() : null;
 			}
-			if (id !== VIRTUAL_SOURCE_ID) return null;
-			return service ? service.getVirtualSourceModule() : null;
+			return null;
 		},
 
 		async transform(code, id) {
@@ -162,8 +159,10 @@ export function docvia(
 				await service.emitTypeDeclarations();
 
 				if (result.routeMapChanged) {
-					const vmod = ctx.server.moduleGraph.getModuleById(VIRTUAL_SOURCE_ID);
-					if (vmod) ctx.server.moduleGraph.invalidateModule(vmod);
+					for (const vid of [VIRTUAL_SOURCE_ID, VIRTUAL_BROWSER_ID]) {
+						const vmod = ctx.server.moduleGraph.getModuleById(vid);
+						if (vmod) ctx.server.moduleGraph.invalidateModule(vmod);
+					}
 					ctx.server.ws.send({ type: "full-reload" });
 					return [];
 				}
@@ -191,8 +190,10 @@ export function docvia(
 				try {
 					await service.invalidate(files);
 					await service.emitTypeDeclarations();
-					const mod = server.moduleGraph.getModuleById(VIRTUAL_SOURCE_ID);
-					if (mod) server.moduleGraph.invalidateModule(mod);
+					for (const vid of [VIRTUAL_SOURCE_ID, VIRTUAL_BROWSER_ID]) {
+						const mod = server.moduleGraph.getModuleById(vid);
+						if (mod) server.moduleGraph.invalidateModule(mod);
+					}
 					server.ws.send({ type: "full-reload" });
 				} catch (err) {
 					server.ws.send({ type: "error", err: toErrorPayload(err) });
