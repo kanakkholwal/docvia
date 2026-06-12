@@ -59,13 +59,13 @@ type Hooks = {
 };
 
 describe("docvia() Vite plugin", () => {
-	it("serves docvia/source as a virtual module in dev", async () => {
+	it("serves virtual:docvia/source as a virtual module in dev", async () => {
 		const plugin = docvia(config) as unknown as Hooks;
 		plugin.configResolved({ root: projectRoot, command: "serve" });
 		await plugin.buildStart();
 
-		const resolved = plugin.resolveId("docvia/source");
-		expect(resolved).toBe("\0docvia:virtual-source");
+		const resolved = plugin.resolveId("virtual:docvia/source");
+		expect(resolved).toBe("\0virtual:docvia/source");
 
 		const mod = plugin.load(resolved as string);
 		expect(typeof mod).toBe("string");
@@ -74,14 +74,19 @@ describe("docvia() Vite plugin", () => {
 		expect(mod).toContain('"intro"');
 	});
 
-	it("resolves docvia/source to the disk module graph in build", async () => {
+	it("serves virtual:docvia/source from the load hook in build too", async () => {
+		// No on-disk source.ts wrapper for Vite — the virtual module is served
+		// the same way in build as in dev.
 		const plugin = docvia(config) as unknown as Hooks;
 		plugin.configResolved({ root: projectRoot, command: "build" });
 		await plugin.buildStart();
 
-		const resolved = plugin.resolveId("docvia/source");
-		expect(resolved).toContain("source.ts");
-		expect(resolved).not.toBe("\0docvia:virtual-source");
+		const resolved = plugin.resolveId("virtual:docvia/source");
+		expect(resolved).toBe("\0virtual:docvia/source");
+
+		const mod = plugin.load(resolved as string);
+		expect(typeof mod).toBe("string");
+		expect(mod).toContain("createSource");
 	});
 
 	it("transforms .md?docvia ids and ignores everything else", async () => {

@@ -464,6 +464,35 @@ export class CompileService {
 		return undefined;
 	}
 
+	/**
+	 * Resolve every compiled document's IR, optionally scoped to one collection
+	 * by name. Entries served from the incremental cache (which stores no IR)
+	 * are recompiled on demand, exactly like {@link getDocument}. Used by
+	 * build-time consumers — e.g. search indexing — that need the full IR for
+	 * every page rather than one lookup at a time. Call after `compileAll()`.
+	 */
+	async getDocuments(
+		collectionName?: string,
+	): Promise<Array<{ collection: string; document: IRDocument }>> {
+		const out: Array<{ collection: string; document: IRDocument }> = [];
+		for (const entry of this.entries.values()) {
+			if (collectionName && entry.collectionName !== collectionName) continue;
+
+			let ir = entry.ir;
+			if (!ir) {
+				const collection = this.collections.find(
+					(c) => c.name === entry.collectionName,
+				);
+				if (!collection) continue;
+				const file = await readFileEntry(entry.filePath, entry.relativePath);
+				ir = (await this.runPipeline(collection, file)).ir;
+			}
+			if (!ir) continue;
+			out.push({ collection: entry.collectionName, document: ir });
+		}
+		return out;
+	}
+
 	private buildRouteFiles(): Map<string, RouteFile[]> {
 		const routeFiles = new Map<string, RouteFile[]>();
 		for (const entry of this.entries.values()) {

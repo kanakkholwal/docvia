@@ -19,64 +19,47 @@ pipeline the build uses, so SSR output matches build output exactly.
 pnpm add @docvia/ssr
 ```
 
-Requires Node.js `>=20.0.0` for the `./node` entry. The default entry is
-edge-safe. ESM only.
+Requires Node.js `>=20.0.0`. The package is edge-safe — it contains no
+`node:fs`. ESM only.
+
+> **Most apps don't need this package.** Under the in-place architecture the
+> generated `source.ts` uses static `?docvia` imports, so a framework app (Vite,
+> Next.js) — including on the edge — renders pages directly through
+> `docs.getPage(...)` with the content already bundled. Reach for `@docvia/ssr`
+> only for a **non-framework Node server** that renders per request.
 
 ## Package exports
 
 | Subpath | Contents | Runtime |
 |---|---|---|
-| `.` | `createDocviaSSR`, `BundledContentProvider`, `createGlobChunkLoader`, `LRUCache`, types. | Edge-safe — no `node:fs`. |
-| `./node` | `FsContentProvider`. | Node only. |
+| `.` | `createDocviaSSR`, `LRUCache`, and types (`ContentProvider`, `ContentSource`, `SSROptions`, …). | Edge-safe — no `node:fs`. |
 
-The split exists because edge runtimes (Cloudflare Workers and friends) have no
-`node:fs`. The default entry is safe to bundle for the edge; the Node-only
-content provider lives behind `./node`.
+## Content source
 
-## Content providers
+`createDocviaSSR({ provider })` resolves IR through a generic **`ContentSource`**,
+which is either:
 
-`createDocviaSSR()` resolves IR through a **`ContentProvider`**. Two are
-shipped:
-
-### `BundledContentProvider` — edge-safe
-
-Serves pre-built per-route IR chunks (emitted to `.docvia/ir/` at build time)
-through a caller-supplied loader. No filesystem, no Markdown parsing at request
-time.
+- a **`ContentProvider`** — any object with `getDocument(collection, slug) => Promise<IRDocument | undefined>`,
+- a live **`CompileService`** — it already satisfies that shape, so pass it directly, or
+- a plain **function** `(collection, slug) => IRDocument | undefined`.
 
 ```ts
-import {
-  createDocviaSSR,
-  BundledContentProvider,
-  createGlobChunkLoader,
-} from "@docvia/ssr";
+import { createDocviaSSR } from "@docvia/ssr";
 
-const ssr = createDocviaSSR({
-  provider: BundledContentProvider(
-    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
-  ),
+// A live CompileService is itself a content source:
+const ssr = createDocviaSSR({ provider: service });
+
+// …or supply your own resolver function:
+const ssr2 = createDocviaSSR({
+  provider: (collection, slug) => myStore.get(collection, slug),
 });
 
 const page = await ssr.render("docs", "getting-started");
 ```
 
-`createGlobChunkLoader()` turns a Vite `import.meta.glob` of the build's IR
-chunks into a `ChunkLoader` — the glob is statically analysable, so every chunk
-is code-split and the bundle stays edge-safe.
-
-### `FsContentProvider` — Node
-
-Wraps a live `CompileService`, compiling Markdown from disk on a cache miss.
-Use it for Node servers and dev.
-
-```ts
-import { createDocviaSSR } from "@docvia/ssr";
-import { FsContentProvider } from "@docvia/ssr/node";
-
-const ssr = createDocviaSSR({
-  provider: new FsContentProvider(service),
-});
-```
+There is no separate edge/Node split anymore: the package itself never touches
+the filesystem, so where IR comes from is entirely up to the `ContentSource` you
+pass.
 
 ## Caching
 
@@ -87,13 +70,13 @@ with `ssr.clearCache()`.
 
 ## Highlighting on the edge
 
-With [`@docvia/plugin-shiki`](/packages/plugin-shiki), the per-route IR chunks
-ship **already highlighted** — the highlighted HTML is baked into the IR at
-build time. So an edge SSR bundle ships no syntax highlighter at all.
+With [`@docvia/plugin-shiki`](/packages/plugin-shiki), the IR ships **already
+highlighted** — the highlighted HTML is baked into the IR at build time. So an
+edge SSR bundle ships no syntax highlighter at all.
 
 ## See also
 
 - [Framework integration](/guide/frameworks) — the SSR setup walkthrough.
-- [`@docvia/runtime`](/packages/runtime) — the `CompileService` behind
-  `FsContentProvider`.
+- [`@docvia/runtime`](/packages/runtime) — the `CompileService` you can pass
+  directly as a `ContentSource`.
 - [Architecture](/guide/architecture) — the three run modes.

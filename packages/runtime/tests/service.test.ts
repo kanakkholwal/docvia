@@ -120,20 +120,6 @@ describe("CompileService.emitDiskModuleGraph", () => {
 		expect(existsSync(join(outDir, "types.d.ts"))).toBe(true);
 		expect(existsSync(join(projectRoot, "docvia-env.d.ts"))).toBe(true);
 	});
-
-	it("emits a per-route IR chunk and manifest for each document", async () => {
-		const outDir = join(projectRoot, ".out-chunks");
-		const service = new CompileService(options(".out-chunks", false));
-		const result = await service.compileAll();
-		await service.emitDiskModuleGraph();
-
-		expect(existsSync(join(outDir, "ir", "manifest.json"))).toBe(true);
-		for (const page of result.pages) {
-			expect(existsSync(join(outDir, "ir", "docs", `${page.slug}.json`))).toBe(
-				true,
-			);
-		}
-	});
 });
 
 describe("CompileService.getVirtualSourceModule", () => {

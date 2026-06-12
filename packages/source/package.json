@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/source",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"type": "module",
 	"exports": {
 		".": {
@@ -39,7 +39,7 @@
 		"typescript": "^5.9.3",
 		"shiki": "^4.0.2"
 	},
-	"description": "Runtime collection helpers and Node markdown loader for docvia",
+	"description": "Runtime collection model for consuming compiled docvia output",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"

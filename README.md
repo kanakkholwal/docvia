@@ -59,7 +59,8 @@ export default defineConfig({
 After `docvia build`, import the generated source:
 
 ```ts
-import { docs } from "docvia/source"; // generated into .docvia/
+// Vite resolves a virtual module; Next.js aliases the bare specifier.
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
 const page = await docs.getPage(["getting-started"]); // slug segments
 const all = docs.getPages();                          // metadata for every page
@@ -70,7 +71,8 @@ const tree = docs.pageTree;                           // navigation tree
 
 The recommended setup runs docvia **in-process** inside your bundler — no
 separate `docvia build` step, incremental recompilation in dev, and a virtual
-`docvia/source` module so nothing is written to disk during development.
+source module (`virtual:docvia/source` on Vite, the aliased `docvia/source` on
+Next.js) so nothing is written to disk during development.
 
 ### SvelteKit (Vite)
 
@@ -91,9 +93,9 @@ export default defineConfig({
 });
 ```
 
-`docvia()` runs the `CompileService` in-process: it serves `docvia/source` as a
-virtual module in dev with incremental HMR, and emits the on-disk module graph
-for production builds. The config must use the Svelte renderer
+`docvia()` runs the `CompileService` in-process: it serves `virtual:docvia/source`
+(and `virtual:docvia/source/browser`) as virtual modules in dev with incremental
+HMR, and serves them from the `load` hook for production builds too. The config must use the Svelte renderer
 (`createSvelteRenderer` from `@docvia/renderer-svelte/node`). Consume pages in a
 catch-all route via `docs.getPage(...)` and render them with the `Renderer`
 component from `@docvia/renderer-svelte`. See

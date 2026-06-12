@@ -1,5 +1,13 @@
 # @docvia/cli
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [6adfee1]
+  - @docvia/runtime@0.3.0
+  - @docvia/compiler@0.2.1
+
 ## 0.2.2
 
 ### Patch Changes

@@ -72,10 +72,13 @@ The returned `NextConfig` registers two resolve aliases for **both bundlers** �
 
 | Alias | Target |
 |---|---|
-| `docvia/source` | `<outDir>/source.ts` |
+| `docvia/source` | `<outDir>/source.ts` (eager, server/SSR) |
+| `docvia/source/browser` | `<outDir>/browser.ts` (lazy, client code-split) |
 | `docvia/registry` | `<outDir>/registry.ts` |
 
 The aliases are added to a `webpack()` hook *and* to `turbopack.resolveAlias`. Any `webpack()` hook already present on your config is preserved and composed.
+
+It also registers a `.md?docvia` loader for both bundlers (a `module.rules` entry on webpack, a `turbopack.rules` entry on Turbopack) so each Markdown file is compiled as a module **in place** — content lives once in the `.md`, with no emitted JSON.
 
 > The on-disk module graph is used for both webpack and Turbopack — Turbopack has no plugin API, so there is a single resolution path.
 

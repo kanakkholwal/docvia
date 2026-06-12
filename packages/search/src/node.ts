@@ -1,61 +1,81 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import type { IRDocument } from "@docvia/ir";
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import type { IRDocument, RendererAdapter } from "@docvia/ir";
+import { docviaError } from "@docvia/ir";
+import { loadConfig } from "@docvia/plugins";
+import { CompileService } from "@docvia/runtime";
 import { createSearchIndexer } from "./index";
 
-// Node-only entry point: reading the docvia build output touches the
-// filesystem, so it must stay out of the browser bundle that `createSearch`
-// ships in. Import these from `@docvia/search/node`.
+// Node-only entry point: building the index compiles the docs in-process, which
+// touches the filesystem and pulls in the compiler — so it must stay out of the
+// browser bundle that `createSearch` ships in. Import these from
+// `@docvia/search/node`.
 
 export interface SearchSourceOptions {
 	/**
-	 * The docvia build output directory — the `outDir` from `docvia.config.ts`.
-	 * Resolved relative to the current working directory. Defaults to `.docvia`.
+	 * Path to the project's `docvia.config.ts`. Resolved relative to the current
+	 * working directory. Defaults to `docvia.config.ts`.
 	 */
-	outDir?: string;
+	configPath?: string;
 	/**
 	 * Restrict indexing to a single collection (by its `name` in the docvia
-	 * config). Omit to index every collection found in the build output.
+	 * config). Omit to index every collection.
 	 */
 	collection?: string;
 }
 
-/** Recursively gather IR chunk files, skipping the build manifest. */
-async function collectChunks(dir: string): Promise<IRDocument[]> {
-	// A missing directory (e.g. an unknown collection name) yields no
-	// documents rather than throwing — callers get an empty index.
-	const entries = await readdir(dir, { withFileTypes: true }).catch(() => null);
-	if (!entries) return [];
-
-	const docs: IRDocument[] = [];
-	for (const entry of entries) {
-		const full = join(dir, entry.name);
-		if (entry.isDirectory()) {
-			docs.push(...(await collectChunks(full)));
-		} else if (entry.name.endsWith(".json") && entry.name !== "manifest.json") {
-			docs.push(JSON.parse(await readFile(full, "utf-8")) as IRDocument);
-		}
-	}
-	return docs;
-}
+// Compiling to IR never invokes the renderer (the pipeline stops at
+// `beforeRender`), but `CompileService` requires one structurally. If the config
+// somehow omits a renderer, fall back to this no-op so indexing still works.
+const NOOP_RENDERER: RendererAdapter = {
+	name: "noop",
+	renderPage: async () => ({ code: "", map: undefined }) as never,
+	renderManifest: async () => "",
+};
 
 /**
- * Load the per-route IR chunks that `docvia build` emits to `<outDir>/ir/`.
- * This is the documents side of the search pipeline — feed the result to
- * {@link createSearchIndexer}, or use {@link buildSearchIndex} to do both.
+ * Compile the project's docs in-process and return the IR for every page —
+ * the documents side of the search pipeline. Under the in-place architecture
+ * nothing is emitted to disk to read back, so we drive a {@link CompileService}
+ * directly (the same pipeline the build uses) and collect its IR. Feed the
+ * result to {@link createSearchIndexer}, or use {@link buildSearchIndex} to do
+ * both.
  */
 export async function loadIRDocuments(
 	options: SearchSourceOptions = {},
 ): Promise<IRDocument[]> {
-	const irRoot = resolve(options.outDir ?? ".docvia", "ir");
-	const target = options.collection ? join(irRoot, options.collection) : irRoot;
-	return collectChunks(target);
+	const configPath = resolve(options.configPath ?? "docvia.config.ts");
+	if (!existsSync(configPath)) {
+		throw new docviaError(
+			"CONFIG_ERROR",
+			`docvia config not found: ${configPath}\n  Pass \`configPath\` to buildSearchIndex / loadIRDocuments.`,
+			configPath,
+		);
+	}
+
+	const config = await loadConfig(configPath);
+	const projectRoot = dirname(configPath);
+
+	const service = new CompileService({
+		sourceDir: resolve(projectRoot, config.sourceDir),
+		outDir: resolve(projectRoot, config.outDir),
+		renderer: config.renderer ?? NOOP_RENDERER,
+		plugins: [...config.plugins],
+		config,
+		projectRoot,
+		// A one-shot index build — no cache to consult or write.
+		incremental: false,
+	});
+
+	await service.compileAll();
+	const docs = await service.getDocuments(options.collection);
+	return docs.map((d) => d.document);
 }
 
 /**
- * Build a search index straight from a docvia build output directory and
- * return the exported index JSON — the whole indexing pipeline in one call.
- * Serve the result as a static asset and rehydrate it with `createSearch()`.
+ * Compile the project's docs and build a search index in one call, returning
+ * the exported index JSON. Serve the result as a static asset and rehydrate it
+ * with `createSearch()`.
  */
 export async function buildSearchIndex(
 	options: SearchSourceOptions = {},

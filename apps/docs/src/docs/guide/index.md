@@ -30,9 +30,10 @@ docvia has two halves:
 1. **The compile core** (`CompileService`) reads Markdown, runs it through the
    pipeline, and produces a typed module graph — at build time, in the dev
    server, or per request.
-2. **A framework integration** consumes that module graph — `docvia/source`
-   gives you `getPage`, `getPages`, and `pageTree`, and a renderer turns each
-   page's content into framework-native output.
+2. **A framework integration** consumes that module graph — the source module
+   (`virtual:docvia/source` on Vite, `docvia/source` on Next.js) gives you
+   `getPage`, `getPages`, and `pageTree`, and a renderer turns each page's
+   content into framework-native output.
 
 The same core runs in three modes — build, dev, and SSR — so their output is
 identical. Everything else — plugins, the frontmatter schema, the incremental

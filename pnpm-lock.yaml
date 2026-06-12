@@ -623,6 +623,12 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@orama/orama':
         specifier: ^3.1.18
         version: 3.1.18

@@ -1,9 +1,11 @@
 // @docvia/ssr — request-time rendering for a non-framework Node server.
 //
-// Renders IR resolved through a `ContentProvider` (e.g. the Node-only
-// `FsContentProvider` in `@docvia/ssr/node`, which wraps a live
-// `CompileService`). Framework apps don't need this — they render the in-place
-// `?docvia` modules directly through their renderer.
+// Renders IR resolved through a generic `ContentSource` — a `ContentProvider`,
+// a live `CompileService` (which already satisfies the shape), or a
+// `(collection, slug) => IR` function. The package never touches the
+// filesystem, so it is edge-safe regardless of source. Framework apps don't
+// need this — they render the in-place `?docvia` modules directly through their
+// renderer.
 
 import type { PageMeta } from "@docvia/ir";
 import {
