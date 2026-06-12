@@ -20,10 +20,21 @@ export function Search() {
 			setResults([]);
 			return;
 		}
+		// `active` guards against out-of-order responses: when the query changes
+		// the cleanup flips it false, so a slower in-flight request is ignored.
+		let active = true;
 		debounce.current = setTimeout(async () => {
-			setResults(await searcher.search(term, { limit: 8 }));
+			try {
+				const hits = await searcher.search(term, { limit: 8 });
+				if (active) setResults(hits);
+			} catch {
+				if (active) setResults([]);
+			}
 		}, 150);
-		return () => clearTimeout(debounce.current);
+		return () => {
+			active = false;
+			clearTimeout(debounce.current);
+		};
 	}, [query, searcher]);
 
 	function hrefFor(r: SearchResult): string {

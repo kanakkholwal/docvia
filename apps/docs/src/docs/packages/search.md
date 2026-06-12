@@ -127,6 +127,7 @@ interface SearchResult {
   sectionId: string;
   sectionTitle: string;
   pageTitle: string;
+  content: string;
   score: number;
 }
 ```
@@ -137,6 +138,7 @@ interface SearchResult {
 | `sectionId` | Heading id of the matched section (`"_top"` for the lead region). |
 | `sectionTitle` | Heading text of the matched section. |
 | `pageTitle` | Title of the containing page. |
+| `content` | Full section text — for rendering a highlighted match snippet. |
 | `score` | Relevance score from Orama. |
 
 ### `createSearch`

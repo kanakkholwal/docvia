@@ -15,7 +15,14 @@ let handler: Promise<(request: Request) => Promise<Response>> | null = null;
 
 function getHandler() {
 	if (!handler) {
-		handler = createFromSource(docs).then(createSearchHandler);
+		// Clear the cache on failure so a transient build error doesn't wedge the
+		// route into permanently rejecting — the next request retries.
+		handler = createFromSource(docs)
+			.then(createSearchHandler)
+			.catch((err) => {
+				handler = null;
+				throw err;
+			});
 	}
 	return handler;
 }

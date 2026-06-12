@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	createFetchClient,
 	createFromSource,
@@ -137,6 +137,9 @@ describe("createSearchHandler", () => {
 });
 
 describe("createFetchClient", () => {
+	// Always restore the real fetch, even if an assertion throws mid-test.
+	afterEach(() => vi.unstubAllGlobals());
+
 	it("queries the endpoint and returns the parsed results", async () => {
 		const fetchMock = vi.fn(
 			async (_input: string) =>
@@ -158,8 +161,6 @@ describe("createFetchClient", () => {
 		expect(url).toContain("query=widgets");
 		expect(url).toContain("limit=5");
 		expect(results[0]!.slug).toBe("guide");
-
-		vi.unstubAllGlobals();
 	});
 
 	it("skips the request for a blank query", async () => {
@@ -168,6 +169,5 @@ describe("createFetchClient", () => {
 		const client = createFetchClient();
 		expect(await client.search("  ")).toEqual([]);
 		expect(fetchMock).not.toHaveBeenCalled();
-		vi.unstubAllGlobals();
 	});
 });

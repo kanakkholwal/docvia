@@ -37,6 +37,8 @@ let listEl = $state<HTMLUListElement>();
 let isMac = $state(true);
 
 let debounce: ReturnType<typeof setTimeout>;
+// Monotonic id so out-of-order /api/search responses can't overwrite newer ones.
+let searchId = 0;
 
 async function openDialog() {
 	open = true;
@@ -65,11 +67,15 @@ async function runSearch() {
 		status = "idle";
 		return;
 	}
+	const id = ++searchId;
 	status = "searching";
 	try {
-		results = await searcher.search(term, { limit: 8 });
+		const hits = await searcher.search(term, { limit: 8 });
+		if (id !== searchId) return; // superseded by a newer search
+		results = hits;
 		status = "ready";
 	} catch {
+		if (id !== searchId) return;
 		results = [];
 		status = "error";
 	}
