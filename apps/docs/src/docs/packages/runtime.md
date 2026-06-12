@@ -18,8 +18,9 @@ request-time output never drift apart:
 - [`@docvia/plugin-vite`](/packages/plugin-vite) and
   [`@docvia/plugin-next`](/packages/plugin-next) run the service in-process for
   incremental dev compilation.
-- [`@docvia/ssr`](/packages/ssr) (via `@docvia/ssr/node`) renders documents
-  resolved through the service.
+- [`@docvia/ssr`](/packages/ssr) renders documents resolved through the service
+  — a live `CompileService` is itself a valid `ContentSource`, so it can be
+  passed straight to `createDocviaSSR({ provider })`.
 
 > `@docvia/runtime` is the engine, not a public-facing API surface. Most
 > projects consume `@docvia/compiler` or a framework plugin instead. This page
@@ -66,8 +67,9 @@ Key methods:
 | `invalidate(filePaths)` | Incrementally recompile changed files; returns an `InvalidationResult` with `changed` and `routeMapChanged`. |
 | `getDocument(collection, slug)` | Resolve a compiled `IRDocument` by route. |
 | `getDocumentByPath(path)` | Resolve a compiled document by source path. |
-| `emitDiskModuleGraph()` | Write the on-disk module graph and per-route IR chunks. |
-| `getVirtualSourceModule()` | Produce the `docvia/source` module as a string (for virtual-module bundler integrations). |
+| `emitDiskModuleGraph()` | Write the on-disk module graph (thin `?docvia` glue; no IR chunks). |
+| `getVirtualSourceModule()` | Produce the eager source module as a string (for virtual-module bundler integrations, e.g. `virtual:docvia/source`). |
+| `getVirtualBrowserModule()` | Produce the lazy, client-code-split browser module as a string (`virtual:docvia/source/browser`). |
 | `emitTypeDeclarations()` | Write `types.d.ts` and `docvia-env.d.ts`. |
 
 ### `InvalidationResult`

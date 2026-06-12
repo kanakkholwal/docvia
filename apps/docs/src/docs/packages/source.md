@@ -1,11 +1,11 @@
 ---
 title: "@docvia/source"
-description: "Runtime collection model and Node markdown loader for consuming compiled docvia output."
+description: "Runtime collection model for consuming compiled docvia output."
 eyebrow: "Packages"
 order: 30
 ---
 
-`@docvia/source` defines the runtime data model that frameworks use to consume compiled docvia documentation. It declares the page, collection, and page-tree types, the `createCollection` / `createSource` factories that the generated `.docvia/source.ts` file relies on, and `loadMarkdown` — a Node helper for compiling a single Markdown file on demand.
+`@docvia/source` defines the runtime data model that frameworks use to consume compiled docvia documentation. It declares the page, collection, and page-tree types and the `createCollection` / `createSource` factories that the generated `.docvia/source.ts` file relies on. It contains **no Markdown loader** — under the in-place architecture the host bundler's `?docvia` transform compiles each `.md` file as a module, and these factories just wire those modules into collections.
 
 ## Install
 
@@ -17,10 +17,9 @@ pnpm add @docvia/source
 
 | Subpath | Contents | Notes |
 |---|---|---|
-| `.` | Re-exports `./node` + `./runtime` | The default entry. **Does not** re-export the `./internal` factories. |
+| `.` | Re-exports `./runtime` | The default entry — **types only**, no runtime values. **Does not** re-export the `./internal` factories. |
 | `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, `HydrationManifest`. |
 | `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated `.docvia/source.ts`. |
-| `./node` | `loadMarkdown`, `loadIRChunk` | Node-only Markdown / IR-chunk loaders. |
 
 > `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly — the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
 
@@ -196,63 +195,11 @@ function createSource<TCollections>(
 
 Wraps a record of collections into a `docviaSource`. The return type preserves the concrete `TCollections` shape, so accessing `source.collections.docs` stays fully typed.
 
-## Node loader (`@docvia/source/node`)
-
-### `loadMarkdown`
-
-```ts
-function loadMarkdown(
-  filePath: string,
-  options?: { highlighter?: SyntaxHighlighter },
-): Promise<{ content: any; meta: unknown; manifest: unknown }>;
-```
-
-Compiles a single Markdown file on demand in a Node environment. The pipeline is:
-
-1. `extractFrontmatter`
-2. `validateFrontmatter`
-3. `parseMarkdown`
-4. `transformToIR`
-5. `renderDocument` with the default renderer map
-
-The default highlighter is a lazily-created Shiki singleton. When `shiki` is not installed, it falls back to plain HTML-escaping. Pass `options.highlighter` to supply your own `SyntaxHighlighter`.
-
-```ts
-import { loadMarkdown } from "@docvia/source/node";
-
-const { content, meta, manifest } = await loadMarkdown("docs/index.md");
-```
-
-### `loadIRChunk`
-
-```ts
-function loadIRChunk(
-  outDir: string,
-  collection: string,
-  slug: string,
-  options?: { highlighter?: SyntaxHighlighter },
-): Promise<{ content: any; meta: unknown; manifest: unknown } | undefined>;
-```
-
-Renders a **pre-built per-route IR chunk** — the `<outDir>/ir/<collection>/<slug>.json`
-file the build emits. Unlike `loadMarkdown`, it does not re-parse Markdown: the
-chunk already has every docvia plugin applied (including build-time syntax
-highlighting), so this is the consistent server-render path for bundlers
-without a `?docvia` transform — notably Next.js and Turbopack. Returns
-`undefined` when the chunk does not exist.
-
-`options.highlighter` only highlights code blocks that were *not* already
-pre-highlighted at build time (i.e. projects not using a highlighter plugin).
-
-```ts
-import { loadIRChunk } from "@docvia/source/node";
-
-const page = await loadIRChunk(".docvia", "docs", "getting-started");
-```
-
 ## Generated source example
 
-The compiler emits a `.docvia/source.ts` that uses the internal factories:
+The compiler emits a `.docvia/source.ts` that uses the internal factories. Under
+the in-place architecture `getModule` resolves the Markdown file as a module via
+the host bundler's `?docvia` transform (no JSON, no filesystem read):
 
 ```ts
 import { createCollection, createSource } from "@docvia/source/internal";
@@ -261,7 +208,9 @@ const docs = createCollection({
   name: "docs",
   baseUrl: "/",
   routeKeys: ["index", "getting-started", "guides/install"],
-  getModule: (slug) => import(`./pages/${slug}.js`),
+  // `?docvia` is compiled in place by the bundler — content lives in the .md
+  getModule: (slug) => import(`../src/docs/${slug}.md?docvia`),
+  // eager metadata for the page tree / getPages(), resolved on demand
   getEagerModules: async () => null,
   sourceModuleUrl: import.meta.url,
 });
@@ -269,11 +218,19 @@ const docs = createCollection({
 export const source = createSource({ docs });
 ```
 
-Consuming it from a framework app:
+Consuming it from a framework app. The import specifier is **bundler-specific**:
 
 ```ts
+// Vite (and SvelteKit): the Vite plugin serves a virtual module
+import { source } from "virtual:docvia/source";
+
+// Next.js (webpack + Turbopack): the plugin aliases the bare specifier
 import { source } from "docvia/source";
 
 const page = await source.collections.docs.getPage(["getting-started"]);
 const tree = source.collections.docs.pageTree;
 ```
+
+> A lazy, client-code-split counterpart is generated alongside it —
+> `virtual:docvia/source/browser` (Vite) / `docvia/source/browser` (Next) — whose
+> `getModule` uses `() => import("…md?docvia")` so each page is its own chunk.

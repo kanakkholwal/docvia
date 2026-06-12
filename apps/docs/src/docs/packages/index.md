@@ -40,8 +40,8 @@ task-oriented walkthroughs, see the [Guides](/guide).
 
 ## Runtime
 
-- [`@docvia/source`](/packages/source) — the runtime collection model, the Node
-  Markdown loader, and the per-route IR-chunk loader.
+- [`@docvia/source`](/packages/source) — the runtime collection model
+  (`createCollection` / `createSource`) the generated `source.ts` is built on.
 - [`@docvia/ssr`](/packages/ssr) — request-time rendering for Node and edge
   runtimes.
 - [`@docvia/search`](/packages/search) — section-level Orama indexing and the

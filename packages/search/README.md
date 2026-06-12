@@ -14,13 +14,15 @@ pnpm add @docvia/search
 
 ## Usage
 
-Build the index from a docvia build output directory (Node / build time):
+Build the index by compiling your docs (Node / build time):
 
 ```ts
 import { buildSearchIndex } from "@docvia/search/node";
 
-// Reads the IR chunks docvia emits to `<outDir>/ir/`. `outDir` defaults to
-// ".docvia"; pass `collection` to scope the index to one collection.
+// Compiles the docs in-process (driving a CompileService through the same
+// pipeline as the build) and indexes the resulting IR — no emitted JSON to
+// read back. `configPath` defaults to "docvia.config.ts"; pass `collection`
+// to scope the index to one collection.
 const indexJson = await buildSearchIndex({ collection: "docs" });
 // → serve `indexJson` as a static asset
 ```

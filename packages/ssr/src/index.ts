@@ -1,26 +1,25 @@
-// @docvia/ssr — request-time rendering. Edge-safe entry point.
+// @docvia/ssr — request-time rendering for a non-framework Node server.
 //
-// No `node:fs`/`node:os` imports here, so this entry is safe to bundle for
-// Cloudflare Workers and other edge runtimes. The Node-only `FsContentProvider`
-// lives in `@docvia/ssr/node`.
+// Renders IR resolved through a generic `ContentSource` — a `ContentProvider`,
+// a live `CompileService` (which already satisfies the shape), or a
+// `(collection, slug) => IR` function. The package never touches the
+// filesystem, so it is edge-safe regardless of source. Framework apps don't
+// need this — they render the in-place `?docvia` modules directly through their
+// renderer.
 
-import type { IRDocument, PageMeta } from "@docvia/ir";
+import type { PageMeta } from "@docvia/ir";
 import {
 	createDefaultRendererMap,
 	renderDocument,
 	type SyntaxHighlighter,
 } from "@docvia/renderer-core";
 import { LRUCache } from "./lru";
-import type {
-	ContentProvider,
-	SSROptions,
-	SSRPage,
-	SSRRenderer,
-} from "./types";
+import type { SSROptions, SSRPage, SSRRenderer } from "./types";
 
 export { LRUCache } from "./lru";
 export type {
 	ContentProvider,
+	ContentSource,
 	SSROptions,
 	SSRPage,
 	SSRRenderer,
@@ -56,7 +55,10 @@ function joinUrl(baseUrl: string, slug: string): string {
  * keyed by `contentHash`.
  */
 export function createDocviaSSR(options: SSROptions): SSRRenderer {
-	const { provider } = options;
+	// Accept a ContentProvider, a live CompileService, or a plain function —
+	// normalize to the `{ getDocument }` shape the renderer uses.
+	const src = options.provider;
+	const provider = typeof src === "function" ? { getDocument: src } : src;
 	const baseUrl = options.baseUrl ?? "/";
 	const registry = options.registry ?? { resolve: () => null };
 	const cache = new LRUCache<string, SSRPage>(options.cacheMax ?? 100);
@@ -105,59 +107,5 @@ export function createDocviaSSR(options: SSROptions): SSRRenderer {
 		clearCache() {
 			cache.clear();
 		},
-	};
-}
-
-/** A loader that resolves a per-route IR chunk built into `.docvia/ir/`. */
-export type ChunkLoader = (
-	collection: string,
-	slug: string,
-) => Promise<IRDocument | undefined> | IRDocument | undefined;
-
-/**
- * Edge-safe content provider. Serves pre-built IR chunks via a caller-supplied
- * loader (e.g. a dynamic `import()` of the JSON, or an `import.meta.glob` map).
- * No filesystem or markdown parsing at request time.
- */
-export function BundledContentProvider(load: ChunkLoader): ContentProvider {
-	return {
-		async getDocument(collection, slug) {
-			return (await load(collection, slug)) ?? undefined;
-		},
-	};
-}
-
-/**
- * A Vite `import.meta.glob` map of the build's per-route IR chunks — keys are
- * absolute module paths, values are lazy importers of the chunk JSON.
- */
-export type ChunkGlob = Record<
-	string,
-	() => Promise<{ default: IRDocument } | IRDocument>
->;
-
-/**
- * Turn a Vite `import.meta.glob("/.docvia/ir/`**`/*.json")` map into a
- * `ChunkLoader` for `BundledContentProvider`. The glob is statically analysable
- * by the bundler, so every IR chunk is code-split and shipped — no `node:fs`,
- * edge-safe.
- *
- * @example
- * const loader = createGlobChunkLoader(
- *   import.meta.glob("/.docvia/ir/**\/*.json"),
- * );
- * const ssr = createDocviaSSR({ provider: BundledContentProvider(loader) });
- */
-export function createGlobChunkLoader(
-	glob: ChunkGlob,
-	irBasePath = "/.docvia/ir/",
-): ChunkLoader {
-	return async (collection, slug) => {
-		const importer = glob[`${irBasePath}${collection}/${slug}.json`];
-		if (!importer) return undefined;
-		const mod = await importer();
-		return (
-			mod && typeof mod === "object" && "default" in mod ? mod.default : mod
-		) as IRDocument;
 	};
 }

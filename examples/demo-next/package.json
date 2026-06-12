@@ -9,6 +9,7 @@
 		"start": "next start"
 	},
 	"dependencies": {
+		"@docvia/search": "workspace:*",
 		"@fontsource-variable/geist": "^5.2.8",
 		"next": "^16",
 		"react": "^19",

@@ -1,5 +1,45 @@
 # @docvia/source
 
+## 0.3.0
+
+### Minor Changes
+
+- 6adfee1: Load markdown in place as modules — drop the per-route IR JSON
+
+  docvia now compiles each markdown file **in place** through a `?docvia` loader
+  instead of emitting a per-route IR JSON store. The generated `.docvia/` is just
+  thin glue that imports the markdown modules; the host bundler (Vite, webpack,
+  Turbopack) compiles, code-splits, and bundles them. Content lives once in the
+  `.md`, so builds stay small and scale to thousands of pages, and SSR works on
+  the edge with no filesystem access.
+
+  **New**
+
+  - `docvia/source/browser` — a lazy, code-split client entry (each page is
+    `() => import("…?docvia")`), alongside the eager `docvia/source` used for SSR.
+  - `@docvia/plugin-next` ships a real webpack + Turbopack `?docvia` loader, so
+    Next.js compiles markdown in place too — no IR JSON fallback.
+  - `@docvia/runtime` exports `compileMarkdownToModule`, the shared,
+    bundler-agnostic transform every loader calls.
+  - `createDocviaSSR({ provider })` now accepts a `ContentProvider`, a live
+    `CompileService` (pass it directly), or a `(collection, slug) => IR` function.
+  - `@docvia/runtime`'s `CompileService` gains `getDocuments(collection?)` — the
+    full IR for every compiled page (recompiling cache-only entries on demand).
+
+  **Breaking**
+
+  - The Vite plugin now follows the Vite virtual-module convention: import from
+    `virtual:docvia/source` (and `virtual:docvia/source/browser`) instead of the
+    bare `docvia/source`. Next.js keeps the `docvia/source` alias.
+  - `.docvia/ir/**/*.json` chunks are no longer emitted.
+  - Removed `@docvia/source/node` (`loadIRChunk`, `loadMarkdown`).
+  - Removed `@docvia/ssr`'s `BundledContentProvider` and `createGlobChunkLoader`,
+    and the `@docvia/ssr/node` entry (`FsContentProvider`). Pass a `CompileService`
+    straight to `createDocviaSSR` instead.
+  - `@docvia/search/node` no longer reads `<outDir>/ir/` (those chunks are gone).
+    `buildSearchIndex` / `loadIRDocuments` now compile the docs in-process, so the
+    `outDir` option is replaced by `configPath` (defaults to `docvia.config.ts`).
+
 ## 0.2.1
 
 ### Patch Changes

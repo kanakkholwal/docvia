@@ -172,6 +172,9 @@ importers:
 
   examples/demo-next:
     dependencies:
+      '@docvia/search':
+        specifier: workspace:*
+        version: link:../../packages/search
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
@@ -623,6 +626,15 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      '@docvia/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@docvia/runtime':
+        specifier: workspace:*
+        version: link:../runtime
       '@orama/orama':
         specifier: ^3.1.18
         version: 3.1.18

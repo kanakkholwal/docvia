@@ -59,7 +59,8 @@ export default defineConfig({
 After `docvia build`, import the generated source:
 
 ```ts
-import { docs } from "docvia/source"; // generated into .docvia/
+// Vite resolves a virtual module; Next.js aliases the bare specifier.
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
 const page = await docs.getPage(["getting-started"]); // slug segments
 const all = docs.getPages();                          // metadata for every page
@@ -70,7 +71,8 @@ const tree = docs.pageTree;                           // navigation tree
 
 The recommended setup runs docvia **in-process** inside your bundler — no
 separate `docvia build` step, incremental recompilation in dev, and a virtual
-`docvia/source` module so nothing is written to disk during development.
+source module (`virtual:docvia/source` on Vite, the aliased `docvia/source` on
+Next.js) so nothing is written to disk during development.
 
 ### SvelteKit (Vite)
 
@@ -91,9 +93,9 @@ export default defineConfig({
 });
 ```
 
-`docvia()` runs the `CompileService` in-process: it serves `docvia/source` as a
-virtual module in dev with incremental HMR, and emits the on-disk module graph
-for production builds. The config must use the Svelte renderer
+`docvia()` runs the `CompileService` in-process: it serves `virtual:docvia/source`
+(and `virtual:docvia/source/browser`) as virtual modules in dev with incremental
+HMR, and serves them from the `load` hook for production builds too. The config must use the Svelte renderer
 (`createSvelteRenderer` from `@docvia/renderer-svelte/node`). Consume pages in a
 catch-all route via `docs.getPage(...)` and render them with the `Renderer`
 component from `@docvia/renderer-svelte`. See
@@ -122,23 +124,37 @@ incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
 
 ### Server-side rendering
 
-For request-time rendering (Node or Cloudflare Workers / edge) use `@docvia/ssr`:
+Markdown is loaded **in place** as a module via the `?docvia` loader (Vite,
+webpack, and Turbopack), so a framework app renders pages directly through its
+renderer — including on the edge — with no separate content store. One module
+imports the pages eagerly (server/SSR, bundled), another lazily (client,
+code-split per page):
 
 ```ts
-import { createDocviaSSR, BundledContentProvider, createGlobChunkLoader } from "@docvia/ssr";
+// Server / SSR (eager). Vite resolves a virtual module; Next.js aliases the
+// bare specifier:
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
-// Edge-safe: serves per-route IR chunks built into .docvia/ir/.
-const ssr = createDocviaSSR({
-  provider: BundledContentProvider(
-    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
-  ),
-});
+// Browser (lazy, code-split per page) — aliased so it doesn't clash with the
+// eager import above:
+import { docs as browserDocs } from "virtual:docvia/source/browser"; // Next.js: "docvia/source/browser"
 
+const page = await docs.getPage(["getting-started"]);
+const lazyPage = await browserDocs.getPage(["getting-started"]);
+```
+
+For a **non-framework Node server** that renders per request, `@docvia/ssr`
+renders IR resolved by a content source — a live `CompileService` already is
+one, so pass it directly:
+
+```ts
+import { createDocviaSSR } from "@docvia/ssr";
+
+const ssr = createDocviaSSR({ provider: service }); // or a (collection, slug) => IR fn
 const page = await ssr.render("docs", "getting-started");
 ```
 
-On Node, `@docvia/ssr/node`'s `FsContentProvider` wraps a live `CompileService`
-instead. Rendered pages are cached in an in-memory LRU keyed by content hash.
+Rendered pages are cached in an in-memory LRU keyed by content hash.
 
 ### Standalone preview
 
@@ -156,12 +172,12 @@ output only. It is not a runtime; use a framework integration for a real site.
 | [`@docvia/ir`](https://www.npmjs.com/package/@docvia/ir) | [![npm](https://img.shields.io/npm/v/@docvia/ir.svg)](https://www.npmjs.com/package/@docvia/ir) | Intermediate representation, error system, AST → IR transform. |
 | [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Zod), YAML extraction, TS codegen. |
 | [`@docvia/plugins`](https://www.npmjs.com/package/@docvia/plugins) | [![npm](https://img.shields.io/npm/v/@docvia/plugins.svg)](https://www.npmjs.com/package/@docvia/plugins) | `defineConfig`, `loadConfig`, `PluginRunner`. |
-| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for Node and edge runtimes. |
+| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for non-framework Node servers. |
 | [`@docvia/renderer-core`](https://www.npmjs.com/package/@docvia/renderer-core) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-core.svg)](https://www.npmjs.com/package/@docvia/renderer-core) | Framework-agnostic rendering engine and default renderers. |
 | [`@docvia/renderer-react`](https://www.npmjs.com/package/@docvia/renderer-react) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-react.svg)](https://www.npmjs.com/package/@docvia/renderer-react) | React renderer adapter (server + `./client` hydration). |
 | [`@docvia/renderer-svelte`](https://www.npmjs.com/package/@docvia/renderer-svelte) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-svelte.svg)](https://www.npmjs.com/package/@docvia/renderer-svelte) | Svelte renderer adapter. |
 | [`@docvia/search`](https://www.npmjs.com/package/@docvia/search) | [![npm](https://img.shields.io/npm/v/@docvia/search.svg)](https://www.npmjs.com/package/@docvia/search) | Section-level Orama indexing and client search helper. |
-| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | Runtime collection helpers and Node markdown / IR-chunk loader. |
+| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | Runtime collection model (`createCollection` / `createSource`) for the generated source module. |
 | [`@docvia/plugin-vite`](https://www.npmjs.com/package/@docvia/plugin-vite) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-vite.svg)](https://www.npmjs.com/package/@docvia/plugin-vite) | In-process Vite plugin (`docvia()`) with virtual modules + HMR. |
 | [`@docvia/plugin-next`](https://www.npmjs.com/package/@docvia/plugin-next) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-next.svg)](https://www.npmjs.com/package/@docvia/plugin-next) | Next.js wrapper (`withDocvia`) — webpack + Turbopack. |
 | [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Build-time syntax highlighting via Shiki (pluggable). |

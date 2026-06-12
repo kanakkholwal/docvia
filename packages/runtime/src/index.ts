@@ -8,6 +8,11 @@ export {
 	readCache,
 	writeCache,
 } from "./cache";
+export type {
+	CompiledModule,
+	CompileMarkdownToModuleArgs,
+} from "./compile-module";
+export { compileMarkdownToModule } from "./compile-module";
 export type { CollectionData, EmitModuleGraphArgs, RouteFile } from "./emit";
 export {
 	emitModuleGraphFiles,

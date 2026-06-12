@@ -3,29 +3,26 @@
 Request-time server rendering for docvia.
 
 `createDocviaSSR()` turns an IR document into a renderable page tree on demand,
-backed by an in-memory LRU cache keyed by content hash. Content is supplied by
-a `ContentProvider`:
+backed by an in-memory LRU cache keyed by content hash.
 
-- **`BundledContentProvider`** (`@docvia/ssr`) — edge-safe. Serves pre-built
-  per-route IR chunks (emitted to `.docvia/ir/` at build time). No `node:fs`,
-  no markdown parsing at request time. Use on Cloudflare Workers / edge.
-- **`FsContentProvider`** (`@docvia/ssr/node`) — Node only. Wraps a live
-  `CompileService`, compiling markdown from disk. Use for Node servers and dev.
+> Most apps don't need this. Under the in-place architecture the generated
+> `source.ts` uses static `?docvia` imports, so a framework app (Vite, Next.js)
+> — including on the edge — renders pages directly via `docs.getPage(...)` with
+> the content already bundled. Reach for `@docvia/ssr` only for a non-framework
+> Node server that renders per request.
+
+Content is supplied through a generic `ContentSource` — a `ContentProvider`
+(`getDocument(collection, slug)`), a live `CompileService` (which already
+satisfies that shape), or a `(collection, slug) => IR` function. The package
+itself never touches the filesystem, so it is edge-safe regardless of source.
 
 ```ts
-import {
-  createDocviaSSR,
-  BundledContentProvider,
-  createGlobChunkLoader,
-} from "@docvia/ssr";
+import { createDocviaSSR } from "@docvia/ssr";
 
-// `createGlobChunkLoader` turns a Vite `import.meta.glob` of the build's IR
-// chunks into a `ChunkLoader` — statically code-split, edge-safe.
-const ssr = createDocviaSSR({
-  provider: BundledContentProvider(
-    createGlobChunkLoader(import.meta.glob("/.docvia/ir/**/*.json")),
-  ),
-});
+// A live CompileService is itself a content source — compile it first so it
+// knows about every page, then pass it straight in:
+await service.compileAll();
+const ssr = createDocviaSSR({ provider: service });
 const page = await ssr.render("docs", "getting-started");
 ```
 

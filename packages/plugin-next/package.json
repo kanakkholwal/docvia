@@ -1,12 +1,17 @@
 {
 	"name": "@docvia/plugin-next",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"type": "module",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.mts",
 			"import": "./dist/index.mjs",
 			"default": "./dist/index.mjs"
+		},
+		"./loader": {
+			"types": "./dist/loader.d.mts",
+			"import": "./dist/loader.mjs",
+			"default": "./dist/loader.mjs"
 		}
 	},
 	"main": "./dist/index.mjs",

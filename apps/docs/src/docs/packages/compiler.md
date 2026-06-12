@@ -104,15 +104,17 @@ The build proceeds as follows:
 
 `compile` writes the module graph below. Several files are always emitted into `outDir`, one is conditional, and one is emitted at the project root:
 
+No page content is emitted — the content stays in the `.md` and is compiled in
+place by the bundler's `?docvia` transform. The generated files are thin glue:
+
 | File | Location | Emitted | Purpose |
 | --- | --- | --- | --- |
-| `dynamic.ts` | `outDir` | always | The route map plus `loadModule` / `getEagerModules` loaders. |
-| `source.ts` | `outDir` | always | Builds collections and the `docviaSource` object via `@docvia/source`. |
+| `dynamic.ts` | `outDir` | always | The route map plus `loadModule` / `getEagerModules` loaders over the `?docvia` page modules. |
+| `source.ts` | `outDir` | always | Builds collections (eager `?docvia` imports, for server/SSR) and the `docviaSource` object via `@docvia/source`. |
+| `browser.ts` | `outDir` | always | The lazy, client counterpart — `() => import()` per page, so each page code-splits. |
 | `types.d.ts` | `outDir` | always | Per-collection `_RouteKey`, `_Frontmatter`, and `_DocPage` type declarations. |
-| `ir/<collection>/<slug>.json` | `outDir` | always | Per-route IR chunks — pre-built, all plugins applied. Consumed by [`@docvia/ssr`](/packages/ssr) and by `loadIRChunk`. |
-| `ir/manifest.json` | `outDir` | always | The index of emitted IR chunks. |
 | `registry.ts` | `outDir` | only when `config.components` is non-empty | The component registry, importing each configured component. |
-| `docvia-env.d.ts` | `projectRoot` | always | Ambient `declare module 'docvia/source'` (and `'docvia/registry'`) declarations. |
+| `docvia-env.d.ts` | `projectRoot` | always | Ambient `declare module` declarations for the source modules — `virtual:docvia/source` (+ `/browser`) for Vite and the bare `docvia/source` (+ `/browser`, plus `docvia/registry`) for Next.js. |
 
 All generated files are marked auto-generated and should not be edited by hand.
 

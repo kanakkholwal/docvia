@@ -38,20 +38,25 @@ existing config without `--force`.
 npx docvia build
 ```
 
-The first run compiles every Markdown file in `docs/` and writes a five-file
-module graph to `.docvia/`:
+The first run compiles every Markdown file in `docs/` and writes a small
+module graph to `.docvia/` — thin glue that imports the Markdown in place; the
+content itself lives once, in the `.md`, and is compiled by the bundler's
+`?docvia` transform:
 
 | File | Purpose |
 |---|---|
-| `source.ts` | The typed collection helper — `getPage`, `getPages`, `pageTree`. |
-| `dynamic.ts` | Lazy and eager module loaders for each page. |
-| `registry.ts` | The component registry for `:::component` directives. |
+| `source.ts` | The typed collection helper — `getPage`, `getPages`, `pageTree`. Eager imports, for server/SSR. |
+| `browser.ts` | The lazy, client counterpart — `() => import()` per page, so each page code-splits into its own chunk. |
+| `dynamic.ts` | The page module map the collections read from. |
+| `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
 | `types.d.ts` | Generated frontmatter and route-key types. |
 | `.docvia.cache.json` | The incremental build cache. |
 
-A project-root `docvia-env.d.ts` is also written so `docvia/source` resolves
-in TypeScript. Subsequent runs read `.docvia.cache.json` and skip files whose
-content hash is unchanged — see [Incremental builds](/guide/incremental-builds).
+A project-root `docvia-env.d.ts` is also written so the source module resolves
+in TypeScript (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
+with a `/browser` counterpart). Subsequent runs read `.docvia.cache.json` and
+skip files whose content hash is unchanged — see
+[Incremental builds](/guide/incremental-builds).
 
 ## Watch
 

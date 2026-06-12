@@ -1,6 +1,6 @@
 # @docvia/source
 
-Runtime collection helpers and Node markdown loader for docvia
+Runtime collection model for consuming compiled docvia output
 
 Part of [docvia](https://github.com/kanakkholwal/docvia) — a Markdown
 documentation compiler for React, Svelte, and any framework with a renderer
@@ -15,9 +15,10 @@ pnpm add @docvia/source
 ## Usage
 
 ```ts
-import { docviaSource } from "docvia/source"; // generated
+// Vite resolves a virtual module; Next.js aliases the bare specifier.
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
-const page = await docviaSource.docs.get("getting-started");
+const page = await docs.getPage(["getting-started"]);
 ```
 
 ## Documentation

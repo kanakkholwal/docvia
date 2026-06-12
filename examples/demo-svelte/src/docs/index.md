@@ -45,7 +45,7 @@ npx docvia init
 and render pages in your SvelteKit routes:
 
 ```typescript
-import { docs } from "docvia/source";
+import { docs } from "virtual:docvia/source";
 
 const page = await docs.getPage(["getting-started"]);
 ```

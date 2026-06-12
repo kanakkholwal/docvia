@@ -61,14 +61,15 @@ docvia build          # Markdown ──▶ .docvia/ module graph
 ```
 
 ```ts
-import { docs } from "docvia/source"; // generated into .docvia/
+// Vite resolves a virtual module; Next.js aliases the bare specifier.
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
 const page = await docs.getPage(["getting-started"]);
 const tree = docs.pageTree; // navigation tree
 ```
 
 A framework integration (the Vite plugin or the Next.js wrapper) runs the
-compile core for you and resolves `docvia/source` to the compiled output, so
+compile core for you and resolves the source module to the compiled output, so
 your app only ever imports typed modules.
 
 ## Next steps

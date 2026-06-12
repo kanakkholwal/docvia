@@ -29,7 +29,7 @@ For interactive components embedded via directives, pass a `registry`:
 <Renderer nodes={data.page.content} registry={registry} />
 ```
 
-The registry resolves directive names to Svelte components. It is generated from the `components` field in `docvia.config.ts` and exported from `docvia/source`.
+The registry resolves directive names to Svelte components. It is generated from the `components` field in `docvia.config.ts` and exported from `virtual:docvia/source`.
 
 ## Renderer props
 

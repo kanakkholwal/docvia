@@ -6,8 +6,9 @@ import type {
 } from "@docvia/renderer-core";
 
 /**
- * Resolves a document's IR by collection + slug. Implementations decide where
- * the IR comes from — pre-built chunks (edge) or live compilation (Node).
+ * Resolves a document's IR by collection + slug. A live `CompileService`
+ * already satisfies this shape (it has `getDocument`), so you can pass one
+ * straight to `createDocviaSSR` — no wrapper needed.
  */
 export interface ContentProvider {
 	getDocument(
@@ -15,6 +16,17 @@ export interface ContentProvider {
 		slug: string,
 	): Promise<IRDocument | undefined> | IRDocument | undefined;
 }
+
+/**
+ * Anything that resolves IR by collection + slug: a `ContentProvider`, a live
+ * `CompileService` (structurally a provider), or a plain function.
+ */
+export type ContentSource =
+	| ContentProvider
+	| ((
+			collection: string,
+			slug: string,
+	  ) => Promise<IRDocument | undefined> | IRDocument | undefined);
 
 /** A rendered page ready to hand to a framework's SSR layer. */
 export interface SSRPage {
@@ -29,7 +41,8 @@ export interface SSRPage {
 }
 
 export interface SSROptions {
-	readonly provider: ContentProvider;
+	/** A `ContentProvider`, a live `CompileService`, or a `getDocument` function. */
+	readonly provider: ContentSource;
 	/** Prepended to slugs when building `SSRPage.url`. Default: "/". */
 	readonly baseUrl?: string;
 	/** Component registry for hydrated islands. Default: empty. */

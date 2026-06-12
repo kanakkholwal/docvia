@@ -23,22 +23,23 @@ drifts:
 
 | Mode | Driven by | What it does |
 |---|---|---|
-| **Build** | [`@docvia/compiler`](/packages/compiler) | Compiles the whole tree once and emits the on-disk module graph plus per-route IR chunks. |
+| **Build** | [`@docvia/compiler`](/packages/compiler) | Compiles the whole tree once and emits the on-disk module graph (thin glue that imports the Markdown in place). |
 | **Dev** | [`@docvia/plugin-vite`](/packages/plugin-vite), [`@docvia/plugin-next`](/packages/plugin-next) | Runs the service in-process inside the bundler and recompiles incrementally on every file change. |
 | **SSR** | [`@docvia/ssr`](/packages/ssr) | Renders a single document per request, on Node or the edge. |
 
 `compile()` — the classic batch entry point — is now a thin wrapper over
 `CompileService`. The key methods are `compileAll()`, `compileFile()`,
 `invalidate(filePaths)` for incremental recompilation, `getDocument()`, and the
-module-graph / IR-chunk emitters.
+module-graph emitters.
 
 ## The three run modes
 
 ### Build
 
 `docvia build` (or `compile()`) walks `sourceDir` once, compiles every file,
-and emits the on-disk module graph plus per-route IR chunks. This is the
-ahead-of-time path — see [the module graph](#the-generated-module-graph) below.
+and emits the on-disk module graph — thin glue that imports the Markdown in
+place. This is the ahead-of-time path — see
+[the module graph](#the-generated-module-graph) below.
 
 ### Dev
 
@@ -46,21 +47,22 @@ The bundler plugins run `CompileService` **in-process** — there is no separate
 `docvia build` step. The service watches `sourceDir` and recompiles
 incrementally through `invalidate()`: a content-only change hot-swaps the
 affected module, a route-map change triggers a reload. Under Vite,
-`docvia/source` is served as an in-memory **virtual module**, so nothing is
-written to disk during development.
+`virtual:docvia/source` is served as an in-memory **virtual module**, so nothing
+is written to disk during development.
 
 ### SSR
 
-[`@docvia/ssr`](/packages/ssr) renders one document per request.
-`createDocviaSSR()` resolves IR through a `ContentProvider`, renders it with
-the shared rendering pipeline, and caches rendered pages in an in-memory LRU
-keyed by content hash:
+Because `source.ts` uses **static** `?docvia` imports, a framework app — Vite or
+Next.js, including on the edge — already renders pages at request time by calling
+`docs.getPage(...)`; the content is bundled in. No extra package is required.
 
-- **`FsContentProvider`** (`@docvia/ssr/node`) — wraps a live `CompileService`;
-  Node only.
-- **`BundledContentProvider`** (`@docvia/ssr`) — serves pre-built per-route IR
-  chunks via a loader. No `node:fs`, no Markdown parsing at request time —
-  safe to bundle for Cloudflare Workers and other edge runtimes.
+For a **non-framework Node server**, [`@docvia/ssr`](/packages/ssr) renders one
+document per request. `createDocviaSSR({ provider })` resolves IR through a
+generic `ContentSource` — a `ContentProvider`, a live `CompileService` (which
+already satisfies the shape), or a `(collection, slug) => IR` function — renders
+it with the shared pipeline, and caches rendered pages in an in-memory LRU keyed
+by content hash. The package itself never touches the filesystem, so it is
+edge-safe regardless of source.
 
 ## The compile pipeline
 
@@ -108,22 +110,25 @@ other package can import its types without pulling in a heavy tree.
 
 A build writes a typed module graph into `outDir` (default `.docvia/`):
 
+No page content is emitted — the content stays in the `.md`, compiled in place
+by the bundler's `?docvia` transform. The graph is just thin glue:
+
 | File | Purpose |
 |---|---|
-| `source.ts` | The typed collection helpers — `getPage`, `getPages`, `pageTree`, `generateParams`. |
-| `dynamic.ts` | Lazy and eager loaders for each compiled page module. |
-| `registry.ts` | The component registry for `:::component` directives. |
+| `source.ts` | The typed collection helpers — `getPage`, `getPages`, `pageTree`, `generateParams`. **Eager** `?docvia` imports, for server/SSR. |
+| `browser.ts` | The **lazy**, client counterpart — `() => import()` per page, so each page code-splits into its own chunk. |
+| `dynamic.ts` | The page module map the collections read from. |
+| `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
 | `types.d.ts` | Generated frontmatter and route-key types per collection. |
-| `ir/<collection>/<slug>.json` | Per-route IR chunks — pre-built, all plugins applied. Consumed by SSR and by bundlers without a `?docvia` transform. |
-| `ir/manifest.json` | The index of emitted IR chunks. |
 | `.docvia.cache.json` | The incremental build cache. |
 
-A project-root `docvia-env.d.ts` is also emitted so the `docvia/source` import
-specifier type-checks.
+A project-root `docvia-env.d.ts` is also emitted so the source import specifier
+type-checks (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
+with a `/browser` counterpart).
 
-Your app never imports the compiler or a Markdown parser — it imports
-`docvia/source`, which is plain generated TypeScript (in dev, a virtual module
-served by the bundler plugin) backed by these files.
+Your app never imports the compiler or a Markdown parser — it imports the source
+module, which is plain generated TypeScript (under Vite, a virtual module served
+by the plugin) backed by these files.
 
 ## The package map
 

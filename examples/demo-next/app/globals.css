@@ -183,6 +183,78 @@ a {
 	gap: 8px;
 }
 
+/* Headless search — queries the /api/search route handler. */
+.docs-search {
+	position: relative;
+}
+
+.docs-search-input {
+	width: 200px;
+	max-width: 40vw;
+	font-size: 13px;
+	color: var(--fg);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 6px 10px;
+	outline: none;
+	transition:
+		border-color 150ms ease,
+		box-shadow 150ms ease;
+}
+
+.docs-search-input:focus {
+	border-color: var(--muted);
+}
+
+.docs-search-results {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 50;
+	width: 340px;
+	max-width: 80vw;
+	max-height: 60vh;
+	overflow-y: auto;
+	list-style: none;
+	margin: 0;
+	padding: 4px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.4);
+}
+
+.docs-search-result {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	transition: background 150ms ease;
+}
+
+.docs-search-result:hover {
+	background: var(--surface);
+}
+
+.docs-search-result-title {
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--fg);
+}
+
+.docs-search-result-page {
+	font-size: 11px;
+	color: var(--muted);
+}
+
+.docs-search-empty {
+	padding: 12px;
+	font-size: 13px;
+	color: var(--muted);
+}
+
 .docs-body {
 	display: flex;
 	flex: 1;

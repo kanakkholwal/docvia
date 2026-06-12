@@ -70,23 +70,12 @@ export default defineConfig({
 });
 ```
 
-## 4. Declare the module types
+## 4. Module types
 
-So `docvia/source` resolves in TypeScript, add a `docvia-env.d.ts` at the
-project root:
-
-```typescript
-declare module "docvia/source" {
-  const source: typeof import("./.docvia/source");
-  export const docviaSource: typeof source.docviaSource;
-  export const docs: typeof source.docs;
-  export const registry: typeof source.registry;
-}
-declare module "docvia/registry" {
-  const mod: typeof import("./.docvia/registry");
-  export const registry: typeof mod.registry;
-}
-```
+docvia writes a `docvia-env.d.ts` at your project root on every dev/build run,
+declaring `virtual:docvia/source` (and `virtual:docvia/source/browser`) with
+types generated from your frontmatter. Just make sure it's covered by your
+`tsconfig.json` `include` — no manual declaration needed.
 
 ## 5. Create your first page
 
@@ -108,7 +97,7 @@ This is your first documentation page.
 Add a server load that exposes the page tree at `src/routes/docs/+layout.server.ts`:
 
 ```typescript
-import { docs } from "docvia/source";
+import { docs } from "virtual:docvia/source";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async () => {
@@ -120,7 +109,7 @@ Add a catch-all page load at `src/routes/docs/[...slug]/+page.server.ts`:
 
 ```typescript
 import { error } from "@sveltejs/kit";
-import { docs } from "docvia/source";
+import { docs } from "virtual:docvia/source";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -137,7 +126,7 @@ component and the generated `registry`:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "docvia/source";
+  import { registry } from "virtual:docvia/source";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

@@ -5,8 +5,20 @@ import type {
 	PageTree,
 } from "./runtime";
 
+/**
+ * Frontmatter-derived metadata a compiled page module exposes. The known fields
+ * the collection reads (`title`, `order`, `headings`) are typed; the index
+ * signature keeps arbitrary frontmatter accessible without casts.
+ */
+export interface ModuleMeta {
+	title?: string;
+	order?: number;
+	headings?: Array<{ depth: number; text: string; id: string }>;
+	[key: string]: unknown;
+}
+
 export interface ModuleExports {
-	meta: unknown;
+	meta: ModuleMeta;
 	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters) — intentionally polymorphic.
 	content: any;
 	manifest: unknown;
@@ -202,7 +214,7 @@ export function createCollection<
 			return routeKeys.map((slug) => {
 				const slugs = slug === "index" ? [] : slug.split("/");
 				const eager = eagerModulesSync();
-				const data = eager?.[slug]?.meta ?? ({} as TFrontmatter);
+				const data = (eager?.[slug]?.meta ?? {}) as TFrontmatter;
 				return { slugs, url: buildUrl(slug), data };
 			});
 		},

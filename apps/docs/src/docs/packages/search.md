@@ -5,7 +5,10 @@ eyebrow: "Packages"
 order: 31
 ---
 
-`@docvia/search` builds a section-level full-text search index over compiled docvia documentation. It extracts one searchable section per heading region from `IRDocument`s, indexes them with [Orama](https://github.com/oramasearch/orama), supports incremental updates keyed by slug, serializes the index to a transferable string, and provides a client-side search helper with title-weighted ranking.
+`@docvia/search` provides section-level full-text search over compiled docvia documentation, powered by [Orama](https://github.com/oramasearch/orama). It supports two modes:
+
+- **Headless server search (recommended)** — build the index in memory on the server from the bundled docvia source and answer queries through a search endpoint. SSR/edge compatible: no static index is shipped to the browser, and the index is derived from the already-bundled `virtual:docvia/source` content, so there is no filesystem access or compiler at request time. This mirrors [Fumadocs' server search](https://www.fumadocs.dev/docs/headless/search).
+- **Static index** — serialize the index to a string at build time and search it in the browser. For fully static sites with no server.
 
 ## Install
 
@@ -17,13 +20,46 @@ pnpm add @docvia/search
 
 | Subpath | Resolves to | Purpose |
 |---|---|---|
-| `.` | package entry | All extraction, indexing, and search APIs. |
+| `.` | package entry | Edge-safe runtime search — `createFromSource`, `createSearchHandler`, `createFetchClient`, the static `createSearch`, and the indexer/extraction APIs. |
+| `./node` | Node entry | `buildSearchIndex` — compile the docs and emit a serialized static index (build time, Node only). |
 
 This package ships no binary.
 
 ## Concepts
 
 The index is **section-level**, not page-level. A page is split at each heading: everything between one heading and the next becomes a `SearchDocument`. This means a search result points directly at the relevant section of a page rather than just the page itself.
+
+## Headless server search (recommended)
+
+Build the index once per server instance from the docvia source, expose it as an endpoint, and query it from the client. The index lives in server memory and is built from content that is already bundled into the SSR output, so it runs anywhere the server runs — Node or the edge (Cloudflare Workers, etc.).
+
+```ts
+// src/routes/api/search/+server.ts  (SvelteKit)
+import { createFromSource, createSearchHandler } from "@docvia/search";
+import { docs } from "virtual:docvia/source";
+import type { RequestHandler } from "./$types";
+
+// Dynamic — runs in the worker, not prerendered.
+export const prerender = false;
+
+// Build the index lazily on first request, then reuse it.
+let handler: Promise<(request: Request) => Promise<Response>> | null = null;
+const getHandler = () =>
+  (handler ??= createFromSource(docs).then(createSearchHandler));
+
+export const GET: RequestHandler = async ({ request }) =>
+  (await getHandler())(request);
+```
+
+```ts
+// On the client — query the endpoint (debounce at the call site).
+import { createFetchClient } from "@docvia/search";
+
+const searcher = createFetchClient("/api/search");
+const results = await searcher.search("incremental rebuild", { limit: 8 });
+```
+
+`createSearchHandler` returns a framework-agnostic Web `Request` handler, so the same server code drops into a Next.js route handler, a Hono route, or any Web-standard server.
 
 ## API reference
 
@@ -91,6 +127,7 @@ interface SearchResult {
   sectionId: string;
   sectionTitle: string;
   pageTitle: string;
+  content: string;
   score: number;
 }
 ```
@@ -101,6 +138,7 @@ interface SearchResult {
 | `sectionId` | Heading id of the matched section (`"_top"` for the lead region). |
 | `sectionTitle` | Heading text of the matched section. |
 | `pageTitle` | Title of the containing page. |
+| `content` | Full section text — for rendering a highlighted match snippet. |
 | `score` | Relevance score from Orama. |
 
 ### `createSearch`
@@ -111,10 +149,52 @@ function createSearch(indexData: string): Promise<{
 }>;
 ```
 
-Deserializes the string produced by `exportIndex()` and returns a client-side search helper.
+Deserializes the string produced by `exportIndex()` and returns a client-side search helper (static mode).
 
 - `options.limit` defaults to `10`.
 - Field boosts during ranking: `sectionTitle` ×3, `pageTitle` ×2, `content` ×1 — so a query that matches a heading ranks above one that only matches body text.
+
+### `createFromSource`
+
+```ts
+function createFromSource(
+  source: docviaCollection | docviaSource,
+  options?: { defaultLimit?: number },
+): Promise<SearchServer>;
+```
+
+Headless server index. Walks every page's rendered `content` from a docvia source — a single collection (e.g. `docs` from `virtual:docvia/source`) or a whole `{ collections }` source — and builds an in-memory Orama index. Returns a `SearchServer` with `search(query, { limit })` and a `size` (indexed section count). Call once per server instance and cache the promise. Edge-safe: no filesystem, no compiler.
+
+### `createSearchHandler`
+
+```ts
+function createSearchHandler(
+  server: SearchServer,
+): (request: Request) => Promise<Response>;
+```
+
+Wraps a `SearchServer` as a framework-agnostic Web `Request` handler. Reads `?query=` (or `?q=`) and an optional `?limit=`, and responds with the `SearchResult[]` as JSON.
+
+### `createFetchClient`
+
+```ts
+function createFetchClient(endpoint?: string): {
+  search(query: string, options?: { limit?: number }): Promise<SearchResult[]>;
+};
+```
+
+Client helper for headless mode: queries a search endpoint backed by `createSearchHandler` (default `"/api/search"`) and returns the same `SearchResult[]` as the static client. Debounce calls at the call site.
+
+### `extractSectionsFromContent`
+
+```ts
+function extractSectionsFromContent(
+  content: RenderOutput | readonly RenderOutput[] | undefined,
+  page: { slug: string; pageTitle: string },
+): SearchDocument[];
+```
+
+The runtime counterpart to `extractSections`: splits a page's **rendered** `content` (a `RenderOutput` tree, as exported by a `?docvia` module) into section-level documents. Heading anchors come from `props.id`; highlighted code (`html` nodes) is stripped to text. Used internally by `createFromSource`.
 
 ### `SearchDocument`
 

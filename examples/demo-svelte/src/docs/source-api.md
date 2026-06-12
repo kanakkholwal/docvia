@@ -9,7 +9,7 @@ order: 2
 The source API is your interface to compiled documentation. Import the collection and use its methods in your SvelteKit load functions.
 
 ```typescript
-import { docs } from "docvia/source";
+import { docs } from "virtual:docvia/source";
 ```
 
 ## getPage
@@ -31,7 +31,7 @@ const page = await docs.getPage(["getting-started"]);
 
 ```typescript
 // +page.server.ts
-import { docs } from "docvia/source";
+import { docs } from "virtual:docvia/source";
 import { error } from "@sveltejs/kit";
 
 export const load = async ({ params }) => {
