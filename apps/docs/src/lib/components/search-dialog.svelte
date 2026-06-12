@@ -1,15 +1,15 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
 import { cn } from "$lib/utils";
-import { createSearch, type SearchResult } from "@docvia/search";
+import { createFetchClient, type SearchResult } from "@docvia/search";
 import { CornerDownLeft, FileText, Search, X } from "@lucide/svelte";
 import { onMount, tick } from "svelte";
 import { cubicOut } from "svelte/easing";
 import { fade, scale } from "svelte/transition";
 
-// Lazily-created Orama searcher. The index JSON is fetched on first open so
-// the search payload never blocks initial page load.
-type Searcher = Awaited<ReturnType<typeof createSearch>>;
+// Headless search: queries hit the server `/api/search` endpoint, which holds
+// the Orama index in memory. No index payload is downloaded to the browser.
+const searcher = createFetchClient("/api/search");
 
 /**
  * Move a node to `document.body`. The trigger lives inside the header's
@@ -31,30 +31,15 @@ let open = $state(false);
 let query = $state("");
 let results = $state<SearchResult[]>([]);
 let activeIndex = $state(0);
-let status = $state<"idle" | "loading" | "ready" | "error">("idle");
-let searcher: Searcher | null = null;
+let status = $state<"idle" | "searching" | "ready" | "error">("idle");
 let inputEl = $state<HTMLInputElement>();
 let listEl = $state<HTMLUListElement>();
 let isMac = $state(true);
 
 let debounce: ReturnType<typeof setTimeout>;
 
-async function ensureIndex() {
-	if (searcher || status === "loading") return;
-	status = "loading";
-	try {
-		const res = await fetch("/search-index.json");
-		if (!res.ok) throw new Error(`HTTP ${res.status}`);
-		searcher = await createSearch(await res.text());
-		status = "ready";
-	} catch {
-		status = "error";
-	}
-}
-
 async function openDialog() {
 	open = true;
-	void ensureIndex();
 	await tick();
 	inputEl?.focus();
 }
@@ -64,6 +49,7 @@ function closeDialog() {
 	query = "";
 	results = [];
 	activeIndex = 0;
+	status = "idle";
 }
 
 function onInput() {
@@ -73,12 +59,20 @@ function onInput() {
 
 async function runSearch() {
 	const term = query.trim();
-	if (!term || !searcher) {
+	if (!term) {
 		results = [];
 		activeIndex = 0;
+		status = "idle";
 		return;
 	}
-	results = await searcher.search(term, { limit: 8 });
+	status = "searching";
+	try {
+		results = await searcher.search(term, { limit: 8 });
+		status = "ready";
+	} catch {
+		results = [];
+		status = "error";
+	}
 	activeIndex = 0;
 }
 
@@ -258,13 +252,13 @@ onMount(() => {
 
 			<!-- Results -->
 			<div class="max-h-[55vh] overflow-y-auto p-2">
-				{#if status === "loading" && results.length === 0}
+				{#if status === "searching" && results.length === 0}
 					<p class="px-3 py-8 text-center text-sm text-muted">
-						Loading search index…
+						Searching…
 					</p>
 				{:else if status === "error"}
 					<p class="px-3 py-8 text-center text-sm text-error">
-						Could not load the search index. Please try again later.
+						Search is unavailable right now. Please try again later.
 					</p>
 				{:else if query.trim() && results.length === 0}
 					<p class="px-3 py-8 text-center text-sm text-muted">

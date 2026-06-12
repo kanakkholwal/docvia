@@ -36,9 +36,16 @@
   - Removed `@docvia/ssr`'s `BundledContentProvider` and `createGlobChunkLoader`,
     and the `@docvia/ssr/node` entry (`FsContentProvider`). Pass a `CompileService`
     straight to `createDocviaSSR` instead.
-  - `@docvia/search/node` no longer reads `<outDir>/ir/` (those chunks are gone).
-    `buildSearchIndex` / `loadIRDocuments` now compile the docs in-process, so the
-    `outDir` option is replaced by `configPath` (defaults to `docvia.config.ts`).
+  - `@docvia/search` adds **headless server search** (Fumadocs-style): build the
+    Orama index in memory from the docvia source and answer queries through a
+    search endpoint — SSR/edge compatible, with no static index shipped to the
+    browser. New APIs: `createFromSource`, `createSearchHandler`,
+    `createFetchClient`, and `extractSectionsFromContent`. The static
+    `createSearch` client remains for static-export sites.
+  - `@docvia/search/node`'s `buildSearchIndex` / `loadIRDocuments` no longer read
+    `<outDir>/ir/` (those chunks are gone) — they compile the docs in-process, so
+    the `outDir` option is replaced by `configPath` (defaults to
+    `docvia.config.ts`). Only needed for the static-index path now.
 
 ### Patch Changes
 

@@ -8,11 +8,11 @@ const config = {
 		runes: true,
 	},
 	kit: {
-		// The search index endpoint is fetched client-side, so the prerender
-		// crawler never discovers it on its own — list it explicitly. `*` keeps
-		// every page route prerendered.
+		// `*` prerenders every page route to static HTML. The `/api/search`
+		// endpoint opts out (`prerender = false`) so it runs dynamically in the
+		// Worker — headless server-side search holds the index in memory there.
 		prerender: {
-			entries: ["*", "/search-index.json"],
+			entries: ["*"],
 		},
 		// Cloudflare Workers adapter. Output lands in .svelte-kit/cloudflare/
 		// and is shipped via wrangler.toml's `main` + `[assets]` config.

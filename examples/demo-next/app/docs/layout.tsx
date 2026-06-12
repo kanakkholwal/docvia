@@ -1,5 +1,6 @@
 import { docs } from "docvia/source";
 import type { ReactNode } from "react";
+import { Search } from "../../components/Search";
 import { Sidebar } from "../../components/Sidebar";
 import { ThemeToggle } from "../../components/ThemeToggle";
 
@@ -27,6 +28,7 @@ export default async function DocsLayout({
 						</span>
 					</div>
 					<div className="docs-header-right">
+						<Search />
 						<a
 							href="/"
 							className="docs-header-link"
