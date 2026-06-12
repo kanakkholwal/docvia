@@ -131,15 +131,16 @@ imports the pages eagerly (server/SSR, bundled), another lazily (client,
 code-split per page):
 
 ```ts
-// Vite (SvelteKit, etc.) — Vite virtual-module convention:
-import { docs } from "virtual:docvia/source";          // server / SSR (eager)
-import { docs } from "virtual:docvia/source/browser";  // browser (lazy, code-split)
+// Server / SSR (eager). Vite resolves a virtual module; Next.js aliases the
+// bare specifier:
+import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
-// Next.js — the wrapper aliases the bare specifier instead:
-import { docs } from "docvia/source";
-import { docs } from "docvia/source/browser";
+// Browser (lazy, code-split per page) — aliased so it doesn't clash with the
+// eager import above:
+import { docs as browserDocs } from "virtual:docvia/source/browser"; // Next.js: "docvia/source/browser"
 
 const page = await docs.getPage(["getting-started"]);
+const lazyPage = await browserDocs.getPage(["getting-started"]);
 ```
 
 For a **non-framework Node server** that renders per request, `@docvia/ssr`
@@ -176,7 +177,7 @@ output only. It is not a runtime; use a framework integration for a real site.
 | [`@docvia/renderer-react`](https://www.npmjs.com/package/@docvia/renderer-react) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-react.svg)](https://www.npmjs.com/package/@docvia/renderer-react) | React renderer adapter (server + `./client` hydration). |
 | [`@docvia/renderer-svelte`](https://www.npmjs.com/package/@docvia/renderer-svelte) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-svelte.svg)](https://www.npmjs.com/package/@docvia/renderer-svelte) | Svelte renderer adapter. |
 | [`@docvia/search`](https://www.npmjs.com/package/@docvia/search) | [![npm](https://img.shields.io/npm/v/@docvia/search.svg)](https://www.npmjs.com/package/@docvia/search) | Section-level Orama indexing and client search helper. |
-| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | Runtime collection helpers and Node markdown / IR-chunk loader. |
+| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | Runtime collection model (`createCollection` / `createSource`) for the generated source module. |
 | [`@docvia/plugin-vite`](https://www.npmjs.com/package/@docvia/plugin-vite) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-vite.svg)](https://www.npmjs.com/package/@docvia/plugin-vite) | In-process Vite plugin (`docvia()`) with virtual modules + HMR. |
 | [`@docvia/plugin-next`](https://www.npmjs.com/package/@docvia/plugin-next) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-next.svg)](https://www.npmjs.com/package/@docvia/plugin-next) | Next.js wrapper (`withDocvia`) — webpack + Turbopack. |
 | [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Build-time syntax highlighting via Shiki (pluggable). |

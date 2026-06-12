@@ -19,7 +19,7 @@ declare module 'virtual:docvia/source/browser' {
     export const docviaSource: typeof browser.docviaSource;
     export const docs: typeof browser.docs;
 
-    export const registry: typeof source.registry;
+    export const registry: typeof browser.registry;
 }
 
 declare module 'docvia/source/browser' {
@@ -27,7 +27,7 @@ declare module 'docvia/source/browser' {
     export const docviaSource: typeof browser.docviaSource;
     export const docs: typeof browser.docs;
 
-    export const registry: typeof source.registry;
+    export const registry: typeof browser.registry;
 }
 
 declare module 'docvia/registry' {

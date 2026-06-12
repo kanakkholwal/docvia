@@ -26,10 +26,18 @@ export interface SearchSourceOptions {
 
 // Compiling to IR never invokes the renderer (the pipeline stops at
 // `beforeRender`), but `CompileService` requires one structurally. If the config
-// somehow omits a renderer, fall back to this no-op so indexing still works.
+// omits a renderer, fall back to this stub. `renderPage` should never run during
+// indexing — throw rather than return a bogus result, so an unexpected call
+// surfaces immediately instead of silently producing an empty module.
 const NOOP_RENDERER: RendererAdapter = {
 	name: "noop",
-	renderPage: async () => ({ code: "", map: undefined }) as never,
+	renderPage: async () => {
+		throw new Error(
+			"[docvia/search] NOOP_RENDERER.renderPage was called — search indexing " +
+				"compiles to IR only and must not render. This indicates a renderer " +
+				"is missing or the compile pipeline is misconfigured.",
+		);
+	},
 	renderManifest: async () => "",
 };
 

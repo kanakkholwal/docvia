@@ -19,7 +19,9 @@ itself never touches the filesystem, so it is edge-safe regardless of source.
 ```ts
 import { createDocviaSSR } from "@docvia/ssr";
 
-// A live CompileService is itself a content source:
+// A live CompileService is itself a content source — compile it first so it
+// knows about every page, then pass it straight in:
+await service.compileAll();
 const ssr = createDocviaSSR({ provider: service });
 const page = await ssr.render("docs", "getting-started");
 ```

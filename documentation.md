@@ -19,7 +19,7 @@ One `CompileService` backs three modes — see [MODES.md](./MODES.md) for the fu
 
 - **Build** — `@docvia/compiler`'s `compile()` (a thin wrapper over `CompileService`) emits the thin on-disk glue that statically imports each markdown module as `./x.md?docvia`; the host bundler's `?docvia` loader compiles them in place (no IR JSON).
 - **Dev** — the bundler plugins (`@docvia/plugin-vite`, `@docvia/plugin-next`) run `CompileService` in-process and recompile incrementally via `service.invalidate()` on every file change.
-- **SSR** — framework apps render the in-place module directly (`docvia/source` eager for Node/edge, `docvia/source/browser` lazy for the client); `@docvia/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
+- **SSR** — framework apps render the in-place module directly through the bundler-specific source specifier (`virtual:docvia/source` on Vite, `docvia/source` on Next.js — eager for Node/edge, with a `/browser` counterpart lazy for the client); `@docvia/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
 
 Because every mode shares one render path, build, dev, and request-time output are identical.
 

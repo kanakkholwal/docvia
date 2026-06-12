@@ -117,10 +117,10 @@ export default withDocvia({ configPath: "./config/docvia.config.ts" })({
 
 ### Consuming the compiled source
 
-Because `withDocvia` aliases the virtual specifiers, application code can import them directly:
+Because `withDocvia` aliases `docvia/source`, application code can import the generated source directly:
 
 ```ts
-import { source } from "docvia/source";
+import { docviaSource } from "docvia/source";
 
-const page = await source.collections.docs.getPage(["getting-started"]);
+const page = await docviaSource.collections.docs.getPage(["getting-started"]);
 ```

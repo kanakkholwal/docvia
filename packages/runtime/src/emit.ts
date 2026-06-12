@@ -304,6 +304,11 @@ function createdocviaEnvDts(
 	const registryExport = hasRegistry
 		? "\n    export const registry: typeof source.registry;"
 		: "";
+	// The browser module declares `browser`, not `source` — reference the right
+	// local so the generated declaration type-checks.
+	const registryExportBrowser = hasRegistry
+		? "\n    export const registry: typeof browser.registry;"
+		: "";
 
 	// Each module is declared under both the Vite virtual id
 	// (`virtual:docvia/source`) and the bare specifier the Next.js alias uses
@@ -324,7 +329,7 @@ function createdocviaEnvDts(
 			`    const browser: typeof import('${relativeOutDir}/browser');`,
 			"    export const docviaSource: typeof browser.docviaSource;",
 			browserExports,
-			registryExport,
+			registryExportBrowser,
 			"}",
 		].join("\n");
 
