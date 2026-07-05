@@ -16,7 +16,7 @@ accent color, monospace where it pays off, no gradients in body content.
 |---|---|---|
 | Tone | Direct, plain English | Marketing superlatives |
 | Density | Generous whitespace, large hit targets | Cramped grids |
-| Color | One accent (electric violet), neutral surface | Multi-color gradients, rainbow code |
+| Color | One accent (electric lime), neutral surface | Multi-color palettes, rainbow cards |
 | Motion | 150–200 ms ease-out, optional | 500 ms+ entrances, parallax |
 | Type | Mixed sans + mono, tight tracking on display | All-caps, decorative fonts |
 | Imagery | Diagrams, code, real screenshots | Stock photos, 3D illustrations |
@@ -25,54 +25,74 @@ accent color, monospace where it pays off, no gradients in body content.
 
 ## 2. Color tokens
 
-All colors are defined as CSS custom properties on `:root` and `[data-theme="dark"]`.
-Tailwind reads them via `theme.extend.colors`.
+All colors are defined as CSS custom properties on `:root` / `[data-theme="light"]`
+and `[data-theme="dark"]` in `apps/*/src/app.css`, and exposed to Tailwind v4 via
+`@theme inline { --color-*: var(--*) }`. Light is the canonical theme; dark is a
+near-black inversion.
 
-### Semantic palette
+The system is **monochrome + one accent**. There is exactly one brand color — an
+electric **lime** — used scarcely (dots, active states, the featured tier, a single
+full-bleed CTA band). Primary actions are **ink** (near-black), never the accent, so
+the lime never has to work as a button fill on a light surface. Surfaces are a **cool
+neutral** (zinc) scale — no warm/cream tint.
+
+### Surface (canonical tokens)
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--bg` | `oklch(0.99 0 0)` | `oklch(0.145 0 0)` | Page background |
-| `--bg-subtle` | `oklch(0.975 0 0)` | `oklch(0.18 0 0)` | Cards, sidebar bg |
-| `--bg-muted` | `oklch(0.95 0.005 250)` | `oklch(0.21 0.005 250)` | Code block bg, hover surfaces |
-| `--fg` | `oklch(0.145 0 0)` | `oklch(0.985 0 0)` | Primary text |
-| `--fg-muted` | `oklch(0.45 0.005 250)` | `oklch(0.7 0.005 250)` | Secondary text, captions |
-| `--fg-subtle` | `oklch(0.6 0.005 250)` | `oklch(0.55 0.005 250)` | Tertiary text, placeholders |
-| `--border` | `oklch(0.92 0.005 250)` | `oklch(0.27 0.005 250)` | Hairline dividers |
-| `--border-strong` | `oklch(0.85 0.005 250)` | `oklch(0.34 0.005 250)` | Inputs, prominent borders |
-| `--accent` | `oklch(0.58 0.22 290)` | `oklch(0.7 0.21 290)` | Primary brand — violet |
-| `--accent-fg` | `oklch(0.99 0 0)` | `oklch(0.145 0 0)` | Foreground on accent |
-| `--accent-subtle` | `oklch(0.96 0.04 290)` | `oklch(0.25 0.08 290)` | Accent backgrounds |
-| `--success` | `oklch(0.6 0.15 155)` | `oklch(0.7 0.15 155)` | Success state |
-| `--warn` | `oklch(0.7 0.18 75)` | `oklch(0.78 0.18 75)` | Warning state |
-| `--danger` | `oklch(0.58 0.22 25)` | `oklch(0.7 0.2 25)` | Error state |
-| `--info` | `oklch(0.6 0.18 230)` | `oklch(0.72 0.18 230)` | Info state |
+| `--canvas` | `#ffffff` | `#0a0a0a` | Page background |
+| `--surface-soft` | `#fafafa` | `#131316` | Soft bands, footer, hero panel |
+| `--surface-card` | `#f4f4f5` | `#18181b` | Cards, code-block bg, hover surfaces |
+| `--surface-strong` | `#e4e4e7` | `#27272a` | Emphasized fills, inactive chips |
+| `--surface-dark` | `#0a0a0a` | `#000000` | Embedded dark panels (code windows, featured tier) |
+| `--surface-dark-elevated` | `#18181b` | `#18181b` | Nested panels inside a dark surface |
 
-### shadcn-svelte mappings
+### Text
 
-shadcn-svelte expects HSL-style tokens. We expose both:
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--ink` | `#09090b` | `#fafafa` | Headlines, primary text |
+| `--body-strong` | `#18181b` | `#e4e4e7` | Emphasized body, lead paragraphs |
+| `--body` | `#3f3f46` | `#a1a1aa` | Default running-text |
+| `--muted` | `#71717a` | `#71717a` | Captions, eyebrow labels, breadcrumbs |
+| `--muted-soft` | `#a1a1aa` | `#52525b` | Fine-print, placeholders |
+| `--on-primary` | `#ffffff` | `#0a0a0a` | Text on an ink CTA |
 
-| shadcn token | Maps to |
-|---|---|
-| `--background` | `--bg` |
-| `--foreground` | `--fg` |
-| `--card` | `--bg-subtle` |
-| `--card-foreground` | `--fg` |
-| `--popover` | `--bg-subtle` |
-| `--popover-foreground` | `--fg` |
-| `--primary` | `--accent` |
-| `--primary-foreground` | `--accent-fg` |
-| `--secondary` | `--bg-muted` |
-| `--secondary-foreground` | `--fg` |
-| `--muted` | `--bg-muted` |
-| `--muted-foreground` | `--fg-muted` |
-| `--accent` | `--accent-subtle` |
-| `--accent-foreground` | `--fg` |
-| `--destructive` | `--danger` |
-| `--destructive-foreground` | `--accent-fg` |
-| `--border` | `--border` |
-| `--input` | `--border-strong` |
-| `--ring` | `--accent` |
+### Borders
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--hairline` | `#e4e4e7` | `#27272a` | 1px dividers, card borders |
+| `--hairline-strong` | `#d4d4d8` | `#3f3f46` | Inputs, prominent borders, neutral dots |
+
+### Brand — the single accent (electric lime)
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--brand` | `#c6f24e` | `#c6f24e` | Fill voltage: dots, active pills, featured accents, the CTA band |
+| `--brand-strong` | `#aee02f` | `#aee02f` | Pressed / hover-darker fill |
+| `--brand-ink` | `#4d6b00` | `#c6f24e` | Brand-colored **text / icons**, legible on the current theme |
+| `--brand-soft` | `#eef6d0` | `#232b0c` | Subtle brand-tinted background (icon chips, table column) |
+| `--on-brand` | `#0a0a0a` | `#0a0a0a` | Text / icons sitting on a `--brand` fill |
+| `--check` | = `--brand-ink` | = `--brand` | Positive-state check marks — stays legible on both themes |
+
+`--card-on-dark` (`#ffffff`) and `--card-on-light` (`#09090b`) are **absolute** (they
+do not flip with theme) — used for text on the dark featured tier and embedded code panels.
+
+### Semantic
+
+| Token | Value | Use |
+|---|---|---|
+| `--success` | `#22c55e` | Success / "typed" status dots |
+| `--warning` | `#f59e0b` | Warning callouts |
+| `--error` | `#ef4444` | Validation errors |
+
+### Legacy aliases
+
+For back-compat, the older shadcn-style names remain as aliases: `--bg`→`--canvas`,
+`--fg`→`--ink`, `--bg-muted`→`--surface-card`, `--border`→`--hairline`, and
+**`--accent`→`--ink`** (so `Button variant="primary"` stays ink-filled). Prefer the
+canonical tokens above in new code.
 
 ---
 
@@ -140,13 +160,17 @@ blocks and `gap-12` between sections. Three-up feature grids use
 
 ## 5. Radius, borders, shadows
 
+Tightened one step from the old scale (buttons 12→8, cards 24→16) — the previous
+radii read as too soft. Pills/dots keep a full radius; everything else is crisper.
+
 | Token | Value | Use |
 |---|---|---|
-| `--radius-sm` | 6 px | Inline pills, tags |
-| `--radius-md` | 8 px | Inputs, buttons |
-| `--radius-lg` | 12 px | Cards, code blocks |
-| `--radius-xl` | 16 px | Hero panels, modals |
-| `--radius-full` | 9999 px | Avatars, circle icons |
+| `--radius-xs` | 4 px | Badge accents, syntax chips |
+| `--radius-sm` | 6 px | Inline pills, tags, focus ring |
+| `--radius-md` | 8 px | Inputs, buttons, render-target chips |
+| `--radius-lg` | 12 px | Cards, code blocks, feature/use-case/edition cards |
+| `--radius-xl` | 16 px | Hero panel, CTA band, modals |
+| `--radius-pill` | 9999 px | Nav pill, badge pills, status dots, avatars |
 
 Borders: 1 px hairlines (`--border`); only escalate to `--border-strong` for
 inputs and focused surfaces.

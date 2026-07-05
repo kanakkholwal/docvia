@@ -109,7 +109,7 @@ function renderCell(value: Cell) {
 							Capability
 						</th>
 						<th
-							class="bg-brand-teal px-6 py-5 text-left text-[13px] font-semibold uppercase tracking-[0.08em] text-card-on-dark"
+							class="bg-brand px-6 py-5 text-left text-[13px] font-semibold uppercase tracking-[0.08em] text-on-brand"
 						>
 							docvia
 						</th>
@@ -138,7 +138,7 @@ function renderCell(value: Cell) {
 							{#each [row.docvia, row.hosted, row.diy] as cell, ci}
 								{@const c = renderCell(cell)}
 								<td
-									class={`px-6 py-4 text-[14px] ${ci === 0 ? "bg-brand-teal/5" : ""}`}
+									class={`px-6 py-4 text-[14px] ${ci === 0 ? "bg-brand-soft" : ""}`}
 								>
 									{#if c.type === "yes"}
 										<Check
@@ -147,7 +147,7 @@ function renderCell(value: Cell) {
 									{:else if c.type === "no"}
 										<X class="h-5 w-5 text-muted-soft" />
 									{:else if c.type === "partial"}
-										<Minus class="h-5 w-5 text-brand-ochre" />
+										<Minus class="h-5 w-5 text-brand-ink" />
 									{:else}
 										<span class="text-muted">{c.text}</span>
 									{/if}

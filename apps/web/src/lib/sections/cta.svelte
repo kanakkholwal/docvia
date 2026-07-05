@@ -1,55 +1,40 @@
 <script lang="ts">
 import { ArrowRight, Github } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
 </script>
 
 <section class="bg-canvas">
 	<div class="mx-auto max-w-7xl px-6 pb-24 md:px-10 md:pb-24">
+		<!-- The one full-bleed brand band: lime fill, ink type. This is the
+		     single large moment of accent on the whole page. -->
 		<div
-			class="relative overflow-hidden rounded-xl bg-surface-soft px-8 py-16 md:px-16 md:py-20"
+			class="relative overflow-hidden rounded-xl bg-brand px-8 py-16 text-on-brand md:px-16 md:py-20"
 		>
-			<!-- Decorative brand-color shapes (claymation stand-ins) -->
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-brand-peach"
-			></div>
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute -bottom-6 right-24 h-20 w-20 rounded-full bg-brand-pink"
-			></div>
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute bottom-6 right-8 h-14 w-14 rounded-full bg-brand-ochre"
-			></div>
-			<div
-				aria-hidden="true"
-				class="pointer-events-none absolute -bottom-4 -left-4 h-24 w-24 rounded-full bg-brand-mint"
-			></div>
-
 			<div class="relative max-w-2xl">
 				<h2
-					class="font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
+					class="font-display text-4xl md:text-5xl lg:text-[56px] lg:leading-[1.05]"
 					style="letter-spacing: -0.03em;"
 				>
 					Turn your docs into a build artifact today.
 				</h2>
-				<p class="mt-6 max-w-xl text-lg leading-[1.55] text-body">
+				<p class="mt-6 max-w-xl text-lg leading-[1.55] text-on-brand/80">
 					Open source, MIT licensed, in public preview. Install it now, deploy
 					anywhere, and help shape the v1.0 release.
 				</p>
 				<div class="mt-10 flex flex-col gap-3 sm:flex-row">
-					<Button size="lg" href="/docs">
-						Read the docs
-						<ArrowRight />
-					</Button>
-					<Button
-						variant="outline"
-						size="lg"
-						href="https://github.com/kanakkholwal/docvia"
+					<a
+						href="/docs"
+						class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-ink px-6 text-base font-semibold text-on-primary transition-colors hover:bg-ink/90"
 					>
-						<Github />
+						Read the docs
+						<ArrowRight class="h-4 w-4" />
+					</a>
+					<a
+						href="https://github.com/kanakkholwal/docvia"
+						class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-on-brand/25 px-6 text-base font-semibold text-on-brand transition-colors hover:bg-on-brand/10"
+					>
+						<Github class="h-4 w-4" />
 						Star on GitHub
-					</Button>
+					</a>
 				</div>
 			</div>
 		</div>

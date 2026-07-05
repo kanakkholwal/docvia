@@ -6,8 +6,6 @@ type Card = {
 	title: string;
 	body: string;
 	example: string;
-	bg: string;
-	textTone: "dark" | "light";
 };
 
 const cases: Card[] = [
@@ -16,32 +14,24 @@ const cases: Card[] = [
 		title: "API references",
 		body: "Generate fully-typed API docs from Markdown. Embed live examples inline via the OpenAPI plugin.",
 		example: "GET  /api/v2/users",
-		bg: "bg-brand-pink",
-		textTone: "light",
 	},
 	{
 		icon: BookOpen,
 		title: "Product documentation",
 		body: "Ship a polished docs site that lives next to your app code. Same repo, same deploy, same review process.",
 		example: "Quickstart · Guides · How-tos",
-		bg: "bg-brand-peach",
-		textTone: "dark",
 	},
 	{
 		icon: Library,
 		title: "Internal handbooks",
 		body: "Wiki-grade content with the rigor of compiled code. Link checking, typed frontmatter, search by default.",
 		example: "Engineering handbook",
-		bg: "bg-brand-lavender",
-		textTone: "dark",
 	},
 	{
 		icon: GraduationCap,
 		title: "Tutorials & courses",
 		body: "Long-form learning content with embedded interactive components and predictable navigation.",
 		example: "12 lessons · 4 chapters",
-		bg: "bg-brand-mint",
-		textTone: "dark",
 	},
 ];
 </script>
@@ -68,15 +58,12 @@ const cases: Card[] = [
 
 		<div class="grid gap-6 md:grid-cols-2">
 			{#each cases as useCase}
-				{@const isDark = useCase.textTone === "light"}
 				<article
-					class={`flex flex-col gap-5 rounded-xl p-8 ${useCase.bg} ${isDark ? "text-card-on-dark" : "text-card-on-light"}`}
+					class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 				>
 					<div class="flex items-center gap-3">
 						<div
-							class={`grid h-11 w-11 place-items-center rounded-md ${
-								isDark ? "bg-white/15 text-card-on-dark" : "bg-black/10 text-card-on-light"
-							}`}
+							class="grid h-11 w-11 place-items-center rounded-md bg-brand-soft text-brand-ink"
 						>
 							<useCase.icon class="h-5 w-5" />
 						</div>
@@ -87,17 +74,11 @@ const cases: Card[] = [
 							{useCase.title}
 						</h3>
 					</div>
-					<p
-						class={`text-[15px] leading-[1.55] ${
-							isDark ? "text-card-on-dark/85" : "text-card-on-light/75"
-						}`}
-					>
+					<p class="text-[15px] leading-[1.55] text-body">
 						{useCase.body}
 					</p>
 					<div
-						class={`mt-auto rounded-md px-3 py-2 font-mono text-[12px] ${
-							isDark ? "bg-white/15 text-card-on-dark" : "bg-white/60 text-card-on-light"
-						}`}
+						class="mt-auto rounded-md border border-hairline bg-surface-soft px-3 py-2 font-mono text-[12px] text-body"
 					>
 						{useCase.example}
 					</div>
