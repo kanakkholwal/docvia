@@ -25,6 +25,13 @@ const VIRTUAL_BROWSER_ID = `\0${BROWSER_ID}`;
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
 	readonly noCache?: boolean;
+	/**
+	 * Path to the `docvia.config.*` file (relative to the Vite root or absolute).
+	 * When set, the generated `types.d.ts` derives a precise `Frontmatter` type
+	 * from `config.frontmatter` — for any Standard Schema library. Omit it and
+	 * codegen falls back to a permissive type.
+	 */
+	readonly configPath?: string;
 }
 
 /** Shape a compile error into a Vite HMR error-overlay payload. */
@@ -71,6 +78,9 @@ export function docvia(
 			plugins: [...config.plugins],
 			config,
 			projectRoot: root,
+			configPath: options.configPath
+				? resolve(root, options.configPath)
+				: undefined,
 			incremental: !options.noCache,
 		});
 	}

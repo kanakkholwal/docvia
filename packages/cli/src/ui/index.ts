@@ -4,6 +4,7 @@
 // same "rail" aesthetic, zero supply-chain surface, no bundle cost. Every
 // prompt falls back to its default on non-interactive streams, so scripted and
 // CI usage never blocks on input.
+export { printBanner } from "./banner";
 export {
 	isInteractive,
 	type Key,

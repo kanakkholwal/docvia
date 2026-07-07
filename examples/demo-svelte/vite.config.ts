@@ -26,5 +26,10 @@ export default defineConfig({
 	},
 	// `docvia()` runs the CompileService in-process — no separate `docvia build`
 	// step, a virtual `docvia/source` module in dev, and incremental HMR.
-	plugins: [sveltekit(), docvia(docviaConfig)],
+	plugins: [
+		sveltekit(),
+		// `configPath` lets docvia derive a precise `Frontmatter` type from the
+		// config's schema (any Standard Schema library) in the generated types.
+		docvia(docviaConfig, { configPath: "./docvia.config.ts" }),
+	],
 });

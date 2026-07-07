@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
+		"@standard-schema/spec": "^1.1.0",
 		"yaml": "^2.8.3",
 		"zod": "^4.3.6"
 	},
@@ -27,7 +28,7 @@
 		"svelte": "^5.49.2",
 		"typescript": "^5.9.3"
 	},
-	"description": "Frontmatter validation (Zod), YAML parsing, and TS codegen for docvia",
+	"description": "Standard Schema frontmatter validation, YAML parsing, and TS codegen for docvia",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"

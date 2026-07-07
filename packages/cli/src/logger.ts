@@ -11,6 +11,10 @@ export const colorEnabled =
 const ansi = (code: string, s: string) =>
 	colorEnabled ? `\x1b[${code}m${s}\x1b[0m` : s;
 
+/** 256-color foreground — used for the `init` banner gradient. */
+export const fg256 = (code: number, s: string): string =>
+	colorEnabled ? `\x1b[38;5;${code}m${s}\x1b[0m` : s;
+
 export const c = {
 	red: (s: string) => ansi("31", s),
 	green: (s: string) => ansi("32", s),

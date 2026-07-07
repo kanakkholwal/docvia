@@ -59,7 +59,8 @@ function rel(p: string): string {
 }
 
 export async function runInit(opts: InitOptions): Promise<void> {
-	ui.intro(`${c.bold("docvia")} ${c.dim("· new documentation project")}`);
+	ui.printBanner();
+	ui.intro(c.bold("New documentation project"));
 
 	try {
 		// 1 — Where. The directory drives renderer autodetection, so ask it first.

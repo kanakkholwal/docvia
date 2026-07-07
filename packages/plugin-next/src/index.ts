@@ -369,6 +369,7 @@ async function init(
 			plugins: [...(config.plugins ?? [])],
 			config,
 			projectRoot: process.cwd(),
+			configPath: existsSync(configPath) ? configPath : undefined,
 		});
 		const result = await service.compileAll();
 		await service.emitDiskModuleGraph();

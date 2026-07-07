@@ -1,5 +1,6 @@
 import type { FrontmatterData } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod/v3";
 
@@ -63,7 +64,9 @@ export function extractFrontmatter(raw: string): ExtractedFrontmatter {
 	return { data, content, bodyOffset };
 }
 
-// Zod Schema
+// Base schema — the built-in frontmatter fields every page shares. Authored in
+// Zod because we own it and rely on its defaults; it is never exposed to users
+// as a Zod type, only as a Standard Schema contract at the boundary.
 
 export const DocPageSchema = z
 	.object({
@@ -76,92 +79,96 @@ export const DocPageSchema = z
 	})
 	.passthrough();
 
+/** Render a Standard Schema issue path as a dotted string (e.g. `author.name`). */
+function formatIssuePath(
+	path: StandardSchemaV1.Issue["path"],
+): string {
+	if (!path || path.length === 0) return "(root)";
+	return path
+		.map((seg) =>
+			typeof seg === "object" && seg !== null
+				? String((seg as StandardSchemaV1.PathSegment).key)
+				: String(seg),
+		)
+		.join(".");
+}
+
+/**
+ * Run a Standard Schema synchronously. Frontmatter is validated at build time
+ * where async validation has no place, so a schema whose `validate` returns a
+ * promise is rejected with a clear error rather than silently awaited.
+ */
+function standardValidate(
+	schema: StandardSchemaV1,
+	data: unknown,
+	filePath?: string,
+):
+	| { readonly ok: true; readonly value: Record<string, unknown> }
+	| { readonly ok: false; readonly issues: readonly StandardSchemaV1.Issue[] } {
+	const result = schema["~standard"].validate(data);
+	if (result instanceof Promise) {
+		throw new docviaError(
+			"SCHEMA_ERROR",
+			`Asynchronous frontmatter schemas are not supported (vendor: ${schema["~standard"].vendor}). Provide a schema whose validation runs synchronously.`,
+			filePath,
+			{ line: 1, column: 1 },
+		);
+	}
+	if (result.issues) {
+		return { ok: false, issues: result.issues };
+	}
+	return { ok: true, value: result.value as Record<string, unknown> };
+}
+
+/**
+ * Validate raw frontmatter against the built-in base fields plus an optional
+ * user-supplied {@link StandardSchemaV1} (Zod, Valibot, ArkType, …). The base
+ * schema fills defaults for the known fields; the extension schema is layered
+ * on top and its output wins for any overlapping keys. Issues from both are
+ * reported together.
+ */
 export function validateFrontmatter(
 	raw: Record<string, unknown>,
 	filePath?: string,
-	extensionSchema?: z.ZodObject<z.ZodRawShape>,
+	extensionSchema?: StandardSchemaV1,
 ): FrontmatterData {
-	const schema = extensionSchema
-		? DocPageSchema.merge(extensionSchema)
-		: DocPageSchema;
-	const result = schema.safeParse(raw);
+	const issues: string[] = [];
 
-	if (!result.success) {
-		const issues = result.error.issues
-			.map((i) => `  - ${i.path.join(".")}: ${i.message}`)
-			.join("\n");
+	const baseResult = DocPageSchema.safeParse(raw);
+	if (!baseResult.success) {
+		for (const i of baseResult.error.issues) {
+			issues.push(`  - ${i.path.join(".") || "(root)"}: ${i.message}`);
+		}
+	}
+
+	let extensionData: Record<string, unknown> = {};
+	if (extensionSchema) {
+		const extResult = standardValidate(extensionSchema, raw, filePath);
+		if (extResult.ok) {
+			extensionData = extResult.value;
+		} else {
+			for (const i of extResult.issues) {
+				issues.push(`  - ${formatIssuePath(i.path)}: ${i.message}`);
+			}
+		}
+	}
+
+	if (issues.length > 0) {
 		throw new docviaError(
 			"SCHEMA_ERROR",
-			`Frontmatter validation failed:\n${issues}`,
+			`Frontmatter validation failed:\n${issues.join("\n")}`,
 			filePath,
 			{ line: 1, column: 1 },
 		);
 	}
 
-	return result.data as FrontmatterData;
+	return {
+		...(baseResult.success ? baseResult.data : {}),
+		...extensionData,
+	} as FrontmatterData;
 }
 
-// Zod → TypeScript type string conversion
-
-function zodFieldToTs(schema: z.ZodTypeAny): {
-	type: string;
-	optional: boolean;
-} {
-	if (schema instanceof z.ZodOptional) {
-		const inner = zodFieldToTs(schema.unwrap() as z.ZodTypeAny);
-		return { type: inner.type, optional: true };
-	}
-	if (schema instanceof z.ZodDefault) {
-		const inner = zodFieldToTs(schema.removeDefault() as z.ZodTypeAny);
-		return { type: inner.type, optional: false };
-	}
-	if (schema instanceof z.ZodNullable) {
-		const inner = zodFieldToTs(schema.unwrap() as z.ZodTypeAny);
-		return { type: `${inner.type} | null`, optional: inner.optional };
-	}
-	if (schema instanceof z.ZodString) return { type: "string", optional: false };
-	if (schema instanceof z.ZodNumber) return { type: "number", optional: false };
-	if (schema instanceof z.ZodBoolean)
-		return { type: "boolean", optional: false };
-	if (schema instanceof z.ZodLiteral) {
-		// Zod v4 stores values as array; v3 stored as single .value
-		const def = schema._def as { value?: unknown; values?: unknown[] };
-		const val = def.values?.[0] ?? def.value ?? null;
-		return { type: JSON.stringify(val), optional: false };
-	}
-	if (schema instanceof z.ZodEnum) {
-		const opts = schema.options as string[];
-		return {
-			type: opts.map((v) => JSON.stringify(v)).join(" | "),
-			optional: false,
-		};
-	}
-	if (schema instanceof z.ZodArray) {
-		const inner = zodFieldToTs(schema.element as z.ZodTypeAny);
-		return { type: `Array<${inner.type}>`, optional: false };
-	}
-	if (schema instanceof z.ZodUnion) {
-		const types = (schema.options as z.ZodTypeAny[]).map(
-			(o) => zodFieldToTs(o as z.ZodTypeAny).type,
-		);
-		return { type: types.join(" | "), optional: false };
-	}
-	return { type: "unknown", optional: false };
-}
-
-/**
- * Converts a Zod object schema (merged with the base DocPageSchema) into a
- * TypeScript interface string suitable for emitting into `types.d.ts`.
- */
-export function zodSchemaToFrontmatterTs(
-	extensionSchema: z.ZodObject<z.ZodRawShape>,
-): string {
-	const merged = DocPageSchema.merge(extensionSchema);
-	const lines: string[] = [];
-	for (const [key, fieldSchema] of Object.entries(merged.shape)) {
-		const { type, optional } = zodFieldToTs(fieldSchema as z.ZodTypeAny);
-		lines.push(`  ${key}${optional ? "?" : ""}: ${type};`);
-	}
-	lines.push("  [key: string]: unknown;");
-	return `{\n${lines.join("\n")}\n}`;
-}
+// Frontmatter TypeScript types are derived at build time from the user's schema
+// via `import("@docvia/ir").InferFrontmatter<...>` in the generated
+// `types.d.ts` — using the schema's compile-time `~standard.types`, with no
+// runtime introspection. See @docvia/runtime's `frontmatterTypeExpression`.

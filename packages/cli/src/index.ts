@@ -8,12 +8,13 @@ import { runDev } from "./commands/dev";
 import { runInit } from "./commands/init";
 import { runPreview } from "./commands/preview";
 import type { RendererTemplate } from "./templates";
+import { getVersion } from "./version";
 
 export type { docviaConfig, docviaPlugin } from "@docvia/ir";
 // Re-export defineConfig so users can import it from "@docvia/cli"
 export { defineConfig };
 
-const VERSION = process.env.npm_package_version ?? "0.1.0";
+const VERSION = getVersion();
 
 function buildProgram(): Command {
 	const program = new Command();

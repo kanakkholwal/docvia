@@ -4,6 +4,7 @@ import type {
 	docviaPlugin,
 	FileEntry,
 	FrontmatterData,
+	FrontmatterSchema,
 	HookPhase,
 	IRDocument,
 } from "@docvia/ir";
@@ -152,7 +153,15 @@ export class PluginRunner {
 
 // Config Loader
 
-export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
+/**
+ * Define a docvia config with full type inference. The generic `F` preserves
+ * the concrete frontmatter schema type (Zod, Valibot, ArkType, …) on the
+ * returned config so the generated `types.d.ts` can infer a precise
+ * `Frontmatter` type from `typeof import('./docvia.config').default.frontmatter`.
+ */
+export function defineConfig<const F extends FrontmatterSchema = FrontmatterSchema>(
+	config: Partial<Omit<docviaConfig, "frontmatter">> & { frontmatter?: F },
+): docviaConfig & { readonly frontmatter?: F } {
 	return {
 		sourceDir: config.sourceDir ?? "docs",
 		outDir: config.outDir ?? ".docvia",

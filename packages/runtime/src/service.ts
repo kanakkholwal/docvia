@@ -20,11 +20,7 @@ import type {
 } from "@docvia/ir";
 import { transformToIR } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
-import {
-	extractFrontmatter,
-	validateFrontmatter,
-	zodSchemaToFrontmatterTs,
-} from "@docvia/schema";
+import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
 import type { Root as HastRoot } from "hast";
 import {
 	CACHE_VERSION,
@@ -91,6 +87,7 @@ export class CompileService {
 
 	private readonly projectRoot: string;
 	private readonly resolvedOutDir: string;
+	private readonly configPath?: string;
 	private readonly incremental: boolean;
 	private readonly pluginRunner: PluginRunner;
 	private readonly configHash: string;
@@ -108,6 +105,9 @@ export class CompileService {
 		this.config = options.config;
 		this.projectRoot = resolvePath(options.projectRoot ?? process.cwd());
 		this.resolvedOutDir = resolvePath(options.outDir);
+		this.configPath = options.configPath
+			? resolvePath(options.configPath)
+			: undefined;
 		this.incremental = options.incremental !== false;
 		this.pluginRunner = new PluginRunner(options.plugins);
 		this.configHash = hashConfig(options.config);
@@ -320,9 +320,7 @@ export class CompileService {
 
 			let frontmatterTypeDef: string;
 			if (this.config.frontmatter) {
-				frontmatterTypeDef = zodSchemaToFrontmatterTs(
-					this.config.frontmatter as never,
-				);
+				frontmatterTypeDef = this.frontmatterTypeExpression();
 			} else {
 				const unique = Array.from(new Set(frontmatterSamples));
 				frontmatterTypeDef =
@@ -339,6 +337,50 @@ export class CompileService {
 				frontmatterTypeDef,
 			};
 		});
+	}
+
+	/**
+	 * Build the generated `Frontmatter` type for a configured schema. Derives it
+	 * from the user's schema — precise for any Standard Schema library — by
+	 * reading the schema's compile-time `~standard.types.output` off the config
+	 * file's default export. The expression is fully inlined (no external import)
+	 * so it resolves regardless of which docvia packages the consumer depends on,
+	 * and it needs no runtime schema introspection. Falls back to a permissive
+	 * record when the config path is unknown (e.g. no config file).
+	 */
+	private frontmatterTypeExpression(): string {
+		const base = [
+			"{",
+			"  title: string;",
+			"  description: string;",
+			"  slug?: string;",
+			"  tags: string[];",
+			"  draft: boolean;",
+			"  order?: number;",
+			"}",
+		].join("\n");
+
+		if (!this.configPath) {
+			return `${base} & Record<string, unknown>`;
+		}
+
+		const relConfig = relative(this.resolvedOutDir, this.configPath)
+			.replace(/\\/g, "/")
+			.replace(/\.(mts|cts|ts|tsx|mjs|cjs|js|jsx)$/, "");
+		const importSpecifier = relConfig.startsWith(".")
+			? relConfig
+			: `./${relConfig}`;
+
+		// `NonNullable<Schema["~standard"]["types"]>["output"]` is the Standard
+		// Schema output-inference formula (what StandardSchemaV1.InferOutput does),
+		// inlined so the generated file has no dependency to resolve.
+		return [
+			`${base} & NonNullable<`,
+			`  NonNullable<(typeof import(${JSON.stringify(importSpecifier)}))["default"]["frontmatter"]>["~standard"]["types"]`,
+			'>["output"] & {',
+			"  [key: string]: unknown;",
+			"}",
+		].join("\n");
 	}
 
 	/** Find which collection (if any) owns a source file. */

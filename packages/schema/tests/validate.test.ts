@@ -1,5 +1,7 @@
 import { docviaError } from "@docvia/ir";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { describe, expect, it } from "vitest";
+import { z } from "zod/v3";
 import { DocPageSchema, validateFrontmatter } from "../src/index";
 
 describe("validateFrontmatter", () => {
@@ -196,5 +198,102 @@ describe("validateFrontmatter", () => {
 		} catch (err) {
 			expect(err).toBeInstanceOf(docviaError);
 		}
+	});
+});
+
+// A minimal, hand-rolled Standard Schema (no validation library) proving the
+// pipeline is library-agnostic: it only requires the `~standard` contract.
+function customAuthorSchema(): StandardSchemaV1<
+	Record<string, unknown>,
+	Record<string, unknown>
+> {
+	return {
+		"~standard": {
+			version: 1,
+			vendor: "custom-test",
+			validate(value) {
+				const input = value as Record<string, unknown>;
+				if (typeof input.author !== "string") {
+					return {
+						issues: [{ message: "author must be a string", path: ["author"] }],
+					};
+				}
+				return { value: { author: input.author.trim() } };
+			},
+		},
+	};
+}
+
+describe("validateFrontmatter with a Standard Schema extension", () => {
+	it("accepts any Standard Schema library, not just Zod", () => {
+		const data = { title: "Test", author: "  Ada  " };
+		const result = validateFrontmatter(data, undefined, customAuthorSchema());
+
+		expect(result.title).toBe("Test");
+		// Extension output wins and is merged in (trimmed by the custom schema).
+		expect((result as Record<string, unknown>).author).toBe("Ada");
+		// Base defaults are still applied.
+		expect(result.tags).toEqual([]);
+	});
+
+	it("reports extension-schema issues with their path", () => {
+		const data = { title: "Test", author: 123 };
+
+		try {
+			validateFrontmatter(data, "/docs/x.md", customAuthorSchema());
+			expect.fail("Should have thrown");
+		} catch (err) {
+			expect(err).toBeInstanceOf(docviaError);
+			if (err instanceof docviaError) {
+				expect(err.message).toContain("author");
+				expect(err.message).toContain("author must be a string");
+			}
+		}
+	});
+
+	it("merges base and extension issues together", () => {
+		const data = { author: 123 }; // missing title (base) + bad author (ext)
+
+		try {
+			validateFrontmatter(data, undefined, customAuthorSchema());
+			expect.fail("Should have thrown");
+		} catch (err) {
+			if (err instanceof docviaError) {
+				expect(err.message).toMatch(/title|Title/i);
+				expect(err.message).toContain("author");
+			}
+		}
+	});
+
+	it("rejects asynchronous schemas with a clear error", () => {
+		const asyncSchema: StandardSchemaV1 = {
+			"~standard": {
+				version: 1,
+				vendor: "async-test",
+				validate: () => Promise.resolve({ value: {} }),
+			},
+		};
+
+		try {
+			validateFrontmatter({ title: "Test" }, undefined, asyncSchema);
+			expect.fail("Should have thrown");
+		} catch (err) {
+			expect(err).toBeInstanceOf(docviaError);
+			if (err instanceof docviaError) {
+				expect(err.message).toContain("Asynchronous");
+			}
+		}
+	});
+
+	it("works with a Zod extension schema", () => {
+		const schema = z.object({ author: z.string().optional() });
+		const result = validateFrontmatter(
+			{ title: "Test", author: "Ada" },
+			undefined,
+			schema,
+		);
+
+		expect(result.title).toBe("Test");
+		expect((result as Record<string, unknown>).author).toBe("Ada");
 	});
 });
