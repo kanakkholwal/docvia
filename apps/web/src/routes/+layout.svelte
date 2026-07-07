@@ -34,7 +34,7 @@ const navLinks = [
 	<div
 		class="mx-auto flex h-9 max-w-7xl items-center justify-center gap-2 px-4 text-[12.5px] text-body-strong md:px-6"
 	>
-		<Sparkles class="h-3.5 w-3.5 text-brand-coral" />
+		<Sparkles class="h-3.5 w-3.5 text-brand-ink" />
 		<span class="hidden sm:inline">
 			docvia is in public preview ·
 		</span>
@@ -62,9 +62,9 @@ const navLinks = [
 				>
 					<span class="relative flex h-1.5 w-1.5">
 						<span
-							class="absolute inset-0 animate-ping rounded-full bg-brand-coral opacity-60"
+							class="absolute inset-0 animate-ping rounded-full bg-brand opacity-60"
 						></span>
-						<span class="relative h-1.5 w-1.5 rounded-full bg-brand-coral"></span>
+						<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
 					</span>
 					v0.1
 				</span>
@@ -180,7 +180,7 @@ const navLinks = [
 				class="flex flex-col gap-4 rounded-xl border border-hairline bg-surface-card p-6 md:gap-5"
 			>
 				<div class="flex items-center gap-2">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-peach"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<span
 						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
 					>
@@ -206,7 +206,7 @@ const navLinks = [
 		>
 			<div>
 				<div class="mb-4 flex items-center gap-2">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-pink"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<h4
 						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
 					>
@@ -224,7 +224,7 @@ const navLinks = [
 
 			<div>
 				<div class="mb-4 flex items-center gap-2">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-peach"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<h4
 						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
 					>
@@ -242,7 +242,7 @@ const navLinks = [
 
 			<div>
 				<div class="mb-4 flex items-center gap-2">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-lavender"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<h4
 						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
 					>
@@ -259,7 +259,7 @@ const navLinks = [
 
 			<div>
 				<div class="mb-4 flex items-center gap-2">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-mint"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<h4
 						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
 					>
@@ -284,7 +284,7 @@ const navLinks = [
 			</div>
 			<div class="flex items-center gap-3">
 				<span class="inline-flex items-center gap-1.5">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-coral"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					<span class="font-mono">v0.1 preview</span>
 				</span>
 				<span class="text-muted-soft">·</span>

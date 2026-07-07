@@ -3,52 +3,55 @@
 /* ──────────────────────────────────────────────────────────────────
    docvia design tokens — kept identical with apps/web/src/app.css.
    Source of truth: apps/web/DESIGN.md
+
+   One electric accent (lime) on a cool-neutral canvas. Light is the
+   canonical theme; dark is a near-black inversion. There is no
+   multi-color palette — the lime is the ONLY brand voltage, used
+   scarcely. Primary actions stay ink-black.
    ────────────────────────────────────────────────────────────────── */
 
 :root,
 [data-theme="light"] {
-	/* ── Surface ── */
-	--canvas: #fffaf0;
-	--surface-soft: #faf5e8;
-	--surface-card: #f5f0e0;
-	--surface-strong: #ebe6d6;
-	--surface-dark: #0a1a1a;
-	--surface-dark-elevated: #1a2a2a;
+	/* ── Surface (cool neutral — zinc family, no warm tint) ── */
+	--canvas: #ffffff;
+	--surface-soft: #fafafa;
+	--surface-card: #f4f4f5;
+	--surface-strong: #e4e4e7;
+	--surface-dark: #0a0a0a;
+	--surface-dark-elevated: #18181b;
 
-	/* ── Text ── */
-	--ink: #0a0a0a;
-	--body-strong: #1a1a1a;
-	--body: #3a3a3a;
-	--muted: #6a6a6a;
-	--muted-soft: #9a9a9a;
+	/* ── Text (ink on neutral) ── */
+	--ink: #09090b;
+	--body-strong: #18181b;
+	--body: #3f3f46;
+	--muted: #71717a;
+	--muted-soft: #a1a1aa;
 	--on-primary: #ffffff;
 
 	/* ── Borders ── */
-	--hairline: #e5e5e5;
-	--hairline-strong: #d4d4d4;
+	--hairline: #e4e4e7;
+	--hairline-strong: #d4d4d8;
 
-	/* ── Brand (absolute) ── */
-	--brand-pink: #ff4d8b;
-	--brand-teal: #1a3a3a;
-	--brand-lavender: #b8a4ed;
-	--brand-peach: #ffb084;
-	--brand-ochre: #e8b94a;
-	--brand-mint: #a4d4c5;
-	--brand-coral: #ff6b5a;
+	/* ── Brand — a single electric lime (see apps/web/src/app.css) ── */
+	--brand: #c6f24e;
+	--brand-strong: #aee02f;
+	--brand-ink: #4d6b00;
+	--brand-soft: #eef6d0;
+	--on-brand: #0a0a0a;
 
-	/* ── Card-text tokens (theme-independent) ── */
+	/* ── Card-text tokens for dark panels (theme-independent) ── */
 	--card-on-dark: #ffffff;
-	--card-on-light: #0a0a0a;
+	--card-on-light: #09090b;
 
-	/* ── Check-indicator token — flips for visibility on both canvases ── */
-	--check: var(--brand-teal);
+	/* ── Positive-state check — dark lime on light so it stays legible ── */
+	--check: var(--brand-ink);
 
 	/* ── Semantic ── */
 	--success: #22c55e;
 	--warning: #f59e0b;
 	--error: #ef4444;
 
-	/* ── Legacy aliases ── */
+	/* ── Legacy aliases — primary action = ink; keeps CTAs monochrome ── */
 	--bg: var(--canvas);
 	--bg-subtle: var(--surface-soft);
 	--bg-muted: var(--surface-card);
@@ -62,19 +65,19 @@
 	--accent: var(--ink);
 	--accent-fg: var(--on-primary);
 	--accent-subtle: var(--surface-card);
-	--info: var(--brand-teal);
+	--info: var(--brand-ink);
 	--warn: var(--warning);
 	--danger: var(--error);
 
-	/* ── Radius ── */
-	--radius-xs: 6px;
-	--radius-sm: 8px;
-	--radius-md: 12px;
-	--radius-lg: 16px;
-	--radius-xl: 24px;
+	/* ── Radius (tightened — was 6 / 8 / 12 / 16 / 24) ── */
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
 	--radius-pill: 9999px;
 
-	/* ── Spacing ── */
+	/* ── Spacing (unchanged) ── */
 	--space-xxs: 4px;
 	--space-xs: 8px;
 	--space-sm: 12px;
@@ -94,26 +97,29 @@
 	color-scheme: light;
 }
 
-/* Dark mode — neutral near-black canvas with warm cream text. */
+/* Dark mode — near-pure black canvas, cool neutral text. */
 [data-theme="dark"] {
-	--canvas: #0c0c0c;
-	--surface-soft: #161616;
-	--surface-card: #1f1f1f;
-	--surface-strong: #2a2a2a;
-	--surface-dark: #050505;
-	--surface-dark-elevated: #1a1a1a;
+	--canvas: #0a0a0a;
+	--surface-soft: #131316;
+	--surface-card: #18181b;
+	--surface-strong: #27272a;
+	--surface-dark: #000000;
+	--surface-dark-elevated: #18181b;
 
-	--ink: #fffaf0;
-	--body-strong: #f0eadb;
-	--body: #c8c0ad;
-	--muted: #8a8378;
-	--muted-soft: #585350;
+	--ink: #fafafa;
+	--body-strong: #e4e4e7;
+	--body: #a1a1aa;
+	--muted: #71717a;
+	--muted-soft: #52525b;
 	--on-primary: #0a0a0a;
 
-	--hairline: #262626;
-	--hairline-strong: #363636;
+	--hairline: #27272a;
+	--hairline-strong: #3f3f46;
 
-	--check: var(--brand-mint);
+	--brand-ink: #c6f24e;
+	--brand-soft: #232b0c;
+
+	--check: var(--brand);
 
 	color-scheme: dark;
 }
@@ -140,13 +146,11 @@
 	--color-hairline: var(--hairline);
 	--color-hairline-strong: var(--hairline-strong);
 
-	--color-brand-pink: var(--brand-pink);
-	--color-brand-teal: var(--brand-teal);
-	--color-brand-lavender: var(--brand-lavender);
-	--color-brand-peach: var(--brand-peach);
-	--color-brand-ochre: var(--brand-ochre);
-	--color-brand-mint: var(--brand-mint);
-	--color-brand-coral: var(--brand-coral);
+	--color-brand: var(--brand);
+	--color-brand-strong: var(--brand-strong);
+	--color-brand-ink: var(--brand-ink);
+	--color-brand-soft: var(--brand-soft);
+	--color-on-brand: var(--on-brand);
 
 	--color-success: var(--success);
 	--color-warning: var(--warning);
@@ -179,11 +183,11 @@
 		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
 		"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-	--radius-xs: 6px;
-	--radius-sm: 8px;
-	--radius-md: 12px;
-	--radius-lg: 16px;
-	--radius-xl: 24px;
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
 }
 
 html {
@@ -199,12 +203,12 @@ body {
 }
 
 ::selection {
-	background: var(--brand-peach);
-	color: #0a0a0a;
+	background: var(--brand);
+	color: var(--on-brand);
 }
 
 .font-display {
-	font-weight: 500;
+	font-weight: 600;
 	letter-spacing: -0.025em;
 }
 
@@ -227,11 +231,12 @@ body {
 	}
 }
 
+/* ── Thin neutral scrollbar ── */
+
 .scrollbar-transparent {
 	scrollbar-gutter: stable;
 	scrollbar-width: thin;
-	scrollbar-color: color-mix(in srgb, var(--foreground) 15%, transparent)
-		transparent;
+	scrollbar-color: var(--hairline-strong) transparent;
 	scroll-behavior: smooth;
 }
 
@@ -241,38 +246,28 @@ body {
 }
 
 .scrollbar-transparent::-webkit-scrollbar-track {
-	background: hsl(var(--muted));
-	border-radius: 0.5rem;
+	background: transparent;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb {
-	background: linear-gradient(
-		135deg,
-		hsl(var(--primary) / 0.6),
-		hsl(var(--secondary) / 0.8)
-	);
-	border: 2px solid hsl(var(--background));
-	border-radius: 0.5rem;
-	transition: all 0.2s ease-in-out;
+	background: var(--hairline-strong);
+	border: 2px solid var(--canvas);
+	border-radius: 9999px;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(
-		135deg,
-		hsl(var(--primary) / 0.8),
-		hsl(var(--secondary) / 1)
-	);
-	transform: scale(1.1);
-}
-
-.scrollbar-transparent::-webkit-scrollbar-thumb:active {
-	background: linear-gradient(
-		135deg,
-		hsl(var(--primary)),
-		hsl(var(--secondary))
-	);
+	background: var(--muted-soft);
 }
 
 .scrollbar-transparent::-webkit-scrollbar-corner {
-	background: hsl(var(--background));
+	background: transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
 }

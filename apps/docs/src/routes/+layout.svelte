@@ -35,7 +35,7 @@ let mobileNavOpen = $state(false);
 				<span
 					class="hidden items-center gap-1.5 rounded-full bg-surface-card px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-body-strong sm:inline-flex"
 				>
-					<span class="h-1 w-1 rounded-full bg-brand-coral"></span>
+					<span class="h-1 w-1 rounded-full bg-brand"></span>
 					Docs · v0.1
 				</span>
 			</div>

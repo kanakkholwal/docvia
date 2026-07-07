@@ -89,7 +89,7 @@ export default defineConfig({
 				<button
 					class="flex items-center gap-1.5 border-r border-hairline bg-canvas px-3 py-2 font-mono text-ink"
 				>
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-coral"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					docvia.config.ts
 				</button>
 				<button
