@@ -27,7 +27,7 @@ export default defineConfig({
 });`;
 </script>
 
-<section class="bg-surface-soft">
+<section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-16">
 	<div
 		class="mx-auto grid max-w-7xl gap-16 px-6 py-24 md:px-10 md:py-24 lg:grid-cols-2 lg:items-center lg:gap-12"
 	>
@@ -71,7 +71,7 @@ export default defineConfig({
 			</ol>
 
 			<a
-				href="/docs"
+				href="https://docs.docvia.dev/guide/architecture"
 				class="mt-10 inline-flex items-center gap-1.5 text-[14px] font-semibold text-ink underline underline-offset-4 hover:text-body-strong"
 			>
 				Read the architecture overview

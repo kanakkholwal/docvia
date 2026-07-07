@@ -36,7 +36,7 @@ const cases: Card[] = [
 ];
 </script>
 
-<section id="use-cases" class="bg-canvas">
+<section id="use-cases" class="border-b border-hairline bg-canvas">
 	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
 		<div class="mb-16 max-w-3xl">
 			<span
@@ -45,8 +45,7 @@ const cases: Card[] = [
 				Use cases
 			</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
-				style="letter-spacing: -0.03em;"
+				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
 			>
 				One compiler, many shapes of docs.
 			</h2>
@@ -56,10 +55,12 @@ const cases: Card[] = [
 			</p>
 		</div>
 
-		<div class="grid gap-6 md:grid-cols-2">
+		<div
+			class="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-hairline bg-hairline md:grid-cols-2"
+		>
 			{#each cases as useCase}
 				<article
-					class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+					class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 				>
 					<div class="flex items-center gap-3">
 						<div
