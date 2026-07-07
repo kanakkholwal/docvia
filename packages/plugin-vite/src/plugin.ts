@@ -5,6 +5,7 @@
 // serves `docvia/source` as a virtual module, watches the source tree, and
 // recompiles incrementally; in build it emits the on-disk module graph.
 
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig, IRDocument, RendererAdapter } from "@docvia/ir";
@@ -26,12 +27,44 @@ export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
 	readonly noCache?: boolean;
 	/**
-	 * Path to the `docvia.config.*` file (relative to the Vite root or absolute).
-	 * When set, the generated `types.d.ts` derives a precise `Frontmatter` type
-	 * from `config.frontmatter` — for any Standard Schema library. Omit it and
-	 * codegen falls back to a permissive type.
+	 * Path to the `docvia.config.*` file (relative to the Vite root or absolute),
+	 * used to derive a precise `Frontmatter` type from `config.frontmatter` (any
+	 * Standard Schema library) in the generated `types.d.ts`. Defaults to
+	 * auto-detecting a `docvia.config.{ts,mts,cts,js,mjs,cjs}` in the Vite root.
+	 * Set to `false` to opt out (or when the config is defined inline), which
+	 * falls back to a permissive type.
 	 */
-	readonly configPath?: string;
+	readonly configPath?: string | false;
+}
+
+// Conventional config filenames, in resolution order, for zero-config type
+// inference when `configPath` is not given explicitly.
+const CONFIG_BASENAMES = [
+	"docvia.config.ts",
+	"docvia.config.mts",
+	"docvia.config.cts",
+	"docvia.config.js",
+	"docvia.config.mjs",
+	"docvia.config.cjs",
+];
+
+/**
+ * Resolve the config file backing frontmatter type inference. An explicit path
+ * wins; `false` opts out; otherwise the conventional `docvia.config.*` in the
+ * Vite root is auto-detected. Returns `undefined` when nothing is found, in
+ * which case codegen falls back to a permissive frontmatter type.
+ */
+function resolveConfigPath(
+	root: string,
+	explicit: string | false | undefined,
+): string | undefined {
+	if (explicit === false) return undefined;
+	if (explicit) return resolve(root, explicit);
+	for (const name of CONFIG_BASENAMES) {
+		const candidate = resolve(root, name);
+		if (existsSync(candidate)) return candidate;
+	}
+	return undefined;
 }
 
 /** Shape a compile error into a Vite HMR error-overlay payload. */
@@ -78,9 +111,7 @@ export function docvia(
 			plugins: [...config.plugins],
 			config,
 			projectRoot: root,
-			configPath: options.configPath
-				? resolve(root, options.configPath)
-				: undefined,
+			configPath: resolveConfigPath(root, options.configPath),
 			incremental: !options.noCache,
 		});
 	}
