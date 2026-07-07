@@ -6,13 +6,17 @@ import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import { ArrowRight, Github, MessageCircle, Package, Menu, Sparkles, X } from "@lucide/svelte";
 import type { Snippet } from "svelte";
+import { onMount } from "svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
+import { version, refreshVersion } from "$lib/version.svelte";
 import "../app.css";
 
 
 let { children }: { children: Snippet } = $props();
 let mobileOpen = $state(false);
+
+onMount(refreshVersion);
 
 const navLinks = [
 	{ label: "Features", href: "/#features" },
@@ -36,7 +40,7 @@ const navLinks = [
 	>
 		<Sparkles class="h-3.5 w-3.5 text-brand-ink" />
 		<span class="hidden sm:inline">
-			docvia v0.1 is in public preview ·
+			docvia v{version.current} is in public preview ·
 		</span>
 		<a
 			href="https://github.com/kanakkholwal/docvia"
@@ -67,7 +71,7 @@ const navLinks = [
 					></span>
 					<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
 				</span>
-				v0.1
+				v{version.current}
 			</span>
 			<nav class="hidden items-center gap-1 md:flex">
 				{#each navLinks as link}
@@ -212,8 +216,8 @@ const navLinks = [
 				<ul class="space-y-2 text-[14px]">
 					<li><a href="https://docs.docvia.dev" class="text-body hover:text-ink">Documentation</a></li>
 					<li><a href="https://docs.docvia.dev/getting-started" class="text-body hover:text-ink">Getting started</a></li>
-					<li><a href="https://docs.docvia.dev/config" class="text-body hover:text-ink">Config reference</a></li>
-					<li><a href="https://docs.docvia.dev/plugins/openapi" class="text-body hover:text-ink">OpenAPI plugin</a></li>
+					<li><a href="https://docs.docvia.dev/guide/configuration" class="text-body hover:text-ink">Config reference</a></li>
+					<li><a href="https://docs.docvia.dev/packages/plugin-openapi" class="text-body hover:text-ink">OpenAPI plugin</a></li>
 					<li><a href="https://github.com/kanakkholwal/docvia/releases" class="text-body hover:text-ink">Changelog</a></li>
 				</ul>
 			</div>
@@ -246,7 +250,7 @@ const navLinks = [
 			<div class="flex items-center gap-3">
 				<span class="inline-flex items-center gap-1.5">
 					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					<span class="font-mono">v0.1 preview</span>
+					<span class="font-mono">v{version.current} preview</span>
 				</span>
 				<span class="text-muted-soft">·</span>
 				<span>Built with docvia</span>

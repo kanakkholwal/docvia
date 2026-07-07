@@ -3,6 +3,7 @@ import { ArrowRight, Check, Github } from "@lucide/svelte";
 import { onMount } from "svelte";
 import { Button } from "$lib/components/ui/button";
 import InstallCommand from "$lib/components/install-command.svelte";
+import { version } from "$lib/version.svelte";
 
 const buildLog = [
 	{ label: "parse", detail: "docs/  ·  24 files", duration: "38ms" },
@@ -12,7 +13,7 @@ const buildLog = [
 	{ label: "static", detail: "emit .docvia/html", duration: "61ms" },
 ];
 
-const targets = ["React", "Svelte", "Next.js", "Vite", "Astro", "Static"];
+const targets = ["React", "Svelte", "Next.js", "Vite", "Static HTML"];
 
 const guarantees = [
 	"MIT licensed",
@@ -84,7 +85,7 @@ onMount(() => {
 					></span>
 					<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
 				</span>
-				Public preview · v0.1
+				Public preview · v{version.current}
 				<span class="text-muted-soft">→</span>
 			</a>
 
@@ -101,8 +102,8 @@ onMount(() => {
 				style="animation-delay: 140ms"
 			>
 				docvia compiles Markdown into typed, pre-rendered modules for React,
-				Svelte, Vite, and any framework with an adapter — with incremental
-				builds and built-in search. Nothing parses at runtime.
+				Svelte, and any framework with an adapter. Incremental builds and
+				built-in search are included, and nothing parses at runtime.
 			</p>
 
 			<div

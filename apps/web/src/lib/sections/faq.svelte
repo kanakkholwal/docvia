@@ -4,11 +4,11 @@ import { Accordion } from "$lib/components/ui/accordion";
 const faqs = [
 	{
 		q: "Can I self-host docvia, or am I locked into a cloud?",
-		a: "docvia is a build pipeline you own. It produces a static module graph that you deploy wherever you want — Vercel, Cloudflare, an S3 bucket, your VPC, or an on-prem box. There is no required cloud, no proprietary runtime, and no telemetry calling home.",
+		a: "docvia is a build pipeline you own. It produces a static module graph that you deploy wherever you want: Vercel, Cloudflare, an S3 bucket, your VPC, or an on-prem box. There is no required cloud, no proprietary runtime, and no telemetry calling home.",
 	},
 	{
 		q: "Do I have to use MDX? Can non-engineers contribute?",
-		a: "Plain Markdown works out of the box. MDX is opt-in for teams that want React components in content. Frontmatter is validated against your Zod schema, so PMs, support, and marketers can edit content with the same safety as engineers — typos and missing fields fail the build.",
+		a: "Plain Markdown works out of the box. MDX is opt-in for teams that want React components in content. Frontmatter is validated against your Zod schema, so PMs, support, and marketers can edit content with the same safety as engineers. Typos and missing fields fail the build.",
 	},
 	{
 		q: "Will my docs be locked into one framework?",
@@ -16,7 +16,7 @@ const faqs = [
 	},
 	{
 		q: "Is docvia free?",
-		a: "Yes. docvia is MIT-licensed and free — it's a build tool you run yourself, so there is nothing to meter. If you enable AI search, you bring your own Claude or OpenAI key, so that bill is yours and we never sit in the middle of it.",
+		a: "Yes. docvia is MIT-licensed and free. It's a build tool you run yourself, so there is nothing to meter. If you enable AI search, you bring your own Claude or OpenAI key, so that bill is yours and we never sit in the middle of it.",
 	},
 	{
 		q: "How is this different from a typical Markdown library?",
@@ -40,7 +40,7 @@ const faqs = [
 	},
 	{
 		q: "What's the licence?",
-		a: "MIT, for every package in the workspace — the compiler, the CLI, the renderers, and the plugins.",
+		a: "MIT, for every package in the workspace: the compiler, the CLI, the renderers, and the plugins.",
 	},
 ];
 </script>

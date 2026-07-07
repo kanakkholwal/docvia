@@ -4,8 +4,8 @@
 const stats = [
 	{ value: "0kb", label: "Markdown parser shipped to the browser" },
 	{ value: "5+", label: "Framework render targets, and growing" },
-	{ value: "100%", label: "Typed, end to end — TypeScript" },
-	{ value: "MIT", label: "Open source — self-host anywhere" },
+	{ value: "100%", label: "Typed end to end, in TypeScript" },
+	{ value: "MIT", label: "Open source, self-host anywhere" },
 ];
 </script>
 

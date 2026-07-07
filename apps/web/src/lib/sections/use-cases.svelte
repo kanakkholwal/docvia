@@ -50,7 +50,7 @@ const cases: Card[] = [
 				One compiler, many shapes of docs.
 			</h2>
 			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
-				The same primitives — collections, frontmatter, plugins — adapt to
+				The same primitives (collections, frontmatter, plugins) adapt to
 				whatever you're publishing.
 			</p>
 		</div>

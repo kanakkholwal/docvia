@@ -49,7 +49,7 @@ const hooks = [
 			</h2>
 			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
 				Typed frontmatter, incremental builds, framework-native output, and
-				local search — resolved at build time, and entirely yours to own.
+				local search, resolved at build time and entirely yours to own.
 			</p>
 		</div>
 
@@ -74,8 +74,8 @@ const hooks = [
 					Render the same docs to any framework.
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
-					IR-based compiler emits framework-native modules. React today,
-					Svelte tomorrow, Vue when you need it — same source.
+					IR-based compiler emits framework-native modules. React and
+					Svelte today, more adapters as you need them. Same source.
 				</p>
 				<!-- Product UI fragment: render-target tabs -->
 				<div class="mt-auto flex flex-wrap gap-1.5 pt-2">
@@ -140,7 +140,7 @@ const hooks = [
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
 					Define frontmatter with Zod once. docvia emits a typed Frontmatter
-					interface for every collection — caught at build, not at runtime.
+					interface for every collection, caught at build, not at runtime.
 				</p>
 				<!-- Product UI fragment: code snippet (embedded dark terminal) -->
 				<pre
@@ -245,7 +245,7 @@ const hooks = [
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
 					Section-level Orama indexing ships client-side. Add semantic search
-					with your own Claude or OpenAI key — no per-credit metering.
+					with your own Claude or OpenAI key. No per-credit metering.
 				</p>
 				<!-- Product UI fragment: search bar with results -->
 				<div
