@@ -5,11 +5,11 @@
 // serves `docvia/source` as a virtual module, watches the source tree, and
 // recompiles incrementally; in build it emits the on-disk module graph.
 
-import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig, IRDocument, RendererAdapter } from "@docvia/ir";
 import { docviaError, transformToIR } from "@docvia/ir";
+import { resolveConfigPath } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
 import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
 import type { HmrContext, Plugin, ViteDevServer } from "vite";
@@ -35,36 +35,6 @@ export interface DocviaVitePluginOptions {
 	 * falls back to a permissive type.
 	 */
 	readonly configPath?: string | false;
-}
-
-// Conventional config filenames, in resolution order, for zero-config type
-// inference when `configPath` is not given explicitly.
-const CONFIG_BASENAMES = [
-	"docvia.config.ts",
-	"docvia.config.mts",
-	"docvia.config.cts",
-	"docvia.config.js",
-	"docvia.config.mjs",
-	"docvia.config.cjs",
-];
-
-/**
- * Resolve the config file backing frontmatter type inference. An explicit path
- * wins; `false` opts out; otherwise the conventional `docvia.config.*` in the
- * Vite root is auto-detected. Returns `undefined` when nothing is found, in
- * which case codegen falls back to a permissive frontmatter type.
- */
-function resolveConfigPath(
-	root: string,
-	explicit: string | false | undefined,
-): string | undefined {
-	if (explicit === false) return undefined;
-	if (explicit) return resolve(root, explicit);
-	for (const name of CONFIG_BASENAMES) {
-		const candidate = resolve(root, name);
-		if (existsSync(candidate)) return candidate;
-	}
-	return undefined;
 }
 
 /** Shape a compile error into a Vite HMR error-overlay payload. */
@@ -139,7 +109,7 @@ export function docvia(
 		const meta = validateFrontmatter(
 			extracted.data,
 			filePath,
-			config.frontmatter as never,
+			config.frontmatter,
 		);
 		const { ast } = await parseMarkdown(extracted.content, {
 			remarkPlugins: config.markdown.remarkPlugins,

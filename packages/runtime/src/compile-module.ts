@@ -3,12 +3,9 @@
 // webpack/Turbopack loaders — so their output matches the build pipeline
 // byte-for-byte. Keeping it here (not in a plugin) is the point: the transform
 // is in-house; the per-bundler loaders are thin shims that call it.
-import { parseMarkdown } from "@docvia/core";
-import type { docviaConfig, FileEntry, IRDocument } from "@docvia/ir";
-import { transformToIR } from "@docvia/ir";
+import type { docviaConfig, FileEntry } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
-import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
-import type { Root as HastRoot } from "hast";
+import { markdownToIR } from "./pipeline";
 
 export interface CompiledModule {
 	readonly code: string;
@@ -54,31 +51,8 @@ export async function compileMarkdownToModule(
 		hash: "",
 	};
 
-	const processedFile = await runner.runBeforeParse(file);
-	const extracted = extractFrontmatter(processedFile.content);
-	const frontmatter = validateFrontmatter(
-		extracted.data,
-		filePath,
-		config.frontmatter as never,
-	);
+	const { ir } = await markdownToIR({ file, config, runner });
 
-	const { ast } = await parseMarkdown(extracted.content, {
-		remarkPlugins: config.markdown.remarkPlugins,
-	});
-
-	const processedAst = (await runner.runAfterParse(
-		ast,
-		processedFile,
-	)) as HastRoot;
-	const finalAst = (await runner.runBeforeTransform(
-		processedAst,
-		frontmatter,
-	)) as HastRoot;
-
-	let irDoc: IRDocument = transformToIR(finalAst, frontmatter, relativePath);
-	irDoc = await runner.runAfterTransform(irDoc);
-	irDoc = await runner.runBeforeRender(irDoc);
-
-	const rendered = await renderer.renderPage(irDoc);
+	const rendered = await renderer.renderPage(ir);
 	return { code: rendered.code, map: rendered.map ?? null };
 }

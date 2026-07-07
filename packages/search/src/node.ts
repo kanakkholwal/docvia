@@ -1,8 +1,6 @@
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import type { IRDocument, RendererAdapter } from "@docvia/ir";
-import { docviaError } from "@docvia/ir";
-import { loadConfig } from "@docvia/plugins";
+import { resolveProject } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
 import { createSearchIndexer } from "./index";
 
@@ -52,17 +50,10 @@ const NOOP_RENDERER: RendererAdapter = {
 export async function loadIRDocuments(
 	options: SearchSourceOptions = {},
 ): Promise<IRDocument[]> {
-	const configPath = resolve(options.configPath ?? "docvia.config.ts");
-	if (!existsSync(configPath)) {
-		throw new docviaError(
-			"CONFIG_ERROR",
-			`docvia config not found: ${configPath}\n  Pass \`configPath\` to buildSearchIndex / loadIRDocuments.`,
-			configPath,
-		);
-	}
-
-	const config = await loadConfig(configPath);
-	const projectRoot = dirname(configPath);
+	const { config, projectRoot } = await resolveProject({
+		configPath: options.configPath,
+		required: true,
+	});
 
 	const service = new CompileService({
 		sourceDir: resolve(projectRoot, config.sourceDir),

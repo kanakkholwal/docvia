@@ -2,7 +2,13 @@ import { docviaError } from "@docvia/ir";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v3";
-import { DocPageSchema, validateFrontmatter } from "../src/index";
+import {
+	BASE_FRONTMATTER_TYPE,
+	composeFrontmatterType,
+	DocPageSchema,
+	inferSchemaOutput,
+	validateFrontmatter,
+} from "../src/index";
 
 describe("validateFrontmatter", () => {
 	it("validates minimal valid frontmatter", () => {
@@ -295,5 +301,48 @@ describe("validateFrontmatter with a Standard Schema extension", () => {
 
 		expect(result.title).toBe("Test");
 		expect((result as Record<string, unknown>).author).toBe("Ada");
+	});
+});
+
+describe("frontmatter type codegen", () => {
+	it("BASE_FRONTMATTER_TYPE lists the built-in fields", () => {
+		for (const field of [
+			"title: string;",
+			"description: string;",
+			"slug?: string;",
+			"tags: string[];",
+			"draft: boolean;",
+			"order?: number;",
+		]) {
+			expect(BASE_FRONTMATTER_TYPE).toContain(field);
+		}
+	});
+
+	it("inferSchemaOutput wraps a ref in the ~standard output formula", () => {
+		const out = inferSchemaOutput("SchemaRef");
+		expect(out).toContain('SchemaRef["~standard"]["types"]');
+		expect(out).toContain('>["output"]');
+		expect(out.startsWith("NonNullable<")).toBe(true);
+	});
+
+	it("composeFrontmatterType() falls back to a permissive record", () => {
+		const ts = composeFrontmatterType();
+		expect(ts).toContain(BASE_FRONTMATTER_TYPE);
+		expect(ts).toContain("Record<string, unknown>");
+		expect(ts).toContain("[key: string]: unknown;");
+	});
+
+	it("composeFrontmatterType(schemaOutput) intersects base + output + index", () => {
+		const ts = composeFrontmatterType(inferSchemaOutput("S"));
+		expect(ts).toContain(BASE_FRONTMATTER_TYPE);
+		expect(ts).toContain('S["~standard"]["types"]');
+		expect(ts).toContain("[key: string]: unknown;");
+		// Ordering: base, then inferred output, then the index signature.
+		expect(ts.indexOf("title: string;")).toBeLessThan(
+			ts.indexOf('["~standard"]'),
+		);
+		expect(ts.indexOf('["~standard"]')).toBeLessThan(
+			ts.indexOf("[key: string]: unknown;"),
+		);
 	});
 });

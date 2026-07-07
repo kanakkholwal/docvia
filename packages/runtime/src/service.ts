@@ -9,7 +9,6 @@
 import { existsSync } from "node:fs";
 import { relative, resolve as resolvePath } from "node:path";
 import { performance } from "node:perf_hooks";
-import { parseMarkdown } from "@docvia/core";
 import type {
 	CompileResult,
 	CompilerOptions,
@@ -18,10 +17,8 @@ import type {
 	IRDocument,
 	PageMeta,
 } from "@docvia/ir";
-import { transformToIR } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
-import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
-import type { Root as HastRoot } from "hast";
+import { composeFrontmatterType, inferSchemaOutput } from "@docvia/schema";
 import {
 	CACHE_VERSION,
 	type CachedEntry,
@@ -40,6 +37,7 @@ import {
 } from "./emit";
 import { compileParallel, readFileEntry, readFileTree } from "./fs";
 import { computeContentHash, hashConfig, stableStringify } from "./hash";
+import { markdownToIR } from "./pipeline";
 
 // Tool version: keep in sync with package.json. Bumped when the generated
 // module shape changes — invalidates the on-disk cache automatically.
@@ -151,42 +149,20 @@ export class CompileService {
 		collection: ResolvedCollection,
 		file: FileEntry,
 	): Promise<ServiceEntry> {
-		const processedFile = await this.pluginRunner.runBeforeParse(file);
-		const extracted = extractFrontmatter(processedFile.content);
-		const frontmatter = validateFrontmatter(
-			extracted.data,
-			file.path,
-			this.config.frontmatter as never,
-		);
-
-		const { ast } = await parseMarkdown(extracted.content, {
-			remarkPlugins: this.config.markdown.remarkPlugins,
+		const { ir: irDoc } = await markdownToIR({
+			file,
+			config: this.config,
+			runner: this.pluginRunner,
+			contentHash: (frontmatter) =>
+				computeContentHash({
+					fileContent: file.hash,
+					frontmatter: stableStringify(frontmatter),
+					configHash: this.configHash,
+					pluginCacheKeys: this.pluginCacheKeys,
+					dependencyHashes: [],
+				}),
 		});
-
-		const processedAst = (await this.pluginRunner.runAfterParse(
-			ast,
-			processedFile,
-		)) as HastRoot;
-		const finalAst = (await this.pluginRunner.runBeforeTransform(
-			processedAst,
-			frontmatter,
-		)) as HastRoot;
-
-		let irDoc: IRDocument = transformToIR(
-			finalAst,
-			frontmatter,
-			file.relativePath,
-		);
-		const contentHash = computeContentHash({
-			fileContent: file.hash,
-			frontmatter: stableStringify(frontmatter),
-			configHash: this.configHash,
-			pluginCacheKeys: this.pluginCacheKeys,
-			dependencyHashes: [],
-		});
-		irDoc = { ...irDoc, contentHash };
-		irDoc = await this.pluginRunner.runAfterTransform(irDoc);
-		irDoc = await this.pluginRunner.runBeforeRender(irDoc);
+		const contentHash = irDoc.contentHash;
 
 		const slug = irDoc.slug;
 		const relPath = relative(
@@ -340,28 +316,16 @@ export class CompileService {
 	}
 
 	/**
-	 * Build the generated `Frontmatter` type for a configured schema. Derives it
-	 * from the user's schema — precise for any Standard Schema library — by
-	 * reading the schema's compile-time `~standard.types.output` off the config
-	 * file's default export. The expression is fully inlined (no external import)
-	 * so it resolves regardless of which docvia packages the consumer depends on,
-	 * and it needs no runtime schema introspection. Falls back to a permissive
-	 * record when the config path is unknown (e.g. no config file).
+	 * Build the generated `Frontmatter` type for a configured schema. Owns the
+	 * one runtime-specific concern — locating the config file relative to the
+	 * output dir — and delegates the type's shape to `@docvia/schema`, which
+	 * derives it from the config's schema via its compile-time `~standard.types`
+	 * (precise for any Standard Schema library, no runtime introspection). Falls
+	 * back to a permissive record when the config path is unknown (no config file).
 	 */
 	private frontmatterTypeExpression(): string {
-		const base = [
-			"{",
-			"  title: string;",
-			"  description: string;",
-			"  slug?: string;",
-			"  tags: string[];",
-			"  draft: boolean;",
-			"  order?: number;",
-			"}",
-		].join("\n");
-
 		if (!this.configPath) {
-			return `${base} & Record<string, unknown>`;
+			return composeFrontmatterType();
 		}
 
 		const relConfig = relative(this.resolvedOutDir, this.configPath)
@@ -371,16 +335,10 @@ export class CompileService {
 			? relConfig
 			: `./${relConfig}`;
 
-		// `NonNullable<Schema["~standard"]["types"]>["output"]` is the Standard
-		// Schema output-inference formula (what StandardSchemaV1.InferOutput does),
-		// inlined so the generated file has no dependency to resolve.
-		return [
-			`${base} & NonNullable<`,
-			`  NonNullable<(typeof import(${JSON.stringify(importSpecifier)}))["default"]["frontmatter"]>["~standard"]["types"]`,
-			'>["output"] & {',
-			"  [key: string]: unknown;",
-			"}",
-		].join("\n");
+		const schemaRef = `NonNullable<(typeof import(${JSON.stringify(
+			importSpecifier,
+		)}))["default"]["frontmatter"]>`;
+		return composeFrontmatterType(inferSchemaOutput(schemaRef));
 	}
 
 	/** Find which collection (if any) owns a source file. */

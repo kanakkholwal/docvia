@@ -168,7 +168,55 @@ export function validateFrontmatter(
 	} as FrontmatterData;
 }
 
-// Frontmatter TypeScript types are derived at build time from the user's schema
-// via `import("@docvia/ir").InferFrontmatter<...>` in the generated
-// `types.d.ts` — using the schema's compile-time `~standard.types`, with no
-// runtime introspection. See @docvia/runtime's `frontmatterTypeExpression`.
+// Frontmatter TypeScript codegen
+//
+// The generated `types.d.ts` needs a TypeScript type for each collection's
+// frontmatter. These builders own that type's *shape* — the built-in base
+// fields plus the user schema's inferred output — so the contract lives next to
+// its validator (`DocPageSchema`) instead of being hand-written in the emitter.
+// The result is inlined into the `.d.ts` (no imports to resolve) and derives
+// the schema's output purely from its compile-time `~standard.types`, so no
+// runtime introspection is involved. The emitter only supplies a reference to
+// the config's schema type (a path concern it owns).
+
+/**
+ * The built-in frontmatter fields as a TypeScript type literal. Kept in lockstep
+ * with {@link DocPageSchema} (the validator) and `FrontmatterData` (the runtime
+ * interface in `@docvia/ir`) — all three describe the same base contract, so a
+ * change to the built-in fields touches these three siblings together.
+ */
+export const BASE_FRONTMATTER_TYPE = [
+	"{",
+	"  title: string;",
+	"  description: string;",
+	"  slug?: string;",
+	"  tags: string[];",
+	"  draft: boolean;",
+	"  order?: number;",
+	"}",
+].join("\n");
+
+/**
+ * Wrap a *type reference* to a Standard Schema in the output-inference formula
+ * — `NonNullable<S["~standard"]["types"]>["output"]`, i.e. exactly what
+ * `StandardSchemaV1.InferOutput<S>` computes. Inlined into the generated `.d.ts`
+ * so any Standard Schema library's output type resolves with nothing to import.
+ * `schemaRef` is a TypeScript type expression that resolves to the schema.
+ */
+export function inferSchemaOutput(schemaRef: string): string {
+	return ["NonNullable<", `  ${schemaRef}["~standard"]["types"]`, '>["output"]'].join(
+		"\n",
+	);
+}
+
+/**
+ * Compose the generated `Frontmatter` type: the {@link BASE_FRONTMATTER_TYPE}
+ * base fields, intersected with the user schema's inferred output (or a
+ * permissive record when no schema is configured), plus an index signature for
+ * passthrough keys. `schemaOutput` is a type expression — typically from
+ * {@link inferSchemaOutput}; omit it for the schemaless fallback.
+ */
+export function composeFrontmatterType(schemaOutput?: string): string {
+	const ext = schemaOutput ?? "Record<string, unknown>";
+	return `${BASE_FRONTMATTER_TYPE} & ${ext} & {\n  [key: string]: unknown;\n}`;
+}
