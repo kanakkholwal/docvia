@@ -1,7 +1,7 @@
-// The `docvia init` brand banner: an ASCII wordmark with a cyan→blue gradient
-// over three tight lines of metadata. Kept deliberately small — logo, one-line
-// pitch, version/author/license, repo. Shown only on an interactive run so
-// piped/CI output stays clean.
+// The `docvia init` brand banner: a grayscale ASCII wordmark over two tight
+// lines of metadata. Kept deliberately small — logo, one-line pitch, then
+// version/license/repo. Shown only on an interactive run so piped/CI output
+// stays clean.
 import { c, fg256 } from "../logger";
 import { getVersion } from "../version";
 import { isInteractive } from "./core";
@@ -25,9 +25,11 @@ const WORDMARK: string[] = Array.from({ length: ROWS }, (_, r) =>
 		.join(""),
 );
 
-// Cyan → blue diagonal ramp, one 256-color code per row.
-const RAMP = [51, 45, 39, 33, 27];
+// Grayscale ramp — a soft near-white → mid-gray fade down the rows, matching
+// the muted, monochrome look of the reference CLI. One 256-color code per row.
+const RAMP = [252, 250, 248, 246, 244];
 const PAD = "   ";
+const DOT = ` ${c.dim("·")} `;
 
 /** Print the `init` banner. No-op on non-interactive streams. */
 export function printBanner(): void {
@@ -35,11 +37,12 @@ export function printBanner(): void {
 	const out = process.stdout;
 	out.write("\n");
 	WORDMARK.forEach((line, i) => {
-		out.write(`${PAD}${fg256(RAMP[i] ?? 39, line)}\n`);
+		out.write(`${PAD}${fg256(RAMP[i] ?? 246, line)}\n`);
 	});
-	out.write(`\n${PAD}${c.dim("Build-time Markdown documentation compiler")}\n`);
 	out.write(
-		`${PAD}${c.gray(`v${getVersion()}  ${c.dim("·")}  by kanakkholwal  ${c.dim("·")}  MIT`)}\n`,
+		`\n${PAD}${c.dim("Typed Markdown documentation for any framework")}\n`,
 	);
-	out.write(`${PAD}${c.gray("github.com/kanakkholwal/docvia")}\n`);
+	out.write(
+		`${PAD}${c.gray(`v${getVersion()}${DOT}MIT${DOT}github.com/kanakkholwal/docvia`)}\n`,
+	);
 }
