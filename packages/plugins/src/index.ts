@@ -160,7 +160,9 @@ export class PluginRunner {
  * returned config so the generated `types.d.ts` can infer a precise
  * `Frontmatter` type from `typeof import('./docvia.config').default.frontmatter`.
  */
-export function defineConfig<const F extends FrontmatterSchema = FrontmatterSchema>(
+export function defineConfig<
+	const F extends FrontmatterSchema = FrontmatterSchema,
+>(
 	config: Partial<Omit<docviaConfig, "frontmatter">> & { frontmatter?: F },
 ): docviaConfig & { readonly frontmatter?: F } {
 	return {
