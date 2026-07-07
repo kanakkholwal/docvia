@@ -1,5 +1,14 @@
 # @docvia/source
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [7e90aeb]
+  - @docvia/schema@0.3.0
+  - @docvia/ir@0.3.0
+  - @docvia/renderer-core@0.2.2
+
 ## 0.3.0
 
 ### Minor Changes
