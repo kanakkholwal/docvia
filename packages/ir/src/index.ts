@@ -328,4 +328,23 @@ export interface SearchDocument {
 	readonly pageTitle: string;
 }
 
+/**
+ * Derive a {@link PageMeta} from a compiled {@link IRDocument} — the single
+ * place that maps a document's frontmatter and headings to page metadata.
+ * Shared by the build service, every renderer adapter, and the SSR service so
+ * the shape stays consistent everywhere. `lastModified` is stamped at call time.
+ */
+export function toPageMeta(ir: IRDocument): PageMeta {
+	return {
+		slug: ir.slug,
+		title: ir.frontmatter.title,
+		description: ir.frontmatter.description,
+		headings: ir.headings,
+		contentHash: ir.contentHash,
+		lastModified: Date.now(),
+		tags: ir.frontmatter.tags,
+		order: ir.frontmatter.order,
+	};
+}
+
 export { transformToIR } from "./transform";

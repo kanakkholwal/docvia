@@ -5,6 +5,7 @@ import type {
 	RenderedPage,
 	RendererAdapter,
 } from "@docvia/ir";
+import { toPageMeta } from "@docvia/ir";
 
 import {
 	type ComponentRegistry,
@@ -34,16 +35,7 @@ export function createSvelteRenderer(
 		async renderPage(doc: IRDocument): Promise<RenderedPage> {
 			const ctx: Omit<RenderContext, "manifest"> = {
 				slug: doc.slug,
-				meta: {
-					slug: doc.slug,
-					title: doc.frontmatter.title,
-					description: doc.frontmatter.description,
-					headings: doc.headings,
-					contentHash: doc.contentHash,
-					lastModified: Date.now(),
-					tags: doc.frontmatter.tags,
-					order: doc.frontmatter.order,
-				},
+				meta: toPageMeta(doc),
 				registry,
 			};
 

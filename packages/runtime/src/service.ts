@@ -17,6 +17,7 @@ import type {
 	IRDocument,
 	PageMeta,
 } from "@docvia/ir";
+import { toPageMeta } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
 import { composeFrontmatterType, inferSchemaOutput } from "@docvia/schema";
 import {
@@ -164,23 +165,13 @@ export class CompileService {
 		});
 		const contentHash = irDoc.contentHash;
 
-		const slug = irDoc.slug;
 		const relPath = relative(
 			this.resolvedOutDir,
 			resolvePath(file.path),
 		).replace(/\\/g, "/");
 		const route = `./${relPath}?docvia`;
 
-		const page: PageMeta = {
-			slug,
-			title: irDoc.frontmatter.title,
-			description: irDoc.frontmatter.description,
-			headings: irDoc.headings,
-			contentHash,
-			lastModified: Date.now(),
-			tags: irDoc.frontmatter.tags || [],
-			order: irDoc.frontmatter.order,
-		};
+		const page = toPageMeta(irDoc);
 
 		return {
 			collectionName: collection.name,
