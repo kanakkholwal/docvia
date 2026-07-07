@@ -35,7 +35,7 @@ const d = $derived(dims[size]);
 		d
 		<!-- Subtle brand-color accent dot on the mark -->
 		<span
-			class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-brand-coral"
+			class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-brand"
 			aria-hidden="true"
 		></span>
 	</span>

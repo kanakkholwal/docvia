@@ -101,15 +101,15 @@ const editions: Edition[] = [
 			{#each editions as edition}
 				{@const isFeatured = edition.featured}
 				<div
-					class={`relative flex flex-col rounded-xl p-8 ${
+					class={`relative flex flex-col rounded-lg p-8 ${
 						isFeatured
-							? "bg-brand-teal text-card-on-dark"
+							? "bg-surface-dark text-card-on-dark"
 							: "border border-hairline bg-surface-card text-ink"
 					}`}
 				>
 					{#if isFeatured}
 						<div
-							class="absolute -top-3 left-8 rounded-full bg-brand-peach px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-card-on-light"
+							class="absolute -top-3 left-8 rounded-full bg-brand px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-on-brand"
 						>
 							Most requested
 						</div>
@@ -118,7 +118,7 @@ const editions: Edition[] = [
 					<!-- Header -->
 					<div class="flex items-center gap-2.5">
 						<edition.icon
-							class={`h-5 w-5 ${isFeatured ? "text-brand-mint" : "text-muted"}`}
+							class={`h-5 w-5 ${isFeatured ? "text-brand" : "text-muted"}`}
 						/>
 						<h3
 							class="font-display text-[22px]"
@@ -139,7 +139,7 @@ const editions: Edition[] = [
 						{#if edition.priceSuffix}
 							<div
 								class={`mt-1 text-[13px] font-medium uppercase tracking-[0.08em] ${
-									isFeatured ? "text-brand-mint" : "text-muted"
+									isFeatured ? "text-brand" : "text-muted"
 								}`}
 							>
 								{edition.priceSuffix}
@@ -160,7 +160,7 @@ const editions: Edition[] = [
 							<li class="flex items-start gap-2.5">
 								<Check
 									class={`mt-0.5 h-4 w-4 shrink-0 ${
-										isFeatured ? "text-brand-mint" : "text-check"
+										isFeatured ? "text-brand" : "text-check"
 									}`}
 								/>
 								<span
@@ -175,7 +175,7 @@ const editions: Edition[] = [
 						href={edition.cta.href}
 						class={`mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[14px] font-semibold transition-colors ${
 							isFeatured
-								? "bg-white text-card-on-light hover:bg-white/90"
+								? "bg-brand text-on-brand hover:bg-brand-strong"
 								: "bg-ink text-on-primary hover:bg-ink/90"
 						}`}
 					>

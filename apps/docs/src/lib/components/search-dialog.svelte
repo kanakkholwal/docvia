@@ -320,7 +320,7 @@ onMount(() => {
 											class="mt-0.5 block text-xs leading-relaxed text-muted line-clamp-2"
 										>
 											{#each snippetSegments(result.content, query) as seg}{#if seg.hit}<mark
-														class="rounded-[3px] bg-brand-peach/40 px-0.5 font-medium text-inherit"
+														class="rounded-[3px] bg-brand/30 px-0.5 font-medium text-inherit"
 														>{seg.text}</mark
 													>{:else}{seg.text}{/if}{/each}
 										</span>
@@ -355,7 +355,7 @@ onMount(() => {
 					to close
 				</span>
 				<span class="ml-auto flex items-center gap-1">
-					<span class="h-1 w-1 rounded-full bg-brand-coral"></span>
+					<span class="h-1 w-1 rounded-full bg-brand"></span>
 					Powered by <span class="font-medium text-body">@docvia/search</span>
 				</span>
 			</div>

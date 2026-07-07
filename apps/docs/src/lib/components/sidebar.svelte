@@ -33,7 +33,7 @@ const folders = $derived(tree.children.filter((n) => n.type === "folder"));
 			<span
 				class={cn(
 					"h-1.5 w-1.5 rounded-full",
-					active ? "bg-brand-coral" : "bg-transparent",
+					active ? "bg-brand" : "bg-transparent",
 				)}
 			></span>
 			{item.name}

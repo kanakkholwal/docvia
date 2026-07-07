@@ -43,7 +43,7 @@ const steps = [
 					class="flex flex-col gap-3 rounded-lg bg-surface-card p-5 sm:flex-row sm:items-center"
 				>
 					<span
-						class="font-mono text-[11px] font-semibold uppercase tracking-widest text-brand-coral sm:w-10"
+						class="font-mono text-[11px] font-semibold uppercase tracking-widest text-brand-ink sm:w-10"
 					>
 						{step}
 					</span>

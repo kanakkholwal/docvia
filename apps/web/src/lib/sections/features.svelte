@@ -55,16 +55,17 @@ const hooks = [
 			</p>
 		</div>
 
-		<!-- 6-card saturated cycle: pink → teal → lavender → peach → ochre → cream -->
+		<!-- Uniform neutral card grid. One brand voltage: the numbered
+		     eyebrow + a single accent detail per card. -->
 		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-			<!-- 1. Pink — Framework-agnostic (text-card-on-dark) -->
+			<!-- 1. Framework-agnostic -->
 			<article
-				class="flex flex-col gap-5 rounded-xl bg-brand-pink p-8 text-card-on-dark"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
-					class="text-[12px] font-semibold uppercase tracking-widest text-card-on-dark/80"
+					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					01 · Framework-agnostic
+					<span class="text-brand-ink">01</span> · Framework-agnostic
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -72,7 +73,7 @@ const hooks = [
 				>
 					Render the same docs to any framework.
 				</h3>
-				<p class="text-[15px] leading-[1.55] text-card-on-dark/85">
+				<p class="text-[15px] leading-[1.55] text-body">
 					IR-based compiler emits framework-native modules. React today,
 					Svelte tomorrow, Vue when you need it — same source.
 				</p>
@@ -80,10 +81,10 @@ const hooks = [
 				<div class="mt-auto flex flex-wrap gap-1.5 pt-2">
 					{#each renderTargets as t}
 						<span
-							class={`rounded-full px-3 py-1.5 text-[13px] font-medium ${
+							class={`rounded-md px-3 py-1.5 text-[13px] font-medium ${
 								t.active
-									? "bg-white text-card-on-light"
-									: "bg-white/15 text-card-on-dark"
+									? "bg-brand text-on-brand"
+									: "bg-surface-strong text-body"
 							}`}
 						>
 							{t.label}
@@ -92,14 +93,14 @@ const hooks = [
 				</div>
 			</article>
 
-			<!-- 2. Teal — Deploy anywhere (text-card-on-dark) -->
+			<!-- 2. Deploy anywhere -->
 			<article
-				class="flex flex-col gap-5 rounded-xl bg-brand-teal p-8 text-card-on-dark"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
-					class="text-[12px] font-semibold uppercase tracking-widest text-brand-mint"
+					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					02 · Deploy anywhere
+					<span class="text-brand-ink">02</span> · Deploy anywhere
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -107,29 +108,29 @@ const hooks = [
 				>
 					Static output. Any host. Your VPC.
 				</h3>
-				<p class="text-[15px] leading-[1.55] text-card-on-dark/85">
+				<p class="text-[15px] leading-[1.55] text-body">
 					No proprietary runtime, no required cloud. Drop the build artifact
 					on Vercel, Cloudflare, an S3 bucket, or your own infrastructure.
 				</p>
 				<!-- Product UI fragment: deploy target list -->
-				<ul class="mt-auto space-y-1.5 text-[14px] text-card-on-dark/90">
+				<ul class="mt-auto space-y-1.5 text-[14px] text-body-strong">
 					{#each deployTargets as host}
 						<li class="flex items-center gap-2">
-							<Check class="h-3.5 w-3.5 shrink-0 text-brand-mint" />
+							<Check class="h-3.5 w-3.5 shrink-0 text-check" />
 							{host}
 						</li>
 					{/each}
 				</ul>
 			</article>
 
-			<!-- 3. Lavender — Typed frontmatter (text-card-on-light) -->
+			<!-- 3. Typed frontmatter -->
 			<article
-				class="flex flex-col gap-5 rounded-xl bg-brand-lavender p-8 text-card-on-light"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
-					class="text-[12px] font-semibold uppercase tracking-widest text-card-on-light/70"
+					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					03 · Typed frontmatter
+					<span class="text-brand-ink">03</span> · Typed frontmatter
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -137,29 +138,29 @@ const hooks = [
 				>
 					Your schema. Your types. Auto-generated.
 				</h3>
-				<p class="text-[15px] leading-[1.55] text-card-on-light/75">
+				<p class="text-[15px] leading-[1.55] text-body">
 					Define frontmatter with Zod once. docvia emits a typed Frontmatter
 					interface for every collection — caught at build, not at runtime.
 				</p>
-				<!-- Product UI fragment: code snippet (absolute dark terminal style) -->
+				<!-- Product UI fragment: code snippet (embedded dark terminal) -->
 				<pre
-					class="mt-auto overflow-hidden rounded-md bg-[#0a0a0a] p-4 font-mono text-[12.5px] leading-[1.55] text-card-on-dark"
+					class="mt-auto overflow-hidden rounded-md bg-surface-dark p-4 font-mono text-[12.5px] leading-[1.55] text-card-on-dark"
 				>
-<span class="text-brand-mint">type</span> <span class="text-brand-peach">Frontmatter</span> = {`{`}
-  title: <span class="text-brand-mint">string</span>;
-  tags: <span class="text-brand-mint">string</span>[];
-  publishedAt: <span class="text-brand-mint">Date</span>;
+<span class="text-brand">type</span> <span class="text-card-on-dark">Frontmatter</span> = {`{`}
+  title: <span class="text-brand">string</span>;
+  tags: <span class="text-brand">string</span>[];
+  publishedAt: <span class="text-brand">Date</span>;
 {`}`}</pre>
 			</article>
 
-			<!-- 4. Peach — Incremental builds (text-card-on-light) -->
+			<!-- 4. Incremental builds -->
 			<article
-				class="flex flex-col gap-5 rounded-xl bg-brand-peach p-8 text-card-on-light"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
-					class="text-[12px] font-semibold uppercase tracking-widest text-card-on-light/70"
+					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					04 · Incremental builds
+					<span class="text-brand-ink">04</span> · Incremental builds
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -167,40 +168,40 @@ const hooks = [
 				>
 					Rebuild changed pages. Skip everything else.
 				</h3>
-				<p class="text-[15px] leading-[1.55] text-card-on-light/75">
+				<p class="text-[15px] leading-[1.55] text-body">
 					Content-addressable cache keyed on source, frontmatter, config, and
 					plugin state. Unchanged files take fractions of a millisecond.
 				</p>
-				<!-- Product UI fragment: cache log (absolute white inner panel) -->
+				<!-- Product UI fragment: cache log -->
 				<div
-					class="mt-auto space-y-1.5 rounded-md bg-white/75 p-3 font-mono text-[12px]"
+					class="mt-auto space-y-1.5 rounded-md border border-hairline bg-surface-soft p-3 font-mono text-[12px]"
 				>
 					{#each cacheLog as line}
 						<div class="flex items-center gap-2">
 							<span
 								class={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
 									line.state === "cached"
-										? "bg-brand-teal text-card-on-dark"
-										: "bg-[#0a0a0a] text-card-on-dark"
+										? "bg-brand text-on-brand"
+										: "bg-surface-dark text-card-on-dark"
 								}`}
 							>
 								{line.state}
 							</span>
-							<span class="flex-1 text-card-on-light/80">{line.file}</span>
-							<span class="text-card-on-light/50">{line.ms}</span>
+							<span class="flex-1 text-body">{line.file}</span>
+							<span class="text-muted-soft">{line.ms}</span>
 						</div>
 					{/each}
 				</div>
 			</article>
 
-			<!-- 5. Ochre — Pluggable pipeline (text-card-on-light) -->
+			<!-- 5. Pluggable pipeline -->
 			<article
-				class="flex flex-col gap-5 rounded-xl bg-brand-ochre p-8 text-card-on-light"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
-					class="text-[12px] font-semibold uppercase tracking-widest text-card-on-light/70"
+					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					05 · Pluggable pipeline
+					<span class="text-brand-ink">05</span> · Pluggable pipeline
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -208,33 +209,33 @@ const hooks = [
 				>
 					Five hooks. Yours to extend.
 				</h3>
-				<p class="text-[15px] leading-[1.55] text-card-on-light/75">
+				<p class="text-[15px] leading-[1.55] text-body">
 					Tap into the compiler at any stage. Add OpenAPI rendering, link
 					checking, or your own AST transforms without forking.
 				</p>
-				<!-- Product UI fragment: hook chain (absolute dark numerals) -->
+				<!-- Product UI fragment: hook chain -->
 				<div class="mt-auto flex flex-col gap-1.5">
 					{#each hooks as hook, i}
 						<div class="flex items-center gap-2 font-mono text-[12px]">
 							<span
-								class="grid h-5 w-5 place-items-center rounded-full bg-[#0a0a0a] text-[10px] font-bold text-card-on-dark"
+								class="grid h-5 w-5 place-items-center rounded-full bg-brand text-[10px] font-bold text-on-brand"
 							>
 								{i + 1}
 							</span>
-							<span class="text-card-on-light/85">{hook}()</span>
+							<span class="text-body-strong">{hook}()</span>
 						</div>
 					{/each}
 				</div>
 			</article>
 
-			<!-- 6. Cream — Search + AI (uses theme-flipping surface-card → text-ink) -->
+			<!-- 6. Search + BYO AI -->
 			<article
-				class="flex flex-col gap-5 rounded-xl border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 				>
-					06 · Search + BYO AI
+					<span class="text-brand-ink">06</span> · Search + BYO AI
 				</span>
 				<h3
 					class="font-display text-[28px] leading-[1.1] md:text-[32px]"
@@ -260,7 +261,7 @@ const hooks = [
 						<span
 							class="ml-auto inline-flex items-center gap-1 rounded-md bg-surface-soft px-1.5 py-0.5 text-[10px] font-semibold text-muted"
 						>
-							<Zap class="h-3 w-3 text-brand-ochre" />
+							<Zap class="h-3 w-3 text-brand-ink" />
 							AI
 						</span>
 					</div>

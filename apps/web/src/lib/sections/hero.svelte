@@ -32,7 +32,7 @@ onMount(() => {
 					in:fly={{ y: 8, duration: 280, easing: cubicOut, delay: 40 }}
 					class="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-surface-card px-3 py-1.5 text-[13px] font-medium text-body-strong"
 				>
-					<span class="h-1.5 w-1.5 rounded-full bg-brand-coral"></span>
+					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 					Open source · self-host anywhere
 				</span>
 
@@ -92,20 +92,8 @@ onMount(() => {
 			{#if mounted}
 				<div
 					in:fly={{ y: 24, duration: 480, easing: cubicOut, delay: 200 }}
-					class="relative rounded-xl bg-surface-soft p-6 md:p-8"
+					class="relative rounded-xl border border-hairline bg-surface-soft p-6 md:p-8"
 				>
-					<!-- Floating brand-accent shapes for warmth -->
-					<div
-						aria-hidden="true"
-						in:scale={{ duration: 480, delay: 520, start: 0.6 }}
-						class="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full bg-brand-peach"
-					></div>
-					<div
-						aria-hidden="true"
-						in:scale={{ duration: 480, delay: 640, start: 0.6 }}
-						class="pointer-events-none absolute -bottom-3 -left-3 h-10 w-10 rounded-full bg-brand-mint"
-					></div>
-
 					<!-- Build console (product UI fragment) -->
 					<div
 						class="relative overflow-hidden rounded-lg border border-hairline bg-canvas"
@@ -114,9 +102,9 @@ onMount(() => {
 						<div
 							class="flex items-center gap-2 border-b border-hairline bg-surface-card/60 px-4 py-2.5"
 						>
-							<span class="h-2.5 w-2.5 rounded-full bg-brand-coral/70"></span>
-							<span class="h-2.5 w-2.5 rounded-full bg-brand-ochre/70"></span>
-							<span class="h-2.5 w-2.5 rounded-full bg-brand-mint/80"></span>
+							<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
+							<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
+							<span class="h-2.5 w-2.5 rounded-full bg-brand"></span>
 							<span class="ml-3 font-mono text-[11px] text-muted-soft">
 								docvia · build
 							</span>
