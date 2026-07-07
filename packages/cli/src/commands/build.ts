@@ -72,6 +72,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 			plugins: [...config.plugins],
 			config,
 			projectRoot,
+			configPath: existsSync(configPath) ? configPath : undefined,
 			incremental: !opts.noCache,
 		});
 

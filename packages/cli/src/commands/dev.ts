@@ -74,6 +74,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			plugins: [...cfg.plugins],
 			config: cfg,
 			projectRoot,
+			configPath: existsSync(configPath) ? configPath : undefined,
 			incremental: true,
 		});
 	}

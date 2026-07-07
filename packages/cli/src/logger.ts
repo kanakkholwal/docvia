@@ -3,22 +3,27 @@
 // pulling another package into the supply chain.
 import { docviaError } from "@docvia/ir";
 
-const enabled =
+/** Whether ANSI styling is emitted. Honors FORCE_COLOR / NO_COLOR / TTY. */
+export const colorEnabled =
 	process.env.FORCE_COLOR === "1" ||
 	(process.stdout.isTTY === true && process.env.NO_COLOR !== "1");
 
 const ansi = (code: string, s: string) =>
-	enabled ? `\x1b[${code}m${s}\x1b[0m` : s;
+	colorEnabled ? `\x1b[${code}m${s}\x1b[0m` : s;
 
 export const c = {
 	red: (s: string) => ansi("31", s),
 	green: (s: string) => ansi("32", s),
 	yellow: (s: string) => ansi("33", s),
 	blue: (s: string) => ansi("34", s),
+	magenta: (s: string) => ansi("35", s),
 	cyan: (s: string) => ansi("36", s),
+	white: (s: string) => ansi("37", s),
 	gray: (s: string) => ansi("90", s),
 	bold: (s: string) => ansi("1", s),
 	dim: (s: string) => ansi("2", s),
+	/** Reverse video — used to draw a fake text-input cursor. */
+	inverse: (s: string) => ansi("7", s),
 };
 
 export const symbols = {
