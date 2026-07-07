@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { parseMarkdown } from "@docvia/core";
 import type { docviaConfig, IRDocument, RendererAdapter } from "@docvia/ir";
 import { docviaError, transformToIR } from "@docvia/ir";
+import { resolveConfigPath } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
 import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
 import type { HmrContext, Plugin, ViteDevServer } from "vite";
@@ -25,6 +26,15 @@ const VIRTUAL_BROWSER_ID = `\0${BROWSER_ID}`;
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
 	readonly noCache?: boolean;
+	/**
+	 * Path to the `docvia.config.*` file (relative to the Vite root or absolute),
+	 * used to derive a precise `Frontmatter` type from `config.frontmatter` (any
+	 * Standard Schema library) in the generated `types.d.ts`. Defaults to
+	 * auto-detecting a `docvia.config.{ts,mts,cts,js,mjs,cjs}` in the Vite root.
+	 * Set to `false` to opt out (or when the config is defined inline), which
+	 * falls back to a permissive type.
+	 */
+	readonly configPath?: string | false;
 }
 
 /** Shape a compile error into a Vite HMR error-overlay payload. */
@@ -71,6 +81,7 @@ export function docvia(
 			plugins: [...config.plugins],
 			config,
 			projectRoot: root,
+			configPath: resolveConfigPath(root, options.configPath),
 			incremental: !options.noCache,
 		});
 	}
@@ -98,7 +109,7 @@ export function docvia(
 		const meta = validateFrontmatter(
 			extracted.data,
 			filePath,
-			config.frontmatter as never,
+			config.frontmatter,
 		);
 		const { ast } = await parseMarkdown(extracted.content, {
 			remarkPlugins: config.markdown.remarkPlugins,

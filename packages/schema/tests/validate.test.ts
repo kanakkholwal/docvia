@@ -1,6 +1,14 @@
 import { docviaError } from "@docvia/ir";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { describe, expect, it } from "vitest";
-import { DocPageSchema, validateFrontmatter } from "../src/index";
+import { z } from "zod/v3";
+import {
+	BASE_FRONTMATTER_TYPE,
+	composeFrontmatterType,
+	DocPageSchema,
+	inferSchemaOutput,
+	validateFrontmatter,
+} from "../src/index";
 
 describe("validateFrontmatter", () => {
 	it("validates minimal valid frontmatter", () => {
@@ -196,5 +204,145 @@ describe("validateFrontmatter", () => {
 		} catch (err) {
 			expect(err).toBeInstanceOf(docviaError);
 		}
+	});
+});
+
+// A minimal, hand-rolled Standard Schema (no validation library) proving the
+// pipeline is library-agnostic: it only requires the `~standard` contract.
+function customAuthorSchema(): StandardSchemaV1<
+	Record<string, unknown>,
+	Record<string, unknown>
+> {
+	return {
+		"~standard": {
+			version: 1,
+			vendor: "custom-test",
+			validate(value) {
+				const input = value as Record<string, unknown>;
+				if (typeof input.author !== "string") {
+					return {
+						issues: [{ message: "author must be a string", path: ["author"] }],
+					};
+				}
+				return { value: { author: input.author.trim() } };
+			},
+		},
+	};
+}
+
+describe("validateFrontmatter with a Standard Schema extension", () => {
+	it("accepts any Standard Schema library, not just Zod", () => {
+		const data = { title: "Test", author: "  Ada  " };
+		const result = validateFrontmatter(data, undefined, customAuthorSchema());
+
+		expect(result.title).toBe("Test");
+		// Extension output wins and is merged in (trimmed by the custom schema).
+		expect((result as Record<string, unknown>).author).toBe("Ada");
+		// Base defaults are still applied.
+		expect(result.tags).toEqual([]);
+	});
+
+	it("reports extension-schema issues with their path", () => {
+		const data = { title: "Test", author: 123 };
+
+		try {
+			validateFrontmatter(data, "/docs/x.md", customAuthorSchema());
+			expect.fail("Should have thrown");
+		} catch (err) {
+			expect(err).toBeInstanceOf(docviaError);
+			if (err instanceof docviaError) {
+				expect(err.message).toContain("author");
+				expect(err.message).toContain("author must be a string");
+			}
+		}
+	});
+
+	it("merges base and extension issues together", () => {
+		const data = { author: 123 }; // missing title (base) + bad author (ext)
+
+		try {
+			validateFrontmatter(data, undefined, customAuthorSchema());
+			expect.fail("Should have thrown");
+		} catch (err) {
+			if (err instanceof docviaError) {
+				expect(err.message).toMatch(/title|Title/i);
+				expect(err.message).toContain("author");
+			}
+		}
+	});
+
+	it("rejects asynchronous schemas with a clear error", () => {
+		const asyncSchema: StandardSchemaV1 = {
+			"~standard": {
+				version: 1,
+				vendor: "async-test",
+				validate: () => Promise.resolve({ value: {} }),
+			},
+		};
+
+		try {
+			validateFrontmatter({ title: "Test" }, undefined, asyncSchema);
+			expect.fail("Should have thrown");
+		} catch (err) {
+			expect(err).toBeInstanceOf(docviaError);
+			if (err instanceof docviaError) {
+				expect(err.message).toContain("Asynchronous");
+			}
+		}
+	});
+
+	it("works with a Zod extension schema", () => {
+		const schema = z.object({ author: z.string().optional() });
+		const result = validateFrontmatter(
+			{ title: "Test", author: "Ada" },
+			undefined,
+			schema,
+		);
+
+		expect(result.title).toBe("Test");
+		expect((result as Record<string, unknown>).author).toBe("Ada");
+	});
+});
+
+describe("frontmatter type codegen", () => {
+	it("BASE_FRONTMATTER_TYPE lists the built-in fields", () => {
+		for (const field of [
+			"title: string;",
+			"description: string;",
+			"slug?: string;",
+			"tags: string[];",
+			"draft: boolean;",
+			"order?: number;",
+		]) {
+			expect(BASE_FRONTMATTER_TYPE).toContain(field);
+		}
+	});
+
+	it("inferSchemaOutput wraps a ref in the ~standard output formula", () => {
+		const out = inferSchemaOutput("SchemaRef");
+		expect(out).toContain('SchemaRef["~standard"]["types"]');
+		expect(out).toContain('>["output"]');
+		expect(out.startsWith("NonNullable<")).toBe(true);
+	});
+
+	it("composeFrontmatterType() falls back to a permissive record", () => {
+		const ts = composeFrontmatterType();
+		expect(ts).toContain(BASE_FRONTMATTER_TYPE);
+		expect(ts).toContain("Record<string, unknown>");
+		expect(ts).toContain("[key: string]: unknown;");
+	});
+
+	it("composeFrontmatterType(schemaOutput) intersects base + output + index", () => {
+		const ts = composeFrontmatterType(inferSchemaOutput("S"));
+		expect(ts).toContain(BASE_FRONTMATTER_TYPE);
+		expect(ts).toContain('S["~standard"]["types"]');
+		expect(ts).toContain("[key: string]: unknown;");
+		// Ordering: base, then inferred output, then the index signature.
+		expect(ts.indexOf("title: string;")).toBeLessThan(
+			ts.indexOf('["~standard"]'),
+		);
+		expect(ts.indexOf('["~standard"]')).toBeLessThan(
+			ts.indexOf("[key: string]: unknown;"),
+		);
 	});
 });

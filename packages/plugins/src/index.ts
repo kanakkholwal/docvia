@@ -1,9 +1,11 @@
-import { resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import type {
 	docviaConfig,
 	docviaPlugin,
 	FileEntry,
 	FrontmatterData,
+	FrontmatterSchema,
 	HookPhase,
 	IRDocument,
 } from "@docvia/ir";
@@ -152,7 +154,15 @@ export class PluginRunner {
 
 // Config Loader
 
-export function defineConfig(config: Partial<docviaConfig>): docviaConfig {
+/**
+ * Define a docvia config with full type inference. The generic `F` preserves
+ * the concrete frontmatter schema type (Zod, Valibot, ArkType, …) on the
+ * returned config so the generated `types.d.ts` can infer a precise
+ * `Frontmatter` type from `typeof import('./docvia.config').default.frontmatter`.
+ */
+export function defineConfig<const F extends FrontmatterSchema = FrontmatterSchema>(
+	config: Partial<Omit<docviaConfig, "frontmatter">> & { frontmatter?: F },
+): docviaConfig & { readonly frontmatter?: F } {
 	return {
 		sourceDir: config.sourceDir ?? "docs",
 		outDir: config.outDir ?? ".docvia",
@@ -217,4 +227,83 @@ export async function loadConfig(configPath: string): Promise<docviaConfig> {
 	}
 
 	return defineConfig(rawConfig as Partial<docviaConfig>);
+}
+
+// Config discovery
+
+/** Conventional config filenames, in resolution order. */
+export const CONFIG_BASENAMES = [
+	"docvia.config.ts",
+	"docvia.config.mts",
+	"docvia.config.cts",
+	"docvia.config.js",
+	"docvia.config.mjs",
+	"docvia.config.cjs",
+];
+
+/**
+ * Resolve the docvia config file path. An explicit path (relative to `cwd` or
+ * absolute) wins and is returned as-is — even if missing — so callers can decide
+ * how to treat an absent explicit path. `false` opts out. Otherwise the
+ * conventional `docvia.config.*` in `cwd` is auto-detected, returning `undefined`
+ * when none exists.
+ */
+export function resolveConfigPath(
+	cwd: string,
+	explicit?: string | false,
+): string | undefined {
+	if (explicit === false) return undefined;
+	if (explicit) return resolve(cwd, explicit);
+	for (const name of CONFIG_BASENAMES) {
+		const candidate = resolve(cwd, name);
+		if (existsSync(candidate)) return candidate;
+	}
+	return undefined;
+}
+
+export interface ResolveProjectOptions {
+	/** Directory to resolve a relative/auto-detected config against. Default: cwd. */
+	readonly cwd?: string;
+	/** Explicit config path, or `false` to skip discovery. */
+	readonly configPath?: string | false;
+	/** Throw a `CONFIG_ERROR` when no config file is found instead of using defaults. */
+	readonly required?: boolean;
+}
+
+export interface ResolvedProject {
+	readonly config: docviaConfig;
+	/** Absolute path to the loaded config file; `undefined` when defaults are used. */
+	readonly configPath?: string;
+	/** `dirname(configPath)` when a config was found, otherwise `cwd`. */
+	readonly projectRoot: string;
+}
+
+/**
+ * Discover, load, and locate the project config in one call — the single owner
+ * of "where is the config, what's in it, and what's the project root". When no
+ * config file is found it throws (if `required`) or returns built-in defaults
+ * rooted at `cwd`. Every entry point (CLI, framework plugins, search) resolves
+ * config through here so discovery and defaults stay consistent.
+ */
+export async function resolveProject(
+	options: ResolveProjectOptions = {},
+): Promise<ResolvedProject> {
+	const cwd = resolve(options.cwd ?? process.cwd());
+	const configPath = resolveConfigPath(cwd, options.configPath);
+
+	if (!configPath || !existsSync(configPath)) {
+		if (options.required) {
+			throw new docviaError(
+				"CONFIG_ERROR",
+				`docvia config not found${
+					configPath ? `: ${configPath}` : ` in ${cwd}`
+				}\n  Expected one of: ${CONFIG_BASENAMES.join(", ")}.`,
+				configPath,
+			);
+		}
+		return { config: defineConfig({}), projectRoot: cwd };
+	}
+
+	const config = await loadConfig(configPath);
+	return { config, configPath, projectRoot: dirname(configPath) };
 }

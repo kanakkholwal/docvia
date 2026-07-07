@@ -7,7 +7,7 @@
 // need this — they render the in-place `?docvia` modules directly through their
 // renderer.
 
-import type { PageMeta } from "@docvia/ir";
+import { toPageMeta } from "@docvia/ir";
 import {
 	createDefaultRendererMap,
 	renderDocument,
@@ -72,16 +72,7 @@ export function createDocviaSSR(options: SSROptions): SSRRenderer {
 			const cached = cache.get(ir.contentHash);
 			if (cached) return cached;
 
-			const meta: PageMeta = {
-				slug: ir.slug,
-				title: ir.frontmatter.title,
-				description: ir.frontmatter.description,
-				headings: ir.headings,
-				contentHash: ir.contentHash,
-				lastModified: Date.now(),
-				tags: ir.frontmatter.tags,
-				order: ir.frontmatter.order,
-			};
+			const meta = toPageMeta(ir);
 
 			const { output, manifest } = await renderDocument(ir, rendererMap, {
 				slug: ir.slug,

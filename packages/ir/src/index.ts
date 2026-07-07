@@ -1,5 +1,7 @@
 // @docvia/ir — Intermediate Representation types, error system, and transforms
 
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
 // Error System
 
 export type docviaErrorCode =
@@ -163,6 +165,14 @@ export interface CompilerOptions {
 	 */
 	readonly projectRoot?: string;
 	/**
+	 * Absolute path to the user's `docvia.config.*` file. When set, the generated
+	 * `types.d.ts` derives the `Frontmatter` type by importing this config and
+	 * inferring `config.frontmatter`'s output ({@link InferFrontmatter}) — precise
+	 * for any Standard Schema library. When absent, codegen falls back to a
+	 * permissive type.
+	 */
+	readonly configPath?: string;
+	/**
 	 * When true (default), the compiler reads/writes `.docvia.cache.json` and
 	 * skips files whose content hash and pipeline cache key match the previous
 	 * build. Pass `false` to force a full rebuild.
@@ -235,26 +245,27 @@ export interface CollectionConfig {
 }
 
 /**
- * Duck-typed interface compatible with `z.ZodObject<any>`.
- * Allows @docvia/ir to remain free of a zod dependency.
+ * A frontmatter validation schema from any [Standard Schema](https://standardschema.dev)
+ * compliant library — Zod, Valibot, ArkType, etc. `@docvia/ir` depends only on
+ * the spec's types (`@standard-schema/spec`, zero runtime), so no single
+ * validation library is baked in.
  */
-export interface FrontmatterSchema {
-	safeParse(data: unknown):
-		| {
-				success: true;
-				data: Record<string, unknown>;
-		  }
-		| {
-				success: false;
-				error: {
-					issues: ReadonlyArray<{
-						path: ReadonlyArray<string | number>;
-						message: string;
-					}>;
-				};
-		  };
-	readonly shape: Readonly<Record<string, unknown>>;
-}
+export type FrontmatterSchema = StandardSchemaV1<
+	Record<string, unknown>,
+	Record<string, unknown>
+>;
+
+/**
+ * Infer the validated output type of a frontmatter {@link FrontmatterSchema} —
+ * for any Standard Schema library — through the schema's compile-time
+ * `~standard.types`, with no runtime introspection. A convenience for
+ * hand-written types; the generated `types.d.ts` inlines the same formula so it
+ * carries no dependency to resolve. Falls back to a permissive record when `S`
+ * is not a schema.
+ */
+export type InferFrontmatter<S> = S extends StandardSchemaV1
+	? StandardSchemaV1.InferOutput<S>
+	: Record<string, unknown>;
 
 export interface docviaConfig {
 	readonly sourceDir: string;
@@ -264,20 +275,30 @@ export interface docviaConfig {
 	readonly components?: Record<string, ComponentConfig>;
 	readonly collections?: readonly CollectionConfig[];
 	/**
-	 * Zod schema to extend and validate frontmatter fields beyond the built-in
-	 * (title, description, tags, draft, order, slug). Pass a `z.object({...})`
-	 * and the compiler will merge it with the base schema, validate all pages
-	 * at build time, and generate a typed `Frontmatter` interface instead of
-	 * the default union-of-literal-values.
+	 * A [Standard Schema](https://standardschema.dev) to extend and validate
+	 * frontmatter fields beyond the built-in ones (title, description, tags,
+	 * draft, order, slug). Any compliant library works — Zod, Valibot, ArkType,
+	 * etc. The compiler layers it on top of the base schema, validates every
+	 * page at build time, and — when the schema is introspectable (Zod) —
+	 * generates a typed `Frontmatter` interface instead of the default
+	 * union-of-literal-values.
 	 *
 	 * @example
 	 * ```ts
-	 * import { z } from 'zod/3';
+	 * import { z } from 'zod/v3';
 	 * export default defineConfig({
 	 *   frontmatter: z.object({
 	 *     author: z.string(),
 	 *     category: z.enum(['guide', 'reference']).optional(),
 	 *   }),
+	 * });
+	 * ```
+	 *
+	 * @example
+	 * ```ts
+	 * import * as v from 'valibot';
+	 * export default defineConfig({
+	 *   frontmatter: v.object({ author: v.optional(v.string()) }),
 	 * });
 	 * ```
 	 */
@@ -305,6 +326,25 @@ export interface SearchDocument {
 	readonly content: string;
 	readonly depth: number;
 	readonly pageTitle: string;
+}
+
+/**
+ * Derive a {@link PageMeta} from a compiled {@link IRDocument} — the single
+ * place that maps a document's frontmatter and headings to page metadata.
+ * Shared by the build service, every renderer adapter, and the SSR service so
+ * the shape stays consistent everywhere. `lastModified` is stamped at call time.
+ */
+export function toPageMeta(ir: IRDocument): PageMeta {
+	return {
+		slug: ir.slug,
+		title: ir.frontmatter.title,
+		description: ir.frontmatter.description,
+		headings: ir.headings,
+		contentHash: ir.contentHash,
+		lastModified: Date.now(),
+		tags: ir.frontmatter.tags,
+		order: ir.frontmatter.order,
+	};
 }
 
 export { transformToIR } from "./transform";

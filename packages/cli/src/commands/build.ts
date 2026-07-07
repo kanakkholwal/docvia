@@ -1,9 +1,8 @@
 import { existsSync } from "node:fs";
-import { dirname, relative, resolve } from "node:path";
+import { relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
-import { defineConfig, loadConfig } from "@docvia/plugins";
+import { resolveProject } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
 import { c, fmtMs, formatError, header, log, step, symbols } from "../logger";
 
@@ -27,22 +26,17 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 	const t0 = performance.now();
 
 	try {
-		const configPath = resolve(opts.config ?? "docvia.config.ts");
-		const projectRoot = existsSync(configPath)
-			? dirname(configPath)
-			: process.cwd();
-
 		// 1 — config
 		const tConfig = performance.now();
-		let config: docviaConfig;
-		if (existsSync(configPath)) {
-			config = await loadConfig(configPath);
-			if (verbose) step("config", rel(configPath), performance.now() - tConfig);
-		} else {
+		const { config, configPath, projectRoot } = await resolveProject({
+			configPath: opts.config,
+		});
+		if (!configPath) {
 			log.warn(
 				`No ${c.cyan("docvia.config.ts")} found; using defaults (no renderer).`,
 			);
-			config = defineConfig({});
+		} else if (verbose) {
+			step("config", rel(configPath), performance.now() - tConfig);
 		}
 
 		const dir = resolve(projectRoot, opts.docs ?? config.sourceDir);
@@ -72,6 +66,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 			plugins: [...config.plugins],
 			config,
 			projectRoot,
+			configPath,
 			incremental: !opts.noCache,
 		});
 

@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs";
-import { basename, dirname, relative, resolve } from "node:path";
+import { basename, relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
-import { defineConfig, loadConfig } from "@docvia/plugins";
+import { loadConfig, resolveProject } from "@docvia/plugins";
 import { CompileService } from "@docvia/runtime";
 import { c, formatError, header, log, step, symbols } from "../logger";
 
@@ -30,16 +30,13 @@ function rel(p: string): string {
 export async function runDev(opts: DevOptions): Promise<void> {
 	const verbose = opts.verbose === true;
 	header("dev");
-	const configPath = resolve(opts.config ?? "docvia.config.ts");
-	const projectRoot = existsSync(configPath)
-		? dirname(configPath)
-		: process.cwd();
-
 	let config: docviaConfig;
+	let configPath: string | undefined;
+	let projectRoot: string;
 	try {
-		config = existsSync(configPath)
-			? await loadConfig(configPath)
-			: defineConfig({});
+		({ config, configPath, projectRoot } = await resolveProject({
+			configPath: opts.config,
+		}));
 	} catch (err) {
 		log.error(formatError(err));
 		process.exit(1);
@@ -74,6 +71,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			plugins: [...cfg.plugins],
 			config: cfg,
 			projectRoot,
+			configPath,
 			incremental: true,
 		});
 	}
@@ -106,7 +104,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	const { watch } = await import("chokidar");
 
 	const watchTargets = [sourceDir];
-	if (existsSync(configPath)) watchTargets.push(configPath);
+	if (configPath) watchTargets.push(configPath);
 
 	const watcher = watch(watchTargets, {
 		ignoreInitial: true,
@@ -124,7 +122,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	): Promise<void> {
 		const start = performance.now();
 		try {
-			if (reason === "config") {
+			if (reason === "config" && configPath) {
 				// Config change rebuilds everything — a new service is needed
 				// because config (plugins, renderer, schema) is baked in at
 				// construction.
@@ -171,7 +169,8 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		pending.clear();
 		timer = null;
 
-		const reason = files.includes(configPath) ? "config" : "files";
+		const reason =
+			configPath && files.includes(configPath) ? "config" : "files";
 		if (verbose && reason === "files") {
 			const names = files.map((f) => basename(f)).join(", ");
 			log.plain(c.gray(`  ${symbols.arrow} changed: ${names}`));
@@ -196,7 +195,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	watcher.on("add", schedule);
 	watcher.on("unlink", schedule);
 
-	const watching = existsSync(configPath)
+	const watching = configPath
 		? `${c.cyan(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.cyan(rel(configPath))}`
 		: c.cyan(rel(sourceDir));
 	console.log("");

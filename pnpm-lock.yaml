@@ -363,6 +363,9 @@ importers:
 
   packages/ir:
     dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       github-slugger:
         specifier: ^2.0.0
         version: 2.0.0
@@ -448,6 +451,9 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@docvia/plugins':
+        specifier: workspace:*
+        version: link:../plugins
       '@docvia/runtime':
         specifier: workspace:*
         version: link:../runtime
@@ -458,9 +464,6 @@ importers:
         specifier: workspace:*
         version: link:../source
     devDependencies:
-      '@docvia/plugins':
-        specifier: workspace:*
-        version: link:../plugins
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37
@@ -604,6 +607,9 @@ importers:
       '@docvia/ir':
         specifier: workspace:*
         version: link:../ir
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
       yaml:
         specifier: ^2.8.3
         version: 2.8.3

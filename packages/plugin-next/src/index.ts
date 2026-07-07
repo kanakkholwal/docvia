@@ -306,16 +306,14 @@ async function init(
 	options: DocviaNextOptions,
 ): Promise<docviaConfig | null> {
 	const { CompileService } = await import("@docvia/runtime");
-	const { loadConfig, defineConfig } = await import("@docvia/plugins");
+	const { resolveProject } = await import("@docvia/plugins");
 	const { docviaError } = await import("@docvia/ir");
 
-	const configPath = resolve(options.configPath ?? "./docvia.config.ts");
-	let config: docviaConfig;
-	if (existsSync(configPath)) {
-		config = await loadConfig(configPath);
-	} else {
-		config = defineConfig({});
-	}
+	// Next.js always roots the project at the process cwd; only borrow the
+	// resolved config + its path from the shared resolver.
+	const { config, configPath } = await resolveProject({
+		configPath: options.configPath,
+	});
 
 	const sourceDir = resolve(config.sourceDir ?? "docs");
 	const outDir = resolve(config.outDir ?? ".docvia");
@@ -369,6 +367,7 @@ async function init(
 			plugins: [...(config.plugins ?? [])],
 			config,
 			projectRoot: process.cwd(),
+			configPath,
 		});
 		const result = await service.compileAll();
 		await service.emitDiskModuleGraph();
