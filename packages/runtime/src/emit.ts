@@ -166,7 +166,12 @@ function diskCollectionBindings(
 	const collectionMap = collections
 		.map((c) => `    ${JSON.stringify(c.name)}: ${c.name}`)
 		.join(",\n");
-	lines.push("", "export const docviaSource = createSource({", collectionMap, "});");
+	lines.push(
+		"",
+		"export const docviaSource = createSource({",
+		collectionMap,
+		"});",
+	);
 	return lines;
 }
 

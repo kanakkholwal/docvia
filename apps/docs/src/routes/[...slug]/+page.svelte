@@ -1,6 +1,8 @@
 <script lang="ts">
 import { Renderer } from "@docvia/renderer-svelte";
+import { Pencil } from "@lucide/svelte";
 import PageHeader from "$lib/components/page-header.svelte";
+import Pager from "$lib/components/pager.svelte";
 import Prose from "$lib/components/prose.svelte";
 import type { PageProps } from "./$types";
 
@@ -26,3 +28,17 @@ const eyebrow = $derived(fm.eyebrow ? String(fm.eyebrow) : undefined);
 <Prose>
 	<Renderer nodes={data.page.content} />
 </Prose>
+
+<div class="mt-12 flex items-center justify-end">
+	<a
+		href={data.editUrl}
+		target="_blank"
+		rel="noreferrer"
+		class="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted transition-colors duration-(--motion-fast) hover:text-ink"
+	>
+		<Pencil class="h-3.5 w-3.5" />
+		Edit this page on GitHub
+	</a>
+</div>
+
+<Pager prev={data.prev} next={data.next} />

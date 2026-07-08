@@ -32,6 +32,7 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/geist": "^5.2.5",
-		"@fontsource-variable/geist-mono": "^5.2.5"
+		"@fontsource-variable/geist-mono": "^5.2.5",
+		"simple-icons": "^16.25.0"
 	}
 }

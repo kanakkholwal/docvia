@@ -1,7 +1,7 @@
-import { docviaError } from "@docvia/ir";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { docviaError } from "@docvia/ir";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
 	CONFIG_BASENAMES,
@@ -88,7 +88,11 @@ describe("resolveProject", () => {
 
 	it("throws when an explicit config path is given but missing", async () => {
 		await expect(
-			resolveProject({ cwd: dir, configPath: "nope.config.ts", required: true }),
+			resolveProject({
+				cwd: dir,
+				configPath: "nope.config.ts",
+				required: true,
+			}),
 		).rejects.toBeInstanceOf(docviaError);
 	});
 });

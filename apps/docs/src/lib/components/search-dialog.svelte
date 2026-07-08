@@ -34,13 +34,20 @@ let activeIndex = $state(0);
 let status = $state<"idle" | "searching" | "ready" | "error">("idle");
 let inputEl = $state<HTMLInputElement>();
 let listEl = $state<HTMLUListElement>();
+let dialogEl = $state<HTMLElement>();
+let triggerEl: HTMLElement | null = null;
 let isMac = $state(true);
+
+const LISTBOX_ID = "docvia-search-listbox";
+const optionId = (i: number) => `docvia-search-opt-${i}`;
 
 let debounce: ReturnType<typeof setTimeout>;
 // Monotonic id so out-of-order /api/search responses can't overwrite newer ones.
 let searchId = 0;
 
 async function openDialog() {
+	// Remember what had focus so we can restore it when the dialog closes.
+	triggerEl = document.activeElement as HTMLElement | null;
 	open = true;
 	await tick();
 	inputEl?.focus();
@@ -52,6 +59,8 @@ function closeDialog() {
 	results = [];
 	activeIndex = 0;
 	status = "idle";
+	triggerEl?.focus();
+	triggerEl = null;
 }
 
 function onInput() {
@@ -158,6 +167,21 @@ function onDialogKeydown(e: KeyboardEvent) {
 	} else if (e.key === "Enter" && results[activeIndex]) {
 		e.preventDefault();
 		selectResult(results[activeIndex]);
+	} else if (e.key === "Tab") {
+		// Trap focus inside the dialog.
+		const focusables = dialogEl?.querySelectorAll<HTMLElement>(
+			'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])',
+		);
+		if (!focusables || focusables.length === 0) return;
+		const first = focusables[0];
+		const last = focusables[focusables.length - 1];
+		if (e.shiftKey && document.activeElement === first) {
+			e.preventDefault();
+			last.focus();
+		} else if (!e.shiftKey && document.activeElement === last) {
+			e.preventDefault();
+			first.focus();
+		}
 	}
 }
 
@@ -229,7 +253,7 @@ onMount(() => {
 			aria-modal="true"
 			aria-label="Search documentation"
 			tabindex="-1"
-			onkeydown={onDialogKeydown}
+			bind:this={dialogEl} onkeydown={onDialogKeydown}
 			class="overflow-hidden rounded-xl border border-hairline bg-canvas shadow-[0_16px_48px_-12px_rgba(10,10,10,0.35)]"
 		>
 			<!-- Search field -->
@@ -241,10 +265,15 @@ onMount(() => {
 					bind:value={query}
 					oninput={onInput}
 					type="text"
+					role="combobox"
+					aria-expanded={results.length > 0}
+					aria-controls={LISTBOX_ID}
+					aria-autocomplete="list"
+					aria-activedescendant={results.length ? optionId(activeIndex) : undefined}
 					placeholder="Search the docs…"
 					autocomplete="off"
 					spellcheck="false"
-					class="h-12 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted-soft focus:outline-none focus-visible:outline-none"
+					class="h-12 flex-1 bg-transparent text-[15px] text-ink placeholder:text-muted-soft focus:outline-none focus-visible:outline-none!"
 				/>
 				<button
 					type="button"
@@ -275,9 +304,15 @@ onMount(() => {
 						Search section titles and page content across the docs.
 					</p>
 				{:else}
-					<ul bind:this={listEl} class="flex flex-col gap-0.5">
+					<ul
+						bind:this={listEl}
+						id={LISTBOX_ID}
+						role="listbox"
+						aria-label="Search results"
+						class="flex flex-col gap-0.5"
+					>
 						{#each results as result, i (result.slug + result.sectionId)}
-							<li>
+							<li role="option" id={optionId(i)} aria-selected={i === activeIndex}>
 								<a
 									data-result
 									href={hrefFor(result)}

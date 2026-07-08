@@ -80,9 +80,7 @@ export const DocPageSchema = z
 	.passthrough();
 
 /** Render a Standard Schema issue path as a dotted string (e.g. `author.name`). */
-function formatIssuePath(
-	path: StandardSchemaV1.Issue["path"],
-): string {
+function formatIssuePath(path: StandardSchemaV1.Issue["path"]): string {
 	if (!path || path.length === 0) return "(root)";
 	return path
 		.map((seg) =>
@@ -204,9 +202,11 @@ export const BASE_FRONTMATTER_TYPE = [
  * `schemaRef` is a TypeScript type expression that resolves to the schema.
  */
 export function inferSchemaOutput(schemaRef: string): string {
-	return ["NonNullable<", `  ${schemaRef}["~standard"]["types"]`, '>["output"]'].join(
-		"\n",
-	);
+	return [
+		"NonNullable<",
+		`  ${schemaRef}["~standard"]["types"]`,
+		'>["output"]',
+	].join("\n");
 }
 
 /**

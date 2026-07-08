@@ -21,7 +21,7 @@ const steps = [
 ];
 </script>
 
-<section id="quickstart" class="bg-canvas">
+<section id="quickstart" class="border-b border-hairline bg-canvas scroll-mt-16">
 	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
 		<div class="mb-16 max-w-3xl">
 			<span
@@ -30,8 +30,7 @@ const steps = [
 				Quickstart
 			</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
-				style="letter-spacing: -0.03em;"
+				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
 			>
 				Zero to compiled in under a minute.
 			</h2>
@@ -60,7 +59,7 @@ const steps = [
 		</ol>
 
 		<div class="mt-10 text-center">
-			<Button variant="ghost" href="/docs/getting-started">
+			<Button variant="ghost" href="https://docs.docvia.dev/getting-started">
 				Read the full guide
 				<ArrowRight />
 			</Button>

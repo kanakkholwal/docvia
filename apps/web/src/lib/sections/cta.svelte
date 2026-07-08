@@ -3,7 +3,7 @@ import { ArrowRight, Github } from "@lucide/svelte";
 </script>
 
 <section class="bg-canvas">
-	<div class="mx-auto max-w-7xl px-6 pb-24 md:px-10 md:pb-24">
+	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
 		<!-- The one full-bleed brand band: lime fill, ink type. This is the
 		     single large moment of accent on the whole page. -->
 		<div
@@ -11,8 +11,7 @@ import { ArrowRight, Github } from "@lucide/svelte";
 		>
 			<div class="relative max-w-2xl">
 				<h2
-					class="font-display text-4xl md:text-5xl lg:text-[56px] lg:leading-[1.05]"
-					style="letter-spacing: -0.03em;"
+					class="font-display text-4xl md:text-5xl lg:text-display-2 lg:leading-[1.05]"
 				>
 					Turn your docs into a build artifact today.
 				</h2>
@@ -22,7 +21,7 @@ import { ArrowRight, Github } from "@lucide/svelte";
 				</p>
 				<div class="mt-10 flex flex-col gap-3 sm:flex-row">
 					<a
-						href="/docs"
+						href="https://docs.docvia.dev"
 						class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-ink px-6 text-base font-semibold text-on-primary transition-colors hover:bg-ink/90"
 					>
 						Read the docs

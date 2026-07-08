@@ -68,11 +68,11 @@
 	--fg-strong: var(--body-strong);
 	--fg-muted: var(--muted);
 	--fg-subtle: var(--muted-soft);
-	--border: var(--hairline);
-	--border-strong: var(--hairline-strong);
 	--accent: var(--ink);
 	--accent-fg: var(--on-primary);
 	--accent-subtle: var(--surface-card);
+	--border: var(--hairline);
+	--border-strong: var(--hairline-strong);
 	--info: var(--brand-ink);
 	--warn: var(--warning);
 	--danger: var(--error);
@@ -213,6 +213,21 @@
 	--radius-md: 8px;
 	--radius-lg: 12px;
 	--radius-xl: 16px;
+
+	/* Display type scale — implements DESIGN.md §3 (was specified but never
+	   wired up, forcing arbitrary text-[Npx] values across sections). */
+	--text-display-1: 4rem; /* 64px */
+	--text-display-1--line-height: 1.05;
+	--text-display-1--letter-spacing: -0.03em;
+	--text-display-1--font-weight: 600;
+	--text-display-2: 3rem; /* 48px */
+	--text-display-2--line-height: 1.1;
+	--text-display-2--letter-spacing: -0.025em;
+	--text-display-2--font-weight: 600;
+	--text-display-3: 2.25rem; /* 36px */
+	--text-display-3--line-height: 1.15;
+	--text-display-3--letter-spacing: -0.02em;
+	--text-display-3--font-weight: 600;
 }
 
 /* ── Base ── */
@@ -241,11 +256,11 @@ body {
 	letter-spacing: -0.025em;
 }
 
-/* ── Focus ring ── */
-
-:where(a, button, input, select, textarea, [tabindex]):not(
-	[class]
-):focus-visible {
+/* ── Focus ring ──
+   A single visible ring for every interactive element. (The old rule was
+   scoped `:not([class])`, which matched nothing because every control here
+   carries utility classes — so focus was effectively invisible.) */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
 	outline: 2px solid var(--ink);
 	outline-offset: 2px;
 	border-radius: var(--radius-sm);

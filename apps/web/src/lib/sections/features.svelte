@@ -33,34 +33,34 @@ const hooks = [
 ];
 </script>
 
-<section id="features" class="bg-canvas">
+<section id="features" class="border-b border-hairline bg-canvas scroll-mt-16">
 	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
 		<!-- Section head -->
 		<div class="mb-16 max-w-3xl">
 			<span
 				class="text-[12px] font-semibold uppercase tracking-widest text-muted"
 			>
-				Why docvia
+				Features
 			</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[56px] lg:leading-[1.05]"
-				style="letter-spacing: -0.03em;"
+				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
 			>
-				Every advantage hosted docs platforms can't ship.
+				Everything you need to compile docs.
 			</h2>
 			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
-				Cloud-locked competitors trade your deployment choice and framework
-				choice for a polished theme. docvia gives you the polish and the
-				choice.
+				Typed frontmatter, incremental builds, framework-native output, and
+				local search, resolved at build time and entirely yours to own.
 			</p>
 		</div>
 
-		<!-- Uniform neutral card grid. One brand voltage: the numbered
-		     eyebrow + a single accent detail per card. -->
-		<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+		<!-- Bordered panel grid — hairline gridlines via gap-px over a
+		     hairline-colored track. One brand voltage per panel. -->
+		<div
+			class="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-hairline bg-hairline md:grid-cols-2"
+		>
 			<!-- 1. Framework-agnostic -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -74,8 +74,8 @@ const hooks = [
 					Render the same docs to any framework.
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
-					IR-based compiler emits framework-native modules. React today,
-					Svelte tomorrow, Vue when you need it — same source.
+					IR-based compiler emits framework-native modules. React and
+					Svelte today, more adapters as you need them. Same source.
 				</p>
 				<!-- Product UI fragment: render-target tabs -->
 				<div class="mt-auto flex flex-wrap gap-1.5 pt-2">
@@ -95,7 +95,7 @@ const hooks = [
 
 			<!-- 2. Deploy anywhere -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -125,7 +125,7 @@ const hooks = [
 
 			<!-- 3. Typed frontmatter -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -140,7 +140,7 @@ const hooks = [
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
 					Define frontmatter with Zod once. docvia emits a typed Frontmatter
-					interface for every collection — caught at build, not at runtime.
+					interface for every collection, caught at build, not at runtime.
 				</p>
 				<!-- Product UI fragment: code snippet (embedded dark terminal) -->
 				<pre
@@ -155,7 +155,7 @@ const hooks = [
 
 			<!-- 4. Incremental builds -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -196,7 +196,7 @@ const hooks = [
 
 			<!-- 5. Pluggable pipeline -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -230,7 +230,7 @@ const hooks = [
 
 			<!-- 6. Search + BYO AI -->
 			<article
-				class="flex flex-col gap-5 rounded-lg border border-hairline bg-surface-card p-8 text-ink"
+				class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
 			>
 				<span
 					class="text-[12px] font-semibold uppercase tracking-widest text-muted"
@@ -245,7 +245,7 @@ const hooks = [
 				</h3>
 				<p class="text-[15px] leading-[1.55] text-body">
 					Section-level Orama indexing ships client-side. Add semantic search
-					with your own Claude or OpenAI key — no per-credit metering.
+					with your own Claude or OpenAI key. No per-credit metering.
 				</p>
 				<!-- Product UI fragment: search bar with results -->
 				<div

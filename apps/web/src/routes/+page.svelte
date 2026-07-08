@@ -1,15 +1,18 @@
 <script lang="ts">
-import Comparison from "$lib/sections/comparison.svelte";
 import CompilerDeepDive from "$lib/sections/compiler-deep-dive.svelte";
 import Cta from "$lib/sections/cta.svelte";
-import Editions from "$lib/sections/editions.svelte";
 import Faq from "$lib/sections/faq.svelte";
 import Features from "$lib/sections/features.svelte";
+import Frameworks from "$lib/sections/frameworks.svelte";
 import Hero from "$lib/sections/hero.svelte";
 import Quickstart from "$lib/sections/quickstart.svelte";
 import Stats from "$lib/sections/stats.svelte";
 import UseCases from "$lib/sections/use-cases.svelte";
 
+// Note: Comparison (vs hosted platforms) and Editions (managed/hosting tiers)
+// are intentionally NOT on the landing page — docvia markets as a developer
+// tool, not a hosting product. Those live on a dedicated self-host/hosting
+// page (planned), backed by a real benchmark pipeline rather than claims.
 </script>
 
 <svelte:head>
@@ -25,13 +28,16 @@ import UseCases from "$lib/sections/use-cases.svelte";
 	/>
 </svelte:head>
 
-<Hero />
-<Stats />
-<Features />
-<CompilerDeepDive />
-<UseCases />
-<Comparison />
-<Editions />
-<Quickstart />
-<Faq />
-<Cta />
+<!-- Bordered content frame — continuous vertical hairlines run down the whole
+     page (vite-style); each section carries its own bottom divider. -->
+<div class="mx-auto max-w-7xl border-x border-hairline">
+	<Hero />
+	<Frameworks />
+	<Stats />
+	<Features />
+	<CompilerDeepDive />
+	<UseCases />
+	<Quickstart />
+	<Faq />
+	<Cta />
+</div>
