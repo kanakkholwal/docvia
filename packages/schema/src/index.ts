@@ -210,13 +210,48 @@ export function inferSchemaOutput(schemaRef: string): string {
 }
 
 /**
+ * The name of the JSON-projection helper emitted into the generated `.d.ts`,
+ * and its declaration. Page `meta` reaches the runtime through
+ * `JSON.stringify` in the renderer adapters, so a schema that coerces to a
+ * richer type than JSON can carry — `z.coerce.date()` being the common one —
+ * does *not* hand the reader back that type. It hands back what survives the
+ * round trip.
+ *
+ * Modelling that here is what keeps the generated types honest: a `Date` field
+ * types as `string`, so calling `.getTime()` on it fails at compile time
+ * instead of at runtime. Widen this only alongside a change to how the adapters
+ * serialize `meta`.
+ */
+export const JSONIFY_TYPE_NAME = "Jsonify";
+
+export const JSONIFY_TYPE_DECL = [
+	"/**",
+	" * Project a type through JSON serialization — `meta` is emitted with",
+	" * `JSON.stringify`, so this is what a reader actually receives.",
+	" */",
+	`type ${JSONIFY_TYPE_NAME}<T> = T extends Date`,
+	"  ? string",
+	"  : T extends readonly (infer U)[]",
+	`    ? ${JSONIFY_TYPE_NAME}<U>[]`,
+	"    : T extends object",
+	`      ? { [K in keyof T]: ${JSONIFY_TYPE_NAME}<T[K]> }`,
+	"      : T;",
+].join("\n");
+
+/**
  * Compose the generated `Frontmatter` type: the {@link BASE_FRONTMATTER_TYPE}
  * base fields, intersected with the user schema's inferred output (or a
  * permissive record when no schema is configured), plus an index signature for
- * passthrough keys. `schemaOutput` is a type expression — typically from
- * {@link inferSchemaOutput}; omit it for the schemaless fallback.
+ * passthrough keys — the whole intersection projected through
+ * {@link JSONIFY_TYPE_DECL}, because that is the form `meta` arrives in.
+ * `schemaOutput` is a type expression — typically from {@link inferSchemaOutput};
+ * omit it for the schemaless fallback.
+ *
+ * Emitting this requires {@link JSONIFY_TYPE_DECL} to be in scope in the same
+ * declaration file.
  */
 export function composeFrontmatterType(schemaOutput?: string): string {
 	const ext = schemaOutput ?? "Record<string, unknown>";
-	return `${BASE_FRONTMATTER_TYPE} & ${ext} & {\n  [key: string]: unknown;\n}`;
+	const raw = `${BASE_FRONTMATTER_TYPE} & ${ext} & {\n  [key: string]: unknown;\n}`;
+	return `${JSONIFY_TYPE_NAME}<\n${raw}\n>`;
 }

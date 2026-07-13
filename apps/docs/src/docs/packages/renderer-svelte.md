@@ -134,7 +134,16 @@ interface InMemoryStore {
 function docviaVitePlugin(store: InMemoryStore): Plugin;
 ```
 
-A Vite plugin (`name: "docvia"`) that resolves `virtual:docvia/<slug>` imports to the compiled page module held in `store`. App routes can then import a page as `import { content, manifest } from "virtual:docvia/getting-started"`.
+A Vite plugin (`name: "docvia"`) that resolves `virtual:docvia/<slug>` imports to the compiled page module held in `store`.
+
+> [!IMPORTANT]
+> This is a **standalone, low-level plugin**, and it is *not* the one `docvia()`
+> from `@docvia/plugin-vite` installs. It only resolves per-page modules for
+> slugs you have put into an `InMemoryStore` yourself; if you have not built and
+> populated that store, `virtual:docvia/<slug>` will not resolve.
+>
+> In a normal app you do not use this. Load pages through the collection instead
+> — see [Usage](#usage) below.
 
 ### invalidateModules()
 
@@ -150,11 +159,11 @@ Tells the Vite dev server to invalidate the virtual modules for the given slugs 
 
 ```ts
 import { hydrate } from "@docvia/renderer-core";
-import { manifest } from "virtual:docvia/getting-started";
-import { registry } from "./docvia-registry";
+import { registry } from "virtual:docvia/source";
 
+// `page` came from `docs.getPage(slugs)` in a server load — see Usage below.
 // no-ops on the server; honours client:load / client:idle / client:visible
-hydrate(manifest, registry);
+hydrate(page.manifest, registry);
 ```
 
 `data-hid` is the universal hydration anchor — the `Renderer` component sets it on every `element` and `component` wrapper, and `hydrate()` looks each island up by `[data-hid="<id>"]`.
@@ -174,28 +183,73 @@ export default defineConfig({
 });
 ```
 
-### Rendering a page in a Svelte route
+### Rendering a page in a SvelteKit route
+
+Pages are loaded through the collection, in a **server** load — `virtual:docvia/source`
+eagerly imports every compiled page, so importing it from a universal `+page.ts`
+would ship your whole content set to the browser.
+
+```ts
+// src/routes/docs/[...slug]/+page.server.ts
+import { docs } from "virtual:docvia/source";
+import { error } from "@sveltejs/kit";
+import type { PageServerLoad } from "./$types";
+
+export const load: PageServerLoad = async ({ params }) => {
+  const page = await docs.getPage(params.slug?.split("/") ?? []);
+  if (!page) throw error(404, "Page not found");
+  return { page };
+};
+```
+
+The compiled content is a plain JSON tree, so it serializes straight through the
+load and into the component:
+
+```svelte
+<!-- src/routes/docs/[...slug]/+page.svelte -->
+<script lang="ts">
+  import { Renderer } from "@docvia/renderer-svelte";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
+</script>
+
+<article>
+  <h1>{data.page.data.title}</h1>
+  <Renderer nodes={data.page.content} />
+</article>
+```
+
+`data.page.data` is the page's frontmatter, including any custom fields your
+`frontmatter` schema defines.
+
+### Rendering with a component registry
+
+When you declare `components` in `docvia.config.ts`, docvia generates the registry
+for you — import it from the source module rather than hand-rolling one:
 
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { content, meta } from "virtual:docvia/getting-started";
+  import { registry } from "virtual:docvia/source";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
 </script>
 
-<article>
-  <h1>{meta.title}</h1>
-  <Renderer nodes={content} />
-</article>
+<Renderer nodes={data.page.content} {registry} />
 ```
 
-### Rendering with a component registry
+To resolve components yourself instead, pass any `ComponentRegistry`:
 
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
   import type { ComponentRegistry } from "@docvia/renderer-core";
-  import { content } from "virtual:docvia/getting-started";
   import Callout from "$lib/Callout.svelte";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
 
   const registry: ComponentRegistry = {
     resolve(name) {
@@ -205,7 +259,7 @@ export default defineConfig({
   };
 </script>
 
-<Renderer nodes={content} {registry} />
+<Renderer nodes={data.page.content} {registry} />
 ```
 
 ### Hydrating islands after mount
@@ -215,11 +269,13 @@ export default defineConfig({
   import { onMount } from "svelte";
   import { Renderer } from "@docvia/renderer-svelte";
   import { hydrate } from "@docvia/renderer-core";
-  import { content, manifest } from "virtual:docvia/getting-started";
-  import { registry } from "$lib/docvia-registry";
+  import { registry } from "virtual:docvia/source";
+  import type { PageProps } from "./$types";
+
+  let { data }: PageProps = $props();
 
   onMount(() => {
-    hydrate(manifest, registry);
+    hydrate(data.page.manifest, registry);
   });
 </script>
 

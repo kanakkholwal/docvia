@@ -22,10 +22,13 @@
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
 		"@docvia/runtime": "workspace:*",
-		"@docvia/schema": "workspace:*",
+		"@docvia/schema": "workspace:*"
+	},
+	"peerDependencies": {
 		"@docvia/source": "workspace:*"
 	},
 	"devDependencies": {
+		"@docvia/source": "workspace:*",
 		"@types/node": "^20.0.0",
 		"svelte": "^5.49.2",
 		"typescript": "^5.5.0",

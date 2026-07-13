@@ -113,6 +113,7 @@ interface docviaPage<TFrontmatter = unknown> {
 
 ```ts
 interface docviaCollection<TFrontmatter = unknown, _TRouteKey extends string = string> {
+  ready(): Promise<void>;
   getPage(slugs: string[] | undefined): Promise<docviaPage<TFrontmatter> | undefined>;
   getPages(): Array<{ slugs: string[]; url: string; data: TFrontmatter }>;
   get pageTree(): PageTree.Root;
@@ -123,9 +124,10 @@ interface docviaCollection<TFrontmatter = unknown, _TRouteKey extends string = s
 
 | Member | Signature | Behavior |
 |---|---|---|
-| `getPage` | `(slugs) => Promise<docviaPage \| undefined>` | Resolves a single page by slug segments. Returns `undefined` when no page matches. |
-| `getPages` | `() => Array<{ slugs, url, data }>` | Lightweight listing of every page, without loading content. |
-| `pageTree` | getter `=> PageTree.Root` | The navigation tree as a property. |
+| `ready` | `() => Promise<void>` | Resolves page metadata, so the synchronous members below return real data. No-op on the server (metadata is already in hand); required on the browser build before reading `getPages` / `pageTree`. |
+| `getPage` | `(slugs) => Promise<docviaPage \| undefined>` | Resolves a single page by slug segments. Returns `undefined` when no page matches. Always accurate — it awaits the page module regardless of build. |
+| `getPages` | `() => Array<{ slugs, url, data }>` | Lightweight listing of every page, without loading content. `data` is the page's full frontmatter, including any custom fields your schema defines. Synchronous — see `ready`. |
+| `pageTree` | getter `=> PageTree.Root` | The navigation tree as a property. Synchronous — see `ready`. |
 | `getPageTree` | `() => PageTree.Root` | The navigation tree as a method (equivalent to `pageTree`). |
 | `generateParams` | `(slug?) => Record<TSlug, string[]>[]` | Produces route params for static generation, keyed by the given `slug` name. |
 
@@ -193,7 +195,7 @@ function createSource<TCollections>(
 ): docviaSource & { collections: TCollections };
 ```
 
-Wraps a record of collections into a `docviaSource`. The return type preserves the concrete `TCollections` shape, so accessing `source.collections.docs` stays fully typed.
+Wraps a record of collections into a `docviaSource`. The return type preserves the concrete `TCollections` shape, so accessing `docviaSource.collections.docs` stays fully typed.
 
 ## Generated source example
 
@@ -210,27 +212,59 @@ const docs = createCollection({
   routeKeys: ["index", "getting-started", "guides/install"],
   // `?docvia` is compiled in place by the bundler — content lives in the .md
   getModule: (slug) => import(`../src/docs/${slug}.md?docvia`),
-  // eager metadata for the page tree / getPages(), resolved on demand
-  getEagerModules: async () => null,
+  // eager metadata for the page tree / getPages()
+  getEagerModules: () => _modules.docs,
   sourceModuleUrl: import.meta.url,
 });
 
-export const source = createSource({ docs });
+// Each collection is exported by name, and all of them together as `docviaSource`.
+export { docs };
+export const docviaSource = createSource({ docs });
 ```
 
 Consuming it from a framework app. The import specifier is **bundler-specific**:
 
 ```ts
 // Vite (and SvelteKit): the Vite plugin serves a virtual module
-import { source } from "virtual:docvia/source";
+import { docs, docviaSource } from "virtual:docvia/source";
 
 // Next.js (webpack + Turbopack): the plugin aliases the bare specifier
-import { source } from "docvia/source";
+import { docs, docviaSource } from "docvia/source";
 
-const page = await source.collections.docs.getPage(["getting-started"]);
-const tree = source.collections.docs.pageTree;
+// Import the collection by name…
+const page = await docs.getPage(["getting-started"]);
+const tree = docs.pageTree;
+
+// …or reach it through the source, which is handy when the name is dynamic.
+const same = await docviaSource.collections.docs.getPage(["getting-started"]);
 ```
 
-> A lazy, client-code-split counterpart is generated alongside it —
-> `virtual:docvia/source/browser` (Vite) / `docvia/source/browser` (Next) — whose
-> `getModule` uses `() => import("…md?docvia")` so each page is its own chunk.
+> [!WARNING]
+> **Importing a collection is server-only.** `virtual:docvia/source` statically
+> imports *every* compiled page so that `getPages()` and `pageTree` have their
+> metadata up front. Import it from a universal module — a SvelteKit `+page.ts`,
+> a client component — and your entire content set is bundled into the browser,
+> which defeats the bundle-size benefit the compiler exists to provide.
+>
+> Read it from server-only modules (`+page.server.ts`, `+layout.server.ts`, a
+> React Server Component, `getStaticProps`). If you genuinely need a collection
+> on the client, import the lazy counterpart instead:
+> `virtual:docvia/source/browser` (Vite) / `docvia/source/browser` (Next). Its
+> `getModule` uses `() => import("…md?docvia")`, so each page is its own chunk
+> and only the page you ask for is fetched.
+
+### Metadata timing on the browser build
+
+On the server the page metadata is in hand synchronously, so `getPages()` and
+`pageTree` are correct on first read. On the **browser** build it is resolved
+through a dynamic import per page and cannot be produced synchronously — reading
+those two before it lands yields slug-derived titles and alphabetical ordering
+(and logs a warning). Await `ready()` first:
+
+```ts
+await docs.ready();
+const tree = docs.pageTree; // real titles, frontmatter order
+```
+
+`ready()` resolves immediately on the server, so universal code can always await
+it. `getPage()` is unaffected — it awaits the page module either way.

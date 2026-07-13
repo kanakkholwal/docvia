@@ -100,6 +100,18 @@ export interface IRDocument {
 	readonly contentHash: string;
 }
 
+/**
+ * What a compiled page module exposes as `meta`. The built-in fields are typed;
+ * the index signature carries every custom frontmatter key the user's schema
+ * validated, which is what makes a configured `frontmatter` schema observable
+ * at runtime rather than validated-then-discarded.
+ *
+ * `meta` is serialized with `JSON.stringify` by the renderer adapters, so the
+ * values that survive here are JSON values — a schema that coerces to `Date`
+ * lands as an ISO string. The generated frontmatter types model that (see
+ * `Jsonify` in `@docvia/schema`); don't widen this to `Date` without also
+ * changing how adapters emit it.
+ */
 export interface PageMeta {
 	readonly slug: string;
 	readonly title: string;
@@ -108,7 +120,9 @@ export interface PageMeta {
 	readonly contentHash: string;
 	readonly lastModified: number;
 	readonly tags: readonly string[];
+	readonly draft?: boolean;
 	readonly order?: number;
+	readonly [key: string]: unknown;
 }
 
 // Renderer Contract
@@ -334,8 +348,17 @@ export interface SearchDocument {
  * Shared by the build service, every renderer adapter, and the SSR service so
  * the shape stays consistent everywhere. `lastModified` is stamped at call time.
  */
+/**
+ * Project an IR document down to the `meta` a compiled page module exports.
+ *
+ * Custom frontmatter is spread first so every key the user's schema validated
+ * survives to runtime; the derived fields then overwrite it, because `slug`,
+ * `headings` and `contentHash` are computed from the document and must win over
+ * anything the author wrote in the frontmatter block.
+ */
 export function toPageMeta(ir: IRDocument): PageMeta {
 	return {
+		...ir.frontmatter,
 		slug: ir.slug,
 		title: ir.frontmatter.title,
 		description: ir.frontmatter.description,

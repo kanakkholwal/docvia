@@ -51,7 +51,11 @@
 		"commander": "^14.0.3",
 		"sirv": "^3.0.2"
 	},
+	"peerDependencies": {
+		"@docvia/source": "workspace:*"
+	},
 	"devDependencies": {
+		"@docvia/source": "workspace:*",
 		"@types/node": "^25.5.0",
 		"typescript": "^5.9.3"
 	},
