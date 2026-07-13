@@ -295,6 +295,9 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
     devDependencies:
+      '@docvia/source':
+        specifier: workspace:*
+        version: link:../source
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -398,6 +401,9 @@ importers:
         specifier: ^4.0.0
         version: 4.0.3
     devDependencies:
+      '@docvia/source':
+        specifier: workspace:*
+        version: link:../source
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -463,10 +469,10 @@ importers:
       '@docvia/schema':
         specifier: workspace:*
         version: link:../schema
+    devDependencies:
       '@docvia/source':
         specifier: workspace:*
         version: link:../source
-    devDependencies:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37

@@ -6,15 +6,18 @@
  * or in a React Server Component — Next.js will throw a build error if
  * `react-dom/client` lands in the RSC bundle.
  *
+ * The manifest comes off a page loaded on the server (`docs.getPage(...)`) and is
+ * passed in as a prop — a client component must not import the collection, which
+ * eagerly pulls in every compiled page.
+ *
  * Usage (Next.js App Router — client component):
  *
  *   "use client";
  *   import { useEffect } from 'react';
  *   import { hydrate } from '@docvia/renderer-react/client';
- *   import { manifest } from 'virtual:docvia/my-page';
  *
  *   export function DocviaHydrator({ manifest, registry }) {
- *       useEffect(() => { hydrate(manifest, registry, { ssr: true }); }, []);
+ *       useEffect(() => { hydrate(manifest, registry, { ssr: true }); }, [manifest]);
  *       return null;
  *   }
  *

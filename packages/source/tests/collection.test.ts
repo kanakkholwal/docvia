@@ -41,13 +41,24 @@ function makeCollection() {
 	});
 }
 
-// Eager module metadata (title/order) resolves asynchronously; the page tree
-// and getPages() fall back to slug-derived values until it settles. Touching
-// getPages() kicks off background resolution; a macrotask tick lets it cache
-// before we read metadata or build the tree.
+// The server/non-lazy emit hands the module map back *synchronously* — this is
+// the shape `.docvia/source.ts` and the eager virtual module actually generate.
+function makeSyncCollection() {
+	return createCollection({
+		name: "docs",
+		baseUrl: "/docs",
+		routeKeys: ROUTE_KEYS,
+		getModule: async (slug) => MODULES[slug],
+		getEagerModules: () => MODULES,
+		sourceModuleUrl: "test://source",
+	});
+}
+
+// This collection's `getEagerModules` is async (the browser build's shape), so
+// title/order metadata is not available synchronously. `ready()` is the
+// supported way to wait for it.
 async function withEagerMetadata(c: ReturnType<typeof makeCollection>) {
-	c.getPages();
-	await new Promise((resolve) => setTimeout(resolve, 0));
+	await c.ready();
 	return c;
 }
 
@@ -162,6 +173,60 @@ describe("createCollection", () => {
 			const params = docs.generateParams("path");
 			expect(params).toContainEqual({ path: ["api"] });
 		});
+	});
+});
+
+// On the server the module map is available synchronously, so the synchronous
+// readers must return real data on the *first* call. Awaiting a non-promise
+// deferred a microtask and silently handed the first caller empty frontmatter
+// and a slug-derived page tree — with no error to explain it.
+describe("createCollection — synchronous eager modules (server build)", () => {
+	it("returns real frontmatter from the very first getPages() call", () => {
+		const docs = makeSyncCollection();
+		const pages = docs.getPages();
+		expect(pages.find((p) => p.url === "/docs/api")?.data).toMatchObject({
+			title: "API",
+		});
+	});
+
+	it("builds the page tree with real titles on first read", () => {
+		const docs = makeSyncCollection();
+		const names = docs.pageTree.children.map((n) => n.name);
+		expect(names).toContain("Guide");
+		expect(names).toContain("API");
+	});
+
+	it("orders the tree by frontmatter order, not alphabetically", () => {
+		const docs = makeSyncCollection();
+		// order: Home 0, Guide 1, API 2. Alphabetical would put API first.
+		const names = docs.pageTree.children.map((n) => n.name);
+		expect(names.indexOf("Guide")).toBeLessThan(names.indexOf("API"));
+	});
+});
+
+// The page tree is memoized. If it is built while metadata is still resolving,
+// the fallback tree must not be the one that gets cached forever.
+describe("createCollection — page tree invalidation (browser build)", () => {
+	it("rebuilds the tree once async metadata lands", async () => {
+		const docs = makeCollection();
+
+		// Cold read: metadata has not resolved, so titles are slug-derived.
+		const cold = docs.pageTree.children.map((n) => n.name);
+		expect(cold).toContain("Api");
+
+		await docs.ready();
+
+		const warm = docs.pageTree.children.map((n) => n.name);
+		expect(warm).toContain("API");
+		expect(warm).not.toContain("Api");
+	});
+
+	it("ready() resolves metadata for getPages()", async () => {
+		const docs = makeCollection();
+		await docs.ready();
+		expect(
+			docs.getPages().find((p) => p.url === "/docs/api")?.data,
+		).toMatchObject({ title: "API" });
 	});
 });
 

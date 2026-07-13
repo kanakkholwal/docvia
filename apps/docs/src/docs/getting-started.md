@@ -45,7 +45,7 @@ content itself lives once, in the `.md`, and is compiled by the bundler's
 
 | File | Purpose |
 |---|---|
-| `source.ts` | The typed collection helper — `getPage`, `getPages`, `pageTree`. Eager imports, for server/SSR. |
+| `source.ts` | The typed collection helper — `getPage`, `getPages`, `pageTree`. Eager imports, so **server-only** (see below). |
 | `browser.ts` | The lazy, client counterpart — `() => import()` per page, so each page code-splits into its own chunk. |
 | `dynamic.ts` | The page module map the collections read from. |
 | `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
@@ -57,6 +57,16 @@ in TypeScript (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
 with a `/browser` counterpart). Subsequent runs read `.docvia.cache.json` and
 skip files whose content hash is unchanged — see
 [Incremental builds](/guide/incremental-builds).
+
+> [!WARNING]
+> **`source.ts` is server-only.** It statically imports every compiled page, so
+> that `getPages()` and `pageTree` have their metadata up front. Import it from a
+> universal module — a SvelteKit `+page.ts`, a `"use client"` component — and
+> your whole content set is bundled into the browser.
+>
+> Read it from server-only modules (`+page.server.ts`, a React Server Component)
+> and pass the page down. For the client, use the lazy `browser.ts` counterpart,
+> which code-splits one chunk per page.
 
 ## Watch
 

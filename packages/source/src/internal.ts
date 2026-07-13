@@ -32,28 +32,87 @@ export function createCollection<
 	baseUrl: string;
 	routeKeys: readonly TRouteKey[];
 	getModule: (slug: string) => Promise<ModuleExports | undefined>;
-	/** Lazy getter for server-side eager modules (avoids top-level await in source.ts). */
-	getEagerModules: () => Promise<Record<string, ModuleExports> | null>;
+	/**
+	 * Getter for the eager module map (avoids top-level await in source.ts).
+	 *
+	 * The server/non-lazy emit returns the map *synchronously*; only the browser
+	 * emit, which resolves a `() => import()` per page, returns a promise. Both
+	 * are accepted, and the synchronous form is used synchronously — see
+	 * {@link beginResolve}.
+	 */
+	getEagerModules: () =>
+		| Promise<Record<string, ModuleExports> | null>
+		| Record<string, ModuleExports>
+		| null;
 	sourceModuleUrl: string;
 }): docviaCollection<TFrontmatter, TRouteKey> {
 	const { baseUrl, routeKeys, getModule } = opts;
 
 	// Lazily resolved eager modules (cached after first access)
 	let _eagerModules: Record<string, ModuleExports> | null | undefined;
-	async function resolveEagerModules(): Promise<Record<
-		string,
-		ModuleExports
-	> | null> {
-		if (_eagerModules !== undefined) return _eagerModules;
-		_eagerModules = await opts.getEagerModules();
-		return _eagerModules;
+	let _eagerPending: Promise<Record<string, ModuleExports> | null> | null =
+		null;
+	let _warnedCold = false;
+
+	function isThenable(
+		v: unknown,
+	): v is Promise<Record<string, ModuleExports> | null> {
+		return typeof (v as { then?: unknown } | null)?.then === "function";
 	}
 
-	// Sync access to eager modules (returns null if not yet resolved)
-	function eagerModulesSync(): Record<string, ModuleExports> | null {
+	function adopt(
+		mods: Record<string, ModuleExports> | null,
+	): Record<string, ModuleExports> | null {
+		_eagerModules = mods;
+		// A tree built while the cache was cold used slug-derived titles and
+		// Infinity ordering. It is memoized, so without this it would stay wrong
+		// for the life of the process.
+		_pageTree = null;
+		return mods;
+	}
+
+	/**
+	 * Resolve the eager module map, synchronously when the generator allows it.
+	 *
+	 * Returns the map if it is available now, or `undefined` if resolution is
+	 * still in flight. Awaiting a synchronously-available value would defer a
+	 * microtask and hand the first caller an empty page tree, which is exactly
+	 * the bug this avoids: on the server the map is already in hand.
+	 */
+	function beginResolve(): Record<string, ModuleExports> | null | undefined {
 		if (_eagerModules !== undefined) return _eagerModules;
-		// Kick off resolution in background
-		resolveEagerModules();
+		if (_eagerPending) return undefined;
+
+		const v = opts.getEagerModules();
+		if (!isThenable(v)) return adopt(v);
+
+		_eagerPending = v.then(adopt);
+		// A failed dynamic import must not surface as an unhandled rejection; the
+		// cold-cache fallbacks below already degrade gracefully. Callers that need
+		// to know go through `ready()`.
+		_eagerPending.catch(() => {});
+		return undefined;
+	}
+
+	/**
+	 * Eager modules if they are available *now*, else null.
+	 *
+	 * A null return means the caller gets slug-derived fallbacks. That is only
+	 * reachable on the browser emit, where the map genuinely cannot be produced
+	 * synchronously — `await collection.ready()` first to avoid it.
+	 */
+	function eagerModulesSync(): Record<string, ModuleExports> | null {
+		const mods = beginResolve();
+		if (mods !== undefined) return mods;
+
+		if (!_warnedCold) {
+			_warnedCold = true;
+			console.warn(
+				`[docvia] Collection "${opts.name}" was read before its page metadata resolved, ` +
+					"so titles, ordering and frontmatter fall back to slug-derived values. " +
+					`Await \`${opts.name}.ready()\` first, or read the collection from a server-only module.`,
+			);
+		}
 		return null;
 	}
 
@@ -191,6 +250,12 @@ export function createCollection<
 	}
 
 	return {
+		async ready() {
+			const mods = beginResolve();
+			if (mods !== undefined) return;
+			await _eagerPending;
+		},
+
 		async getPage(slugs) {
 			const normalizedSlugs = slugs?.filter(Boolean) ?? [];
 			const key = (normalizedSlugs.join("/") || "index") as TRouteKey;

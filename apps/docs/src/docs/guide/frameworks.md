@@ -237,6 +237,19 @@ import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 const page = await docs.getPage(["getting-started"]); // works on the edge
 ```
 
+> [!WARNING]
+> **Import the collection from server-only modules.** The flip side of those
+> static imports is that `virtual:docvia/source` pulls in *every* compiled page.
+> That is exactly what you want in a server bundle. In a **universal** module —
+> a SvelteKit `+page.ts`, a `"use client"` component — it means your entire
+> content set is shipped to the browser, silently undoing the bundle-size
+> benefit the compiler exists to provide.
+>
+> Load pages in `+page.server.ts` / `+layout.server.ts` / a React Server
+> Component, and pass the result down. If you truly need a collection on the
+> client, import `virtual:docvia/source/browser` (Next.js: `docvia/source/browser`)
+> instead — it code-splits one chunk per page and fetches only what you ask for.
+
 For a **non-framework Node server** that renders per request, use
 [`@docvia/ssr`](/packages/ssr). It renders one document per request and caches
 rendered pages in an in-memory LRU keyed by content hash. `createDocviaSSR`

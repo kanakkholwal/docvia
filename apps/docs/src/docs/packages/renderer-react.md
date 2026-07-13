@@ -185,7 +185,17 @@ interface InMemoryStore {
 function docviaVitePlugin(store: InMemoryStore): Plugin;
 ```
 
-A Vite plugin (`name: "docvia-react"`) that resolves `virtual:docvia/<slug>` imports to the compiled page module held in `store`. This lets app routes import a page as `import { content, manifest } from "virtual:docvia/getting-started"`.
+A Vite plugin (`name: "docvia-react"`) that resolves `virtual:docvia/<slug>` imports to the compiled page module held in `store`.
+
+> [!IMPORTANT]
+> This is a **standalone, low-level plugin**, and it is *not* the one `docvia()`
+> from `@docvia/plugin-vite` installs. It only resolves per-page modules for
+> slugs you have put into an `InMemoryStore` yourself; if you have not built and
+> populated that store, `virtual:docvia/<slug>` will not resolve. It is also
+> Vite-only — Next.js has no `virtual:` specifiers at all.
+>
+> In a normal app you do not use this. Load pages through the collection instead
+> — see [Usage](#usage) below.
 
 ### invalidateModules()
 
@@ -244,28 +254,49 @@ export default defineConfig({
 
 ### Rendering a page (RSC / Next.js App Router)
 
-```tsx
-// app/docs/[slug]/page.tsx — a Server Component, no "use client"
-import { DocviaContent } from "@docvia/renderer-react";
-import { content, meta } from "virtual:docvia/getting-started";
+Pages are loaded through the collection. In Next.js the plugin aliases the bare
+specifier `docvia/source`; under Vite the same module is served as
+`virtual:docvia/source`. Either way it eagerly imports every compiled page, so
+read it from a **Server Component** — never from a `"use client"` module.
 
-export default function DocPage() {
+```tsx
+// app/docs/[[...slug]]/page.tsx — a Server Component, no "use client"
+import { DocviaContent } from "@docvia/renderer-react";
+import { docs, registry } from "docvia/source";
+import { notFound } from "next/navigation";
+
+export async function generateStaticParams() {
+  return docs.generateParams();
+}
+
+export default async function DocPage({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const { slug } = await params;
+  const page = await docs.getPage(slug);
+  if (!page) notFound();
+
   return (
     <article>
-      <h1>{meta.title}</h1>
-      <DocviaContent nodes={content} />
+      <h1>{page.data.title}</h1>
+      <DocviaContent nodes={page.content} registry={registry} />
     </article>
   );
 }
 ```
 
+`page.data` is the page's frontmatter, including any custom fields your
+`frontmatter` schema defines.
+
 ### Tag and code-block overrides
 
 ```tsx
 import { DocviaContent, type DocviaComponents } from "@docvia/renderer-react";
+import { docs } from "docvia/source";
 import Link from "next/link";
 import Image from "next/image";
-import { content } from "virtual:docvia/getting-started";
 
 const components: DocviaComponents = {
   a: (props) => <Link href={props.href ?? "#"} {...props} />,
@@ -278,36 +309,41 @@ const components: DocviaComponents = {
   ),
 };
 
-export function Doc() {
-  return <DocviaContent nodes={content} components={components} />;
+export default async function Doc() {
+  const page = await docs.getPage(["getting-started"]);
+  return <DocviaContent nodes={page!.content} components={components} />;
 }
 ```
 
 ### Hydrating interactive islands
 
+The manifest comes off the page you loaded on the server, so pass it into the
+client component as a prop — a `"use client"` module must not import the
+collection itself.
+
 ```tsx
+// components/DocviaHydrator.tsx
 "use client";
 
 import { useEffect } from "react";
 import { hydrate } from "@docvia/renderer-react/client";
-import { manifest } from "virtual:docvia/getting-started";
+import type { HydrationManifest } from "@docvia/source/runtime";
 import { registry } from "../docvia-registry";
 
-export function DocviaHydrator() {
+export function DocviaHydrator({ manifest }: { manifest: HydrationManifest }) {
   useEffect(() => {
     // ssr: true for server-rendered pages (App Router / Pages Router)
     hydrate(manifest, registry, { ssr: true });
-  }, []);
+  }, [manifest]);
   return null;
 }
 ```
 
-For a Vite SPA with no server render, call it directly with `{ ssr: false }`:
+Render it from the Server Component alongside the content:
 
-```ts
-import { hydrate } from "@docvia/renderer-react/client";
-import { manifest } from "virtual:docvia/getting-started";
-import { registry } from "./docvia-registry";
-
-hydrate(manifest, registry, { ssr: false });
+```tsx
+{page.manifest.length > 0 && <DocviaHydrator manifest={page.manifest} />}
 ```
+
+For a Vite SPA with no server render, call `hydrate` directly with `{ ssr: false }`
+using the manifest from the page you loaded.

@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CompilerOptions, RendererAdapter } from "@docvia/ir";
+import { toPageMeta } from "@docvia/ir";
 import { defineConfig } from "@docvia/plugins";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CompileService } from "../src/service";
@@ -216,6 +217,108 @@ describe("CompileService.invalidate", () => {
 
 		expect(result.routeMapChanged).toBe(true);
 		expect(service.getVirtualSourceModule()).not.toContain('"b"');
+
+		await rm(dir, { recursive: true, force: true });
+	});
+});
+
+// A configured `frontmatter` schema is the package's headline feature: fields it
+// validates must be readable at runtime. They used to be validated at build and
+// then dropped by `toPageMeta`, so `getPage().data` had no custom fields while
+// the generated types insisted it did.
+describe("custom frontmatter reaches the emitted meta", () => {
+	// A minimal Standard Schema — no Zod needed. It coerces `date` to a real Date,
+	// which is precisely the value JSON.stringify cannot round-trip.
+	const frontmatter = {
+		"~standard": {
+			version: 1 as const,
+			vendor: "test",
+			validate: (value: unknown) => {
+				const v = value as Record<string, unknown>;
+				return {
+					value: {
+						title: String(v.title ?? ""),
+						description: "",
+						tags: [] as string[],
+						draft: Boolean(v.draft ?? false),
+						author: String(v.author ?? ""),
+						date: new Date(String(v.date ?? 0)),
+					},
+				};
+			},
+		},
+	};
+
+	it("keeps custom fields (and draft) on the compiled page meta", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "docvia-fm-"));
+		await mkdir(join(dir, "docs"), { recursive: true });
+		await writeFile(
+			join(dir, "docs", "post.md"),
+			"---\ntitle: Post\nauthor: Ada\ndraft: true\ndate: 2026-07-13\n---\n\n# Post\n",
+			"utf-8",
+		);
+
+		const service = new CompileService({
+			sourceDir: "docs",
+			outDir: join(dir, ".docvia"),
+			renderer: stubRenderer,
+			plugins: [],
+			config: defineConfig({ frontmatter }),
+			projectRoot: dir,
+			incremental: false,
+		});
+		await service.compileAll();
+
+		const doc = await service.getDocument("docs", "post");
+		expect(doc).toBeDefined();
+		const meta = toPageMeta(doc!);
+
+		expect(meta.author).toBe("Ada");
+		expect(meta.draft).toBe(true);
+		expect(meta.title).toBe("Post");
+
+		// The renderers emit meta via JSON.stringify — a Date lands as a string.
+		// The generated type says `string` too (Jsonify), so this is honest.
+		const roundTripped = JSON.parse(JSON.stringify(meta));
+		expect(typeof roundTripped.date).toBe("string");
+
+		await rm(dir, { recursive: true, force: true });
+	});
+
+	// Only the configured-schema path composes a type; with no schema the codegen
+	// emits a union of the literal frontmatter samples it saw, which is already
+	// JSON and needs no projection.
+	it("emits a Jsonify-projected Frontmatter type for a configured schema", async () => {
+		const dir = await mkdtemp(join(tmpdir(), "docvia-fm-types-"));
+		await mkdir(join(dir, "docs"), { recursive: true });
+		await writeFile(
+			join(dir, "docs", "post.md"),
+			"---\ntitle: Post\n---\n\n# Post\n",
+			"utf-8",
+		);
+		// frontmatterTypeExpression() only composes when it knows the config path.
+		await writeFile(
+			join(dir, "docvia.config.ts"),
+			"export default {};\n",
+			"utf-8",
+		);
+
+		const service = new CompileService({
+			sourceDir: "docs",
+			outDir: join(dir, ".docvia"),
+			renderer: stubRenderer,
+			plugins: [],
+			config: defineConfig({ frontmatter }),
+			configPath: join(dir, "docvia.config.ts"),
+			projectRoot: dir,
+			incremental: false,
+		});
+		await service.compileAll();
+		await service.emitTypeDeclarations();
+
+		const types = await readFile(join(dir, ".docvia", "types.d.ts"), "utf-8");
+		expect(types).toContain("type Jsonify<T>");
+		expect(types).toContain("docs_Frontmatter = Jsonify<");
 
 		await rm(dir, { recursive: true, force: true });
 	});
