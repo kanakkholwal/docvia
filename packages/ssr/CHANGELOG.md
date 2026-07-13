@@ -1,5 +1,14 @@
 # @docvia/ssr
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [ca6b6c6]
+  - @docvia/ir@0.4.0
+  - @docvia/runtime@0.5.0
+  - @docvia/renderer-core@0.2.3
+
 ## 0.3.1
 
 ### Patch Changes

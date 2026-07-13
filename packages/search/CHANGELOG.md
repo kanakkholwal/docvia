@@ -1,5 +1,15 @@
 # @docvia/search
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [ca6b6c6]
+  - @docvia/ir@0.4.0
+  - @docvia/runtime@0.5.0
+  - @docvia/plugins@0.3.1
+  - @docvia/renderer-core@0.2.3
+
 ## 0.4.0
 
 ### Minor Changes
