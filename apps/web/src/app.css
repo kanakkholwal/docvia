@@ -1,31 +1,35 @@
 @import "tailwindcss";
 
-/* docvia design tokens — source of truth: apps/web/DESIGN.md (Vite Dark).
-   Dark is canonical; light is a derived inversion. One violet accent on a
-   cool near-black canvas, thin borders instead of shadows, 8px radius. */
+/* docvia design tokens.
+
+   Colour values below are the *measured* computed styles from vite.dev
+   (pulled over CDP), not the approximations in apps/web/DESIGN.md — the doc's
+   surface/border values did not match the live site. Dark is canonical; light
+   is a derived inversion. Borders, not shadows. 8px radius. */
 
 :root,
 [data-theme="dark"] {
-	/* ── Surface — tonal layering, not elevation ── */
+	/* ── Surface — note the recessed direction: vite.dev's panels sit *below*
+	     the canvas (#14121A < #16171D), they are not raised. ── */
 	--canvas: #16171d;
-	--surface-soft: #1b1c23;
-	--surface-card: #20212a;
-	--surface-strong: #292a35;
-	--surface-dark: #101116;
-	--surface-dark-elevated: #1b1c23;
+	--surface-soft: #14121a;
+	--surface-card: #1b1922;
+	--surface-strong: #24222c;
+	--surface-dark: #0f0d14;
+	--surface-dark-elevated: #14121a;
 
 	/* ── Text ── */
 	--ink: #ffffff;
-	--body-strong: #e7e8ee;
-	--body: #c7cad1;
-	--muted: #979aa4;
-	/* Decorative tier only — separators, idle marquee glyphs. Below AA for
-	   small text, so real copy stops at --muted. */
-	--muted-soft: #7c7e89;
+	--body-strong: rgba(255, 255, 255, 0.86);
+	/* vite.dev's hero subhead is alpha white, not a solid grey — it keeps the
+	   violet glow readable through the copy. */
+	--body: rgba(255, 255, 255, 0.7);
+	--muted: #98989f;
+	--muted-soft: #867e8e;
 	--on-primary: #16171d;
 
 	/* ── Borders ── */
-	--hairline: #343545;
+	--hairline: #3b3440;
 	--hairline-strong: #4b4a5d;
 
 	/* ── Brand — one luminous violet.
@@ -40,6 +44,14 @@
 	--brand-ink: #b39aff;
 	--brand-soft: #241e3a;
 	--on-brand: #16171d;
+	/* The saturated block behind vite.dev's feature media panels. */
+	--brand-deep: #370a7f;
+
+	/* Primary CTA on vite.dev is white-on-canvas, not the violet. The violet is
+	   reserved for accents, prompts, and active states. */
+	--action: #ffffff;
+	--action-hover: #e7e7ea;
+	--on-action: #16171d;
 
 	/* Card-text tokens for permanently-dark panels. Do not flip with theme. */
 	--card-on-dark: #ffffff;
@@ -67,14 +79,14 @@
 	--surface-dark-elevated: #20212a;
 
 	--ink: #16171d;
-	--body-strong: #2a2c36;
-	--body: #52545f;
+	--body-strong: rgba(22, 23, 29, 0.88);
+	--body: rgba(22, 23, 29, 0.72);
 	--muted: #6c6e78;
 	--muted-soft: #8a8c96;
 	--on-primary: #ffffff;
 
-	--hairline: #e6e6ec;
-	--hairline-strong: #d2d2dc;
+	--hairline: #e4e2e8;
+	--hairline-strong: #cfccd6;
 
 	--brand: #7c3aed;
 	--brand-strong: #6d28d9;
@@ -82,6 +94,11 @@
 	--brand-ink: #6d28d9;
 	--brand-soft: #f2edfe;
 	--on-brand: #ffffff;
+	--brand-deep: #370a7f;
+
+	--action: #16171d;
+	--action-hover: #2a2c36;
+	--on-action: #ffffff;
 
 	--check: var(--brand-ink);
 	--focus: var(--brand-strong);
@@ -150,6 +167,10 @@
 	--color-brand: var(--brand);
 	--color-brand-strong: var(--brand-strong);
 	--color-brand-hover: var(--brand-hover);
+	--color-brand-deep: var(--brand-deep);
+	--color-action: var(--action);
+	--color-action-hover: var(--action-hover);
+	--color-on-action: var(--on-action);
 	--color-brand-ink: var(--brand-ink);
 	--color-brand-soft: var(--brand-soft);
 	--color-on-brand: var(--on-brand);
@@ -176,37 +197,55 @@
 	--color-warn: var(--warning);
 	--color-danger: var(--error);
 
-	/* Geist stands in for APK Protocol (display) and Inter (body): already
-	   loaded, geometric, and holds up at -0.05em tracking. */
+	/* Matches vite.dev's pairing: a geometric display face over Inter. Satoshi
+	   stands in for APK Protocol and Geist Mono for KH Teka Mono — both of
+	   Vite's are proprietary and not licensable. */
 	--font-sans:
-		"Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif,
-		system-ui, sans-serif;
+		"Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
 	--font-display:
-		"Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif,
+		"Satoshi Variable", "Satoshi", "Inter Variable", "Inter", ui-sans-serif,
 		system-ui, sans-serif;
 	--font-mono:
-		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
-		"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+		"Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo,
+		monospace;
 
 	--radius-sm: 4px;
 	--radius-md: 8px;
 	--radius-lg: 12px;
 	--radius-xl: 16px;
 
-	/* Display scale — weight 500 with heavy negative tracking. The 600/-0.035em
-	   pairing this replaced read as marketing rather than engineered. */
-	--text-display-1: 3.75rem; /* 60px */
+	/* vite.dev's measured page frame: 1390px, gutters 20 / 40. */
+	--container-page: 1390px;
+
+	/* Display scale — measured off vite.dev. Tracking is negative only above
+	   40px; at 24px and below it goes to zero, which is why their card titles
+	   read open rather than squeezed. */
+	--text-display-1: 3.75rem; /* 60 / 67.2 / -3px */
 	--text-display-1--line-height: 1.12;
 	--text-display-1--letter-spacing: -0.05em;
 	--text-display-1--font-weight: 500;
-	--text-display-2: 3rem; /* 48px */
+	--text-display-2: 3rem; /* 48 / 48 / -1.2px */
 	--text-display-2--line-height: 1;
-	--text-display-2--letter-spacing: -0.035em;
+	--text-display-2--letter-spacing: -0.025em;
 	--text-display-2--font-weight: 500;
-	--text-display-3: 2.5rem; /* 40px */
-	--text-display-3--line-height: 1.2;
+	--text-display-3: 2.5rem; /* 40 / 53.33 / -1px */
+	--text-display-3--line-height: 1.3333;
 	--text-display-3--letter-spacing: -0.025em;
 	--text-display-3--font-weight: 500;
+	--text-display-4: 1.5rem; /* 24 / 28 / 0 — card + feature titles */
+	--text-display-4--line-height: 1.1667;
+	--text-display-4--letter-spacing: 0em;
+	--text-display-4--font-weight: 500;
+}
+
+/* ── Fonts ── */
+
+@font-face {
+	font-family: "Satoshi Variable";
+	src: url("/fonts/satoshi-variable.woff2") format("woff2-variations");
+	font-weight: 300 900;
+	font-style: normal;
+	font-display: swap;
 }
 
 /* ── Base ── */
@@ -221,6 +260,9 @@ body {
 	background: var(--canvas);
 	color: var(--ink);
 	min-height: 100vh;
+	/* vite.dev body: Inter 16 / 22.4 */
+	font-size: 16px;
+	line-height: 1.4;
 }
 
 ::selection {
@@ -229,16 +271,27 @@ body {
 }
 
 .font-display {
+	font-family: var(--font-display);
 	font-weight: 500;
-	letter-spacing: -0.035em;
 }
 
-/* Uppercase meta labels — the one place positive tracking is allowed. */
+/* vite.dev rings its hero CTA in a violet halo — the one place the page uses
+   a shadow, and it reads as glow rather than elevation. */
+.cta-glow {
+	box-shadow:
+		0 0 0 1px color-mix(in oklab, var(--brand-strong) 55%, transparent),
+		0 0 18px color-mix(in oklab, var(--brand-strong) 45%, transparent);
+}
+
+/* Meta labels are MONOSPACE on vite.dev, not sans — 12px/500, uppercase, with
+   only 0.3px (~0.025em) tracking rather than the wide letterspacing this
+   pattern usually gets. */
 .label-meta {
+	font-family: var(--font-mono);
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1.2;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.025em;
 	text-transform: uppercase;
 	color: var(--muted);
 }

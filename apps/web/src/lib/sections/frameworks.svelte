@@ -25,11 +25,15 @@ const logos = [
 </script>
 
 <section class="border-b border-hairline bg-canvas">
-	<div class="px-6 pt-14 pb-9 md:px-10">
-		<p class="label-meta text-center">Markdown in. Your framework out.</p>
+	<!-- vite.dev's equivalent row is a left-aligned 20px display heading, not a
+	     centred meta label. -->
+	<div class="mx-auto max-w-page px-5 pt-12 pb-8 sm:px-10">
+		<h2 class="font-display text-[20px] leading-7 text-ink">
+			Markdown in. Your framework out.
+		</h2>
 	</div>
 
-	<div class="marquee pb-14" aria-hidden="true">
+	<div class="marquee pb-12" aria-hidden="true">
 		<div class="marquee-track">
 			{#each [...logos, ...logos] as logo}
 				<span class="logo">

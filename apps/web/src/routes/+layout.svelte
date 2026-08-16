@@ -2,7 +2,7 @@
 import Brand from "$lib/components/brand.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
-import "@fontsource-variable/geist";
+import "@fontsource-variable/inter";
 import "@fontsource-variable/geist-mono";
 import { ArrowRight, Github, MessageCircle, Package, Menu, Sparkles, X } from "@lucide/svelte";
 import type { Snippet } from "svelte";
@@ -36,7 +36,7 @@ const navLinks = [
 <!-- ── Thin announcement strip ──────────────────────────────────────── -->
 <div class="border-b border-hairline bg-surface-soft">
 	<div
-		class="mx-auto flex h-9 max-w-7xl items-center justify-center gap-2 px-6 text-[13px] text-body md:px-10"
+		class="mx-auto flex h-9 max-w-page items-center justify-center gap-2 px-5 text-[13px] text-body sm:px-10"
 	>
 		<Sparkles class="h-3.5 w-3.5 shrink-0 text-brand-ink" />
 		<span class="hidden sm:inline">
@@ -56,10 +56,10 @@ const navLinks = [
 
 <!-- ── Full-width top bar (vite-style) ──────────────────────────────── -->
 <header
-	class="sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur-md"
+	class="sticky top-0 z-40 border-b border-hairline bg-canvas"
 >
 	<div
-		class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 md:px-10"
+		class="mx-auto flex h-20 max-w-page items-center justify-between gap-4 px-5 sm:px-10"
 	>
 		<!-- Left: brand + version + nav -->
 		<div class="flex items-center gap-6">
@@ -151,8 +151,8 @@ const navLinks = [
 </main>
 
 <!-- ── Footer ──────────────────────────────────────────────────────── -->
-<footer class="relative border-t border-hairline bg-surface-soft pt-20 md:pt-24">
-	<div class="mx-auto max-w-7xl px-6 md:px-10">
+<footer class="relative border-t border-hairline bg-surface-soft">
+	<div class="mx-auto max-w-page border-x border-hairline px-5 pt-20 sm:px-10 md:pt-24">
 		<!-- Brand + tagline + social (vite-style: no newsletter card) -->
 		<div class="flex flex-col gap-5 border-b border-hairline pb-12">
 			<Brand size="lg" />

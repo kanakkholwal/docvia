@@ -22,27 +22,25 @@ const facts = [
 </script>
 
 <section class="border-b border-hairline bg-surface-soft">
-	<div class="mx-auto max-w-7xl px-6 py-20 text-center md:px-10 md:py-28">
+	<div class="mx-auto max-w-page px-5 py-14 text-center sm:px-10 sm:py-28">
 		<span class="label-meta">Open source</span>
 		<h2
-			class="mx-auto mt-4 max-w-2xl font-display text-[36px] text-ink md:text-[48px]"
-			style="line-height: 1.05; letter-spacing: -0.04em;"
+			class="mx-auto mt-4 max-w-2xl font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 		>
 			Free, and free to leave.
 		</h2>
-		<p class="mx-auto mt-6 max-w-xl text-[18px] leading-[1.56] text-body">
+		<p class="mx-auto mt-6 max-w-xl text-[18px] leading-7 text-body">
 			docvia is a build tool you run yourself. There is no account, no metering,
 			and no telemetry calling home.
 		</p>
 
 		<div class="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
-			<Button size="lg" href="https://github.com/kanakkholwal/docvia">
+			<Button href="https://github.com/kanakkholwal/docvia" class="cta-glow">
 				<Github />
 				Star on GitHub
 			</Button>
 			<Button
-				variant="secondary"
-				size="lg"
+				variant="outline"
 				href="https://github.com/kanakkholwal/docvia/blob/main/CONTRIBUTING.md"
 			>
 				Read the contributing guide

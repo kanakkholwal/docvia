@@ -5,17 +5,20 @@ export const buttonVariants = tv({
 	base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 	variants: {
 		variant: {
-			primary: "bg-brand text-on-brand hover:bg-brand-hover",
-			secondary:
-				"border border-hairline bg-surface-card text-ink hover:bg-surface-strong",
-			ghost: "text-body hover:bg-surface-card hover:text-ink",
+			// vite.dev's "Get Started" is white-on-canvas, not the violet. Violet
+			// stays an accent (prompts, active states, links).
+			primary: "bg-action text-on-action hover:bg-action-hover",
+			secondary: "bg-surface-soft text-ink hover:bg-surface-card",
+			ghost: "text-body hover:bg-surface-soft hover:text-ink",
 			outline:
-				"border border-hairline-strong bg-transparent text-ink hover:bg-surface-card",
+				"border border-hairline bg-transparent text-ink hover:border-hairline-strong hover:bg-surface-soft",
+			brand: "bg-brand text-on-brand hover:bg-brand-hover",
 			link: "text-brand-ink underline-offset-4 hover:underline",
 		},
 		size: {
+			// 38px / 8px radius / 8-16px padding / 16px-500 label — measured.
 			sm: "h-8 px-3 text-[14px]",
-			default: "h-9.5 px-4 text-[15px]",
+			default: "h-9.5 px-4 text-[16px]",
 			lg: "h-11 px-5 text-[16px]",
 			icon: "h-9.5 w-9.5",
 		},

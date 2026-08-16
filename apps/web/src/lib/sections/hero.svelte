@@ -59,16 +59,19 @@ onMount(() => {
 });
 </script>
 
+<!-- Left-aligned 6/6 split with a vertical rule down the middle — measured off
+     vite.dev, whose hero is not centered. -->
 <section class="relative overflow-hidden border-b border-hairline bg-canvas">
 	<div class="glow" aria-hidden="true"></div>
-	<div class="grid-floor" aria-hidden="true"></div>
 
-	<div class="relative mx-auto max-w-7xl px-6 pt-20 pb-20 md:px-10 md:pt-28 md:pb-28">
-		<!-- ── Centered editorial column ─────────────────────────────── -->
-		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
+	<div class="relative mx-auto grid max-w-page lg:grid-cols-2">
+		<!-- ── Left: eyebrow, headline, CTA, install ──────────────────── -->
+		<div
+			class="flex flex-col px-5 py-14 sm:px-10 sm:py-20 lg:border-r lg:border-hairline"
+		>
 			<a
 				href="https://github.com/kanakkholwal/docvia/releases"
-				class="reveal group inline-flex w-fit items-center gap-2 rounded-full border border-hairline bg-surface-soft/70 py-1.5 pl-2.5 pr-3 text-[13px] font-medium text-body-strong backdrop-blur-sm transition-colors duration-(--motion-fast) ease-out hover:border-hairline-strong hover:text-ink"
+				class="reveal group label-meta inline-flex w-fit items-center gap-2 transition-colors duration-(--motion-fast) ease-out hover:text-ink"
 				style="animation-delay: 0ms"
 			>
 				<span class="relative flex h-1.5 w-1.5">
@@ -79,51 +82,48 @@ onMount(() => {
 				</span>
 				Public preview · v{version.current}
 				<ArrowRight
-					class="h-3.5 w-3.5 text-muted transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
+					class="h-3 w-3 transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
 				/>
 			</a>
 
 			<h1
-				class="reveal mt-7 font-display text-[40px] text-ink sm:text-5xl md:text-[60px]"
-				style="line-height: 1.12; letter-spacing: -0.05em; animation-delay: 40ms"
+				class="reveal mt-6 max-w-104 font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
+				style="animation-delay: 40ms"
 			>
-				The build tool<br class="hidden sm:block" />
-				for your docs.
+				The build tool for your docs.
 			</h1>
 
 			<p
-				class="reveal mt-6 max-w-2xl text-[18px] leading-[1.56] text-body"
+				class="reveal mt-6 max-w-md text-[18px] leading-7 text-body"
 				style="animation-delay: 80ms"
 			>
 				docvia compiles Markdown into typed, pre-rendered modules for React,
-				Svelte, and any framework with an adapter. Incremental builds and
-				built-in search are included, and nothing parses at runtime.
+				Svelte, and any framework with an adapter. Nothing parses at runtime.
 			</p>
 
 			<div
 				class="reveal mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
 				style="animation-delay: 120ms"
 			>
-				<Button size="lg" href="https://docs.docvia.dev">
+				<Button href="https://docs.docvia.dev" class="cta-glow">
 					Get started
 					<ArrowRight />
 				</Button>
-				<Button
-					variant="secondary"
-					size="lg"
-					href="https://github.com/kanakkholwal/docvia"
-				>
+				<Button variant="outline" href="https://github.com/kanakkholwal/docvia">
 					<Github />
 					View on GitHub
 				</Button>
 			</div>
 
-			<div class="reveal mt-8 w-full max-w-md" style="animation-delay: 160ms">
+			<div
+				class="reveal mt-auto w-full max-w-md pt-16"
+				style="animation-delay: 160ms"
+			>
 				<InstallCommand pkg="@docvia/cli" />
 			</div>
 
 			<ul
-				class="reveal mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[14px] text-muted"
+				class="reveal mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-muted"
 				style="animation-delay: 200ms"
 			>
 				{#each guarantees as item}
@@ -135,12 +135,14 @@ onMount(() => {
 			</ul>
 		</div>
 
-		<!-- ── The compiler building itself, live (looping) ───────────── -->
+		<!-- ── Right: the compiler building itself, live (looping) ─────── -->
 		<div
-			class="reveal mx-auto mt-20 max-w-4xl md:mt-24"
-			style="animation-delay: 240ms"
+			class="reveal flex items-center px-5 py-14 sm:px-10 sm:py-20"
+			style="animation-delay: 200ms"
 		>
-			<div class="overflow-hidden rounded-lg border border-hairline bg-surface-soft">
+			<div
+				class="w-full overflow-hidden rounded-md border border-hairline bg-surface-soft"
+			>
 				<div
 					class="flex items-center gap-2 border-b border-hairline bg-surface-card px-4 py-2.5"
 				>
@@ -150,7 +152,7 @@ onMount(() => {
 					<span class="ml-3 font-mono text-[11px] text-muted">docvia · build</span>
 				</div>
 
-				<div class="min-h-58 space-y-2.5 p-5 font-mono text-[13px] md:p-6">
+				<div class="min-h-58 space-y-2.5 p-5 font-mono text-[13px] sm:p-6">
 					<div class="text-muted">$ docvia build</div>
 					{#each buildLog.slice(0, shown) as line (line.label)}
 						<div class="build-line flex items-center gap-3">
@@ -190,36 +192,19 @@ onMount(() => {
 </section>
 
 <style>
-	/* Violet halo behind the headline — the hero's one brand moment. */
+	/* Soft violet wash over the upper-left, the only ambient colour on the page. */
 	.glow {
 		position: absolute;
-		top: -22%;
-		left: 50%;
-		width: min(900px, 110%);
-		height: 640px;
-		transform: translateX(-50%);
+		top: -30%;
+		left: -5%;
+		width: min(780px, 80%);
+		height: 620px;
 		background: radial-gradient(
 			50% 50% at 50% 50%,
-			color-mix(in oklab, var(--brand-strong) 34%, transparent),
+			color-mix(in oklab, var(--brand-strong) 28%, transparent),
 			transparent 70%
 		);
-		filter: blur(60px);
-		opacity: 0.5;
-		pointer-events: none;
-	}
-	.grid-floor {
-		position: absolute;
-		inset: 0;
-		background-image:
-			linear-gradient(var(--hairline) 1px, transparent 1px),
-			linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
-		background-size: 56px 56px;
-		-webkit-mask-image: radial-gradient(
-			ellipse 70% 55% at 50% 25%,
-			#000,
-			transparent 75%
-		);
-		mask-image: radial-gradient(ellipse 70% 55% at 50% 25%, #000, transparent 75%);
+		filter: blur(70px);
 		opacity: 0.4;
 		pointer-events: none;
 	}

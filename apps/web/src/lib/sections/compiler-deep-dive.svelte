@@ -27,19 +27,18 @@ export default defineConfig({
 });`;
 </script>
 
-<section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-16">
+<section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-20">
 	<div
-		class="mx-auto grid max-w-7xl gap-14 px-6 py-20 md:px-10 md:py-28 lg:grid-cols-2 lg:items-center lg:gap-12"
+		class="mx-auto grid max-w-page gap-14 px-5 py-14 sm:px-10 sm:py-28 lg:grid-cols-2 lg:items-center lg:gap-12"
 	>
 		<div>
 			<span class="label-meta">The pipeline</span>
 			<h2
-				class="mt-4 font-display text-[36px] text-ink md:text-[48px]"
-				style="line-height: 1.05; letter-spacing: -0.04em;"
+				class="mt-4 font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 			>
 				A compiler, not a renderer.
 			</h2>
-			<p class="mt-6 max-w-xl text-[18px] leading-[1.56] text-body">
+			<p class="mt-6 max-w-xl text-[18px] leading-7 text-body">
 				docvia treats your docs the way a modern bundler treats source code:
 				hash, transform, cache, emit. Six stages, parallelized across cores,
 				gated by a content-addressable cache.

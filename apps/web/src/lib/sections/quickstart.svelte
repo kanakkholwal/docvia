@@ -21,13 +21,12 @@ const steps = [
 ];
 </script>
 
-<section id="quickstart" class="border-b border-hairline bg-canvas scroll-mt-16">
-	<div class="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
-		<div class="mb-14 max-w-3xl">
+<section id="quickstart" class="border-b border-hairline bg-canvas scroll-mt-20">
+	<div class="mx-auto max-w-page px-5 py-14 sm:px-10 sm:py-28">
+		<div class="mb-14 text-center">
 			<span class="label-meta">Quickstart</span>
 			<h2
-				class="mt-4 font-display text-[36px] text-ink md:text-[48px]"
-				style="line-height: 1.05; letter-spacing: -0.04em;"
+				class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 			>
 				Zero to compiled in under a minute.
 			</h2>

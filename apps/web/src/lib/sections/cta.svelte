@@ -9,26 +9,24 @@ import { Button } from "$lib/components/ui/button";
 	<div class="glow" aria-hidden="true"></div>
 
 	<div
-		class="relative mx-auto max-w-7xl px-6 py-24 text-center md:px-10 md:py-32"
+		class="relative mx-auto max-w-page px-5 py-24 text-center sm:px-10 md:py-32"
 	>
 		<h2
-			class="mx-auto max-w-3xl font-display text-[40px] text-ink md:text-[56px]"
-			style="line-height: 1.08; letter-spacing: -0.05em;"
+			class="mx-auto max-w-3xl font-display text-[40px] leading-[1.12] tracking-tighter text-ink md:text-[60px]"
 		>
 			Turn your docs into a build artifact.
 		</h2>
-		<p class="mx-auto mt-6 max-w-xl text-[18px] leading-[1.56] text-body">
+		<p class="mx-auto mt-6 max-w-xl text-[18px] leading-7 text-body">
 			Open source, MIT licensed, in public preview. Install it now, deploy
 			anywhere, and help shape the v1.0 release.
 		</p>
 		<div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
-			<Button size="lg" href="https://docs.docvia.dev">
+			<Button href="https://docs.docvia.dev" class="cta-glow">
 				Read the docs
 				<ArrowRight />
 			</Button>
 			<Button
-				variant="secondary"
-				size="lg"
+				variant="outline"
 				href="https://github.com/kanakkholwal/docvia"
 			>
 				<Github />

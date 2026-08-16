@@ -33,7 +33,7 @@ import UseCases from "$lib/sections/use-cases.svelte";
      page (vite-style); each section carries its own bottom divider. -->
 <!-- Proof (Stats) sits after the pitch, not before it — vite.dev puts its
      social-proof beat late, once the reader has a reason to care. -->
-<div class="mx-auto max-w-7xl border-x border-hairline">
+<div class="mx-auto max-w-page border-x border-hairline">
 	<Hero />
 	<Frameworks />
 	<Features />

@@ -75,7 +75,7 @@ function renderCell(value: Cell) {
 </script>
 
 <section id="comparison" class="bg-surface-soft">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
+	<div class="mx-auto max-w-page px-5 py-24 sm:px-10 md:py-24">
 		<!-- Section head -->
 		<div class="mb-12 max-w-3xl">
 			<span

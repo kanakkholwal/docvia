@@ -23,7 +23,7 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 
 <section class="relative overflow-hidden bg-canvas">
 	<div
-		class="mx-auto grid min-h-[calc(100vh-8rem)] max-w-7xl items-center gap-12 px-6 py-20 md:px-10 md:py-24 lg:grid-cols-12 lg:gap-10"
+		class="mx-auto grid min-h-[calc(100vh-8rem)] max-w-page items-center gap-12 px-5 py-14 sm:px-10 md:py-24 lg:grid-cols-12 lg:gap-10"
 	>
 		<!-- Left: editorial copy -->
 		<div class="flex flex-col justify-center lg:col-span-7">
@@ -35,22 +35,21 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 			</span>
 
 			<h1
-				class="font-display text-[44px] text-ink sm:text-5xl md:text-6xl lg:text-[68px]"
-				style="line-height: 1.08; letter-spacing: -0.05em;"
+				class="font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
 			>
 				{headline}
 			</h1>
 
-			<p class="mt-8 max-w-xl text-[18px] leading-[1.56] text-body">
+			<p class="mt-8 max-w-xl text-[18px] leading-7 text-body">
 				{tagline}
 			</p>
 
 			<div class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-				<Button size="lg" href="/">
+				<Button href="/">
 					<Home />
 					Back to home
 				</Button>
-				<Button variant="secondary" size="lg" href="https://docs.docvia.dev">
+				<Button variant="outline" href="https://docs.docvia.dev">
 					Read the docs
 					<ArrowRight />
 				</Button>

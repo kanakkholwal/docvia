@@ -37,49 +37,41 @@ const cases: Card[] = [
 </script>
 
 <section id="use-cases" class="border-b border-hairline bg-canvas">
-	<div class="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
-		<div class="mb-14 max-w-3xl">
-			<span class="label-meta">Use cases</span>
-			<h2
-				class="mt-4 font-display text-[36px] text-ink md:text-[48px]"
-				style="line-height: 1.05; letter-spacing: -0.04em;"
-			>
-				One compiler, many shapes of docs.
-			</h2>
-			<p class="mt-6 max-w-2xl text-[18px] leading-[1.56] text-body">
-				The same primitives (collections, frontmatter, plugins) adapt to
-				whatever you're publishing.
-			</p>
-		</div>
+	<div class="mx-auto max-w-page px-5 py-14 text-center sm:px-10 sm:py-28">
+		<span class="label-meta">Use cases</span>
+		<h2
+			class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
+		>
+			One compiler, many shapes of docs.
+		</h2>
+		<p class="mx-auto mt-6 max-w-2xl text-[18px] leading-7 text-body">
+			The same primitives (collections, frontmatter, plugins) adapt to whatever
+			you're publishing.
+		</p>
+	</div>
 
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-			{#each cases as useCase}
-				<article
-					class="flex flex-col gap-5 rounded-md border border-hairline bg-surface-soft p-6 text-ink transition-colors duration-(--motion-base) ease-out hover:border-hairline-strong md:p-8"
-				>
-					<div class="flex items-center gap-3">
-						<div
-							class="grid h-10 w-10 place-items-center rounded-md border border-hairline bg-canvas text-brand-ink"
-						>
-							<useCase.icon class="h-5 w-5" />
-						</div>
-						<h3
-							class="font-display text-[22px]"
-							style="line-height: 1.2; letter-spacing: -0.03em;"
-						>
-							{useCase.title}
-						</h3>
-					</div>
-					<p class="text-[15px] leading-[1.6] text-body">
-						{useCase.body}
-					</p>
+	<div
+		class="mx-auto grid max-w-page grid-cols-1 gap-px border-t border-hairline bg-hairline md:grid-cols-2"
+	>
+		{#each cases as useCase}
+			<article class="flex flex-col gap-5 bg-canvas p-5 text-ink sm:p-10">
+				<div class="flex items-center gap-3">
 					<div
-						class="mt-auto rounded-md border border-hairline bg-canvas px-3 py-2 font-mono text-[12px] text-body"
+						class="grid h-10 w-10 place-items-center rounded-md border border-hairline bg-surface-soft text-brand-ink"
 					>
-						{useCase.example}
+						<useCase.icon class="h-5 w-5" />
 					</div>
-				</article>
-			{/each}
-		</div>
+					<h3 class="font-display text-[24px] leading-[1.1667]">
+						{useCase.title}
+					</h3>
+				</div>
+				<p class="text-[16px] leading-[1.75] text-body">{useCase.body}</p>
+				<div
+					class="mt-auto rounded-md border border-hairline bg-surface-soft px-3 py-2 font-mono text-[12px] text-body"
+				>
+					{useCase.example}
+				</div>
+			</article>
+		{/each}
 	</div>
 </section>
