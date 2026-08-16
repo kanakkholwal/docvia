@@ -35,22 +35,22 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 			</span>
 
 			<h1
-				class="font-display text-[44px] leading-[1.02] text-ink sm:text-5xl md:text-6xl lg:text-[72px]"
-				style="letter-spacing: -0.035em;"
+				class="font-display text-[44px] text-ink sm:text-5xl md:text-6xl lg:text-[68px]"
+				style="line-height: 1.08; letter-spacing: -0.05em;"
 			>
 				{headline}
 			</h1>
 
-			<p class="mt-8 max-w-xl text-lg leading-[1.55] text-body">
+			<p class="mt-8 max-w-xl text-[18px] leading-[1.56] text-body">
 				{tagline}
 			</p>
 
-			<div class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+			<div class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
 				<Button size="lg" href="/">
 					<Home />
 					Back to home
 				</Button>
-				<Button variant="outline" size="lg" href="https://docs.docvia.dev">
+				<Button variant="secondary" size="lg" href="https://docs.docvia.dev">
 					Read the docs
 					<ArrowRight />
 				</Button>
@@ -58,13 +58,9 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 
 			{#if !isNotFound && page.error}
 				<div
-					class="mt-8 max-w-xl rounded-lg border border-hairline bg-surface-card p-4 font-mono text-[12px] text-body"
+					class="mt-8 max-w-xl rounded-md border border-hairline bg-surface-card p-4 font-mono text-[12px] text-body"
 				>
-					<div
-						class="mb-1 text-[11px] font-semibold uppercase tracking-widest text-muted"
-					>
-						Error · {status}
-					</div>
+					<div class="label-meta mb-1">Error · {status}</div>
 					<div class="wrap-break-word text-body-strong">{errorMessage}</div>
 				</div>
 			{/if}
@@ -72,27 +68,23 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 
 		<!-- Right: stylised status illustration card -->
 		<div class="relative lg:col-span-5">
-			<div
-				class="relative rounded-xl border border-hairline bg-surface-soft p-8 md:p-10"
-			>
+			<div class="relative rounded-lg border border-hairline bg-surface-soft p-8 md:p-10">
 				<div
-					class="font-display text-[128px] leading-[0.95] text-ink md:text-[160px]"
+					class="font-display text-[128px] leading-[0.95] text-brand-ink md:text-[160px]"
 					style="letter-spacing: -0.06em;"
 				>
 					{status}
 				</div>
 
 				<!-- Mini console showing the failed resolve -->
-				<div
-					class="mt-6 overflow-hidden rounded-lg border border-hairline bg-canvas"
-				>
+				<div class="mt-6 overflow-hidden rounded-md border border-hairline bg-canvas">
 					<div
-						class="flex items-center gap-2 border-b border-hairline bg-surface-card/60 px-4 py-2.5"
+						class="flex items-center gap-2 border-b border-hairline bg-surface-card px-4 py-2.5"
 					>
 						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
 						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
 						<span class="h-2.5 w-2.5 rounded-full bg-brand"></span>
-						<span class="ml-3 font-mono text-[11px] text-muted-soft">
+						<span class="ml-3 font-mono text-[11px] text-muted">
 							docvia · resolve
 						</span>
 					</div>

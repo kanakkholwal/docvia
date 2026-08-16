@@ -5,6 +5,7 @@ import Faq from "$lib/sections/faq.svelte";
 import Features from "$lib/sections/features.svelte";
 import Frameworks from "$lib/sections/frameworks.svelte";
 import Hero from "$lib/sections/hero.svelte";
+import OpenSource from "$lib/sections/open-source.svelte";
 import Quickstart from "$lib/sections/quickstart.svelte";
 import Stats from "$lib/sections/stats.svelte";
 import UseCases from "$lib/sections/use-cases.svelte";
@@ -30,14 +31,17 @@ import UseCases from "$lib/sections/use-cases.svelte";
 
 <!-- Bordered content frame — continuous vertical hairlines run down the whole
      page (vite-style); each section carries its own bottom divider. -->
+<!-- Proof (Stats) sits after the pitch, not before it — vite.dev puts its
+     social-proof beat late, once the reader has a reason to care. -->
 <div class="mx-auto max-w-7xl border-x border-hairline">
 	<Hero />
 	<Frameworks />
-	<Stats />
 	<Features />
 	<CompilerDeepDive />
 	<UseCases />
+	<Stats />
 	<Quickstart />
+	<OpenSource />
 	<Faq />
 	<Cta />
 </div>

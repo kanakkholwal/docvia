@@ -1,5 +1,12 @@
 # docvia — Design System
 
+> **Superseded for `apps/web`.** The marketing site now implements the Vite Dark
+> system in [`apps/web/DESIGN.md`](apps/web/DESIGN.md): violet accent on a
+> `#16171D` canvas, dark by default, 8px radius, borders instead of shadows.
+> [`apps/web/REDESIGN.md`](apps/web/REDESIGN.md) records the diff.
+> **`apps/docs` still runs the lime system documented below** and needs the same
+> token migration before the two apps read as one product.
+
 The single source of truth for visual design across `apps/web` (marketing) and
 `apps/docs` (documentation). Both apps consume the same Tailwind tokens and
 shadcn-svelte component primitives so the brand reads as one product.

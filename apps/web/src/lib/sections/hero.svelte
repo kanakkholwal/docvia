@@ -15,11 +15,7 @@ const buildLog = [
 
 const targets = ["React", "Svelte", "Next.js", "Vite", "Static HTML"];
 
-const guarantees = [
-	"MIT licensed",
-	"Self-host or BYO cloud",
-	"No vendor lock-in",
-];
+const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in"];
 
 const TOTAL = buildLog.length;
 
@@ -64,19 +60,15 @@ onMount(() => {
 </script>
 
 <section class="relative overflow-hidden border-b border-hairline bg-canvas">
-	<!-- Faint brand halo + grid floor — one scarce lime accent, static so
-	     reduced-motion has nothing to disable. -->
 	<div class="glow" aria-hidden="true"></div>
 	<div class="grid-floor" aria-hidden="true"></div>
 
-	<div
-		class="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pt-16 pb-20 md:px-10 md:pt-24 md:pb-28 lg:grid-cols-12 lg:gap-0"
-	>
-		<!-- ── Left: headline, CTA, install ─────────────────────────── -->
-		<div class="flex flex-col lg:col-span-6 lg:border-r lg:border-hairline lg:pr-12">
+	<div class="relative mx-auto max-w-7xl px-6 pt-20 pb-20 md:px-10 md:pt-28 md:pb-28">
+		<!-- ── Centered editorial column ─────────────────────────────── -->
+		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
 			<a
 				href="https://github.com/kanakkholwal/docvia/releases"
-				class="reveal inline-flex w-fit items-center gap-2 rounded-full border border-hairline bg-surface-soft/80 px-3 py-1.5 text-[13px] font-medium text-body-strong backdrop-blur-sm transition-colors hover:border-hairline-strong"
+				class="reveal group inline-flex w-fit items-center gap-2 rounded-full border border-hairline bg-surface-soft/70 py-1.5 pl-2.5 pr-3 text-[13px] font-medium text-body-strong backdrop-blur-sm transition-colors duration-(--motion-fast) ease-out hover:border-hairline-strong hover:text-ink"
 				style="animation-delay: 0ms"
 			>
 				<span class="relative flex h-1.5 w-1.5">
@@ -86,20 +78,22 @@ onMount(() => {
 					<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
 				</span>
 				Public preview · v{version.current}
-				<span class="text-muted-soft">→</span>
+				<ArrowRight
+					class="h-3.5 w-3.5 text-muted transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
+				/>
 			</a>
 
 			<h1
-				class="reveal mt-6 font-display text-[40px] text-ink sm:text-5xl md:text-6xl lg:text-[64px]"
-				style="line-height: 1.03; letter-spacing: -0.035em; animation-delay: 60ms"
+				class="reveal mt-7 font-display text-[40px] text-ink sm:text-5xl md:text-[60px]"
+				style="line-height: 1.12; letter-spacing: -0.05em; animation-delay: 40ms"
 			>
-				The build tool<br />
+				The build tool<br class="hidden sm:block" />
 				for your docs.
 			</h1>
 
 			<p
-				class="reveal mt-6 max-w-xl text-lg leading-[1.55] text-body"
-				style="animation-delay: 140ms"
+				class="reveal mt-6 max-w-2xl text-[18px] leading-[1.56] text-body"
+				style="animation-delay: 80ms"
 			>
 				docvia compiles Markdown into typed, pre-rendered modules for React,
 				Svelte, and any framework with an adapter. Incremental builds and
@@ -107,15 +101,15 @@ onMount(() => {
 			</p>
 
 			<div
-				class="reveal mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-				style="animation-delay: 220ms"
+				class="reveal mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+				style="animation-delay: 120ms"
 			>
 				<Button size="lg" href="https://docs.docvia.dev">
 					Get started
 					<ArrowRight />
 				</Button>
 				<Button
-					variant="outline"
+					variant="secondary"
 					size="lg"
 					href="https://github.com/kanakkholwal/docvia"
 				>
@@ -124,13 +118,13 @@ onMount(() => {
 				</Button>
 			</div>
 
-			<div class="reveal mt-7 max-w-md" style="animation-delay: 300ms">
+			<div class="reveal mt-8 w-full max-w-md" style="animation-delay: 160ms">
 				<InstallCommand pkg="@docvia/cli" />
 			</div>
 
 			<ul
-				class="reveal mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted"
-				style="animation-delay: 360ms"
+				class="reveal mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[14px] text-muted"
+				style="animation-delay: 200ms"
 			>
 				{#each guarantees as item}
 					<li class="inline-flex items-center gap-1.5">
@@ -141,64 +135,54 @@ onMount(() => {
 			</ul>
 		</div>
 
-		<!-- ── Right: the compiler building itself, live (looping) ────── -->
-		<div class="reveal lg:col-span-6 lg:pl-12" style="animation-delay: 200ms">
-			<div
-				class="rounded-2xl border border-hairline bg-surface-soft p-4 shadow-[0_30px_80px_-40px_rgba(10,10,10,0.55)] md:p-6"
-			>
+		<!-- ── The compiler building itself, live (looping) ───────────── -->
+		<div
+			class="reveal mx-auto mt-20 max-w-4xl md:mt-24"
+			style="animation-delay: 240ms"
+		>
+			<div class="overflow-hidden rounded-lg border border-hairline bg-surface-soft">
 				<div
-					class="overflow-hidden rounded-xl border border-hairline bg-canvas"
+					class="flex items-center gap-2 border-b border-hairline bg-surface-card px-4 py-2.5"
 				>
-					<div
-						class="flex items-center gap-2 border-b border-hairline bg-surface-card/60 px-4 py-2.5"
-					>
-						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
-						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
-						<span class="h-2.5 w-2.5 rounded-full bg-brand"></span>
-						<span class="ml-3 font-mono text-[11px] text-muted">
-							docvia · build
-						</span>
-					</div>
-					<div class="min-h-58 space-y-2.5 p-5 font-mono text-[13px]">
-						<div class="text-muted">$ docvia build</div>
-						{#each buildLog.slice(0, shown) as line (line.label)}
-							<div class="build-line flex items-center gap-3">
-								<Check class="h-3.5 w-3.5 shrink-0 text-check" />
-								<span class="w-14 font-semibold text-ink">{line.label}</span>
-								<span class="flex-1 truncate text-body">{line.detail}</span>
-								<span class="text-muted">{line.duration}</span>
-							</div>
-						{/each}
-						{#if doneVisible}
-							<div
-								class="build-line border-t border-hairline pt-2.5 text-body-strong"
-							>
-								<span class="text-check">✓</span> Built 24 pages in
-								<span class="font-semibold text-ink">412ms</span>
-							</div>
-						{:else}
-							<div class="flex items-center gap-2 text-muted">
-								<span class="cursor" aria-hidden="true"></span>
-							</div>
-						{/if}
-					</div>
+					<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
+					<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
+					<span class="h-2.5 w-2.5 rounded-full bg-brand"></span>
+					<span class="ml-3 font-mono text-[11px] text-muted">docvia · build</span>
 				</div>
 
-				<div class="mt-4 px-1">
-					<div
-						class="mb-2.5 text-[11px] font-semibold uppercase tracking-widest text-muted"
-					>
-						Render targets
-					</div>
-					<div class="flex flex-wrap gap-2">
-						{#each targets as t}
-							<span
-								class="rounded-full border border-hairline bg-canvas px-3 py-1 text-[13px] font-medium text-body-strong"
-							>
-								{t}
-							</span>
-						{/each}
-					</div>
+				<div class="min-h-58 space-y-2.5 p-5 font-mono text-[13px] md:p-6">
+					<div class="text-muted">$ docvia build</div>
+					{#each buildLog.slice(0, shown) as line (line.label)}
+						<div class="build-line flex items-center gap-3">
+							<Check class="h-3.5 w-3.5 shrink-0 text-check" />
+							<span class="w-14 font-semibold text-ink">{line.label}</span>
+							<span class="flex-1 truncate text-body">{line.detail}</span>
+							<span class="text-muted">{line.duration}</span>
+						</div>
+					{/each}
+					{#if doneVisible}
+						<div class="build-line border-t border-hairline pt-2.5 text-body-strong">
+							<span class="text-check">✓</span> Built 24 pages in
+							<span class="font-semibold text-ink">412ms</span>
+						</div>
+					{:else}
+						<div class="flex items-center gap-2 text-muted">
+							<span class="cursor" aria-hidden="true"></span>
+						</div>
+					{/if}
+				</div>
+
+				<div
+					class="flex flex-wrap items-center gap-2 border-t border-hairline bg-surface-card px-4 py-3"
+				>
+					<span class="label-meta mr-1">Render targets</span>
+					{#each targets as t}
+						<span
+							class="rounded-full bg-surface-strong px-2.5 py-1 text-[12px] font-medium text-body"
+						>
+							{t}
+						</span>
+					{/each}
 				</div>
 			</div>
 		</div>
@@ -206,20 +190,21 @@ onMount(() => {
 </section>
 
 <style>
-	/* Faint lime halo, top-left over the headline. */
+	/* Violet halo behind the headline — the hero's one brand moment. */
 	.glow {
 		position: absolute;
-		top: -12%;
-		left: 8%;
-		width: min(680px, 90%);
-		height: 520px;
+		top: -22%;
+		left: 50%;
+		width: min(900px, 110%);
+		height: 640px;
+		transform: translateX(-50%);
 		background: radial-gradient(
 			50% 50% at 50% 50%,
-			color-mix(in oklab, var(--brand) 20%, transparent),
+			color-mix(in oklab, var(--brand-strong) 34%, transparent),
 			transparent 70%
 		);
-		filter: blur(34px);
-		opacity: 0.42;
+		filter: blur(60px);
+		opacity: 0.5;
 		pointer-events: none;
 	}
 	.grid-floor {
@@ -228,24 +213,19 @@ onMount(() => {
 		background-image:
 			linear-gradient(var(--hairline) 1px, transparent 1px),
 			linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
-		background-size: 44px 44px;
+		background-size: 56px 56px;
 		-webkit-mask-image: radial-gradient(
-			ellipse 80% 60% at 30% 30%,
+			ellipse 70% 55% at 50% 25%,
 			#000,
-			transparent 72%
+			transparent 75%
 		);
-		mask-image: radial-gradient(
-			ellipse 80% 60% at 30% 30%,
-			#000,
-			transparent 72%
-		);
-		opacity: 0.35;
+		mask-image: radial-gradient(ellipse 70% 55% at 50% 25%, #000, transparent 75%);
+		opacity: 0.4;
 		pointer-events: none;
 	}
 
-	/* Each streamed build line fades + slides in. */
 	.build-line {
-		animation: line-in 0.28s var(--ease-out, ease-out) both;
+		animation: line-in 0.28s var(--ease-out) both;
 	}
 	@keyframes line-in {
 		from {
@@ -258,7 +238,6 @@ onMount(() => {
 		}
 	}
 
-	/* Blinking caret shown between build runs. */
 	.cursor {
 		display: inline-block;
 		width: 8px;
@@ -276,7 +255,7 @@ onMount(() => {
 	   app.css) neutralizes it, and content is present on first paint / no-JS. */
 	.reveal {
 		opacity: 0;
-		animation: reveal-rise 0.5s var(--ease-out, ease-out) forwards;
+		animation: reveal-rise 0.5s var(--ease-out) forwards;
 	}
 	@keyframes reveal-rise {
 		from {

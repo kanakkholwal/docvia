@@ -46,22 +46,19 @@ const faqs = [
 </script>
 
 <section id="faq" class="border-b border-hairline bg-surface-soft scroll-mt-16">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
+	<div class="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
 		<div class="mb-12 max-w-3xl">
-			<span
-				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
-			>
-				FAQ
-			</span>
+			<span class="label-meta">FAQ</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
+				class="mt-4 font-display text-[36px] text-ink md:text-[48px]"
+				style="line-height: 1.05; letter-spacing: -0.04em;"
 			>
 				Frequently asked questions.
 			</h2>
 		</div>
 
 		<div
-			class="mx-auto max-w-3xl divide-y divide-hairline rounded-lg border border-hairline bg-canvas px-6"
+			class="mx-auto max-w-3xl rounded-md border border-hairline bg-canvas px-6"
 		>
 			{#each faqs as faq, i}
 				<Accordion question={faq.q} open={i === 0}>

@@ -37,49 +37,44 @@ const cases: Card[] = [
 </script>
 
 <section id="use-cases" class="border-b border-hairline bg-canvas">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
-		<div class="mb-16 max-w-3xl">
-			<span
-				class="text-[12px] font-semibold uppercase tracking-widest text-muted"
-			>
-				Use cases
-			</span>
+	<div class="mx-auto max-w-7xl px-6 py-20 md:px-10 md:py-28">
+		<div class="mb-14 max-w-3xl">
+			<span class="label-meta">Use cases</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
+				class="mt-4 font-display text-[36px] text-ink md:text-[48px]"
+				style="line-height: 1.05; letter-spacing: -0.04em;"
 			>
 				One compiler, many shapes of docs.
 			</h2>
-			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
+			<p class="mt-6 max-w-2xl text-[18px] leading-[1.56] text-body">
 				The same primitives (collections, frontmatter, plugins) adapt to
 				whatever you're publishing.
 			</p>
 		</div>
 
-		<div
-			class="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-hairline bg-hairline md:grid-cols-2"
-		>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			{#each cases as useCase}
 				<article
-					class="flex flex-col gap-5 bg-canvas p-8 text-ink md:p-10"
+					class="flex flex-col gap-5 rounded-md border border-hairline bg-surface-soft p-6 text-ink transition-colors duration-(--motion-base) ease-out hover:border-hairline-strong md:p-8"
 				>
 					<div class="flex items-center gap-3">
 						<div
-							class="grid h-11 w-11 place-items-center rounded-md bg-brand-soft text-brand-ink"
+							class="grid h-10 w-10 place-items-center rounded-md border border-hairline bg-canvas text-brand-ink"
 						>
 							<useCase.icon class="h-5 w-5" />
 						</div>
 						<h3
-							class="font-display text-[24px]"
-							style="letter-spacing: -0.02em;"
+							class="font-display text-[22px]"
+							style="line-height: 1.2; letter-spacing: -0.03em;"
 						>
 							{useCase.title}
 						</h3>
 					</div>
-					<p class="text-[15px] leading-[1.55] text-body">
+					<p class="text-[15px] leading-[1.6] text-body">
 						{useCase.body}
 					</p>
 					<div
-						class="mt-auto rounded-md border border-hairline bg-surface-soft px-3 py-2 font-mono text-[12px] text-body"
+						class="mt-auto rounded-md border border-hairline bg-canvas px-3 py-2 font-mono text-[12px] text-body"
 					>
 						{useCase.example}
 					</div>

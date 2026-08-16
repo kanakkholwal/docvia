@@ -1,41 +1,58 @@
 <script lang="ts">
 import { ArrowRight, Github } from "@lucide/svelte";
+import { Button } from "$lib/components/ui/button";
 </script>
 
-<section class="bg-canvas">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
-		<!-- The one full-bleed brand band: lime fill, ink type. This is the
-		     single large moment of accent on the whole page. -->
-		<div
-			class="relative overflow-hidden rounded-xl bg-brand px-8 py-16 text-on-brand md:px-16 md:py-20"
+<!-- Quiet, centered close. The full-bleed colour band this replaced fought the
+     "borders not fills" rule the rest of the page follows. -->
+<section class="relative overflow-hidden bg-canvas">
+	<div class="glow" aria-hidden="true"></div>
+
+	<div
+		class="relative mx-auto max-w-7xl px-6 py-24 text-center md:px-10 md:py-32"
+	>
+		<h2
+			class="mx-auto max-w-3xl font-display text-[40px] text-ink md:text-[56px]"
+			style="line-height: 1.08; letter-spacing: -0.05em;"
 		>
-			<div class="relative max-w-2xl">
-				<h2
-					class="font-display text-4xl md:text-5xl lg:text-display-2 lg:leading-[1.05]"
-				>
-					Turn your docs into a build artifact today.
-				</h2>
-				<p class="mt-6 max-w-xl text-lg leading-[1.55] text-on-brand/80">
-					Open source, MIT licensed, in public preview. Install it now, deploy
-					anywhere, and help shape the v1.0 release.
-				</p>
-				<div class="mt-10 flex flex-col gap-3 sm:flex-row">
-					<a
-						href="https://docs.docvia.dev"
-						class="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-ink px-6 text-base font-semibold text-on-primary transition-colors hover:bg-ink/90"
-					>
-						Read the docs
-						<ArrowRight class="h-4 w-4" />
-					</a>
-					<a
-						href="https://github.com/kanakkholwal/docvia"
-						class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-on-brand/25 px-6 text-base font-semibold text-on-brand transition-colors hover:bg-on-brand/10"
-					>
-						<Github class="h-4 w-4" />
-						Star on GitHub
-					</a>
-				</div>
-			</div>
+			Turn your docs into a build artifact.
+		</h2>
+		<p class="mx-auto mt-6 max-w-xl text-[18px] leading-[1.56] text-body">
+			Open source, MIT licensed, in public preview. Install it now, deploy
+			anywhere, and help shape the v1.0 release.
+		</p>
+		<div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
+			<Button size="lg" href="https://docs.docvia.dev">
+				Read the docs
+				<ArrowRight />
+			</Button>
+			<Button
+				variant="secondary"
+				size="lg"
+				href="https://github.com/kanakkholwal/docvia"
+			>
+				<Github />
+				Star on GitHub
+			</Button>
 		</div>
 	</div>
 </section>
+
+<style>
+	.glow {
+		position: absolute;
+		bottom: -45%;
+		left: 50%;
+		width: min(820px, 110%);
+		height: 560px;
+		transform: translateX(-50%);
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--brand-strong) 30%, transparent),
+			transparent 70%
+		);
+		filter: blur(60px);
+		opacity: 0.45;
+		pointer-events: none;
+	}
+</style>

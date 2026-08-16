@@ -25,13 +25,11 @@ const logos = [
 </script>
 
 <section class="border-b border-hairline bg-canvas">
-	<div class="px-6 pt-10 pb-8 md:px-10">
-		<p class="text-center text-[13px] font-medium tracking-wide text-muted">
-			Markdown in. Your framework out.
-		</p>
+	<div class="px-6 pt-14 pb-9 md:px-10">
+		<p class="label-meta text-center">Markdown in. Your framework out.</p>
 	</div>
 
-	<div class="marquee pb-10" aria-hidden="true">
+	<div class="marquee pb-14" aria-hidden="true">
 		<div class="marquee-track">
 			{#each [...logos, ...logos] as logo}
 				<span class="logo">
@@ -92,8 +90,10 @@ const logos = [
 		color: var(--muted);
 		transition: color var(--motion-base) var(--ease-out);
 	}
-	.logo:hover {
-		color: var(--ink);
+	@media (hover: hover) and (pointer: fine) {
+		.logo:hover {
+			color: var(--ink);
+		}
 	}
 	@keyframes marquee {
 		to {

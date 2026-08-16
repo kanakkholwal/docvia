@@ -27,17 +27,12 @@ const d = $derived(dims[size]);
 <a href="/" class={cn("group inline-flex items-center gap-2.5", className)}>
 	<span
 		class={cn(
-			"relative grid place-items-center rounded-md bg-ink font-display font-semibold leading-none text-on-primary transition-transform duration-(--motion-fast) group-hover:-rotate-[6deg]",
+			"grid place-items-center rounded-md bg-brand font-display font-semibold leading-none text-on-brand transition-transform duration-(--motion-fast) ease-out group-hover:-rotate-6",
 			d.mark,
 			d.markText,
 		)}
 	>
 		d
-		<!-- Subtle brand-color accent dot on the mark -->
-		<span
-			class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-brand"
-			aria-hidden="true"
-		></span>
 	</span>
 	{#if withWordmark}
 		<span

@@ -28,26 +28,28 @@ const navLinks = [
 
 <a
 	href="#main"
-	class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-on-primary"
+	class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand focus:px-3 focus:py-2 focus:text-on-brand"
 >
 	Skip to content
 </a>
 
 <!-- ── Thin announcement strip ──────────────────────────────────────── -->
-<div class="border-b border-hairline bg-surface-card">
+<div class="border-b border-hairline bg-surface-soft">
 	<div
-		class="mx-auto flex h-9 max-w-7xl items-center justify-center gap-2 px-6 text-[12.5px] text-body-strong md:px-10"
+		class="mx-auto flex h-9 max-w-7xl items-center justify-center gap-2 px-6 text-[13px] text-body md:px-10"
 	>
-		<Sparkles class="h-3.5 w-3.5 text-brand-ink" />
+		<Sparkles class="h-3.5 w-3.5 shrink-0 text-brand-ink" />
 		<span class="hidden sm:inline">
 			docvia v{version.current} is in public preview ·
 		</span>
 		<a
 			href="https://github.com/kanakkholwal/docvia"
-			class="inline-flex items-center gap-1 font-semibold text-ink underline-offset-4 hover:underline"
+			class="group inline-flex items-center gap-1 font-medium text-ink underline-offset-4 hover:underline"
 		>
 			Star it on GitHub
-			<ArrowRight class="h-3.5 w-3.5" />
+			<ArrowRight
+				class="h-3.5 w-3.5 transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
+			/>
 		</a>
 	</div>
 </div>
@@ -63,7 +65,7 @@ const navLinks = [
 		<div class="flex items-center gap-6">
 			<Brand size="sm" />
 			<span
-				class="hidden h-6 items-center gap-1.5 rounded-full bg-surface-card pl-2 pr-2.5 text-[11px] font-semibold uppercase tracking-widest text-body-strong sm:inline-flex"
+				class="hidden h-6 items-center gap-1.5 rounded-full bg-surface-card pl-2 pr-2.5 text-[12px] font-medium tracking-[0.01em] text-body sm:inline-flex"
 			>
 				<span class="relative flex h-1.5 w-1.5">
 					<span
@@ -77,7 +79,7 @@ const navLinks = [
 				{#each navLinks as link}
 					<a
 						href={link.href}
-						class="rounded-md px-2.5 py-1.5 text-[14px] font-medium text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
+						class="rounded-md px-2.5 py-1.5 text-[15px] font-medium text-body transition-colors duration-(--motion-fast) ease-out hover:bg-surface-card hover:text-ink"
 					>
 						{link.label}
 					</a>
@@ -90,7 +92,7 @@ const navLinks = [
 			<a
 				href="https://github.com/kanakkholwal/docvia"
 				aria-label="GitHub"
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
+				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink"
 			>
 				<Github class="h-4 w-4" />
 			</a>
@@ -107,7 +109,7 @@ const navLinks = [
 				aria-label="Toggle menu"
 				aria-expanded={mobileOpen}
 				onclick={() => (mobileOpen = !mobileOpen)}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md text-body transition-colors hover:bg-surface-card hover:text-ink md:hidden"
+				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink md:hidden"
 			>
 				{#if mobileOpen}
 					<X class="h-5 w-5" />
@@ -128,14 +130,14 @@ const navLinks = [
 					<a
 						href={link.href}
 						onclick={() => (mobileOpen = false)}
-						class="rounded-md px-3 py-2 text-sm font-medium text-body hover:bg-surface-card hover:text-ink"
+						class="rounded-md px-3 py-2.5 text-[15px] font-medium text-body hover:bg-surface-card hover:text-ink"
 					>
 						{link.label}
 					</a>
 				{/each}
 				<a
 					href="https://docs.docvia.dev"
-					class="mt-1 inline-flex items-center justify-center rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-fg"
+					class="mt-1 inline-flex items-center justify-center rounded-md bg-brand px-3 py-2.5 text-[15px] font-medium text-on-brand"
 				>
 					Get started
 				</a>
@@ -149,12 +151,12 @@ const navLinks = [
 </main>
 
 <!-- ── Footer ──────────────────────────────────────────────────────── -->
-<footer class="relative bg-surface-soft pt-20 md:pt-24">
+<footer class="relative border-t border-hairline bg-surface-soft pt-20 md:pt-24">
 	<div class="mx-auto max-w-7xl px-6 md:px-10">
 		<!-- Brand + tagline + social (vite-style: no newsletter card) -->
-		<div class="flex flex-col gap-5 border-b border-hairline/70 pb-12">
+		<div class="flex flex-col gap-5 border-b border-hairline pb-12">
 			<Brand size="lg" />
-			<p class="max-w-md text-[15px] leading-[1.55] text-body">
+			<p class="max-w-md text-[16px] leading-[1.6] text-body">
 				The build-time documentation compiler. Open source,
 				framework-agnostic, self-host anywhere.
 			</p>
@@ -162,21 +164,21 @@ const navLinks = [
 				<a
 					href="https://github.com/kanakkholwal/docvia"
 					aria-label="GitHub"
-					class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline text-body transition-colors hover:bg-surface-card hover:text-ink"
+					class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md border border-hairline text-body transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:border-hairline-strong hover:bg-surface-card hover:text-ink"
 				>
 					<Github class="h-4 w-4" />
 				</a>
 				<a
 					href="https://www.npmjs.com/org/docvia"
 					aria-label="npm"
-					class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline text-body transition-colors hover:bg-surface-card hover:text-ink"
+					class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md border border-hairline text-body transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:border-hairline-strong hover:bg-surface-card hover:text-ink"
 				>
 					<Package class="h-4 w-4" />
 				</a>
 				<a
 					href="https://github.com/kanakkholwal/docvia/discussions"
 					aria-label="Discussions"
-					class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline text-body transition-colors hover:bg-surface-card hover:text-ink"
+					class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md border border-hairline text-body transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:border-hairline-strong hover:bg-surface-card hover:text-ink"
 				>
 					<MessageCircle class="h-4 w-4" />
 				</a>
@@ -190,59 +192,53 @@ const navLinks = [
 			<div>
 				<div class="mb-4 flex items-center gap-2">
 					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					<h4
-						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
-					>
+					<h4 class="label-meta">
 						Product
 					</h4>
 				</div>
-				<ul class="space-y-2 text-[14px]">
-					<li><a href="/#features" class="text-body hover:text-ink">Features</a></li>
-					<li><a href="/#how-it-works" class="text-body hover:text-ink">How it works</a></li>
-					<li><a href="/#quickstart" class="text-body hover:text-ink">Quickstart</a></li>
-					<li><a href="/#faq" class="text-body hover:text-ink">FAQ</a></li>
+				<ul class="space-y-2.5 text-[15px]">
+					<li><a href="/#features" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Features</a></li>
+					<li><a href="/#how-it-works" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">How it works</a></li>
+					<li><a href="/#quickstart" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Quickstart</a></li>
+					<li><a href="/#faq" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">FAQ</a></li>
 				</ul>
 			</div>
 
 			<div>
 				<div class="mb-4 flex items-center gap-2">
 					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					<h4
-						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
-					>
+					<h4 class="label-meta">
 						Resources
 					</h4>
 				</div>
-				<ul class="space-y-2 text-[14px]">
-					<li><a href="https://docs.docvia.dev" class="text-body hover:text-ink">Documentation</a></li>
-					<li><a href="https://docs.docvia.dev/getting-started" class="text-body hover:text-ink">Getting started</a></li>
-					<li><a href="https://docs.docvia.dev/guide/configuration" class="text-body hover:text-ink">Config reference</a></li>
-					<li><a href="https://docs.docvia.dev/packages/plugin-openapi" class="text-body hover:text-ink">OpenAPI plugin</a></li>
-					<li><a href="https://github.com/kanakkholwal/docvia/releases" class="text-body hover:text-ink">Changelog</a></li>
+				<ul class="space-y-2.5 text-[15px]">
+					<li><a href="https://docs.docvia.dev" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Documentation</a></li>
+					<li><a href="https://docs.docvia.dev/getting-started" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Getting started</a></li>
+					<li><a href="https://docs.docvia.dev/guide/configuration" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Config reference</a></li>
+					<li><a href="https://docs.docvia.dev/packages/plugin-openapi" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">OpenAPI plugin</a></li>
+					<li><a href="https://github.com/kanakkholwal/docvia/releases" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Changelog</a></li>
 				</ul>
 			</div>
 
 			<div>
 				<div class="mb-4 flex items-center gap-2">
 					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					<h4
-						class="text-[11px] font-semibold uppercase tracking-widest text-muted"
-					>
+					<h4 class="label-meta">
 						Community
 					</h4>
 				</div>
-				<ul class="space-y-2 text-[14px]">
-					<li><a href="https://github.com/kanakkholwal/docvia" class="text-body hover:text-ink">GitHub</a></li>
-					<li><a href="https://www.npmjs.com/org/docvia" class="text-body hover:text-ink">npm</a></li>
-					<li><a href="https://github.com/kanakkholwal/docvia/issues" class="text-body hover:text-ink">Report an issue</a></li>
-					<li><a href="https://github.com/kanakkholwal/docvia/discussions" class="text-body hover:text-ink">Discussions</a></li>
+				<ul class="space-y-2.5 text-[15px]">
+					<li><a href="https://github.com/kanakkholwal/docvia" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">GitHub</a></li>
+					<li><a href="https://www.npmjs.com/org/docvia" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">npm</a></li>
+					<li><a href="https://github.com/kanakkholwal/docvia/issues" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Report an issue</a></li>
+					<li><a href="https://github.com/kanakkholwal/docvia/discussions" class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink">Discussions</a></li>
 				</ul>
 			</div>
 		</div>
 
 		<!-- Bottom row: copyright + version + made-with -->
 		<div
-			class="flex flex-col items-start gap-3 border-t border-hairline/70 pt-6 pb-10 text-[12.5px] text-muted md:flex-row md:items-center md:justify-between"
+			class="flex flex-col items-start gap-3 border-t border-hairline pt-6 pb-10 text-[13px] text-muted md:flex-row md:items-center md:justify-between"
 		>
 			<div class="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
 				<span>© {new Date().getFullYear()} docvia · Released under the MIT licence.</span>

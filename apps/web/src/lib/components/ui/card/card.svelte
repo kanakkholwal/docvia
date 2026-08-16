@@ -13,7 +13,7 @@ let { class: className, children, ...rest }: Props = $props();
 
 <div
 	class={cn(
-		"rounded-lg border border-border bg-bg-subtle p-6 transition-colors duration-[var(--motion-base)]",
+		"rounded-md border border-hairline bg-surface-soft p-6 transition-colors duration-(--motion-base) ease-out",
 		className,
 	)}
 	{...rest}

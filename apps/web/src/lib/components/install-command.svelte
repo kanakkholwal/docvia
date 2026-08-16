@@ -34,15 +34,15 @@ async function copy() {
 
 <div
 	class={cn(
-		"inline-flex w-full max-w-md flex-col overflow-hidden rounded-xl border border-hairline bg-surface-soft text-left",
+		"inline-flex w-full max-w-md flex-col overflow-hidden rounded-md border border-hairline bg-surface-soft text-left",
 		className,
 	)}
 >
-	<!-- Manager tabs -->
+	<!-- Manager tabs — low-contrast, underline indicator instead of a fill. -->
 	<div
 		role="tablist"
 		aria-label="Package manager"
-		class="flex items-center gap-0.5 border-b border-hairline px-1.5 pt-1.5"
+		class="flex items-center border-b border-hairline px-2"
 	>
 		{#each managers as m (m.id)}
 			<button
@@ -50,10 +50,10 @@ async function copy() {
 				aria-selected={active === m.id}
 				onclick={() => (active = m.id)}
 				class={cn(
-					"rounded-t-md px-3 py-1.5 text-[13px] font-medium transition-colors duration-(--motion-fast)",
+					"relative px-3 py-2.5 text-[13px] font-medium transition-colors duration-(--motion-fast) ease-out after:absolute after:inset-x-2 after:-bottom-px after:h-px after:transition-colors after:duration-(--motion-fast)",
 					active === m.id
-						? "bg-surface-card text-ink"
-						: "text-muted hover:text-body",
+						? "text-ink after:bg-brand"
+						: "text-muted after:bg-transparent hover:text-body",
 				)}
 			>
 				{m.id}
@@ -68,7 +68,7 @@ async function copy() {
 		<button
 			onclick={copy}
 			aria-label={copied ? "Copied" : "Copy install command"}
-			class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
+			class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.9] hover:bg-surface-card hover:text-ink"
 		>
 			{#if copied}
 				<Check class="h-3.5 w-3.5 text-check" />

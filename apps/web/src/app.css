@@ -1,146 +1,130 @@
 @import "tailwindcss";
 
-/* ──────────────────────────────────────────────────────────────────
-   docvia design tokens
-   Source of truth: apps/web/DESIGN.md
-
-   One electric accent (lime) on a cool-neutral canvas. Light is the
-   canonical theme; dark is a near-black inversion. There is no
-   multi-color palette — the lime is the ONLY brand voltage, used
-   scarcely (dots, active states, one full-bleed CTA band). Primary
-   actions stay ink-black so the accent never has to work as a button
-   fill on a light surface.
-   ────────────────────────────────────────────────────────────────── */
+/* docvia design tokens — source of truth: apps/web/DESIGN.md (Vite Dark).
+   Dark is canonical; light is a derived inversion. One violet accent on a
+   cool near-black canvas, thin borders instead of shadows, 8px radius. */
 
 :root,
-[data-theme="light"] {
-	/* ── Surface (cool neutral — zinc family, no warm tint) ── */
-	--canvas: #ffffff;
-	--surface-soft: #fafafa;
-	--surface-card: #f4f4f5;
-	--surface-strong: #e4e4e7;
-	--surface-dark: #0a0a0a;
-	--surface-dark-elevated: #18181b;
+[data-theme="dark"] {
+	/* ── Surface — tonal layering, not elevation ── */
+	--canvas: #16171d;
+	--surface-soft: #1b1c23;
+	--surface-card: #20212a;
+	--surface-strong: #292a35;
+	--surface-dark: #101116;
+	--surface-dark-elevated: #1b1c23;
 
-	/* ── Text (ink on neutral) ── */
-	--ink: #09090b;
-	--body-strong: #18181b;
-	--body: #3f3f46;
-	--muted: #71717a;
-	--muted-soft: #a1a1aa;
-	--on-primary: #ffffff;
+	/* ── Text ── */
+	--ink: #ffffff;
+	--body-strong: #e7e8ee;
+	--body: #c7cad1;
+	--muted: #979aa4;
+	/* Decorative tier only — separators, idle marquee glyphs. Below AA for
+	   small text, so real copy stops at --muted. */
+	--muted-soft: #7c7e89;
+	--on-primary: #16171d;
 
 	/* ── Borders ── */
-	--hairline: #e4e4e7;
-	--hairline-strong: #d4d4d8;
+	--hairline: #343545;
+	--hairline-strong: #4b4a5d;
 
-	/* ── Brand — a single electric lime. This is the only brand color.
-	     --brand         fill voltage (pair with --on-brand text)
-	     --brand-strong  pressed / hover-darker fill
-	     --brand-ink     brand-colored TEXT / icons, legible on this theme
-	     --brand-soft    subtle brand-tinted background
-	     --on-brand      text / icons sitting on a --brand fill ── */
-	--brand: #c6f24e;
-	--brand-strong: #aee02f;
-	--brand-ink: #4d6b00;
-	--brand-soft: #eef6d0;
-	--on-brand: #0a0a0a;
+	/* ── Brand — one luminous violet.
+	     --brand       fill voltage (pair with --on-brand text)
+	     --brand-ink   brand-colored TEXT / icons, legible on this theme
+	     --brand-soft  subtle brand-tinted background ── */
+	--brand: #b39aff;
+	--brand-strong: #8e57ff;
+	/* Hover lifts *away* from the canvas, so --on-brand stays legible. On dark
+	   that means lighter; on light it means deeper. */
+	--brand-hover: #c6b3ff;
+	--brand-ink: #b39aff;
+	--brand-soft: #241e3a;
+	--on-brand: #16171d;
 
-	/* ── Card-text tokens for dark panels (featured tier, code windows).
-	     Absolute — do not flip with theme. ── */
+	/* Card-text tokens for permanently-dark panels. Do not flip with theme. */
 	--card-on-dark: #ffffff;
-	--card-on-light: #09090b;
+	--card-on-light: #16171d;
 
-	/* ── Positive-state check — dark lime on light so it stays legible ── */
-	--check: var(--brand-ink);
+	--check: var(--brand);
+	--focus: var(--brand);
 
-	/* ── Semantic ── */
 	--success: #22c55e;
 	--warning: #f59e0b;
 	--error: #ef4444;
 
-	/* ── Legacy aliases — primary action = ink; keeps CTAs monochrome ── */
-	--bg: var(--canvas);
-	--bg-subtle: var(--surface-soft);
-	--bg-muted: var(--surface-card);
-	--bg-strong: var(--surface-strong);
-	--fg: var(--ink);
-	--fg-strong: var(--body-strong);
-	--fg-muted: var(--muted);
-	--fg-subtle: var(--muted-soft);
-	--accent: var(--ink);
-	--accent-fg: var(--on-primary);
-	--accent-subtle: var(--surface-card);
-	--border: var(--hairline);
-	--border-strong: var(--hairline-strong);
-	--info: var(--brand-ink);
-	--warn: var(--warning);
-	--danger: var(--error);
+	color-scheme: dark;
+}
 
-	/* ── Radius (tightened — was 6 / 8 / 12 / 16 / 24) ── */
-	--radius-xs: 4px;
-	--radius-sm: 6px;
+/* Light — the violet has to survive on white, so fills and text use the
+   deeper end of the ramp (#7C3AED / #6D28D9) rather than the luminous #B39AFF,
+   which fails contrast on a light surface. */
+[data-theme="light"] {
+	--canvas: #ffffff;
+	--surface-soft: #f7f7fa;
+	--surface-card: #f0f0f5;
+	--surface-strong: #e4e4ec;
+	--surface-dark: #16171d;
+	--surface-dark-elevated: #20212a;
+
+	--ink: #16171d;
+	--body-strong: #2a2c36;
+	--body: #52545f;
+	--muted: #6c6e78;
+	--muted-soft: #8a8c96;
+	--on-primary: #ffffff;
+
+	--hairline: #e6e6ec;
+	--hairline-strong: #d2d2dc;
+
+	--brand: #7c3aed;
+	--brand-strong: #6d28d9;
+	--brand-hover: #6d28d9;
+	--brand-ink: #6d28d9;
+	--brand-soft: #f2edfe;
+	--on-brand: #ffffff;
+
+	--check: var(--brand-ink);
+	--focus: var(--brand-strong);
+
+	color-scheme: light;
+}
+
+/* Theme-independent scales. */
+:root {
+	/* Radius — 8px is the system default. Larger values are reserved for the
+	   two full-width panels; --radius-pill is chips only. */
+	--radius-none: 0px;
+	--radius-sm: 4px;
 	--radius-md: 8px;
 	--radius-lg: 12px;
 	--radius-xl: 16px;
 	--radius-pill: 9999px;
 
-	/* ── Spacing (unchanged — generous rhythm is intentional) ── */
-	--space-xxs: 4px;
-	--space-xs: 8px;
-	--space-sm: 12px;
-	--space-md: 16px;
-	--space-lg: 24px;
-	--space-xl: 32px;
-	--space-xxl: 48px;
-	--space-section: 96px;
+	/* Spacing — Vite's progression. Section breaks use lg/xl. */
+	--space-xs: 12px;
+	--space-sm: 24px;
+	--space-md: 40px;
+	--space-lg: 80px;
+	--space-xl: 112px;
+	--space-section: 112px;
 
-	/* ── Motion ── */
-	--motion-fast: 100ms;
+	--motion-fast: 120ms;
 	--motion-base: 180ms;
-	--motion-slow: 280ms;
-	--ease-out: cubic-bezier(0.2, 0, 0, 1);
+	--motion-slow: 260ms;
+}
+
+/* Motion curves — stronger than the CSS built-ins, which have no punch. Not
+   `inline`, so these override Tailwind's ease-* utilities *and* stay readable
+   as var(--ease-out) inside component <style> blocks. */
+@theme {
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 	--ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-
-	color-scheme: light;
 }
 
-/* Dark mode — near-pure black canvas, cool neutral text. The lime stays
-   the same hex and glows against the black; only the theme-dependent
-   brand-ink / brand-soft / check tokens shift for legibility. */
-[data-theme="dark"] {
-	--canvas: #0a0a0a;
-	--surface-soft: #131316;
-	--surface-card: #18181b;
-	--surface-strong: #27272a;
-	--surface-dark: #000000;
-	--surface-dark-elevated: #18181b;
-
-	--ink: #fafafa;
-	--body-strong: #e4e4e7;
-	--body: #a1a1aa;
-	--muted: #71717a;
-	--muted-soft: #52525b;
-	--on-primary: #0a0a0a;
-
-	--hairline: #27272a;
-	--hairline-strong: #3f3f46;
-
-	/* On dark, brand-colored text/icons use the bright lime directly. */
-	--brand-ink: #c6f24e;
-	--brand-soft: #232b0c;
-
-	--check: var(--brand);
-
-	color-scheme: dark;
-}
-
-/* ────────────────────────────────────────────────────────────────── */
-/* Tailwind v4 theme bridge                                           */
-/* ────────────────────────────────────────────────────────────────── */
+/* ── Tailwind v4 theme bridge ── */
 
 @theme inline {
-	/* Canonical surface tokens */
 	--color-canvas: var(--canvas);
 	--color-surface-soft: var(--surface-soft);
 	--color-surface-card: var(--surface-card);
@@ -148,7 +132,6 @@
 	--color-surface-dark: var(--surface-dark);
 	--color-surface-dark-elevated: var(--surface-dark-elevated);
 
-	/* Text */
 	--color-ink: var(--ink);
 	--color-body-strong: var(--body-strong);
 	--color-body: var(--body);
@@ -156,47 +139,45 @@
 	--color-muted-soft: var(--muted-soft);
 	--color-on-primary: var(--on-primary);
 
-	/* Card-text tokens for dark panels (theme-independent) */
 	--color-card-on-dark: var(--card-on-dark);
 	--color-card-on-light: var(--card-on-light);
 	--color-check: var(--check);
+	--color-focus: var(--focus);
 
-	/* Borders */
 	--color-hairline: var(--hairline);
 	--color-hairline-strong: var(--hairline-strong);
 
-	/* Brand — single electric lime */
 	--color-brand: var(--brand);
 	--color-brand-strong: var(--brand-strong);
+	--color-brand-hover: var(--brand-hover);
 	--color-brand-ink: var(--brand-ink);
 	--color-brand-soft: var(--brand-soft);
 	--color-on-brand: var(--on-brand);
 
-	/* Semantic */
 	--color-success: var(--success);
 	--color-warning: var(--warning);
 	--color-error: var(--error);
 
-	/* Legacy aliases */
-	--color-bg: var(--bg);
-	--color-bg-subtle: var(--bg-subtle);
-	--color-bg-muted: var(--bg-muted);
-	--color-bg-strong: var(--bg-strong);
-	--color-fg: var(--fg);
-	--color-fg-strong: var(--fg-strong);
-	--color-fg-muted: var(--fg-muted);
-	--color-fg-subtle: var(--fg-subtle);
-	--color-border: var(--border);
-	--color-border-strong: var(--border-strong);
-	--color-accent: var(--accent);
-	--color-accent-fg: var(--accent-fg);
-	--color-accent-subtle: var(--accent-subtle);
-	--color-info: var(--info);
-	--color-warn: var(--warn);
-	--color-danger: var(--danger);
+	/* Legacy aliases — primary action is now the brand violet, not ink. */
+	--color-bg: var(--canvas);
+	--color-bg-subtle: var(--surface-soft);
+	--color-bg-muted: var(--surface-card);
+	--color-bg-strong: var(--surface-strong);
+	--color-fg: var(--ink);
+	--color-fg-strong: var(--body-strong);
+	--color-fg-muted: var(--muted);
+	--color-fg-subtle: var(--muted-soft);
+	--color-border: var(--hairline);
+	--color-border-strong: var(--hairline-strong);
+	--color-accent: var(--brand);
+	--color-accent-fg: var(--on-brand);
+	--color-accent-subtle: var(--brand-soft);
+	--color-info: var(--brand-ink);
+	--color-warn: var(--warning);
+	--color-danger: var(--error);
 
-	/* Typography stacks — Geist variable fonts loaded via @fontsource-variable
-	   in +layout.svelte. Family name is "Geist Variable" / "Geist Mono Variable". */
+	/* Geist stands in for APK Protocol (display) and Inter (body): already
+	   loaded, geometric, and holds up at -0.05em tracking. */
 	--font-sans:
 		"Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif,
 		system-ui, sans-serif;
@@ -207,27 +188,25 @@
 		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
 		"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-	/* Radius scale (tightened) */
-	--radius-xs: 4px;
-	--radius-sm: 6px;
+	--radius-sm: 4px;
 	--radius-md: 8px;
 	--radius-lg: 12px;
 	--radius-xl: 16px;
 
-	/* Display type scale — implements DESIGN.md §3 (was specified but never
-	   wired up, forcing arbitrary text-[Npx] values across sections). */
-	--text-display-1: 4rem; /* 64px */
-	--text-display-1--line-height: 1.05;
-	--text-display-1--letter-spacing: -0.03em;
-	--text-display-1--font-weight: 600;
+	/* Display scale — weight 500 with heavy negative tracking. The 600/-0.035em
+	   pairing this replaced read as marketing rather than engineered. */
+	--text-display-1: 3.75rem; /* 60px */
+	--text-display-1--line-height: 1.12;
+	--text-display-1--letter-spacing: -0.05em;
+	--text-display-1--font-weight: 500;
 	--text-display-2: 3rem; /* 48px */
-	--text-display-2--line-height: 1.1;
-	--text-display-2--letter-spacing: -0.025em;
-	--text-display-2--font-weight: 600;
-	--text-display-3: 2.25rem; /* 36px */
-	--text-display-3--line-height: 1.15;
-	--text-display-3--letter-spacing: -0.02em;
-	--text-display-3--font-weight: 600;
+	--text-display-2--line-height: 1;
+	--text-display-2--letter-spacing: -0.035em;
+	--text-display-2--font-weight: 500;
+	--text-display-3: 2.5rem; /* 40px */
+	--text-display-3--line-height: 1.2;
+	--text-display-3--letter-spacing: -0.025em;
+	--text-display-3--font-weight: 500;
 }
 
 /* ── Base ── */
@@ -249,19 +228,24 @@ body {
 	color: var(--on-brand);
 }
 
-/* Display headlines: Geist 600 with negative tracking for a confident,
-   engineered voice. */
 .font-display {
-	font-weight: 600;
-	letter-spacing: -0.025em;
+	font-weight: 500;
+	letter-spacing: -0.035em;
 }
 
-/* ── Focus ring ──
-   A single visible ring for every interactive element. (The old rule was
-   scoped `:not([class])`, which matched nothing because every control here
-   carries utility classes — so focus was effectively invisible.) */
+/* Uppercase meta labels — the one place positive tracking is allowed. */
+.label-meta {
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.2;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+/* ── Focus ring ── brand violet, since an ink ring is invisible on #16171D. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-	outline: 2px solid var(--ink);
+	outline: 2px solid var(--focus);
 	outline-offset: 2px;
 	border-radius: var(--radius-sm);
 }
@@ -311,12 +295,10 @@ body {
 	background: transparent;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
 	display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
