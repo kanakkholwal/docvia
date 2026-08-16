@@ -1,8 +1,7 @@
-name: Deploy docs
+name: Deploy docs redirect
 
-# Manual-only. There is intentionally no `push:` or `pull_request:` trigger
-# — Cloudflare deploys are gated behind a human pressing "Run workflow"
-# in the GitHub UI (or via `gh workflow run deploy-docs-site.yml`).
+# Deploys the redirect-only worker on docs.docvia.dev. The docs themselves
+# ship with apps/web (see deploy-web.yml).
 on:
    push:
       branches:
@@ -46,12 +45,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build apps/docs
-        # Build through Turbo so workspace dependencies (@docvia/cli, etc.)
-        # are compiled first — apps/docs' `prebuild` hook runs `docvia build`,
-        # which needs @docvia/cli's dist/index.mjs to exist.
-        run: pnpm turbo run build --filter=@docvia/docs
-
+      # No build step: wrangler bundles apps/docs/src/index.ts directly.
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3
         with:

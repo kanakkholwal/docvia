@@ -7,7 +7,7 @@ export const badgeVariants = tv({
 		variant: {
 			default: "border-hairline bg-surface-soft text-body",
 			accent: "border-brand/30 bg-brand-soft text-brand-ink",
-			outline: "border-hairline-strong bg-transparent text-ink",
+			outline: "border-control-border bg-transparent text-ink",
 			success: "border-success/30 bg-success/10 text-success",
 			soon: "border-hairline bg-surface-card text-muted font-mono uppercase tracking-[0.04em] text-[10px]",
 		},

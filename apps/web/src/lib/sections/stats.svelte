@@ -1,5 +1,5 @@
 <script lang="ts">
-// Architectural facts only — no performance claims until a real benchmark
+// Architectural facts only, no performance claims until a real benchmark
 // pipeline backs them up.
 const stats = [
 	{ value: "0kb", label: "Markdown parser shipped to the browser" },
@@ -25,7 +25,7 @@ const stats = [
 		{#each stats as stat}
 			<div class="flex flex-col items-start gap-2 px-5 py-10 sm:px-10">
 				<span
-					class="font-display text-[40px] leading-[1.3333] tracking-[-0.025em] text-brand-ink"
+					class="font-display text-[40px] leading-[1.3333] tracking-[-0.025em] text-ink"
 				>
 					{stat.value}
 				</span>

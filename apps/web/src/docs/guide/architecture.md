@@ -13,7 +13,7 @@ across all three.
 
 ## The compile core
 
-At the centre is [`@docvia/runtime`](/packages/runtime)'s **`CompileService`** —
+At the centre is [`@docvia/runtime`](/docs/packages/runtime)'s **`CompileService`** —
 a stateful, long-lived object that holds the resolved config, the plugin
 runner, the incremental cache, and the in-memory module graph for the lifetime
 of a process.
@@ -23,9 +23,9 @@ drifts:
 
 | Mode | Driven by | What it does |
 |---|---|---|
-| **Build** | [`@docvia/compiler`](/packages/compiler) | Compiles the whole tree once and emits the on-disk module graph (thin glue that imports the Markdown in place). |
-| **Dev** | [`@docvia/plugin-vite`](/packages/plugin-vite), [`@docvia/plugin-next`](/packages/plugin-next) | Runs the service in-process inside the bundler and recompiles incrementally on every file change. |
-| **SSR** | [`@docvia/ssr`](/packages/ssr) | Renders a single document per request, on Node or the edge. |
+| **Build** | [`@docvia/compiler`](/docs/packages/compiler) | Compiles the whole tree once and emits the on-disk module graph (thin glue that imports the Markdown in place). |
+| **Dev** | [`@docvia/plugin-vite`](/docs/packages/plugin-vite), [`@docvia/plugin-next`](/docs/packages/plugin-next) | Runs the service in-process inside the bundler and recompiles incrementally on every file change. |
+| **SSR** | [`@docvia/ssr`](/docs/packages/ssr) | Renders a single document per request, on Node or the edge. |
 
 `compile()` — the classic batch entry point — is now a thin wrapper over
 `CompileService`. The key methods are `compileAll()`, `compileFile()`,
@@ -56,7 +56,7 @@ Because `source.ts` uses **static** `?docvia` imports, a framework app — Vite 
 Next.js, including on the edge — already renders pages at request time by calling
 `docs.getPage(...)`; the content is bundled in. No extra package is required.
 
-For a **non-framework Node server**, [`@docvia/ssr`](/packages/ssr) renders one
+For a **non-framework Node server**, [`@docvia/ssr`](/docs/packages/ssr) renders one
 document per request. `createDocviaSSR({ provider })` resolves IR through a
 generic `ContentSource` — a `ContentProvider`, a live `CompileService` (which
 already satisfies the shape), or a `(collection, slug) => IR` function — renders
@@ -69,21 +69,21 @@ edge-safe regardless of source.
 Whichever mode is active, each `.md` file runs through this sequence:
 
 1. **`beforeParse`** — plugins rewrite the raw file.
-2. **Frontmatter** — [`@docvia/schema`](/packages/schema) splits the YAML
+2. **Frontmatter** — [`@docvia/schema`](/docs/packages/schema) splits the YAML
    block and validates it.
-3. **Parse** — [`@docvia/core`](/packages/core) turns the Markdown body into a
+3. **Parse** — [`@docvia/core`](/docs/packages/core) turns the Markdown body into a
    sanitized HAST tree (`unified` + `remark` + `rehype`).
 4. **`afterParse`** / **`beforeTransform`** — plugins manipulate the AST.
-5. **Transform** — [`@docvia/ir`](/packages/ir)'s `transformToIR` converts the
+5. **Transform** — [`@docvia/ir`](/docs/packages/ir)'s `transformToIR` converts the
    HAST tree into an `IRDocument`.
 6. **`afterTransform`** / **`beforeRender`** — plugins manipulate the IR. This
-   is where [`@docvia/plugin-shiki`](/packages/plugin-shiki) highlights code
+   is where [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) highlights code
    blocks and bakes the HTML into the IR.
 7. **Render** — the configured `RendererAdapter` turns the `IRDocument` into a
    framework-native module.
 
 Plugin hooks are interleaved at five fixed points — see
-[Writing plugins](/guide/plugins).
+[Writing plugins](/docs/guide/plugins).
 
 ## The Intermediate Representation
 
@@ -134,11 +134,11 @@ by the plugin) backed by these files.
 
 | Layer | Packages |
 |---|---|
-| Contracts | [`@docvia/ir`](/packages/ir) |
-| Parsing | [`@docvia/core`](/packages/core), [`@docvia/schema`](/packages/schema) |
-| Compile core | [`@docvia/runtime`](/packages/runtime), [`@docvia/compiler`](/packages/compiler), [`@docvia/plugins`](/packages/plugins) |
-| Rendering | [`@docvia/renderer-core`](/packages/renderer-core), [`@docvia/renderer-react`](/packages/renderer-react), [`@docvia/renderer-svelte`](/packages/renderer-svelte) |
-| Runtime | [`@docvia/source`](/packages/source), [`@docvia/ssr`](/packages/ssr), [`@docvia/search`](/packages/search) |
-| Integration | [`@docvia/cli`](/packages/cli), [`@docvia/plugin-vite`](/packages/plugin-vite), [`@docvia/plugin-next`](/packages/plugin-next), [`@docvia/plugin-shiki`](/packages/plugin-shiki), [`@docvia/plugin-openapi`](/packages/plugin-openapi) |
+| Contracts | [`@docvia/ir`](/docs/packages/ir) |
+| Parsing | [`@docvia/core`](/docs/packages/core), [`@docvia/schema`](/docs/packages/schema) |
+| Compile core | [`@docvia/runtime`](/docs/packages/runtime), [`@docvia/compiler`](/docs/packages/compiler), [`@docvia/plugins`](/docs/packages/plugins) |
+| Rendering | [`@docvia/renderer-core`](/docs/packages/renderer-core), [`@docvia/renderer-react`](/docs/packages/renderer-react), [`@docvia/renderer-svelte`](/docs/packages/renderer-svelte) |
+| Runtime | [`@docvia/source`](/docs/packages/source), [`@docvia/ssr`](/docs/packages/ssr), [`@docvia/search`](/docs/packages/search) |
+| Integration | [`@docvia/cli`](/docs/packages/cli), [`@docvia/plugin-vite`](/docs/packages/plugin-vite), [`@docvia/plugin-next`](/docs/packages/plugin-next), [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki), [`@docvia/plugin-openapi`](/docs/packages/plugin-openapi) |
 
-The [Packages](/packages) section documents each one in depth.
+The [Packages](/docs/packages) section documents each one in depth.

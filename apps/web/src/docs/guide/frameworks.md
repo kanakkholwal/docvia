@@ -23,7 +23,7 @@ This page covers SvelteKit, Next.js, plain Vite, and server-side rendering.
 ## SvelteKit
 
 SvelteKit runs on Vite, so the integration is the single `docvia()` plugin
-from [`@docvia/plugin-vite`](/packages/plugin-vite).
+from [`@docvia/plugin-vite`](/docs/packages/plugin-vite).
 
 ### 1. Install
 
@@ -132,7 +132,7 @@ its own documentation.
 
 ## Next.js
 
-For Next.js, [`@docvia/plugin-next`](/packages/plugin-next) does the wiring. It
+For Next.js, [`@docvia/plugin-next`](/docs/packages/plugin-next) does the wiring. It
 drives the compile core when the Next config is evaluated and aliases
 `docvia/source` for **both webpack and Turbopack**.
 
@@ -251,7 +251,7 @@ const page = await docs.getPage(["getting-started"]); // works on the edge
 > instead — it code-splits one chunk per page and fetches only what you ask for.
 
 For a **non-framework Node server** that renders per request, use
-[`@docvia/ssr`](/packages/ssr). It renders one document per request and caches
+[`@docvia/ssr`](/docs/packages/ssr). It renders one document per request and caches
 rendered pages in an in-memory LRU keyed by content hash. `createDocviaSSR`
 takes a generic content source — a live `CompileService` already satisfies the
 shape, so pass it directly (or pass a `(collection, slug) => IR` function):

@@ -21,8 +21,8 @@ import { Button } from "$lib/components/ui/button";
 			anywhere, and help shape the v1.0 release.
 		</p>
 		<div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
-			<Button href="https://docs.docvia.dev" class="cta-glow">
-				Read the docs
+			<Button href="/docs" class="cta-glow">
+				Get started
 				<ArrowRight />
 			</Button>
 			<Button
@@ -30,7 +30,7 @@ import { Button } from "$lib/components/ui/button";
 				href="https://github.com/kanakkholwal/docvia"
 			>
 				<Github />
-				Star on GitHub
+				View on GitHub
 			</Button>
 		</div>
 	</div>

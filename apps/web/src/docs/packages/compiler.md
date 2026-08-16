@@ -7,7 +7,7 @@ order: 13
 
 `@docvia/compiler` is the batch build entry point of docvia. It walks a source tree of markdown files, runs each one through the full pipeline — plugin hooks, parsing (`@docvia/core`), frontmatter validation (`@docvia/schema`), the AST to IR transform (`@docvia/ir`) — and emits a **module graph**: a small set of generated `.ts`/`.d.ts` files that frameworks like Vite and Next.js consume to load documentation pages.
 
-> `compile()` is a thin wrapper over the [`CompileService`](/packages/runtime) in `@docvia/runtime` — it constructs the service, runs `compileAll()`, and emits the disk module graph. The same service backs the dev server and SSR, so all three modes share one render path. See [Architecture](/guide/architecture).
+> `compile()` is a thin wrapper over the [`CompileService`](/docs/packages/runtime) in `@docvia/runtime` — it constructs the service, runs `compileAll()`, and emits the disk module graph. The same service backs the dev server and SSR, so all three modes share one render path. See [Architecture](/docs/guide/architecture).
 
 Two things make the compiler fast. First, it processes files **in parallel** across a worker pool. Second, it is **incremental**: it persists a `.docvia.cache.json` file in the output directory and skips any file whose content hash and pipeline cache key match the previous run.
 

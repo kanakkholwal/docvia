@@ -93,7 +93,7 @@ async function runSearch() {
 
 /** Map an indexed section back to its docs route + anchor. */
 function hrefFor(r: SearchResult): string {
-	const path = r.slug === "index" ? "/" : `/${r.slug}`;
+	const path = r.slug === "index" ? "/docs" : `/docs/${r.slug}`;
 	return r.sectionId && r.sectionId !== "_top" ? `${path}#${r.sectionId}` : path;
 }
 

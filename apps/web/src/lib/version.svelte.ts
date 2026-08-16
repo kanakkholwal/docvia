@@ -16,6 +16,6 @@ export async function refreshVersion(): Promise<void> {
 		const data = (await res.json()) as { version?: string };
 		if (data.version) version.current = data.version;
 	} catch {
-		/* offline / rate-limited — keep the fallback */
+		/* offline / rate-limited, keep the fallback */
 	}
 }

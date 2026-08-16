@@ -10,7 +10,7 @@ time into a static site. `createDocviaSSR()` turns an `IRDocument` into a
 renderable page tree on demand, backed by an in-memory LRU cache keyed by
 content hash.
 
-It renders through the same [`@docvia/renderer-core`](/packages/renderer-core)
+It renders through the same [`@docvia/renderer-core`](/docs/packages/renderer-core)
 pipeline the build uses, so SSR output matches build output exactly.
 
 ## Installation
@@ -70,13 +70,13 @@ with `ssr.clearCache()`.
 
 ## Highlighting on the edge
 
-With [`@docvia/plugin-shiki`](/packages/plugin-shiki), the IR ships **already
+With [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki), the IR ships **already
 highlighted** — the highlighted HTML is baked into the IR at build time. So an
 edge SSR bundle ships no syntax highlighter at all.
 
 ## See also
 
-- [Framework integration](/guide/frameworks) — the SSR setup walkthrough.
-- [`@docvia/runtime`](/packages/runtime) — the `CompileService` you can pass
+- [Framework integration](/docs/guide/frameworks) — the SSR setup walkthrough.
+- [`@docvia/runtime`](/docs/packages/runtime) — the `CompileService` you can pass
   directly as a `ContentSource`.
-- [Architecture](/guide/architecture) — the three run modes.
+- [Architecture](/docs/guide/architecture) — the three run modes.

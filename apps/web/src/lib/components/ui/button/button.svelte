@@ -11,12 +11,12 @@ export const buttonVariants = tv({
 			secondary: "bg-surface-soft text-ink hover:bg-surface-card",
 			ghost: "text-body hover:bg-surface-soft hover:text-ink",
 			outline:
-				"border border-hairline bg-transparent text-ink hover:border-hairline-strong hover:bg-surface-soft",
+				"border border-control-border bg-transparent text-ink hover:bg-surface-soft",
 			brand: "bg-brand text-on-brand hover:bg-brand-hover",
 			link: "text-brand-ink underline-offset-4 hover:underline",
 		},
 		size: {
-			// 38px / 8px radius / 8-16px padding / 16px-500 label — measured.
+			// 38px / 8px radius / 8-16px padding / 16px-500 label, measured.
 			sm: "h-8 px-3 text-[14px]",
 			default: "h-9.5 px-4 text-[16px]",
 			lg: "h-11 px-5 text-[16px]",

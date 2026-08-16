@@ -2,7 +2,7 @@
 import { Check, Copy } from "@lucide/svelte";
 import { cn } from "$lib/utils";
 
-// Package-manager install widget — the developer-tool signature (npm / pnpm /
+// Package-manager install widget, the developer-tool signature (npm / pnpm /
 // bun / yarn tabs + a copy button), patterned on vite.dev's hero command.
 type Props = { pkg?: string; dev?: boolean; class?: string };
 let { pkg = "docvia", dev = true, class: className }: Props = $props();
@@ -27,7 +27,7 @@ async function copy() {
 		copied = true;
 		setTimeout(() => (copied = false), 1600);
 	} catch {
-		/* clipboard unavailable — no-op */
+		/* clipboard unavailable, no-op */
 	}
 }
 </script>
@@ -38,7 +38,7 @@ async function copy() {
 		className,
 	)}
 >
-	<!-- Manager tabs — low-contrast, underline indicator instead of a fill. -->
+	<!-- Manager tabs, low-contrast, underline indicator instead of a fill. -->
 	<div
 		role="tablist"
 		aria-label="Package manager"

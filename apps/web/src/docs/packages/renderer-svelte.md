@@ -108,7 +108,7 @@ Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`). Its `renderP
 If no `registry` is supplied, an empty one is used.
 
 Syntax highlighting is **not** a renderer option. It is a build-time plugin —
-add [`@docvia/plugin-shiki`](/packages/plugin-shiki) to `plugins` in your
+add [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` in your
 docvia config, and the highlighted HTML is baked into the IR before the
 renderer ever runs.
 

@@ -37,6 +37,18 @@ importers:
         version: 2.1.9(@types/node@25.5.0)(lightningcss@1.32.0)(terser@5.46.1)
 
   apps/docs:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250109.0
+        version: 4.20260511.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      wrangler:
+        specifier: ^4.0.0
+        version: 4.90.1(@cloudflare/workers-types@4.20260511.1)
+
+  apps/web:
     dependencies:
       '@docvia/compiler':
         specifier: workspace:*
@@ -59,6 +71,12 @@ importers:
       '@fontsource-variable/geist-mono':
         specifier: ^5.2.5
         version: 5.2.7
+      '@fontsource-variable/inter':
+        specifier: ^5.3.0
+        version: 5.3.0
+      simple-icons:
+        specifier: ^16.25.0
+        version: 16.25.0
     devDependencies:
       '@docvia/cli':
         specifier: workspace:*
@@ -69,67 +87,6 @@ importers:
       '@docvia/plugin-vite':
         specifier: workspace:*
         version: link:../../packages/plugin-vite
-      '@lucide/svelte':
-        specifier: ^0.479.0
-        version: 0.479.0(svelte@5.55.0)
-      '@sveltejs/adapter-cloudflare':
-        specifier: ^5.0.0
-        version: 5.1.0(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)))(svelte@5.55.0)(typescript@5.9.3)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)))(wrangler@4.90.1(@cloudflare/workers-types@4.20260511.1))
-      '@sveltejs/kit':
-        specifier: ^2.55.0
-        version: 2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)))(svelte@5.55.0)(typescript@5.9.3)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0))
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^7.0.0
-        version: 7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0))
-      '@tailwindcss/vite':
-        specifier: ^4.0.0
-        version: 4.3.0(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0))
-      bits-ui:
-        specifier: ^2.0.0
-        version: 2.18.1(@internationalized/date@3.12.1)(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)))(svelte@5.55.0)(typescript@5.9.3)(vite@8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)))(svelte@5.55.0)
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
-      svelte:
-        specifier: ^5.55.0
-        version: 5.55.0
-      svelte-check:
-        specifier: ^4.4.5
-        version: 4.4.5(picomatch@4.0.4)(svelte@5.55.0)(typescript@5.9.3)
-      tailwind-merge:
-        specifier: ^2.5.0
-        version: 2.6.1
-      tailwind-variants:
-        specifier: ^0.3.0
-        version: 0.3.1(tailwindcss@4.3.0)
-      tailwindcss:
-        specifier: ^4.0.0
-        version: 4.3.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vite:
-        specifier: ^8.0.3
-        version: 8.0.3(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(yaml@2.9.0)
-      wrangler:
-        specifier: ^4.0.0
-        version: 4.90.1(@cloudflare/workers-types@4.20260511.1)
-
-  apps/web:
-    dependencies:
-      '@fontsource-variable/geist':
-        specifier: ^5.2.5
-        version: 5.2.8
-      '@fontsource-variable/geist-mono':
-        specifier: ^5.2.5
-        version: 5.2.7
-      '@fontsource-variable/inter':
-        specifier: ^5.3.0
-        version: 5.3.0
-      simple-icons:
-        specifier: ^16.25.0
-        version: 16.25.0
-    devDependencies:
       '@lucide/svelte':
         specifier: ^0.479.0
         version: 0.479.0(svelte@5.55.0)

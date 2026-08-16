@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Check, Search, Zap } from "@lucide/svelte";
+import { Check, Search } from "@lucide/svelte";
 
 const renderTargets = [
 	{ label: "React", active: true },
@@ -58,7 +58,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		<!-- 1. Framework-agnostic -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">01</span> · Framework-agnostic
+				<span class="text-ink">01</span> · Framework-agnostic
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -87,7 +87,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		<!-- 2. Deploy anywhere -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">02</span> · Deploy anywhere
+				<span class="text-ink">02</span> · Deploy anywhere
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -111,7 +111,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		<!-- 3. Typed frontmatter -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">03</span> · Typed frontmatter
+				<span class="text-ink">03</span> · Typed frontmatter
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -126,16 +126,16 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				class="mt-auto overflow-x-auto rounded-md border border-hairline bg-surface-soft p-4 font-mono text-[12.5px] leading-[1.6] text-ink"
 			>
 <span class="text-brand-ink">type</span> Frontmatter = {`{`}
-  title: <span class="text-brand-ink">string</span>;
-  tags: <span class="text-brand-ink">string</span>[];
-  publishedAt: <span class="text-brand-ink">Date</span>;
+  title: <span class="text-body-strong">string</span>;
+  tags: <span class="text-body-strong">string</span>[];
+  publishedAt: <span class="text-body-strong">Date</span>;
 {`}`}</pre>
 		</article>
 
 		<!-- 4. Incremental builds -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">04</span> · Incremental builds
+				<span class="text-ink">04</span> · Incremental builds
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -170,7 +170,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		<!-- 5. Pluggable pipeline -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">05</span> · Pluggable pipeline
+				<span class="text-ink">05</span> · Pluggable pipeline
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -185,7 +185,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				{#each hooks as hook, i}
 					<div class="flex items-center gap-2.5 font-mono text-[12px]">
 						<span
-							class="grid h-5 w-5 place-items-center rounded-full bg-brand-soft text-[10px] font-bold text-brand-ink"
+							class="grid h-5 w-5 place-items-center rounded-full bg-surface-strong text-[10px] font-semibold text-body-strong"
 						>
 							{i + 1}
 						</span>
@@ -198,7 +198,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		<!-- 6. Search + BYO AI -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-brand-ink">06</span> · Search + BYO AI
+				<span class="text-ink">06</span> · Search + BYO AI
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
@@ -220,7 +220,6 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 					<span
 						class="ml-auto inline-flex items-center gap-1 rounded-sm bg-brand-soft px-1.5 py-0.5 text-[10px] font-semibold text-brand-ink"
 					>
-						<Zap class="h-3 w-3" />
 						AI
 					</span>
 				</div>

@@ -11,7 +11,7 @@ import Stats from "$lib/sections/stats.svelte";
 import UseCases from "$lib/sections/use-cases.svelte";
 
 // Note: Comparison (vs hosted platforms) and Editions (managed/hosting tiers)
-// are intentionally NOT on the landing page — docvia markets as a developer
+// are intentionally NOT on the landing page, docvia markets as a developer
 // tool, not a hosting product. Those live on a dedicated self-host/hosting
 // page (planned), backed by a real benchmark pipeline rather than claims.
 </script>
@@ -22,16 +22,16 @@ import UseCases from "$lib/sections/use-cases.svelte";
 		name="description"
 		content="docvia compiles your Markdown into typed, pre-rendered modules for React, Svelte, and any framework with a renderer adapter. Incremental builds, full-text search, zero runtime parsing."
 	/>
-	<meta property="og:title" content="docvia — The build-time documentation compiler" />
+	<meta property="og:title" content="docvia: The build-time documentation compiler" />
 	<meta
 		property="og:description"
 		content="Compile your docs the way modern bundlers compile your source code: hashing, caching, parallelism, typed output."
 	/>
 </svelte:head>
 
-<!-- Bordered content frame — continuous vertical hairlines run down the whole
+<!-- Bordered content frame, continuous vertical hairlines run down the whole
      page (vite-style); each section carries its own bottom divider. -->
-<!-- Proof (Stats) sits after the pitch, not before it — vite.dev puts its
+<!-- Proof (Stats) sits after the pitch, not before it, vite.dev puts its
      social-proof beat late, once the reader has a reason to care. -->
 <div class="mx-auto max-w-page border-x border-hairline">
 	<Hero />

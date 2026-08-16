@@ -150,7 +150,7 @@ interface SyntaxHighlighter {
 }
 ```
 
-A minimal contract for code highlighting. Highlighting is normally a build-time plugin ([`@docvia/plugin-shiki`](/packages/plugin-shiki)) that bakes highlighted HTML onto `code-block` nodes; the `SyntaxHighlighter` contract is only used for an optional render-time fallback.
+A minimal contract for code highlighting. Highlighting is normally a build-time plugin ([`@docvia/plugin-shiki`](/docs/packages/plugin-shiki)) that bakes highlighted HTML onto `code-block` nodes; the `SyntaxHighlighter` contract is only used for an optional render-time fallback.
 
 ### HydrationEntry and HydrationManifest
 

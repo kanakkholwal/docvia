@@ -12,7 +12,7 @@ content generation are built — all without forking the compiler.
 ## The plugin shape
 
 A plugin implements the `docviaPlugin` interface from
-[`@docvia/ir`](/packages/ir):
+[`@docvia/ir`](/docs/packages/ir):
 
 | Field | Type | Description |
 |---|---|---|
@@ -27,7 +27,7 @@ A plugin implements the `docviaPlugin` interface from
 | `afterTransform` | hook | See below. |
 | `beforeRender` | hook | See below. |
 
-`name` and `version` are mandatory — [`resolvePlugins`](/packages/plugins)
+`name` and `version` are mandatory — [`resolvePlugins`](/docs/packages/plugins)
 throws a `PLUGIN_ERROR` for a plugin that omits either, or for a duplicated
 name.
 
@@ -46,10 +46,10 @@ next plugin and then the next stage.
 | `beforeRender` | `(doc: IRDocument) => IRDocument` | On the IR, just before rendering. |
 
 Use `beforeParse` to rewrite raw text, `afterParse` to manipulate Markdown
-nodes (this is where [`@docvia/plugin-openapi`](/packages/plugin-openapi) does
+nodes (this is where [`@docvia/plugin-openapi`](/docs/packages/plugin-openapi) does
 its work), and `afterTransform` / `beforeRender` to act on the
 framework-agnostic IR. Build-time syntax highlighting is itself a plugin:
-[`@docvia/plugin-shiki`](/packages/plugin-shiki) uses `beforeRender` to walk
+[`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) uses `beforeRender` to walk
 the IR and bake highlighted HTML onto `code-block` nodes.
 
 ## Execution order
@@ -98,5 +98,5 @@ If your plugin depends on an external input — a spec file, an environment
 variable, a remote source — implement `cacheKey()`. Its return value is folded
 into the build cache key, so when the input changes every affected page is
 rebuilt. When you omit it, docvia falls back to `name@version`. See
-[Incremental builds](/guide/incremental-builds) for how the cache key drives
+[Incremental builds](/docs/guide/incremental-builds) for how the cache key drives
 rebuilds.

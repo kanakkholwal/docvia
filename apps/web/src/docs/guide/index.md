@@ -7,20 +7,20 @@ order: 2
 
 The guides cover docvia from the user's side — how to configure it, wire it
 into an app, and extend it. For the API surface of an individual package, see
-the [Packages](/packages) reference.
+the [Packages](/docs/packages) reference.
 
 ## In this section
 
-- [Configuration](/guide/configuration) — every option accepted by
+- [Configuration](/docs/guide/configuration) — every option accepted by
   `defineConfig`, with defaults and types.
-- [Framework integration](/guide/frameworks) — SvelteKit, Next.js, and plain
+- [Framework integration](/docs/guide/frameworks) — SvelteKit, Next.js, and plain
   Vite setups.
-- [CLI reference](/guide/cli) — every `docvia` command and flag.
-- [Writing plugins](/guide/plugins) — the five pipeline hook points and how to
+- [CLI reference](/docs/guide/cli) — every `docvia` command and flag.
+- [Writing plugins](/docs/guide/plugins) — the five pipeline hook points and how to
   author a plugin.
-- [Architecture](/guide/architecture) — the compile pipeline, the IR, and the
+- [Architecture](/docs/guide/architecture) — the compile pipeline, the IR, and the
   generated module graph.
-- [Incremental builds](/guide/incremental-builds) — how the content-hash cache
+- [Incremental builds](/docs/guide/incremental-builds) — how the content-hash cache
   decides what to rebuild.
 
 ## The mental model
@@ -38,4 +38,4 @@ docvia has two halves:
 The same core runs in three modes — build, dev, and SSR — so their output is
 identical. Everything else — plugins, the frontmatter schema, the incremental
 cache, syntax highlighting — is a detail of how the core produces that module
-graph. See [Architecture](/guide/architecture) for the full picture.
+graph. See [Architecture](/docs/guide/architecture) for the full picture.

@@ -18,10 +18,11 @@ const targets = ["React", "Svelte", "Next.js", "Vite", "Static HTML"];
 const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in"];
 
 const TOTAL = buildLog.length;
+const MAX_RUNS = 3; // then rest on the finished build; endless motion is a tax
 
-// The terminal "builds" on a loop so the hero reads as the compiler working,
-// not a static screenshot. SSR + reduced-motion render the full log statically
-// (animate stays false → shown = TOTAL), so there's no blank/first-paint gap.
+// The terminal "builds" so the hero reads as the compiler working, not a static
+// screenshot. SSR and reduced-motion render the full log statically (animate
+// stays false, shown = TOTAL), so there is no blank first paint.
 let animate = $state(false);
 let step = $state(TOTAL);
 let showDone = $state(true);
@@ -29,37 +30,94 @@ let showDone = $state(true);
 const shown = $derived(animate ? step : TOTAL);
 const doneVisible = $derived(animate ? showDone : true);
 
+let panel: HTMLElement | undefined = $state();
+
+// Plain (non-reactive) controller: the loop drives $state, it is not driven by it.
+let timer: ReturnType<typeof setTimeout> | undefined;
+let runs = 0;
+let onScreen = false;
+let hovered = false;
+let running = false;
+
+const clear = () => {
+	if (timer) clearTimeout(timer);
+	timer = undefined;
+};
+
+const settle = () => {
+	clear();
+	running = false;
+	step = TOTAL;
+	showDone = true;
+};
+
+// Never animate off-screen or under the pointer, and stop after MAX_RUNS.
+const blocked = () => !onScreen || hovered || runs >= MAX_RUNS;
+
+const stream = () => {
+	if (blocked()) return settle();
+	if (step < TOTAL) {
+		step += 1;
+		timer = setTimeout(stream, 360);
+		return;
+	}
+	timer = setTimeout(() => {
+		showDone = true;
+		runs += 1;
+		running = false;
+		if (runs < MAX_RUNS) timer = setTimeout(start, 2600);
+	}, 280);
+};
+
+const start = () => {
+	if (blocked()) return settle();
+	running = true;
+	step = 0;
+	showDone = false;
+	timer = setTimeout(stream, 480);
+};
+
+const kick = () => {
+	if (running || blocked()) return;
+	running = true;
+	timer = setTimeout(start, 1000);
+};
+
+function pause() {
+	hovered = true;
+	settle();
+}
+function resume() {
+	hovered = false;
+	kick();
+}
+
 onMount(() => {
-	const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-	if (reduced) return; // keep the full log, static
+	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	if (!panel) return;
 
 	animate = true;
-	let t: ReturnType<typeof setTimeout>;
+	const io = new IntersectionObserver(
+		([e]) => {
+			onScreen = e.isIntersecting;
+			if (onScreen) kick();
+			else {
+				clear();
+				running = false;
+			}
+		},
+		{ threshold: 0.3 },
+	);
+	io.observe(panel);
 
-	const stream = () => {
-		if (step < TOTAL) {
-			step += 1;
-			t = setTimeout(stream, 360);
-		} else {
-			t = setTimeout(() => {
-				showDone = true;
-				t = setTimeout(reset, 2600); // hold the finished build, then loop
-			}, 280);
-		}
+	return () => {
+		clear();
+		io.disconnect();
 	};
-	const reset = () => {
-		step = 0;
-		showDone = false;
-		t = setTimeout(stream, 480);
-	};
-
-	// Start by holding the SSR-matching full log, then run the loop.
-	t = setTimeout(reset, 2600);
-	return () => clearTimeout(t);
 });
 </script>
 
-<!-- Left-aligned 6/6 split with a vertical rule down the middle — measured off
+<!-- Left-aligned 6/6 split with a vertical rule down the middle, measured off
      vite.dev, whose hero is not centered. -->
 <section class="relative overflow-hidden border-b border-hairline bg-canvas">
 	<div class="glow" aria-hidden="true"></div>
@@ -105,7 +163,7 @@ onMount(() => {
 				class="reveal mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
 				style="animation-delay: 120ms"
 			>
-				<Button href="https://docs.docvia.dev" class="cta-glow">
+				<Button href="/docs" class="cta-glow">
 					Get started
 					<ArrowRight />
 				</Button>
@@ -136,7 +194,13 @@ onMount(() => {
 		</div>
 
 		<!-- ── Right: the compiler building itself, live (looping) ─────── -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
+			bind:this={panel}
+			onmouseenter={pause}
+			onmouseleave={resume}
+			onfocusin={pause}
+			onfocusout={resume}
 			class="reveal flex items-center px-5 py-14 sm:px-10 sm:py-20"
 			style="animation-delay: 200ms"
 		>
@@ -164,7 +228,7 @@ onMount(() => {
 					{/each}
 					{#if doneVisible}
 						<div class="build-line border-t border-hairline pt-2.5 text-body-strong">
-							<span class="text-check">✓</span> Built 24 pages in
+							<span class="text-brand-ink">✓</span> Built 24 pages in
 							<span class="font-semibold text-ink">412ms</span>
 						</div>
 					{:else}
@@ -236,7 +300,7 @@ onMount(() => {
 		}
 	}
 
-	/* Entrance — CSS-driven so `prefers-reduced-motion` (handled globally in
+	/* Entrance, CSS-driven so `prefers-reduced-motion` (handled globally in
 	   app.css) neutralizes it, and content is present on first paint / no-JS. */
 	.reveal {
 		opacity: 0;

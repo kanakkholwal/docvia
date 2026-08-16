@@ -48,7 +48,7 @@ export default defineConfig({
 				{#each stages as stage, i}
 					<li class="flex items-start gap-4">
 						<span
-							class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-hairline bg-surface-card font-mono text-[11px] font-semibold text-brand-ink"
+							class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-hairline bg-surface-card font-mono text-[11px] font-semibold text-muted"
 						>
 							{String(i + 1).padStart(2, "0")}
 						</span>
@@ -65,8 +65,8 @@ export default defineConfig({
 			</ol>
 
 			<a
-				href="https://docs.docvia.dev/guide/architecture"
-				class="group mt-10 inline-flex items-center gap-1.5 text-[15px] font-medium text-brand-ink underline underline-offset-4 transition-colors duration-(--motion-fast) ease-out hover:text-brand-strong"
+				href="/docs/guide/architecture"
+				class="group mt-10 inline-flex items-center gap-1.5 text-[15px] font-medium text-brand-ink underline underline-offset-4 transition-colors duration-(--motion-fast) ease-out hover:text-brand-hover"
 			>
 				Read the architecture overview
 				<ArrowRight

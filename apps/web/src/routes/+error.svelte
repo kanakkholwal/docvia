@@ -1,6 +1,8 @@
 <script lang="ts">
 import { page } from "$app/state";
 import { ArrowRight, Home, Search } from "@lucide/svelte";
+import SiteFooter from "$lib/components/site-footer.svelte";
+import SiteHeader from "$lib/components/site-header.svelte";
 import { Button } from "$lib/components/ui/button";
 
 const status = $derived(page.status);
@@ -21,7 +23,9 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<section class="relative overflow-hidden bg-canvas">
+<SiteHeader />
+
+<section id="main" class="relative overflow-hidden bg-canvas">
 	<div
 		class="mx-auto grid min-h-[calc(100vh-8rem)] max-w-page items-center gap-12 px-5 py-14 sm:px-10 md:py-24 lg:grid-cols-12 lg:gap-10"
 	>
@@ -49,8 +53,8 @@ const errorMessage = $derived(page.error?.message ?? "Unknown error");
 					<Home />
 					Back to home
 				</Button>
-				<Button variant="outline" href="https://docs.docvia.dev">
-					Read the docs
+				<Button variant="outline" href="/docs">
+					Get started
 					<ArrowRight />
 				</Button>
 			</div>

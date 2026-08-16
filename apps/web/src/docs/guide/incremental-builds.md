@@ -11,7 +11,7 @@ every build after that is typically milliseconds for unchanged content.
 
 ## The cache file
 
-[`@docvia/compiler`](/packages/compiler) persists a `.docvia.cache.json` file
+[`@docvia/compiler`](/docs/packages/compiler) persists a `.docvia.cache.json` file
 inside `outDir`. It records, per file, a hash of the raw source, the composite
 content hash, the cached page metadata, and the generated route — alongside a
 small header describing the build environment.
@@ -46,7 +46,7 @@ when:
 - any **plugin cache key** changed.
 
 This is why a plugin that depends on an external input should implement
-`cacheKey()` — see [Writing plugins](/guide/plugins). When the OpenAPI plugin's
+`cacheKey()` — see [Writing plugins](/docs/guide/plugins). When the OpenAPI plugin's
 spec file changes, for example, its cache key changes, and every page that
 references the spec is rebuilt.
 
@@ -66,4 +66,4 @@ but it is a useful escape hatch when debugging a plugin or a renderer.
 `docvia dev` keeps the cache warm between rebuilds, so editing one Markdown
 file recompiles only that file. The Vite and Next.js integrations build with
 the cache enabled too, which is what keeps incremental dev rebuilds fast — see
-[Framework integration](/guide/frameworks).
+[Framework integration](/docs/guide/frameworks).

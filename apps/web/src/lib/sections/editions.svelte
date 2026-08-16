@@ -31,7 +31,7 @@ const editions: Edition[] = [
 			"Section-level Orama search",
 			"Pluggable pipeline with 5 hooks",
 			"Incremental cache between builds",
-			"Self-host anywhere — static, edge, VPC",
+			"Self-host anywhere, static, edge, VPC",
 		],
 	},
 	{
@@ -92,7 +92,7 @@ const editions: Edition[] = [
 			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
 				The compiler and every renderer are MIT-licensed and self-hostable.
 				Team and Enterprise add managed builds and governance on top of the
-				same open core — never instead of it.
+				same open core, never instead of it.
 			</p>
 		</div>
 
@@ -198,7 +198,7 @@ const editions: Edition[] = [
 
 		<p class="mt-10 text-center text-[13px] text-muted">
 			Open source is available today. Team and Enterprise are in active
-			development — join the waitlist to shape what ships.
+			development, join the waitlist to shape what ships.
 		</p>
 	</div>
 </section>

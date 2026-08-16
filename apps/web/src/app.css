@@ -3,13 +3,13 @@
 /* docvia design tokens.
 
    Colour values below are the *measured* computed styles from vite.dev
-   (pulled over CDP), not the approximations in apps/web/DESIGN.md — the doc's
+   (pulled over CDP), not the approximations in apps/web/DESIGN.md, the doc's
    surface/border values did not match the live site. Dark is canonical; light
    is a derived inversion. Borders, not shadows. 8px radius. */
 
 :root,
 [data-theme="dark"] {
-	/* ── Surface — note the recessed direction: vite.dev's panels sit *below*
+	/* ── Surface, note the recessed direction: vite.dev's panels sit *below*
 	     the canvas (#14121A < #16171D), they are not raised. ── */
 	--canvas: #16171d;
 	--surface-soft: #14121a;
@@ -21,18 +21,23 @@
 	/* ── Text ── */
 	--ink: #ffffff;
 	--body-strong: rgba(255, 255, 255, 0.86);
-	/* vite.dev's hero subhead is alpha white, not a solid grey — it keeps the
+	/* vite.dev's hero subhead is alpha white, not a solid grey, it keeps the
 	   violet glow readable through the copy. */
 	--body: rgba(255, 255, 255, 0.7);
 	--muted: #98989f;
 	--muted-soft: #867e8e;
 	--on-primary: #16171d;
 
-	/* ── Borders ── */
+	/* ── Borders ──
+	   --hairline is a *divider*: section rules, grid lines, panel edges. It is
+	   1.49:1 by design (Vite's measured value) and decorative only.
+	   --control-border is the boundary that identifies an interactive control
+	   on its own; it must clear 3:1 (WCAG 1.4.11). Do not swap them. */
 	--hairline: #3b3440;
 	--hairline-strong: #4b4a5d;
+	--control-border: #6e6a78;
 
-	/* ── Brand — one luminous violet.
+	/* ── Brand, one luminous violet.
 	     --brand       fill voltage (pair with --on-brand text)
 	     --brand-ink   brand-colored TEXT / icons, legible on this theme
 	     --brand-soft  subtle brand-tinted background ── */
@@ -57,7 +62,8 @@
 	--card-on-dark: #ffffff;
 	--card-on-light: #16171d;
 
-	--check: var(--brand);
+	/* List bullets are not a state, so they do not get the accent. */
+	--check: var(--muted);
 	--focus: var(--brand);
 
 	--success: #22c55e;
@@ -67,7 +73,7 @@
 	color-scheme: dark;
 }
 
-/* Light — the violet has to survive on white, so fills and text use the
+/* Light, the violet has to survive on white, so fills and text use the
    deeper end of the ramp (#7C3AED / #6D28D9) rather than the luminous #B39AFF,
    which fails contrast on a light surface. */
 [data-theme="light"] {
@@ -81,12 +87,13 @@
 	--ink: #16171d;
 	--body-strong: rgba(22, 23, 29, 0.88);
 	--body: rgba(22, 23, 29, 0.72);
-	--muted: #6c6e78;
+	--muted: #676972;
 	--muted-soft: #8a8c96;
 	--on-primary: #ffffff;
 
 	--hairline: #e4e2e8;
 	--hairline-strong: #cfccd6;
+	--control-border: #8a8c96;
 
 	--brand: #7c3aed;
 	--brand-strong: #6d28d9;
@@ -100,15 +107,21 @@
 	--action-hover: #2a2c36;
 	--on-action: #ffffff;
 
-	--check: var(--brand-ink);
+	--check: var(--muted);
 	--focus: var(--brand-strong);
+
+	/* Inherited from the lime system and never re-tuned; the saturated
+	   originals sit at 2.2-3.8:1 on white and cannot carry text. */
+	--success: #146c34;
+	--warning: #a34a08;
+	--error: #c81e1e;
 
 	color-scheme: light;
 }
 
 /* Theme-independent scales. */
 :root {
-	/* Radius — 8px is the system default. Larger values are reserved for the
+	/* Radius, 8px is the system default. Larger values are reserved for the
 	   two full-width panels; --radius-pill is chips only. */
 	--radius-none: 0px;
 	--radius-sm: 4px;
@@ -117,7 +130,7 @@
 	--radius-xl: 16px;
 	--radius-pill: 9999px;
 
-	/* Spacing — Vite's progression. Section breaks use lg/xl. */
+	/* Spacing, Vite's progression. Section breaks use lg/xl. */
 	--space-xs: 12px;
 	--space-sm: 24px;
 	--space-md: 40px;
@@ -130,7 +143,7 @@
 	--motion-slow: 260ms;
 }
 
-/* Motion curves — stronger than the CSS built-ins, which have no punch. Not
+/* Motion curves, stronger than the CSS built-ins, which have no punch. Not
    `inline`, so these override Tailwind's ease-* utilities *and* stay readable
    as var(--ease-out) inside component <style> blocks. */
 @theme {
@@ -163,6 +176,7 @@
 
 	--color-hairline: var(--hairline);
 	--color-hairline-strong: var(--hairline-strong);
+	--color-control-border: var(--control-border);
 
 	--color-brand: var(--brand);
 	--color-brand-strong: var(--brand-strong);
@@ -179,7 +193,7 @@
 	--color-warning: var(--warning);
 	--color-error: var(--error);
 
-	/* Legacy aliases — primary action is now the brand violet, not ink. */
+	/* Legacy aliases, primary action is now the brand violet, not ink. */
 	--color-bg: var(--canvas);
 	--color-bg-subtle: var(--surface-soft);
 	--color-bg-muted: var(--surface-card);
@@ -190,6 +204,7 @@
 	--color-fg-subtle: var(--muted-soft);
 	--color-border: var(--hairline);
 	--color-border-strong: var(--hairline-strong);
+	--color-control: var(--control-border);
 	--color-accent: var(--brand);
 	--color-accent-fg: var(--on-brand);
 	--color-accent-subtle: var(--brand-soft);
@@ -198,7 +213,7 @@
 	--color-danger: var(--error);
 
 	/* Matches vite.dev's pairing: a geometric display face over Inter. Satoshi
-	   stands in for APK Protocol and Geist Mono for KH Teka Mono — both of
+	   stands in for APK Protocol and Geist Mono for KH Teka Mono, both of
 	   Vite's are proprietary and not licensable. */
 	--font-sans:
 		"Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -217,7 +232,7 @@
 	/* vite.dev's measured page frame: 1390px, gutters 20 / 40. */
 	--container-page: 1390px;
 
-	/* Display scale — measured off vite.dev. Tracking is negative only above
+	/* Display scale, measured off vite.dev. Tracking is negative only above
 	   40px; at 24px and below it goes to zero, which is why their card titles
 	   read open rather than squeezed. */
 	--text-display-1: 3.75rem; /* 60 / 67.2 / -3px */
@@ -232,7 +247,7 @@
 	--text-display-3--line-height: 1.3333;
 	--text-display-3--letter-spacing: -0.025em;
 	--text-display-3--font-weight: 500;
-	--text-display-4: 1.5rem; /* 24 / 28 / 0 — card + feature titles */
+	--text-display-4: 1.5rem; /* 24 / 28 / 0, card + feature titles */
 	--text-display-4--line-height: 1.1667;
 	--text-display-4--letter-spacing: 0em;
 	--text-display-4--font-weight: 500;
@@ -275,7 +290,7 @@ body {
 	font-weight: 500;
 }
 
-/* vite.dev rings its hero CTA in a violet halo — the one place the page uses
+/* vite.dev rings its hero CTA in a violet halo, the one place the page uses
    a shadow, and it reads as glow rather than elevation. */
 .cta-glow {
 	box-shadow:
@@ -283,7 +298,7 @@ body {
 		0 0 18px color-mix(in oklab, var(--brand-strong) 45%, transparent);
 }
 
-/* Meta labels are MONOSPACE on vite.dev, not sans — 12px/500, uppercase, with
+/* Meta labels are MONOSPACE on vite.dev, not sans, 12px/500, uppercase, with
    only 0.3px (~0.025em) tracking rather than the wide letterspacing this
    pattern usually gets. */
 .label-meta {

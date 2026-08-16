@@ -7,7 +7,7 @@ order: 40
 
 `@docvia/plugin-vite` integrates docvia into any Vite-based app (plain Vite or
 SvelteKit). The recommended export is **`docvia()`** — a single plugin that
-runs the [`CompileService`](/packages/runtime) in-process, so there is no
+runs the [`CompileService`](/docs/packages/runtime) in-process, so there is no
 separate `docvia build` step.
 
 ```bash
@@ -53,7 +53,7 @@ export default defineConfig({
 ```
 
 That is the complete setup. See
-[Framework integration](/guide/frameworks) for the full SvelteKit walkthrough.
+[Framework integration](/docs/guide/frameworks) for the full SvelteKit walkthrough.
 
 ```ts
 // A single page can also be imported directly through the ?docvia transform.
@@ -62,5 +62,5 @@ import page from "./docs/index.md?docvia";
 
 ## See also
 
-- [Framework integration](/guide/frameworks) — SvelteKit and plain Vite setups.
-- [`@docvia/runtime`](/packages/runtime) — the `CompileService` the plugin runs.
+- [Framework integration](/docs/guide/frameworks) — SvelteKit and plain Vite setups.
+- [`@docvia/runtime`](/docs/packages/runtime) — the `CompileService` the plugin runs.

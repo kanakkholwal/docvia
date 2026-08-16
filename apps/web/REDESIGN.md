@@ -1,4 +1,4 @@
-# docvia.dev vs vite.dev — measured breakdown
+# docvia.dev vs vite.dev, measured breakdown
 
 Values below are **computed styles pulled off the live vite.dev over Chrome
 DevTools Protocol**, not read off a screenshot or a design doc. Where
@@ -17,8 +17,8 @@ everything structural. These were the four that mattered.
 
 | Token | DESIGN.md said | vite.dev actually is |
 | --- | --- | --- |
-| Surface layering | `#1B1C23` / `#20212A`, **lighter** than canvas | `#14121A` — **darker**. Panels are recessed, not raised. |
-| Border | `#343545` | **`#3B3440`** (warmer, purpler) — 51 elements use it |
+| Surface layering | `#1B1C23` / `#20212A`, **lighter** than canvas | `#14121A`, **darker**. Panels are recessed, not raised. |
+| Border | `#343545` | **`#3B3440`** (warmer, purpler), 51 elements use it |
 | `button-primary` | `{colors.surface}` | **`#FFFFFF`** with `#16171D` text |
 | Muted text | `#C7CAD1` | Hero subhead is **`rgba(255,255,255,0.7)`**, not a solid grey; meta text is `#98989F` / `#867E8E` |
 
@@ -54,12 +54,12 @@ everything structural. These were the four that mattered.
 
 **Tracking rule worth stealing:** negative tracking only above 40px. At 24px and
 below it goes to **zero**. That is why their card titles read open instead of
-squeezed — my first pass had −0.03em on 24px titles, which was wrong.
+squeezed. My first pass had −0.03em on 24px titles, which was wrong.
 
 **Font substitutions.** APK Protocol and KH Teka Mono are Vite's proprietary
-faces and are not licensable. **Satoshi** (Fontshare, variable 300–900,
+faces and are not licensable. **Satoshi** (Fontshare, variable 300-900,
 self-hosted at `static/fonts/satoshi-variable.woff2`, 42 KB, preloaded) stands in
-for APK Protocol — same geometric grotesk character, holds −0.05em without
+for APK Protocol, same geometric grotesk character, holds −0.05em without
 collapsing. Inter is the real thing (`@fontsource-variable/inter`). Geist Mono
 covers KH Teka Mono.
 
@@ -70,14 +70,14 @@ covers KH Teka Mono.
 | Container | **1390px** | `--container-page: 1390px` ✅ |
 | Gutters | `px-5 sm:px-10` (20 / 40) | ✅ |
 | Section padding | `py-14 sm:py-28` (56 / **112**) | ✅ |
-| Header | solid `#16171D`, 1px rule, **no backdrop blur** | solid, no blur ✅ (kept sticky — their homepage header is static, but this page is 8.6k px) |
+| Header | solid `#16171D`, 1px rule, **no backdrop blur** | solid, no blur ✅ (kept sticky, their homepage header is static, but this page is 8.6k px) |
 | Button | 38px · 8px radius · 8/16 padding | ✅ |
 | **Cards** | **zero. `cards: []`.** Full-bleed cells, 1px dividers, `divide-x` | full-bleed `gap-px` grids ✅ |
 | Grid sections | heading and grid are **separate sections**; grid is `py-0` edge-to-edge | ✅ |
 | Shadow | none, except a violet halo on the hero CTA | ✅ |
 
 **The card finding is the big one.** My first pass converted your original
-`gap-px` hairline grid into discrete bordered cards. That was a regression —
+`gap-px` hairline grid into discrete bordered cards. That was a regression:
 vite.dev has no cards anywhere on the homepage. Reverted, and the heading/grid
 split means the grids now run edge-to-edge with no dead padding around them.
 

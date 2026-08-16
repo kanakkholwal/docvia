@@ -55,8 +55,8 @@ const steps = [
 		</ol>
 
 		<div class="mt-10 text-center">
-			<Button variant="ghost" href="https://docs.docvia.dev/getting-started">
-				Read the full guide
+			<Button variant="ghost" href="/docs/getting-started">
+				Read the getting-started guide
 				<ArrowRight />
 			</Button>
 		</div>

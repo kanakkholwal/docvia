@@ -159,7 +159,7 @@ Creates the build-time React `RendererAdapter` (`name: "react"`). It runs at bui
 If no `registry` is supplied, an empty one (`resolve: () => null`) is used.
 
 Syntax highlighting is **not** a renderer option. It is a build-time plugin —
-add [`@docvia/plugin-shiki`](/packages/plugin-shiki) to `plugins` in your
+add [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` in your
 docvia config, and the highlighted HTML is baked into the IR before the
 renderer ever runs.
 

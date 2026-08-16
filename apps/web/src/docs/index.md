@@ -31,7 +31,7 @@ The result is a clean separation:
 ## Three modes, one core
 
 docvia runs in three modes, all driven by a single stateful `CompileService`
-(see [Architecture](/guide/architecture)), so their output is identical:
+(see [Architecture](/docs/guide/architecture)), so their output is identical:
 
 - **Build** — compile the whole tree ahead of time into a typed module graph.
 - **Dev** — compile in-process inside the framework dev server, recompiling
@@ -74,12 +74,12 @@ your app only ever imports typed modules.
 
 ## Next steps
 
-- [Getting started](/getting-started) — install the CLI and compile your first
+- [Getting started](/docs/getting-started) — install the CLI and compile your first
   build.
-- [Configuration](/guide/configuration) — every option accepted by
+- [Configuration](/docs/guide/configuration) — every option accepted by
   `defineConfig`.
-- [Framework integration](/guide/frameworks) — wire docvia into SvelteKit,
+- [Framework integration](/docs/guide/frameworks) — wire docvia into SvelteKit,
   Next.js, a plain Vite app, or a server.
-- [Architecture](/guide/architecture) — the compile core, the three run modes,
+- [Architecture](/docs/guide/architecture) — the compile core, the three run modes,
   and the IR.
-- [Packages](/packages) — the full reference for every `@docvia/*` package.
+- [Packages](/docs/packages) — the full reference for every `@docvia/*` package.

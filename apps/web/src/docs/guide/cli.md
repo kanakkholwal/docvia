@@ -5,7 +5,7 @@ eyebrow: "Guide"
 order: 3
 ---
 
-The `docvia` command is provided by [`@docvia/cli`](/packages/cli). Install it
+The `docvia` command is provided by [`@docvia/cli`](/docs/packages/cli). Install it
 as a dev dependency and invoke it through your package manager:
 
 ```bash
@@ -83,7 +83,7 @@ initial-build failure does not stop the watcher — fix the error and save again
 > `docvia dev` is a standalone watcher for the `.docvia/` output. When docvia
 > is embedded in a Vite or Next.js app, the framework integration runs the
 > compile core in-process and handles watching itself — see
-> [Framework integration](/guide/frameworks).
+> [Framework integration](/docs/guide/frameworks).
 
 ## docvia preview
 
@@ -113,4 +113,4 @@ import { runCli } from "@docvia/cli";
 await runCli(["node", "docvia", "build", "--no-cache"]);
 ```
 
-See [`@docvia/cli`](/packages/cli) for the full package reference.
+See [`@docvia/cli`](/docs/packages/cli) for the full package reference.

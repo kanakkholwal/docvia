@@ -56,7 +56,7 @@ A project-root `docvia-env.d.ts` is also written so the source module resolves
 in TypeScript (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
 with a `/browser` counterpart). Subsequent runs read `.docvia.cache.json` and
 skip files whose content hash is unchanged — see
-[Incremental builds](/guide/incremental-builds).
+[Incremental builds](/docs/guide/incremental-builds).
 
 > [!WARNING]
 > **`source.ts` is server-only.** It statically imports every compiled page, so
@@ -86,7 +86,7 @@ recommended setup runs docvia **in-process** inside your bundler — the Vite
 plugin or the Next.js wrapper — so there is no separate `docvia build` step,
 and dev recompiles incrementally as you edit.
 
-See [Framework integration](/guide/frameworks) for SvelteKit, Next.js, plain
+See [Framework integration](/docs/guide/frameworks) for SvelteKit, Next.js, plain
 Vite, and server-side rendering setups.
 
 ## A minimal config
@@ -106,4 +106,4 @@ export default defineConfig({
 });
 ```
 
-Every option is documented in the [Configuration reference](/guide/configuration).
+Every option is documented in the [Configuration reference](/docs/guide/configuration).

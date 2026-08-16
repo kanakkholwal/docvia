@@ -17,7 +17,7 @@ const rows: { feature: string; docvia: Cell; hosted: Cell; diy: Cell }[] = [
 		diy: "Single",
 	},
 	{
-		feature: "Build-time compiled — no runtime parser",
+		feature: "Build-time compiled, no runtime parser",
 		docvia: true,
 		hosted: "partial",
 		diy: false,
@@ -41,7 +41,7 @@ const rows: { feature: string; docvia: Cell; hosted: Cell; diy: Cell }[] = [
 		diy: "partial",
 	},
 	{
-		feature: "Bring your own AI keys — no credit metering",
+		feature: "Bring your own AI keys, no credit metering",
 		docvia: true,
 		hosted: "Metered",
 		diy: "N/A",
@@ -92,7 +92,7 @@ function renderCell(value: Cell) {
 			<p class="mt-6 max-w-2xl text-lg leading-[1.55] text-body">
 				Most hosted docs platforms ship a beautiful theme and an AI agent, then
 				lock you into one framework, one cloud, and a per-credit pricing
-				model. docvia is the build pipeline underneath — yours to own.
+				model. docvia is the build pipeline underneath, yours to own.
 			</p>
 		</div>
 

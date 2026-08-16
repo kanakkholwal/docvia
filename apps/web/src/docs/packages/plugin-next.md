@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 41
 ---
 
-`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and — in development — starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
+`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/docs/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and — in development — starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
 
 ## Install
 

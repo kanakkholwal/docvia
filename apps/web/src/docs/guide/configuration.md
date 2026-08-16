@@ -6,7 +6,7 @@ order: 1
 ---
 
 docvia is configured with a single `docvia.config.ts` file at your project
-root. The CLI loads it (via [`loadConfig`](/packages/plugins)), the Vite plugin
+root. The CLI loads it (via [`loadConfig`](/docs/packages/plugins)), the Vite plugin
 imports it directly, and the Next.js wrapper reads it on config evaluation.
 
 ## defineConfig
@@ -42,7 +42,7 @@ editor completion on every field.
 | `theme.options` | `Record<string, unknown>` | `{}` | Theme-specific options. |
 
 > **Syntax highlighting is a plugin.** Add the
-> [`@docvia/plugin-shiki`](/packages/plugin-shiki) plugin — `shiki({ theme, langs })`
+> [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) plugin — `shiki({ theme, langs })`
 > — to `plugins`. It highlights every code block at build time and bakes the
 > HTML into the IR, so no highlighter ships to the browser. Highlighting is no
 > longer a renderer option.
@@ -71,10 +71,10 @@ renderer: createSvelteRenderer();
 ```
 
 Syntax highlighting is no longer a renderer option — add the
-[`shiki()`](/packages/plugin-shiki) plugin to `plugins` instead.
+[`shiki()`](/docs/packages/plugin-shiki) plugin to `plugins` instead.
 
-See [`@docvia/renderer-react`](/packages/renderer-react) and
-[`@docvia/renderer-svelte`](/packages/renderer-svelte) for the full adapter
+See [`@docvia/renderer-react`](/docs/packages/renderer-react) and
+[`@docvia/renderer-svelte`](/docs/packages/renderer-svelte) for the full adapter
 API.
 
 ## Collections
@@ -132,7 +132,7 @@ export default defineConfig({
 
 A file that omits a required custom field now fails the build with a
 `SCHEMA_ERROR` pointing at the offending file. See
-[`@docvia/schema`](/packages/schema) for the validation and codegen details.
+[`@docvia/schema`](/docs/packages/schema) for the validation and codegen details.
 
 ## Components
 

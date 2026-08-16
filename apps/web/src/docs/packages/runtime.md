@@ -13,12 +13,12 @@ process.
 Every docvia mode drives this one service, which is why build, dev, and
 request-time output never drift apart:
 
-- [`@docvia/compiler`](/packages/compiler)'s `compile()` is a thin wrapper over
+- [`@docvia/compiler`](/docs/packages/compiler)'s `compile()` is a thin wrapper over
   `CompileService` — a behaviour-identical batch build.
-- [`@docvia/plugin-vite`](/packages/plugin-vite) and
-  [`@docvia/plugin-next`](/packages/plugin-next) run the service in-process for
+- [`@docvia/plugin-vite`](/docs/packages/plugin-vite) and
+  [`@docvia/plugin-next`](/docs/packages/plugin-next) run the service in-process for
   incremental dev compilation.
-- [`@docvia/ssr`](/packages/ssr) renders documents resolved through the service
+- [`@docvia/ssr`](/docs/packages/ssr) renders documents resolved through the service
   — a live `CompileService` is itself a valid `ContentSource`, so it can be
   passed straight to `createDocviaSSR({ provider })`.
 
@@ -86,7 +86,7 @@ and a full reload (`routeMapChanged`).
 
 ## See also
 
-- [Architecture](/guide/architecture) — how the compile core fits the three
+- [Architecture](/docs/guide/architecture) — how the compile core fits the three
   run modes.
-- [`@docvia/compiler`](/packages/compiler) — the batch build wrapper.
-- [`@docvia/ssr`](/packages/ssr) — request-time rendering.
+- [`@docvia/compiler`](/docs/packages/compiler) — the batch build wrapper.
+- [`@docvia/ssr`](/docs/packages/ssr) — request-time rendering.

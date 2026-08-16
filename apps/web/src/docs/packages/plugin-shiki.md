@@ -68,6 +68,6 @@ end-user bundle still ships zero highlighter either way.
 
 ## See also
 
-- [Writing plugins](/guide/plugins) — the plugin hook system.
-- [Architecture](/guide/architecture) — highlighting as a build-time IR
+- [Writing plugins](/docs/guide/plugins) — the plugin hook system.
+- [Architecture](/docs/guide/architecture) — highlighting as a build-time IR
   transform.
