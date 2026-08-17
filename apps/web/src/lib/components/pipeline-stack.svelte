@@ -20,8 +20,8 @@ const THICK = 11;
 // the story; what a build tool sells is the work between them.
 const stages = [
 	{ label: "PARSE", phase: "0s" },
-	{ label: "TRANSFORM", phase: "-3s" },
-	{ label: "CACHE", phase: "-6s" },
+	{ label: "TRANSFORM", phase: "-3.4s" },
+	{ label: "CACHE", phase: "-6.2s" },
 ];
 
 // Emitted targets fan out below the base, clear of its footprint.
@@ -126,7 +126,15 @@ onMount(() => {
 		{#each stages as s}
 			<g class="descend" style="--phase: {s.phase}">
 				<g transform={iso(0)}>
-					<rect x={-S} y={-S} width={S * 2} height={S * 2} rx="20" class="plane-float" />
+					<rect
+						x={-S}
+						y={-S}
+						width={S * 2}
+						height={S * 2}
+						rx="20"
+						vector-effect="non-scaling-stroke"
+						class="plane-float"
+					/>
 					<text x="0" y={S * 0.66} text-anchor="middle" class="plane-label float">
 						{s.label}
 					</text>
@@ -274,27 +282,30 @@ onMount(() => {
 	.entered:not(.looping) .stage {
 		animation-play-state: paused;
 	}
-	/* A layer resolves before it lands: it appears small at the top, drops a
-	   little at that size, then grows to full while it keeps falling. */
+	/* A layer resolves before it lands: it appears small, falls a little at that
+	   size, then snaps out to full in one eased beat and keeps falling. The
+	   growth is deliberately a short event, not a ramp: spread over a third of
+	   the cycle it just reads as three static planes of different sizes. */
 	@keyframes descend {
 		0% {
-			transform: translateY(-196px) scale(0.5);
+			transform: translateY(-198px) scale(0.42);
 			opacity: 0;
 		}
-		7% {
-			transform: translateY(-188px) scale(0.5);
+		6% {
+			transform: translateY(-192px) scale(0.42);
 			opacity: 1;
 		}
-		19% {
-			transform: translateY(-169px) scale(0.54);
+		26% {
+			transform: translateY(-166px) scale(0.42);
+			opacity: 1;
+			animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+		}
+		38% {
+			transform: translateY(-142px) scale(1);
 			opacity: 1;
 		}
-		42% {
-			transform: translateY(-124px) scale(1);
-			opacity: 1;
-		}
-		84% {
-			transform: translateY(-32px) scale(1);
+		86% {
+			transform: translateY(-31px) scale(1);
 			opacity: 1;
 		}
 		100% {
