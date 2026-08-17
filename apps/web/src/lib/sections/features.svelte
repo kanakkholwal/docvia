@@ -1,11 +1,13 @@
 <script lang="ts">
+import CodeSample from "$lib/components/code-sample.svelte";
 import { Check, Search } from "@lucide/svelte";
 
+// Renderers, not integrations: Vite and Next.js are how docvia runs, not
+// what it renders to.
 const renderTargets = [
 	{ label: "React", active: true },
 	{ label: "Svelte", active: false },
-	{ label: "Vite", active: false },
-	{ label: "Next.js", active: false },
+	{ label: "Your adapter", active: false },
 ];
 
 const deployTargets = [
@@ -17,11 +19,13 @@ const deployTargets = [
 	"Self-host",
 ];
 
+// Shows the cache decision, not timings. The millisecond figures that used
+// to be here were invented, and nothing benchmarks them.
 const cacheLog = [
-	{ file: "intro.md", state: "cached", ms: "0.4ms" },
-	{ file: "config.md", state: "rebuilt", ms: "31ms" },
-	{ file: "api.md", state: "cached", ms: "0.3ms" },
-	{ file: "guides.md", state: "cached", ms: "0.3ms" },
+	{ file: "intro.md", state: "cached", reason: "hash match" },
+	{ file: "config.md", state: "rebuilt", reason: "source changed" },
+	{ file: "api.md", state: "cached", reason: "hash match" },
+	{ file: "guides.md", state: "cached", reason: "hash match" },
 ];
 
 const hooks = [
@@ -44,10 +48,6 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 		>
 			Everything you need to compile docs.
 		</h2>
-		<p class="mx-auto mt-6 max-w-2xl text-[18px] leading-7 text-body">
-			Typed frontmatter, incremental builds, framework-native output, and local
-			search, resolved at build time and entirely yours to own.
-		</p>
 	</div>
 
 	<!-- Full-bleed grid: vite.dev puts the heading and the grid in separate
@@ -66,8 +66,8 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				Render the same docs to any framework.
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				IR-based compiler emits framework-native modules. React and Svelte
-				today, more adapters as you need them. Same source.
+				One source, one IR. React and Svelte ship first-party; any other
+				framework needs an adapter, not a rewrite.
 			</p>
 			<div class="mt-auto flex flex-wrap gap-1.5 pt-2">
 				{#each renderTargets as t}
@@ -95,8 +95,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				Deploy the build artifact anywhere
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				There is no proprietary runtime and no required cloud. Drop the build
-				artifact on Vercel, Cloudflare, an S3 bucket, or your own boxes.
+				No proprietary runtime, no required cloud. The output is static files.
 			</p>
 			<ul class="mt-auto grid grid-cols-2 gap-1.5 text-[14px] text-body-strong">
 				{#each deployTargets as host}
@@ -119,17 +118,10 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				Frontmatter types generated from your Zod schema
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				Define frontmatter with Zod once. docvia emits a typed Frontmatter
-				interface for every collection, caught at build, not at runtime.
+				Define it once with Zod. docvia generates the matching interface per
+				collection, so a bad field fails the build.
 			</p>
-			<pre
-				class="mt-auto overflow-x-auto rounded-md border border-hairline bg-surface-soft p-4 font-mono text-[12.5px] leading-[1.6] text-ink"
-			>
-<span class="text-brand-ink">type</span> Frontmatter = {`{`}
-  title: <span class="text-body-strong">string</span>;
-  tags: <span class="text-body-strong">string</span>[];
-  publishedAt: <span class="text-body-strong">Date</span>;
-{`}`}</pre>
+			<CodeSample name="frontmatter" class="mt-auto" />
 		</article>
 
 		<!-- 4. Incremental builds -->
@@ -143,8 +135,8 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				Incremental rebuilds gated by a content hash
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				Content-addressable cache keyed on source, frontmatter, config, and
-				plugin state. Unchanged files take fractions of a millisecond.
+				The key covers source, frontmatter, config, and plugin state. Change
+				one and only the affected pages recompile.
 			</p>
 			<div
 				class="mt-auto space-y-1.5 rounded-md border border-hairline bg-surface-soft p-3 font-mono text-[12px]"
@@ -161,7 +153,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 							{line.state}
 						</span>
 						<span class="flex-1 text-body">{line.file}</span>
-						<span class="text-muted">{line.ms}</span>
+						<span class="text-muted">{line.reason}</span>
 					</div>
 				{/each}
 			</div>
@@ -178,8 +170,8 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 				Five hooks. Yours to extend.
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				Tap into the compiler at any stage. Add OpenAPI rendering, link
-				checking, or your own AST transforms without forking.
+				Tap any stage of the pipeline. OpenAPI rendering, Mermaid diagrams, and
+				syntax highlighting are all just plugins.
 			</p>
 			<div class="mt-auto flex flex-col gap-1.5">
 				{#each hooks as hook, i}
@@ -195,19 +187,19 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 			</div>
 		</article>
 
-		<!-- 6. Search + BYO AI -->
+		<!-- 6. Search -->
 		<article class={cell}>
 			<span class="label-meta">
-				<span class="text-ink">06</span> · Search + BYO AI
+				<span class="text-ink">06</span> · Search
 			</span>
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
 			>
-				Client-side search with optional semantic ranking
+				Full-text search, indexed by section
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				Section-level Orama indexing ships client-side. Add semantic search
-				with your own Claude or OpenAI key. No per-credit metering.
+				Orama indexes every heading with its body. Run it on the server for a
+				zero-payload index, or ship a static one to the client.
 			</p>
 			<div
 				class="mt-auto overflow-hidden rounded-md border border-hairline bg-surface-soft"

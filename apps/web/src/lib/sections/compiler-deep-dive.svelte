@@ -1,5 +1,19 @@
 <script lang="ts">
+import CodeSample from "$lib/components/code-sample.svelte";
+import { type SnippetName, snippets } from "$lib/snippets";
+import { cn } from "$lib/utils";
 import { ArrowRight } from "@lucide/svelte";
+import { cubicOut } from "svelte/easing";
+import { fade } from "svelte/transition";
+
+// React and Svelte side by side: the same compiled IR, two adapters.
+const files = [
+	"config.ts",
+	"schema.ts",
+	"page.tsx",
+	"page.svelte",
+] as const satisfies readonly SnippetName[];
+let active = $state<SnippetName>("config.ts");
 
 const stages = [
 	{
@@ -13,18 +27,6 @@ const stages = [
 	{ name: "Render", body: "Per-renderer adapter emits typed module graph" },
 ];
 
-const codeConfig = `import { defineConfig } from "@docvia/cli";
-import { createReactRenderer } from "@docvia/renderer-react";
-import { shiki } from "@docvia/plugin-shiki";
-
-export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
-  renderer: createReactRenderer(),
-  plugins: [
-    shiki({ theme: "github-dark", langs: ["typescript", "bash", "json"] }),
-  ],
-});`;
 </script>
 
 <section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-20">
@@ -75,37 +77,49 @@ export default defineConfig({
 			</a>
 		</div>
 
-		<!-- Code window -->
+		<!-- Code window. The tabs used to be three buttons that switched nothing. -->
 		<div class="overflow-hidden rounded-md border border-hairline bg-canvas">
 			<div
+				role="tablist"
+				aria-label="Example files"
 				class="flex items-center border-b border-hairline bg-surface-card px-2 text-[12px]"
 			>
-				<button
-					class="flex items-center gap-1.5 border-r border-hairline bg-canvas px-3 py-2 font-mono text-ink"
-				>
-					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					docvia.config.ts
-				</button>
-				<button
-					class="px-3 py-2 font-mono text-muted transition-colors duration-(--motion-fast) ease-out hover:text-ink"
-				>
-					schema.ts
-				</button>
-				<button
-					class="px-3 py-2 font-mono text-muted transition-colors duration-(--motion-fast) ease-out hover:text-ink"
-				>
-					app.tsx
-				</button>
+				{#each files as file (file)}
+					<button
+						role="tab"
+						aria-selected={active === file}
+						onclick={() => (active = file)}
+						class={cn(
+							"flex items-center gap-1.5 px-3 py-2 font-mono transition-colors duration-(--motion-fast) ease-out",
+							active === file
+								? "border-x border-hairline bg-canvas text-ink first:border-l-0"
+								: "text-muted hover:text-ink",
+						)}
+					>
+						{#if active === file}
+							<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
+						{/if}
+						{file}
+					</button>
+				{/each}
 			</div>
-			<pre
-				class="overflow-x-auto p-5 font-mono text-[13px] leading-[1.6] text-ink"><code>{codeConfig}</code></pre>
+
+			<!-- Keyed so the panel crossfades on switch: the change of state is the
+			     point, and without it the swap reads as a glitch. -->
+			{#key active}
+				<div in:fade={{ duration: 140, easing: cubicOut }}>
+					<CodeSample name={active} />
+				</div>
+			{/key}
+
 			<div
-				class="flex items-center justify-between border-t border-hairline bg-surface-card px-4 py-2 text-[11px] font-mono text-muted"
+				class="flex items-center justify-between border-t border-hairline bg-surface-card px-4 py-2 font-mono text-[11px] text-muted"
 			>
-				<span>typescript · 18 lines</span>
+				<span>{snippets[active].lang} · {snippets[active].code.split("\n").length} lines</span>
+				<!-- States the framework story without another paragraph of prose. -->
 				<span class="flex items-center gap-1.5">
 					<span class="h-1.5 w-1.5 rounded-full bg-success"></span>
-					typed
+					react · svelte · any adapter
 				</span>
 			</div>
 		</div>

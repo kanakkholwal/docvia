@@ -80,6 +80,8 @@ onMount(() => {
 		<span class="font-display text-[13px] font-medium tracking-tight">docvia</span>
 	</div>
 
+	<div class="stage-wrap">
+	<div class="stage">
 	<svg
 		viewBox="0 0 400 434"
 		class="relative mx-auto w-full max-w-140"
@@ -153,6 +155,8 @@ onMount(() => {
 			</g>
 		{/each}
 	</svg>
+	</div>
+	</div>
 </div>
 
 <style>
@@ -164,6 +168,11 @@ onMount(() => {
 	.wires {
 		transform-box: view-box;
 		transform-origin: 0 0;
+	}
+	/* Anything that scales pivots on the plane centre (CX, CY). */
+	.base,
+	.descend {
+		transform-origin: 200px 268px;
 	}
 
 	.slab-side {
@@ -256,25 +265,63 @@ onMount(() => {
 	}
 
 	/* ── Loop ── released once the base has landed. */
-	.looping .descend {
+	.entered .descend {
 		animation: descend 9s linear infinite;
 		animation-delay: var(--phase);
 		will-change: transform, opacity;
 	}
+	.entered:not(.looping) .descend,
+	.entered:not(.looping) .stage {
+		animation-play-state: paused;
+	}
+	/* A layer resolves before it lands: it appears small at the top, drops a
+	   little at that size, then grows to full while it keeps falling. */
 	@keyframes descend {
 		0% {
-			transform: translateY(-178px);
+			transform: translateY(-196px) scale(0.5);
 			opacity: 0;
 		}
-		18% {
+		7% {
+			transform: translateY(-188px) scale(0.5);
 			opacity: 1;
 		}
-		80% {
+		19% {
+			transform: translateY(-169px) scale(0.54);
+			opacity: 1;
+		}
+		42% {
+			transform: translateY(-124px) scale(1);
+			opacity: 1;
+		}
+		84% {
+			transform: translateY(-32px) scale(1);
 			opacity: 1;
 		}
 		100% {
-			transform: translateY(-11px);
+			transform: translateY(-11px) scale(1);
 			opacity: 0;
+		}
+	}
+
+	/* Camera drift. Long holds with a ~1.6s move between them, so the view
+	   re-angles occasionally instead of orbiting continuously. */
+	.stage-wrap {
+		perspective: 1400px;
+	}
+	.entered .stage {
+		animation: orbit 20s var(--ease-in-out) infinite;
+	}
+	@keyframes orbit {
+		0%,
+		42% {
+			transform: rotateY(-6deg) rotateX(1.2deg);
+		}
+		50%,
+		92% {
+			transform: rotateY(6deg) rotateX(-1.2deg);
+		}
+		100% {
+			transform: rotateY(-6deg) rotateX(1.2deg);
 		}
 	}
 
@@ -284,6 +331,10 @@ onMount(() => {
 		.entered .wires {
 			animation: none;
 			opacity: 1;
+			transform: none;
+		}
+		.entered .stage {
+			animation: none;
 			transform: none;
 		}
 		/* Static exploded stack instead of a descent. */

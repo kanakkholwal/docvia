@@ -25,6 +25,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"bits-ui": "^2.0.0",
 		"clsx": "^2.1.1",
+		"shiki": "^4.0.2",
 		"svelte": "^5.55.0",
 		"svelte-check": "^4.4.5",
 		"tailwind-merge": "^2.5.0",

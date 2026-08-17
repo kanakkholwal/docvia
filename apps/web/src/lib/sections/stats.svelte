@@ -3,7 +3,9 @@
 // pipeline backs them up.
 const stats = [
 	{ value: "0kb", label: "Markdown parser shipped to the browser" },
-	{ value: "5+", label: "Framework render targets, and growing" },
+	// Was "5+ render targets", which counted the Vite and Next.js integrations
+	// as renderers. There are two first-party renderers; the IR is the claim.
+	{ value: "1 IR", label: "Every renderer builds on the same tree" },
 	{ value: "100%", label: "Typed end to end, in TypeScript" },
 	{ value: "MIT", label: "Open source, self-host anywhere" },
 ];

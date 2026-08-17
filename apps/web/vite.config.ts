@@ -5,6 +5,7 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import docviaConfig from "./docvia.config";
+import { highlightedSnippets } from "./vite-plugin-snippets";
 
 // `yaml` (a transitive dep via @docvia/schema) resolves to its CommonJS build
 // under the SSR `node` condition. Vite 8 / Rolldown wraps CJS modules with
@@ -35,5 +36,10 @@ export default defineConfig({
 	},
 	// `docvia()` runs the CompileService in-process — no separate `docvia build`
 	// step, a virtual `docvia/source` module in dev, and incremental HMR.
-	plugins: [tailwindcss(), sveltekit(), docvia(docviaConfig)],
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		docvia(docviaConfig),
+		highlightedSnippets(),
+	],
 });

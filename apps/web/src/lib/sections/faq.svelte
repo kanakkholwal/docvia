@@ -1,34 +1,40 @@
 <script lang="ts">
 import { Accordion } from "$lib/components/ui/accordion";
 
+// Every answer here is checked against the code. No claim goes in that a
+// reader could not verify by opening the repo.
 const faqs = [
 	{
-		q: "Can I self-host docvia, or am I locked into a cloud?",
-		a: "docvia is a build pipeline you own. It produces a static module graph that you deploy wherever you want: Vercel, Cloudflare, an S3 bucket, your VPC, or an on-prem box. There is no required cloud, no proprietary runtime, and no telemetry calling home.",
-	},
-	{
-		q: "Do I have to use MDX? Can non-engineers contribute?",
-		a: "Plain Markdown works out of the box. MDX is opt-in for teams that want React components in content. Frontmatter is validated against your Zod schema, so PMs, support, and marketers can edit content with the same safety as engineers. Typos and missing fields fail the build.",
-	},
-	{
-		q: "Will my docs be locked into one framework?",
-		a: "No. docvia parses Markdown into a framework-agnostic Intermediate Representation. Renderer adapters target React, Svelte, Vite, and Next.js today; the contract is small enough that Vue, Solid, or Astro adapters are a few hundred lines. Switch renderers without rewriting content.",
-	},
-	{
-		q: "Is docvia free?",
-		a: "Yes. docvia is MIT-licensed and free. It's a build tool you run yourself, so there is nothing to meter. If you enable AI search, you bring your own Claude or OpenAI key, so that bill is yours and we never sit in the middle of it.",
-	},
-	{
-		q: "How is this different from a typical Markdown library?",
-		a: "Most Markdown tools either parse at request time (slow, large bundles) or at build time without caching (slow rebuilds). docvia parses, sanitizes, and transforms once at build time, persists a content-addressable cache, and emits a typed module graph the bundler can tree-shake.",
-	},
-	{
 		q: "Does it ship a Markdown parser to the browser?",
-		a: "No. The parser, sanitizer, and IR transformer all run at build time. The browser receives pre-rendered output plus, optionally, the Orama search index for client-side search.",
+		a: "No. Parsing, sanitizing, and the IR transform all run at build time. The browser gets pre-rendered output. Syntax highlighting is a build-time plugin too, so no highlighter ships either.",
+	},
+	{
+		q: "How is this different from a Markdown library?",
+		a: "Libraries like react-markdown parse on every render. docvia parses once at build time, caches on a content hash, and emits a typed module graph your bundler can tree-shake.",
+	},
+	{
+		q: "Am I locked into a framework?",
+		a: "No. Markdown compiles to a framework-agnostic IR. React and Svelte renderers ship first-party, and any framework works by implementing a RendererAdapter against that IR.",
+	},
+	{
+		q: "Can I use React components inside Markdown?",
+		a: "Yes, through directives. Register a component in your config, then write :::counter in Markdown. That is the supported mechanism; docvia does not compile MDX.",
+	},
+	{
+		q: "Can non-engineers contribute safely?",
+		a: "Frontmatter is validated against your Zod schema at compile time, and the matching TypeScript types are generated. A missing or misspelled field fails the build rather than shipping.",
+	},
+	{
+		q: "Can I self-host?",
+		a: "That is the only mode. docvia is a build tool that outputs a module graph you deploy anywhere: static hosts, Cloudflare, a VPC, on-prem. No required service, no telemetry.",
+	},
+	{
+		q: "Is it free?",
+		a: "Yes, MIT licensed. You run the build yourself, so there is nothing to meter and no paid tier.",
 	},
 	{
 		q: "Is it production ready?",
-		a: "v0.1 is a public preview. The core compiler, CLI, and integrations are stable enough to use in real projects, but APIs may shift before v1.0. Each release ships with a changeset describing what changed.",
+		a: "v1.0.0 is published and this site's documentation is compiled by it. Breaking changes follow semver, and every release ships a changeset describing what moved.",
 	},
 ];
 </script>

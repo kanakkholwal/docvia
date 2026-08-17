@@ -370,3 +370,35 @@ body {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
 }
+
+/* ── Scroll reveal ──
+   Gated on `.js` (set by the bootstrap script in app.html) so prerendered HTML
+   and no-JS clients render the content visible rather than blank. */
+
+.js .reveal {
+	opacity: 0;
+}
+
+.js .reveal.reveal-in {
+	animation: reveal-rise 0.5s var(--ease-out) forwards;
+}
+
+@keyframes reveal-rise {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.js .reveal,
+	.js .reveal.reveal-in {
+		opacity: 1;
+		animation: none;
+		transform: none;
+	}
+}

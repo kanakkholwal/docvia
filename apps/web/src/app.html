@@ -19,6 +19,8 @@
 				try {
 					const stored = localStorage.getItem("docvia-theme");
 					document.documentElement.setAttribute("data-theme", stored ?? "dark");
+					// Scroll reveals only hide content when JS can un-hide it.
+					document.documentElement.classList.add("js");
 				} catch {}
 			})();
 		</script>

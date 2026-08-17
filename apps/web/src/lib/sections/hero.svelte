@@ -4,7 +4,7 @@ import PipelineStack from "$lib/components/pipeline-stack.svelte";
 import { Button } from "$lib/components/ui/button";
 import { ArrowRight, Check, Github } from "@lucide/svelte";
 
-const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in"];
+const guarantees = ["MIT licensed", "Self-host anywhere", "No vendor lock-in"];
 </script>
 
 
