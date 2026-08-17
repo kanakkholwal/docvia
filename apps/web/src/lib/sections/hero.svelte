@@ -3,6 +3,7 @@ import { ArrowRight, Check, Github } from "@lucide/svelte";
 import { onMount } from "svelte";
 import { Button } from "$lib/components/ui/button";
 import InstallCommand from "$lib/components/install-command.svelte";
+import ShaderField from "$lib/components/shader-field.svelte";
 import { version } from "$lib/version.svelte";
 
 const buildLog = [
@@ -120,7 +121,6 @@ onMount(() => {
 <!-- Left-aligned 6/6 split with a vertical rule down the middle, measured off
      vite.dev, whose hero is not centered. -->
 <section class="relative overflow-hidden border-b border-hairline bg-canvas">
-	<div class="glow" aria-hidden="true"></div>
 
 	<div class="relative mx-auto grid max-w-page lg:grid-cols-2">
 		<!-- ── Left: eyebrow, headline, CTA, install ──────────────────── -->
@@ -201,14 +201,17 @@ onMount(() => {
 			onmouseleave={resume}
 			onfocusin={pause}
 			onfocusout={resume}
-			class="reveal flex items-center px-5 py-14 sm:px-10 sm:py-20"
+			class="reveal relative flex items-center px-5 py-14 sm:px-10 sm:py-20"
 			style="animation-delay: 200ms"
 		>
+			<ShaderField />
+
+			<!-- Terminal floats on the field, so the surface goes translucent. -->
 			<div
-				class="w-full overflow-hidden rounded-md border border-hairline bg-surface-soft"
+				class="relative w-full overflow-hidden rounded-md border border-hairline bg-surface-soft/70 backdrop-blur-xl"
 			>
 				<div
-					class="flex items-center gap-2 border-b border-hairline bg-surface-card px-4 py-2.5"
+					class="flex items-center gap-2 border-b border-hairline bg-surface-card/60 px-4 py-2.5"
 				>
 					<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
 					<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
@@ -239,7 +242,7 @@ onMount(() => {
 				</div>
 
 				<div
-					class="flex flex-wrap items-center gap-2 border-t border-hairline bg-surface-card px-4 py-3"
+					class="flex flex-wrap items-center gap-2 border-t border-hairline bg-surface-card/60 px-4 py-3"
 				>
 					<span class="label-meta mr-1">Render targets</span>
 					{#each targets as t}
@@ -256,23 +259,6 @@ onMount(() => {
 </section>
 
 <style>
-	/* Soft violet wash over the upper-left, the only ambient colour on the page. */
-	.glow {
-		position: absolute;
-		top: -30%;
-		left: -5%;
-		width: min(780px, 80%);
-		height: 620px;
-		background: radial-gradient(
-			50% 50% at 50% 50%,
-			color-mix(in oklab, var(--brand-strong) 28%, transparent),
-			transparent 70%
-		);
-		filter: blur(70px);
-		opacity: 0.4;
-		pointer-events: none;
-	}
-
 	.build-line {
 		animation: line-in 0.28s var(--ease-out) both;
 	}

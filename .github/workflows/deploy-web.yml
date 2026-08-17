@@ -48,9 +48,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build apps/web
-        # Build through Turbo so workspace dependencies (@docvia/cli, the
-        # compiler, plugins) are compiled first — the docvia() Vite plugin
-        # compiles src/docs/ in-process and needs their dist output to exist.
         run: pnpm turbo run build --filter=@docvia/web
 
       - name: Deploy via Wrangler

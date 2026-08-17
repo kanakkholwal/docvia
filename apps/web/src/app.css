@@ -215,8 +215,7 @@
 	/* Matches vite.dev's pairing: a geometric display face over Inter. Satoshi
 	   stands in for APK Protocol and Geist Mono for KH Teka Mono, both of
 	   Vite's are proprietary and not licensable. */
-	--font-sans:
-		"Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
 	--font-display:
 		"Satoshi Variable", "Satoshi", "Inter Variable", "Inter", ui-sans-serif,
 		system-ui, sans-serif;

@@ -39,12 +39,19 @@ function themeVariables() {
 }
 
 async function render() {
+	// Mermaid sizes every node by measuring its label. Measuring before the
+	// webfont loads yields metrics for the fallback face and the text then
+	// overflows the box it was given.
+	await document.fonts?.ready;
+
 	const { default: mermaid } = await import("mermaid");
 	mermaid.initialize({
 		startOnLoad: false,
 		securityLevel: "strict",
 		theme: "base",
 		themeVariables: themeVariables(),
+		flowchart: { htmlLabels: true, useMaxWidth: true, padding: 12 },
+		sequence: { useMaxWidth: true },
 	});
 	seq += 1;
 	const { svg: out } = await mermaid.render(`docvia-mermaid-${seq}`, code);
@@ -83,14 +90,13 @@ $effect(() => {
 });
 </script>
 
-<figure class={cn("my-8 not-prose", className)}>
+<figure class={cn("my-8", className)}>
 	<div
 		class="overflow-x-auto rounded-lg border border-hairline bg-surface-soft p-6 text-center"
 	>
 		{#if svg}
 			<!-- mermaid output; securityLevel "strict" strips scripts and inline handlers -->
-			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-			{@html svg}
+			<div class="diagram">{@html svg}</div>
 		{:else}
 			<!-- Fallback for SSR, no-JS, and diagrams mermaid could not parse. -->
 			<pre
@@ -108,3 +114,36 @@ $effect(() => {
 		</figcaption>
 	{/if}
 </figure>
+
+<style>
+	/* Mermaid puts label text in <p> inside a foreignObject. The prose styles
+	   wrapping this component would add margins the label box was not sized
+	   for, clipping the text. */
+	.diagram :global(p),
+	.diagram :global(span),
+	.diagram :global(li) {
+		margin: 0;
+		padding: 0;
+		line-height: 1.35;
+		text-align: center;
+	}
+
+	.diagram :global(svg) {
+		max-width: 100%;
+		height: auto;
+		display: block;
+		margin-inline: auto;
+	}
+
+	/* Labels must be free to define their own height; a clipped foreignObject
+	   is what produces the cut-off second line. */
+	.diagram :global(foreignObject) {
+		overflow: visible;
+	}
+
+	.diagram :global(.nodeLabel),
+	.diagram :global(.edgeLabel),
+	.diagram :global(.cluster-label) {
+		white-space: nowrap;
+	}
+</style>

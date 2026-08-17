@@ -35,13 +35,17 @@ describe("@docvia/plugin-mermaid", () => {
 		expect(node?.type).toBe("component");
 		expect(node?.id).toBe("cb");
 		expect(node?.props.name).toBe("Mermaid");
-		expect(node?.props.attributes).toMatchObject({ code: "graph TD;\n  A-->B;" });
+		expect(node?.props.attributes).toMatchObject({
+			code: "graph TD;\n  A-->B;",
+		});
 	});
 
 	it("reads a caption from a leading %% title: comment", async () => {
 		const plugin = mermaid();
 		const out = await plugin.beforeRender?.(
-			doc([codeBlock("mermaid", "%% title: Build pipeline\ngraph TD;\n  A-->B;")]),
+			doc([
+				codeBlock("mermaid", "%% title: Build pipeline\ngraph TD;\n  A-->B;"),
+			]),
 		);
 
 		expect(out?.children[0]?.props.attributes).toMatchObject({
