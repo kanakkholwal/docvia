@@ -3,44 +3,19 @@ import Brand from "$lib/components/brand.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
 import { VERSION } from "$lib/version";
-import { ArrowRight, Github, Menu, X } from "@lucide/svelte";
+import { Github, Menu, X } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 
 let mobileOpen = $state(false);
 
-// Three anchors, in the order the question gets asked: what it does, why it's
-// different, how to start. Use cases and FAQ stay on the page but out of the
-// nav — five choices for a one-page site is a menu, not a signpost. Docs is
-// reached through the Get started button, so a second link to the same place
-// would just add a decision.
+
 const navLinks = [
 	{ label: "Features", href: "/#features" },
 	{ label: "How it works", href: "/#how-it-works" },
-	{ label: "Quickstart", href: "/#quickstart" },
+	{ label: "Docs", href: "/docs" },
 ];
 </script>
-
-<!-- ── Thin announcement strip ──────────────────────────────────────── -->
-<div class="border-b border-hairline bg-surface-soft">
-	<div
-		class="mx-auto flex h-9 max-w-page items-center justify-center gap-2 px-5 text-[13px] text-body sm:px-10"
-	>
-		<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
-		<span class="hidden sm:inline">
-			docvia is open source under the MIT licence ·
-		</span>
-		<a
-			href="https://github.com/kanakkholwal/docvia"
-			class="group inline-flex items-center gap-1 font-medium text-ink underline-offset-4 hover:underline"
-		>
-			Star it on GitHub
-			<ArrowRight
-				class="h-3.5 w-3.5 transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
-			/>
-		</a>
-	</div>
-</div>
 
 <!-- ── Full-width top bar (vite-style) ──────────────────────────────── -->
 <header class="sticky top-0 z-40 border-b border-hairline bg-canvas">
@@ -50,9 +25,7 @@ const navLinks = [
 		<!-- Left: brand + version + nav -->
 		<div class="flex items-center gap-6">
 			<Brand size="sm" />
-			<!-- The one place the version is stated. A link, so it answers the
-			     follow-up question ("what changed?") rather than just sitting there. -->
-			<a
+				<a
 				href="https://github.com/kanakkholwal/docvia/releases"
 				class="hidden h-7 items-center gap-1.5 rounded-full bg-surface-card pl-2.5 pr-3 text-[12px] font-medium tracking-[0.01em] text-body transition-colors duration-(--motion-fast) ease-out hover:bg-surface-strong hover:text-ink sm:inline-flex"
 			>
@@ -63,7 +36,7 @@ const navLinks = [
 				{#each navLinks as link}
 					<a
 						href={link.href}
-						class="rounded-md px-2.5 py-1.5 text-[15px] font-medium text-body transition-colors duration-(--motion-fast) ease-out hover:bg-surface-card hover:text-ink"
+						class="rounded-md px-2.5 py-1 text-sm font-medium text-body transition-colors duration-(--motion-fast) ease-out hover:bg-surface-card hover:text-ink"
 					>
 						{link.label}
 					</a>
@@ -73,17 +46,16 @@ const navLinks = [
 
 		<!-- Right: actions -->
 		<div class="flex items-center gap-1.5">
-			<a
+			<Button
 				href="https://github.com/kanakkholwal/docvia"
-				aria-label="GitHub"
-				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink"
+				variant="ghost"
+				size="sm"
 			>
-				<Github class="h-4 w-4" />
-			</a>
-			<ThemeToggle />
-			<Button variant="primary" size="sm" href="/docs" class="hidden sm:inline-flex">
-				Get started
+				<Github class="h-4 w-4 shrink-0" />
+				<span class="hidden lg:inline">Star on GitHub</span>
+				<span class="sr-only lg:hidden">Star on GitHub</span>
 			</Button>
+			<ThemeToggle />
 			<button
 				aria-label="Toggle menu"
 				aria-expanded={mobileOpen}
@@ -114,6 +86,13 @@ const navLinks = [
 						{link.label}
 					</a>
 				{/each}
+				<a
+					href="https://github.com/kanakkholwal/docvia"
+					class="inline-flex items-center gap-2 rounded-md px-3 py-2.5 text-[15px] font-medium text-body hover:bg-surface-card hover:text-ink"
+				>
+					<Github class="h-4 w-4" />
+					Star on GitHub
+				</a>
 				<a
 					href="/docs"
 					class="mt-1 inline-flex items-center justify-center rounded-md bg-brand px-3 py-2.5 text-[15px] font-medium text-on-brand"

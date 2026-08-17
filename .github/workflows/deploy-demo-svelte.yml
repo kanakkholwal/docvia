@@ -1,7 +1,5 @@
 name: Deploy demo-svelte
 
-# Runs only when the Svelte demo changes on main, or when manually triggered
-# from the GitHub UI ("Run workflow") / `gh workflow run deploy-demo-svelte.yml`.
 on:
   push:
     branches:
