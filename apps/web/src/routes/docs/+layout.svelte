@@ -86,7 +86,7 @@ const navLinks = [
 			transition:slide={{ duration: 240, easing: cubicOut }}
 			class="max-h-[75vh] overflow-y-auto border-t border-hairline bg-canvas px-5 py-4 lg:hidden"
 		>
-			<Sidebar tree={data.tree} />
+			<Sidebar tree={data.tree} mobile />
 			<!-- Theme toggle and GitHub already sit in the bar above; repeating
 			     them here was two controls for each destination. -->
 			<a
@@ -103,9 +103,7 @@ const navLinks = [
 
 <div class="mx-auto flex max-w-page px-5 sm:px-10">
 	<aside class="hidden w-60 shrink-0 border-r border-hairline lg:block">
-		<div class="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto py-8 pr-6">
-			<Sidebar tree={data.tree} />
-		</div>
+		<Sidebar tree={data.tree} />
 	</aside>
 
 	<main id="main" class="min-w-0 flex-1 px-0 py-10 md:px-10">
@@ -114,8 +112,10 @@ const navLinks = [
 		</div>
 	</main>
 
+	<!-- No overflow here: the TOC scrolls its own list, and nesting the two
+	     produced a scrollbar inside a scrollbar on long pages. -->
 	<aside class="hidden w-56 shrink-0 border-l border-hairline xl:block">
-		<div class="sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto py-10 pl-6">
+		<div class="sticky top-16 py-10 pl-6">
 			<Toc {headings} />
 		</div>
 	</aside>

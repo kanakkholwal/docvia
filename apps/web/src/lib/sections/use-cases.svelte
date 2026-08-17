@@ -101,7 +101,7 @@ let shown = $state(false);
 						<ul class="flex flex-col gap-1 font-mono text-[12px] text-body">
 							{#each useCase.tree as node, n}
 								<li class="flex items-center gap-2">
-									<span class="text-muted-soft">
+									<span class="text-muted">
 										{n === useCase.tree.length - 1 ? "└─" : "├─"}
 									</span>
 									{node}
@@ -110,7 +110,7 @@ let shown = $state(false);
 						</ul>
 					{:else if useCase.kind === "frontmatter"}
 						<div class="flex flex-col gap-1 font-mono text-[12px]">
-							<span class="text-muted-soft">---</span>
+							<span class="text-muted">---</span>
 							{#each useCase.fields as field}
 								<span>
 									<span class="text-brand-ink">{field.key}:</span>
@@ -124,7 +124,7 @@ let shown = $state(false);
 								<li class="flex items-center gap-2">
 									<span class="h-1 w-1 shrink-0 rounded-full bg-brand"></span>
 									<span class="text-body-strong">{chapter.label}</span>
-									<span class="ml-auto text-muted-soft">
+									<span class="ml-auto text-muted">
 										{chapter.count} lessons
 									</span>
 								</li>
