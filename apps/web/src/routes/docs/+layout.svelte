@@ -6,8 +6,7 @@ import SearchDialog from "$lib/components/docs/search-dialog.svelte";
 import Sidebar from "$lib/components/docs/sidebar.svelte";
 import Toc from "$lib/components/docs/toc.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
-import { Button } from "$lib/components/ui/button";
-import { Github, Menu, X } from "@lucide/svelte";
+import { ArrowLeft, Github, Menu, X } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 
@@ -54,24 +53,24 @@ const navLinks = [
 			</nav>
 		</div>
 
+		<!-- No "Home" button: the wordmark already links to /, and spending the
+		     primary style on "leave the docs" is the wrong emphasis for this page. -->
 		<div class="flex items-center gap-1.5">
 			<SearchDialog />
 			<a
 				href="https://github.com/kanakkholwal/docvia"
-				aria-label="GitHub"
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
+				class="inline-flex h-9.5 items-center gap-2 rounded-md px-2.5 text-[14px] font-medium text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink"
 			>
-				<Github class="h-4 w-4" />
+				<Github class="h-4 w-4 shrink-0" />
+				<span class="hidden lg:inline">Star on GitHub</span>
+				<span class="sr-only lg:hidden">Star on GitHub</span>
 			</a>
 			<ThemeToggle />
-			<Button variant="primary" size="sm" href="/" class="hidden sm:inline-flex">
-				Home
-			</Button>
 			<button
 				aria-label="Toggle navigation"
 				aria-expanded={mobileNavOpen}
 				onclick={() => (mobileNavOpen = !mobileNavOpen)}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md text-body transition-colors hover:bg-surface-card hover:text-ink lg:hidden"
+				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink lg:hidden"
 			>
 				{#if mobileNavOpen}
 					<X class="h-5 w-5" />
@@ -88,16 +87,16 @@ const navLinks = [
 			class="max-h-[75vh] overflow-y-auto border-t border-hairline bg-canvas px-5 py-4 lg:hidden"
 		>
 			<Sidebar tree={data.tree} />
-			<div class="mt-4 flex items-center justify-between border-t border-hairline pt-4">
-				<a
-					href="https://github.com/kanakkholwal/docvia"
-					class="inline-flex items-center gap-2 text-sm font-medium text-body hover:text-ink"
-				>
-					<Github class="h-4 w-4" />
-					GitHub
-				</a>
-				<ThemeToggle />
-			</div>
+			<!-- Theme toggle and GitHub already sit in the bar above; repeating
+			     them here was two controls for each destination. -->
+			<a
+				href="/"
+				onclick={() => (mobileNavOpen = false)}
+				class="mt-4 flex min-h-11 items-center gap-2 border-t border-hairline pt-4 text-sm font-medium text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink"
+			>
+				<ArrowLeft class="h-4 w-4" />
+				Back to docvia.dev
+			</a>
 		</div>
 	{/if}
 </header>
@@ -122,13 +121,32 @@ const navLinks = [
 	</aside>
 </div>
 
+<!-- Deliberately slimmer than the marketing footer: a full sitemap under every
+     docs page would push the pager and "edit this page" off the fold. -->
 <footer class="border-t border-hairline bg-surface-soft">
 	<div
-		class="mx-auto flex max-w-page flex-col items-start gap-2 px-5 py-6 text-xs text-muted sm:px-10 md:flex-row md:items-center md:justify-between"
+		class="mx-auto flex max-w-page flex-col items-start gap-3 px-5 py-6 text-[13px] text-muted sm:px-10 md:flex-row md:items-center md:justify-between"
 	>
-		<span>© {new Date().getFullYear()} docvia · MIT licence</span>
-		<a href="https://github.com/kanakkholwal/docvia" class="hover:text-ink">
-			docvia on GitHub
-		</a>
+		<span>© {new Date().getFullYear()} docvia · Released under the MIT licence.</span>
+		<nav class="flex items-center gap-5">
+			<a
+				href="/"
+				class="transition-colors duration-(--motion-fast) ease-out hover:text-ink"
+			>
+				Home
+			</a>
+			<a
+				href="https://github.com/kanakkholwal/docvia/releases"
+				class="transition-colors duration-(--motion-fast) ease-out hover:text-ink"
+			>
+				Changelog
+			</a>
+			<a
+				href="https://github.com/kanakkholwal/docvia"
+				class="transition-colors duration-(--motion-fast) ease-out hover:text-ink"
+			>
+				GitHub
+			</a>
+		</nav>
 	</div>
 </footer>

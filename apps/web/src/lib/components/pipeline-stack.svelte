@@ -68,11 +68,21 @@ onMount(() => {
 	class:entered
 	class:looping
 >
-	<ShaderField intensity={1} />
+	<ShaderField intensity={1.15} />
+
+	<!-- Watermark, not part of the diagram. Kept out of the SVG so the mark
+	     renders at its own scale instead of inheriting the outer viewBox. -->
+	<div
+		class="pointer-events-none absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 text-muted"
+		aria-hidden="true"
+	>
+		<LogoMark class="h-4 w-4" accent={false} />
+		<span class="font-display text-[13px] font-medium tracking-tight">docvia</span>
+	</div>
 
 	<svg
 		viewBox="0 0 400 434"
-		class="relative mx-auto w-full max-w-[520px]"
+		class="relative mx-auto w-full max-w-140"
 		role="img"
 		aria-labelledby="pipeline-title pipeline-desc"
 	>
@@ -102,13 +112,9 @@ onMount(() => {
 			/>
 			<g transform={iso(THICK)}>
 				<rect x={-S} y={-S} width={S * 2} height={S * 2} rx="20" class="slab-face" />
-				<text x="0" y={S * 0.66} text-anchor="middle" class="plane-label">
-					DOCVIA
+				<text x="0" y={S * 0.66} text-anchor="middle" class="plane-label base-label">
+					COMPILE
 				</text>
-			</g>
-			<!-- Mark stays upright: it is the one thing that should not shear. -->
-			<g transform={`translate(${CX - 17} ${CY - THICK - 24})`} class="mark">
-				<LogoMark class="h-[34px] w-[34px] text-ink" />
 			</g>
 		</g>
 
@@ -183,6 +189,9 @@ onMount(() => {
 		font-weight: 500;
 		letter-spacing: 0.16em;
 	}
+	.base-label {
+		fill: var(--ink);
+	}
 	.chip-label {
 		fill: var(--body);
 		font-family: var(--font-mono);
@@ -207,9 +216,6 @@ onMount(() => {
 
 	.entered .base {
 		animation: rise 0.85s var(--ease-out) both;
-	}
-	.entered .mark {
-		animation: fade 0.5s 0.55s var(--ease-out) both;
 	}
 	.entered .wires {
 		animation: fade 0.6s 0.75s linear both;
@@ -275,8 +281,7 @@ onMount(() => {
 	@media (prefers-reduced-motion: reduce) {
 		.entered .base,
 		.entered .chip,
-		.entered .wires,
-		.entered .mark {
+		.entered .wires {
 			animation: none;
 			opacity: 1;
 			transform: none;

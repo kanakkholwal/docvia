@@ -76,15 +76,17 @@ void main() {
 
 	vec3 tint = mix(uAccent, uAccent2, clamp(r.x * 1.4, 0.0, 1.0));
 
-	// Fade to the page colour at every edge so the canvas has no visible box.
-	float edge = smoothstep(0.0, 0.42, uv.x) * smoothstep(1.0, 0.58, uv.x)
-	           * smoothstep(0.0, 0.40, uv.y) * smoothstep(1.0, 0.60, uv.y);
-	float amount = (band * 0.55 + veil * 0.45) * edge * uIntensity;
+	// Broad coverage here; the element carries a radial mask that does the
+	// actual edge fade. Tuning smoothstep to land on zero at a cropped canvas
+	// edge is brittle, and any residue shows up as a visible rectangle.
+	float dist = length((uv - 0.5) * vec2(1.0, 0.92));
+	float edge = smoothstep(0.72, 0.02, dist);
+	float amount = (band * 0.6 + veil * 0.4) * edge * uIntensity;
 
 	// Dark adds the accent as light; light blends the canvas toward it. Both
 	// read violet, which subtracting (1 - tint) on white did not.
 	vec3 glow = uBg + tint * amount;
-	vec3 wash = mix(uBg, tint, amount * 0.42);
+	vec3 wash = mix(uBg, tint, amount * 0.30);
 	vec3 col = mix(glow, wash, uLight);
 
 	// Ordered dither: 8-bit gradients on a near-black canvas band badly.
@@ -279,6 +281,23 @@ onMount(() => {
 <canvas
 	bind:this={canvas}
 	aria-hidden="true"
-	class="pointer-events-none absolute inset-0 h-full w-full {className}"
+	class="field pointer-events-none absolute inset-0 h-full w-full {className}"
 	class:hidden={!supported}
 ></canvas>
+
+<style>
+	/* Guarantees the canvas has no visible rectangle, whatever the shader does
+	   at its edges. */
+	.field {
+		-webkit-mask-image: radial-gradient(
+			ellipse 72% 62% at 50% 46%,
+			#000 30%,
+			transparent 100%
+		);
+		mask-image: radial-gradient(
+			ellipse 72% 62% at 50% 46%,
+			#000 30%,
+			transparent 100%
+		);
+	}
+</style>

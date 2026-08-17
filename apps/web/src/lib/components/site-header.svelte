@@ -72,34 +72,42 @@ const navLinks = [
 	</div>
 
 	{#if mobileOpen}
+		<!-- Rows are min-h-11 (44px) so they clear the touch-target floor the
+		     38px desktop icon buttons sit under. Section links and actions are
+		     separated by a rule rather than sharing one undifferentiated stack. -->
 		<div
-			transition:slide={{ duration: 240, easing: cubicOut }}
-			class="border-t border-hairline bg-canvas px-5 py-3 md:hidden"
+			transition:slide={{ duration: 220, easing: cubicOut }}
+			class="border-t border-hairline bg-canvas md:hidden"
 		>
-			<nav class="flex flex-col gap-1">
+			<nav class="flex flex-col px-3 py-3">
 				{#each navLinks as link}
 					<a
 						href={link.href}
 						onclick={() => (mobileOpen = false)}
-						class="rounded-md px-3 py-2.5 text-[15px] font-medium text-body hover:bg-surface-card hover:text-ink"
+						class="flex min-h-11 items-center rounded-md px-3 text-[15px] font-medium text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.98] active:bg-surface-card hover:bg-surface-card hover:text-ink"
 					>
 						{link.label}
 					</a>
 				{/each}
+			</nav>
+
+			<div class="flex flex-col gap-2 border-t border-hairline px-3 py-3">
 				<a
 					href="https://github.com/kanakkholwal/docvia"
-					class="inline-flex items-center gap-2 rounded-md px-3 py-2.5 text-[15px] font-medium text-body hover:bg-surface-card hover:text-ink"
+					onclick={() => (mobileOpen = false)}
+					class="flex min-h-11 items-center gap-2.5 rounded-md px-3 text-[15px] font-medium text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.98] active:bg-surface-card hover:bg-surface-card hover:text-ink"
 				>
-					<Github class="h-4 w-4" />
+					<Github class="h-4 w-4 shrink-0" />
 					Star on GitHub
 				</a>
 				<a
 					href="/docs"
-					class="mt-1 inline-flex items-center justify-center rounded-md bg-brand px-3 py-2.5 text-[15px] font-medium text-on-brand"
+					onclick={() => (mobileOpen = false)}
+					class="flex min-h-11 items-center justify-center rounded-md bg-action px-3 text-[15px] font-medium text-on-action transition-transform duration-(--motion-fast) ease-out active:scale-[0.98]"
 				>
 					Get started
 				</a>
-			</nav>
+			</div>
 		</div>
 	{/if}
 </header>

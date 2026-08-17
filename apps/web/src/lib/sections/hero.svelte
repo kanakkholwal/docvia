@@ -1,18 +1,16 @@
 <script lang="ts">
-import { ArrowRight, Check, Github } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
 import InstallCommand from "$lib/components/install-command.svelte";
 import PipelineStack from "$lib/components/pipeline-stack.svelte";
+import { Button } from "$lib/components/ui/button";
+import { ArrowRight, Check, Github } from "@lucide/svelte";
 
 const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in"];
 </script>
 
-<!-- Left-aligned 6/6 split with a vertical rule down the middle, measured off
-     vite.dev, whose hero is not centered. -->
+
 <section class="relative overflow-hidden border-b border-hairline bg-canvas">
 
 	<div class="relative mx-auto grid max-w-page lg:grid-cols-2">
-		<!-- ── Left: eyebrow, headline, CTA, install ──────────────────── -->
 		<div
 			class="flex flex-col px-5 py-14 sm:px-10 sm:py-20 lg:border-r lg:border-hairline"
 		>
@@ -29,14 +27,14 @@ const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in
 			</a>
 
 			<h1
-				class="reveal mt-6 max-w-104 font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
+				class="reveal mt-4 max-w-104 font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
 				style="animation-delay: 40ms"
 			>
 				The build tool for your docs.
 			</h1>
 
 			<p
-				class="reveal mt-6 max-w-md text-[18px] leading-7 text-body"
+				class="reveal mt-3 max-w-md text-[18px] leading-7 text-body"
 				style="animation-delay: 80ms"
 			>
 				docvia compiles Markdown into typed, pre-rendered modules for React,
@@ -58,7 +56,7 @@ const guarantees = ["MIT licensed", "Self-host or BYO cloud", "No vendor lock-in
 			</div>
 
 			<div
-				class="reveal mt-auto w-full max-w-md pt-16"
+				class="reveal mt-8 w-full max-w-md pt-8"
 				style="animation-delay: 160ms"
 			>
 				<InstallCommand pkg="@docvia/cli" />
