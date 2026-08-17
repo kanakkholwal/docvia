@@ -81,9 +81,11 @@ void main() {
 	           * smoothstep(0.0, 0.40, uv.y) * smoothstep(1.0, 0.60, uv.y);
 	float amount = (band * 0.55 + veil * 0.45) * edge * uIntensity;
 
-	// Dark theme adds light; light theme removes it. Same field, inverted role,
-	// so the effect survives the theme flip instead of washing out.
-	vec3 col = mix(uBg + tint * amount, uBg - (1.0 - tint) * amount * 0.55, uLight);
+	// Dark adds the accent as light; light blends the canvas toward it. Both
+	// read violet, which subtracting (1 - tint) on white did not.
+	vec3 glow = uBg + tint * amount;
+	vec3 wash = mix(uBg, tint, amount * 0.42);
+	vec3 col = mix(glow, wash, uLight);
 
 	// Ordered dither: 8-bit gradients on a near-black canvas band badly.
 	float d = hash(gl_FragCoord.xy + fract(uTime)) - 0.5;
