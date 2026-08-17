@@ -6,43 +6,30 @@ type Size = "sm" | "md" | "lg";
 type Props = {
 	class?: string;
 	size?: Size;
-	withWordmark?: boolean;
 };
 
-let {
-	class: className,
-	size = "md",
-	withWordmark = true,
-}: Props = $props();
+let { class: className, size = "md" }: Props = $props();
 
+// Tracking tightens as the wordmark grows, so it reads as one shape at every
+// size rather than a set of loose letters.
 const dims = {
-	sm: { mark: "h-6 w-6", markText: "text-[13px]", word: "text-sm" },
-	md: { mark: "h-8 w-8", markText: "text-[15px]", word: "text-base" },
-	lg: { mark: "h-12 w-12", markText: "text-[22px]", word: "text-2xl" },
+	sm: { text: "text-[19px]", tracking: "-0.02em" },
+	md: { text: "text-[22px]", tracking: "-0.025em" },
+	lg: { text: "text-[32px]", tracking: "-0.03em" },
 } as const;
 
 const d = $derived(dims[size]);
 </script>
 
-<a href="/" class={cn("group inline-flex items-center gap-2.5", className)}>
-	<span
-		class={cn(
-			"grid place-items-center rounded-md bg-brand font-display font-semibold leading-none text-on-brand transition-transform duration-(--motion-fast) ease-out group-hover:-rotate-6",
-			d.mark,
-			d.markText,
-		)}
-	>
-		d
-	</span>
-	{#if withWordmark}
-		<span
-			class={cn(
-				"font-display font-semibold text-ink",
-				d.word,
-			)}
-			style="letter-spacing: -0.025em;"
-		>
-			docvia
-		</span>
-	{/if}
+<a
+	href="/"
+	aria-label="docvia home"
+	class={cn(
+		"inline-flex w-fit items-baseline font-display font-semibold text-ink transition-opacity duration-(--motion-fast) ease-out hover:opacity-80",
+		d.text,
+		className,
+	)}
+	style="letter-spacing: {d.tracking};"
+>
+	docvia<span aria-hidden="true" class="text-brand">.</span>
 </a>

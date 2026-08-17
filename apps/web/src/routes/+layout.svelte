@@ -1,14 +1,10 @@
 <script lang="ts">
-import { refreshVersion } from "$lib/version.svelte";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/geist-mono";
 import type { Snippet } from "svelte";
-import { onMount } from "svelte";
 import "../app.css";
 
 let { children }: { children: Snippet } = $props();
-
-onMount(refreshVersion);
 </script>
 
 <a

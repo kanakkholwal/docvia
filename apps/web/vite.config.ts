@@ -19,7 +19,15 @@ const yamlEsm = join(
 	"browser/index.js",
 );
 
+// The displayed version is baked in at build time from the CLI package, so SSR
+// and the client always agree. Fetching it from npm on mount meant prerendered
+// HTML shipped a stale number that visibly swapped after hydration.
+const cliVersion: string = require("../../packages/cli/package.json").version;
+
 export default defineConfig({
+	define: {
+		__DOCVIA_VERSION__: JSON.stringify(cliVersion),
+	},
 	resolve: {
 		alias: {
 			yaml: yamlEsm,

@@ -1,6 +1,5 @@
 <script lang="ts">
 import Brand from "$lib/components/brand.svelte";
-import { version } from "$lib/version.svelte";
 import { Github, MessageCircle, Package } from "@lucide/svelte";
 </script>
 
@@ -78,19 +77,15 @@ import { Github, MessageCircle, Package } from "@lucide/svelte";
 			</div>
 		</div>
 
-		<!-- Bottom row: copyright + version + made-with -->
+		<!-- Bottom row: copyright + made-with -->
 		<div
 			class="flex flex-col items-start gap-3 border-t border-hairline pt-6 pb-10 text-[13px] text-muted md:flex-row md:items-center md:justify-between"
 		>
 			<div class="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
 				<span>© {new Date().getFullYear()} docvia · Released under the MIT licence.</span>
 			</div>
-			<div class="flex items-center gap-3">
-				<span class="inline-flex items-center gap-1.5">
-					<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-					<span class="font-mono">v{version.current} preview</span>
-				</span>
-				<span class="text-muted-soft">·</span>
+			<div class="flex items-center gap-2">
+				<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
 				<span>Built with docvia</span>
 			</div>
 		</div>

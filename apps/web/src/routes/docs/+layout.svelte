@@ -7,7 +7,6 @@ import Sidebar from "$lib/components/docs/sidebar.svelte";
 import Toc from "$lib/components/docs/toc.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
-import { version } from "$lib/version.svelte";
 import { Github, Menu, X } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
@@ -41,7 +40,7 @@ const navLinks = [
 				class="hidden items-center gap-1.5 rounded-full bg-surface-card px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-body-strong sm:inline-flex"
 			>
 				<span class="h-1 w-1 rounded-full bg-brand"></span>
-				Docs · v{version.current}
+				Docs
 			</span>
 			<nav class="hidden items-center gap-1 md:flex">
 				{#each navLinks as link}

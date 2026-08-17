@@ -2,21 +2,22 @@
 import Brand from "$lib/components/brand.svelte";
 import ThemeToggle from "$lib/components/theme-toggle.svelte";
 import { Button } from "$lib/components/ui/button";
-import { version } from "$lib/version.svelte";
+import { VERSION } from "$lib/version";
 import { ArrowRight, Github, Menu, X } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 
 let mobileOpen = $state(false);
 
-// On-page anchors only. Docs is reached through the Get started button, so a
-// second link to the same place would just add a decision.
+// Three anchors, in the order the question gets asked: what it does, why it's
+// different, how to start. Use cases and FAQ stay on the page but out of the
+// nav — five choices for a one-page site is a menu, not a signpost. Docs is
+// reached through the Get started button, so a second link to the same place
+// would just add a decision.
 const navLinks = [
 	{ label: "Features", href: "/#features" },
 	{ label: "How it works", href: "/#how-it-works" },
-	{ label: "Use cases", href: "/#use-cases" },
 	{ label: "Quickstart", href: "/#quickstart" },
-	{ label: "FAQ", href: "/#faq" },
 ];
 </script>
 
@@ -25,12 +26,9 @@ const navLinks = [
 	<div
 		class="mx-auto flex h-9 max-w-page items-center justify-center gap-2 px-5 text-[13px] text-body sm:px-10"
 	>
-		<span class="relative flex h-1.5 w-1.5 shrink-0">
-			<span class="absolute inset-0 animate-ping rounded-full bg-brand opacity-60"></span>
-			<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
-		</span>
+		<span class="h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
 		<span class="hidden sm:inline">
-			docvia v{version.current} is in public preview ·
+			docvia is open source under the MIT licence ·
 		</span>
 		<a
 			href="https://github.com/kanakkholwal/docvia"
@@ -52,18 +50,16 @@ const navLinks = [
 		<!-- Left: brand + version + nav -->
 		<div class="flex items-center gap-6">
 			<Brand size="sm" />
-			<span
-				class="hidden h-6 items-center gap-1.5 rounded-full bg-surface-card pl-2 pr-2.5 text-[12px] font-medium tracking-[0.01em] text-body sm:inline-flex"
+			<!-- The one place the version is stated. A link, so it answers the
+			     follow-up question ("what changed?") rather than just sitting there. -->
+			<a
+				href="https://github.com/kanakkholwal/docvia/releases"
+				class="hidden h-7 items-center gap-1.5 rounded-full bg-surface-card pl-2.5 pr-3 text-[12px] font-medium tracking-[0.01em] text-body transition-colors duration-(--motion-fast) ease-out hover:bg-surface-strong hover:text-ink sm:inline-flex"
 			>
-				<span class="relative flex h-1.5 w-1.5">
-					<span
-						class="absolute inset-0 animate-ping rounded-full bg-brand opacity-60"
-					></span>
-					<span class="relative h-1.5 w-1.5 rounded-full bg-brand"></span>
-				</span>
-				v{version.current}
-			</span>
-			<nav class="hidden items-center gap-1 lg:flex">
+				<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
+				v{VERSION}
+			</a>
+			<nav class="hidden items-center gap-1 md:flex">
 				{#each navLinks as link}
 					<a
 						href={link.href}
@@ -92,7 +88,7 @@ const navLinks = [
 				aria-label="Toggle menu"
 				aria-expanded={mobileOpen}
 				onclick={() => (mobileOpen = !mobileOpen)}
-				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink lg:hidden"
+				class="inline-flex h-9.5 w-9.5 items-center justify-center rounded-md text-body transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] hover:bg-surface-card hover:text-ink md:hidden"
 			>
 				{#if mobileOpen}
 					<X class="h-5 w-5" />
@@ -106,7 +102,7 @@ const navLinks = [
 	{#if mobileOpen}
 		<div
 			transition:slide={{ duration: 240, easing: cubicOut }}
-			class="border-t border-hairline bg-canvas px-5 py-3 lg:hidden"
+			class="border-t border-hairline bg-canvas px-5 py-3 md:hidden"
 		>
 			<nav class="flex flex-col gap-1">
 				{#each navLinks as link}
