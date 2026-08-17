@@ -2,6 +2,7 @@
 import PageHeader from "$lib/components/docs/page-header.svelte";
 import Pager from "$lib/components/docs/pager.svelte";
 import Prose from "$lib/components/docs/prose.svelte";
+import { docsRegistry } from "$lib/components/docs/registry";
 import { Renderer } from "@docvia/renderer-svelte";
 import { Pencil } from "@lucide/svelte";
 import type { PageProps } from "./$types";
@@ -26,7 +27,7 @@ const eyebrow = $derived(fm.eyebrow ? String(fm.eyebrow) : undefined);
 <PageHeader {eyebrow} {title} {description} />
 
 <Prose>
-	<Renderer nodes={data.page.content} />
+	<Renderer nodes={data.page.content} registry={docsRegistry} />
 </Prose>
 
 <div class="mt-12 flex items-center justify-end">

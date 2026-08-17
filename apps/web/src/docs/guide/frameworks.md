@@ -1,13 +1,13 @@
 ---
 title: "Framework integration"
-description: "Wire docvia into SvelteKit, Next.js, a plain Vite app, or a server — with in-process compilation and a production build."
+description: "Wire docvia into SvelteKit, Next.js, a plain Vite app, or a server, with in-process compilation and a production build."
 eyebrow: "Guide"
 order: 2
 ---
 
 The recommended way to use docvia is to run it **in-process** inside your
 bundler. The Vite plugin and the Next.js wrapper both drive the compile core
-directly — so there is no separate `docvia build` step, dev recompiles
+directly, so there is no separate `docvia build` step, dev recompiles
 incrementally as you edit, and the compiled source module is resolved for you
 (`virtual:docvia/source` on Vite, `docvia/source` on Next.js).
 
@@ -17,6 +17,20 @@ The pattern is the same everywhere:
 2. Add the framework's docvia plugin / wrapper.
 3. Import compiled pages from the source module and render them with the
    framework renderer.
+
+```mermaid
+%% title: Picking an integration
+flowchart TD
+  Q{"What are you building?"}
+  Q -- "SvelteKit" --> V["@docvia/plugin-vite"]
+  Q -- "Plain Vite" --> V
+  Q -- "Next.js" --> N["@docvia/plugin-next"]
+  Q -- "Node server, no bundler" --> S["@docvia/ssr"]
+  Q -- "Something else" --> C["docvia build<br/>+ a RendererAdapter"]
+  V --> RS["renderer-svelte<br/>or renderer-react"]
+  N --> RR["renderer-react"]
+  S --> RC["renderer-core"]
+```
 
 This page covers SvelteKit, Next.js, plain Vite, and server-side rendering.
 
@@ -34,8 +48,8 @@ pnpm add @docvia/renderer-svelte @docvia/source
 
 ### 2. Configure docvia
 
-Use the Svelte renderer — note the `/node` subpath, which is the build-time
-entry point. Add `@docvia/plugin-shiki` for syntax highlighting.
+Use the Svelte renderer, taking care to use the `/node` subpath, which is the
+build-time entry point. Add `@docvia/plugin-shiki` for syntax highlighting.
 
 ```ts
 // docvia.config.ts
@@ -56,8 +70,8 @@ export default defineConfig({
 
 `docvia()` runs the `CompileService` in-process. Following the Vite
 virtual-module convention it serves `virtual:docvia/source` (and
-`virtual:docvia/source/browser`) from its `load` hook — in dev with incremental
-recompilation (HMR), and for production builds alike.
+`virtual:docvia/source/browser`) from its `load` hook, in dev with incremental
+recompilation (HMR) and for production builds alike.
 
 ```ts
 // vite.config.ts
@@ -71,7 +85,7 @@ export default defineConfig({
 });
 ```
 
-That is the whole setup. Your workflow is just `pnpm dev` and `pnpm build` —
+That is the whole setup. Your workflow stays `pnpm dev` and `pnpm build`;
 `docvia()` compiles your Markdown as part of each.
 
 ### 4. Declare the module types
@@ -126,9 +140,9 @@ export const load: PageServerLoad = async ({ params }) => {
 ```
 
 Build the sidebar from `docs.pageTree` and you have a fully docvia-driven docs
-section. The [`apps/docs`](https://github.com/kanakkholwal/docvia/tree/main/apps/docs)
-app in this repository is a complete working example — it dogfoods docvia for
-its own documentation.
+section. The [`apps/web`](https://github.com/kanakkholwal/docvia/tree/main/apps/web)
+app in this repository is a complete working example: the site you are reading
+is compiled by docvia.
 
 ## Next.js
 
@@ -228,7 +242,7 @@ import page from "./docs/index.md?docvia";
 generated `source.ts` uses **static** `?docvia` imports, so the page content is
 bundled directly into your server output. Importing `virtual:docvia/source`
 (Vite) or `docvia/source` (Next.js) and calling `docs.getPage(...)` works at
-request time on Cloudflare Workers and other edge runtimes — there is no
+request time on Cloudflare Workers and other edge runtimes. There is no
 `node:fs` and no Markdown parsing on the request path:
 
 ```ts
@@ -240,21 +254,21 @@ const page = await docs.getPage(["getting-started"]); // works on the edge
 > [!WARNING]
 > **Import the collection from server-only modules.** The flip side of those
 > static imports is that `virtual:docvia/source` pulls in *every* compiled page.
-> That is exactly what you want in a server bundle. In a **universal** module —
-> a SvelteKit `+page.ts`, a `"use client"` component — it means your entire
-> content set is shipped to the browser, silently undoing the bundle-size
+> That is exactly what you want in a server bundle. In a **universal** module,
+> such as a SvelteKit `+page.ts` or a `"use client"` component, it means your
+> entire content set is shipped to the browser, silently undoing the bundle-size
 > benefit the compiler exists to provide.
 >
 > Load pages in `+page.server.ts` / `+layout.server.ts` / a React Server
 > Component, and pass the result down. If you truly need a collection on the
 > client, import `virtual:docvia/source/browser` (Next.js: `docvia/source/browser`)
-> instead — it code-splits one chunk per page and fetches only what you ask for.
+> instead. It code-splits one chunk per page and fetches only what you ask for.
 
 For a **non-framework Node server** that renders per request, use
 [`@docvia/ssr`](/docs/packages/ssr). It renders one document per request and caches
 rendered pages in an in-memory LRU keyed by content hash. `createDocviaSSR`
-takes a generic content source — a live `CompileService` already satisfies the
-shape, so pass it directly (or pass a `(collection, slug) => IR` function):
+takes a generic content source. A live `CompileService` already satisfies the
+shape, so pass it directly, or pass a `(collection, slug) => IR` function:
 
 ```ts
 import { createDocviaSSR } from "@docvia/ssr";
@@ -271,7 +285,7 @@ const page = await ssr.render("docs", "getting-started");
 docvia preview --out .docvia --port 4173
 ```
 
-This is a sanity check for the compiled module graph — it is **not** a runtime.
+This is a sanity check for the compiled module graph, **not** a runtime.
 For an actual site, use one of the integrations above.
 
 ## Choosing an approach

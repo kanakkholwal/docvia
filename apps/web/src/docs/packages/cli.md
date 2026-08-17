@@ -1,6 +1,6 @@
 ---
 title: "@docvia/cli"
-description: "The docvia command-line interface — scaffold, build, watch, and preview documentation projects."
+description: "The docvia command-line interface: scaffold, build, watch, and preview documentation projects."
 eyebrow: "Packages"
 order: 1
 ---
@@ -145,7 +145,7 @@ Compiles documentation once. It loads the config, validates the environment, and
 | `--config <path>` | `./docvia.config.ts` | Path to the config file. |
 | `--no-cache` | cache enabled | Force a full rebuild, disabling the incremental cache. |
 
-`build` throws a `docviaError` with code `CONFIG_ERROR` when the docs directory is missing or no renderer is configured. It passes `incremental: !noCache` to `compile()` — so omitting `--no-cache` keeps the incremental cache, and passing it forces a clean build.
+`build` throws a `docviaError` with code `CONFIG_ERROR` when the docs directory is missing or no renderer is configured. It passes `incremental: !noCache` to `compile()`, so omitting `--no-cache` keeps the incremental cache, and passing it forces a clean build.
 
 On success it prints the build duration along with file and page counts.
 
@@ -171,7 +171,7 @@ Behavior:
 
 - After the initial compile, [chokidar](https://github.com/paulmillr/chokidar) watches the source directory and the config file.
 - The watcher uses `awaitWriteFinish` with a `stabilityThreshold` of 50 ms and a `pollInterval` of 10 ms, plus a 20 ms debounce, so rapid saves coalesce into a single rebuild.
-- A build lock serializes rebuilds — overlapping change events never run two compilations at once.
+- A build lock serializes rebuilds, so overlapping change events never run two compilations at once.
 - When the config file changes, the config is reloaded before the next rebuild.
 - `SIGINT` and `SIGTERM` trigger a graceful shutdown of the watcher.
 
@@ -185,12 +185,12 @@ Serves the already-compiled `.docvia/` output over a local HTTP server using [si
 
 | Flag | Alias | Default | Behavior |
 |---|---|---|---|
-| `--out <dir>` | — | `.docvia` | Output directory to serve. |
+| `--out <dir>` | none | `.docvia` | Output directory to serve. |
 | `--port <port>` | `-p` | `4173` | Port to listen on. |
 
 The command validates that the port is within the valid range before binding via `node:http`.
 
-> `preview` is a sanity check for the compiled artifacts — it is **not** a runtime. Render the compiled output inside your framework app (Vite, Next.js, SvelteKit) for the real integration.
+> `preview` is a sanity check for the compiled artifacts, **not** a runtime. Render the compiled output inside your framework app (Vite, Next.js, SvelteKit) for the real integration.
 
 ```bash
 docvia preview --out .docvia --port 5000

@@ -1,18 +1,18 @@
 ---
 title: "What is docvia?"
-description: "A Markdown documentation compiler for React, Svelte, or any framework with a renderer adapter — build, dev, and SSR from one core."
+description: "A Markdown documentation compiler for React, Svelte, or any framework with a renderer adapter. Build, dev, and SSR from one core."
 eyebrow: "Introduction"
 order: 0
 ---
 
-**docvia** turns a directory of Markdown into typed, pre-rendered content.
-There is no runtime Markdown parser shipped to the browser — every page is
-parsed, sanitized, and transformed into an Intermediate Representation (IR)
-before it ever reaches your app.
+**docvia** turns a directory of Markdown into typed, pre-rendered content. No
+runtime Markdown parser is shipped to the browser. Every page is parsed,
+sanitized, and transformed into an Intermediate Representation (IR) before it
+reaches your app.
 
 This documentation site is itself compiled by docvia. Every page you are
-reading is a Markdown file under `apps/docs/src/docs/`, run through the
-compile core and rendered by `@docvia/renderer-svelte`.
+reading is a Markdown file under `apps/web/src/docs/`, run through the compile
+core and rendered by `@docvia/renderer-svelte`.
 
 ## Why a compiler?
 
@@ -23,31 +23,66 @@ module graph the bundler can tree-shake.
 
 The result is a clean separation:
 
-- **Compile time** — Markdown is parsed, validated, transformed to an IR, and
+- **Compile time.** Markdown is parsed, validated, transformed to an IR, and
   rendered to framework-native output.
-- **Runtime** — your app consumes plain modules. No parser, no `unified`, no
+- **Runtime.** Your app consumes plain modules. No parser, no `unified`, no
   `remark`, and no syntax highlighter in the client bundle.
+
+```mermaid
+%% title: The compile-time / runtime split
+flowchart LR
+  MD["Markdown<br/>src/docs/*.md"] --> P[Parse]
+  P --> V[Validate frontmatter]
+  V --> T[Transform to IR]
+  T --> PL[Plugins]
+  PL --> R[Renderer adapter]
+  R --> G[".docvia/<br/>module graph"]
+  G --> A["Your app<br/>imports typed modules"]
+
+  subgraph compile ["Compile time"]
+    MD
+    P
+    V
+    T
+    PL
+    R
+    G
+  end
+
+  subgraph runtime ["Runtime"]
+    A
+  end
+```
 
 ## Three modes, one core
 
 docvia runs in three modes, all driven by a single stateful `CompileService`
 (see [Architecture](/docs/guide/architecture)), so their output is identical:
 
-- **Build** — compile the whole tree ahead of time into a typed module graph.
-- **Dev** — compile in-process inside the framework dev server, recompiling
+- **Build.** Compile the whole tree ahead of time into a typed module graph.
+- **Dev.** Compile in-process inside the framework dev server, recompiling
   incrementally on every file change. No separate build script.
-- **SSR** — render a single document per request, on Node or the edge.
+- **SSR.** Render a single document per request, on Node or the edge.
+
+```mermaid
+%% title: One CompileService behind all three modes
+flowchart TD
+  CLI["docvia build<br/>(@docvia/cli)"] --> CS
+  VITE["Vite / Next dev server<br/>(@docvia/plugin-vite)"] --> CS
+  SSR["Per-request render<br/>(@docvia/ssr)"] --> CS
+  CS["CompileService<br/>@docvia/runtime"] --> OUT[Identical IR and output]
+```
 
 ## Highlights
 
 - **No runtime Markdown parser.** Pages are compiled to an IR; the client
   bundle ships neither a parser nor a syntax highlighter.
-- **Incremental everywhere.** A content-hash cache skips unchanged files —
+- **Incremental everywhere.** A content-hash cache skips unchanged files,
   across builds and, in dev, on every keystroke.
 - **Typed end-to-end.** Frontmatter, route keys, and the generated `source`
   helper are all typed.
 - **Pluggable pipeline.** Five hook points let you mutate the pipeline at any
-  stage — `beforeParse`, `afterParse`, `beforeTransform`, `afterTransform`,
+  stage: `beforeParse`, `afterParse`, `beforeTransform`, `afterTransform`,
   `beforeRender`.
 - **Pluggable highlighting.** Syntax highlighting is a build-time plugin
   (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR.
@@ -74,12 +109,13 @@ your app only ever imports typed modules.
 
 ## Next steps
 
-- [Getting started](/docs/getting-started) — install the CLI and compile your first
-  build.
-- [Configuration](/docs/guide/configuration) — every option accepted by
+- [Getting started](/docs/getting-started) covers installing the CLI and
+  compiling your first build.
+- [Configuration](/docs/guide/configuration) lists every option accepted by
   `defineConfig`.
-- [Framework integration](/docs/guide/frameworks) — wire docvia into SvelteKit,
+- [Framework integration](/docs/guide/frameworks) wires docvia into SvelteKit,
   Next.js, a plain Vite app, or a server.
-- [Architecture](/docs/guide/architecture) — the compile core, the three run modes,
-  and the IR.
-- [Packages](/docs/packages) — the full reference for every `@docvia/*` package.
+- [Architecture](/docs/guide/architecture) explains the compile core, the three
+  run modes, and the IR.
+- [Packages](/docs/packages) is the full reference for every `@docvia/*`
+  package.

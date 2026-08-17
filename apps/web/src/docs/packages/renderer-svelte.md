@@ -1,6 +1,6 @@
 ---
 title: "@docvia/renderer-svelte"
-description: "The Svelte 5 adapter for docvia — a build-time renderer and a recursive runes-based component that renders the content tree."
+description: "The Svelte 5 adapter for docvia: a build-time renderer and a recursive runes-based component that renders the content tree."
 eyebrow: "Packages"
 order: 22
 ---
@@ -13,8 +13,8 @@ It is built on `@docvia/renderer-core` and uses Svelte 5 runes throughout. Depen
 
 docvia rendering happens in two phases:
 
-1. **Build time** — `createSvelteRenderer()` produces a `RendererAdapter`. docvia calls it per document; it walks the IR through `renderer-core` and emits a JS module exporting `meta`, `content`, and `manifest`.
-2. **Runtime** — your Svelte route imports that module and passes `content` to the `Renderer` component, which recursively walks the tree.
+1. **Build time.** `createSvelteRenderer()` produces a `RendererAdapter`. docvia calls it per document; it walks the IR through `renderer-core` and emits a JS module exporting `meta`, `content`, and `manifest`.
+2. **Runtime.** Your Svelte route imports that module and passes `content` to the `Renderer` component, which recursively walks the tree.
 
 The package ships two entry points so the build pipeline never has to compile a `.svelte` file and your app always compiles it through your Svelte toolchain.
 
@@ -24,7 +24,7 @@ The package ships two entry points so the build pipeline never has to compile a 
 npm install @docvia/renderer-svelte
 ```
 
-`svelte ^5` must be present in your project — the `Renderer` component relies on runes (`$props`, `$derived`).
+`svelte ^5` must be present in your project, because the `Renderer` component relies on runes (`$props`, `$derived`).
 
 ## Exports
 
@@ -33,10 +33,10 @@ There are two entry points. Choosing the right one matters because one ships a `
 | Subpath | Environment | Purpose |
 | --- | --- | --- |
 | `.` | App routes / browser | Exports the `Renderer` component **and** everything from the adapter module. Uses package export *conditions*: the `svelte` condition resolves to the raw `./src/index.ts` source so a Svelte-aware bundler compiles the `.svelte` component itself; `import`/`default` resolve to the prebuilt `./dist/index.js`. |
-| `./node` | Build / SSR — `docvia.config.ts` | The build/SSR entry. Exports the adapter and the Vite plugin helpers — **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
+| `./node` | Build / SSR (`docvia.config.ts`) | The build/SSR entry. Exports the adapter and the Vite plugin helpers, with **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
 
 ```ts
-// docvia.config.ts — build-time
+// docvia.config.ts: build-time
 import {
   createSvelteRenderer,
   createInMemoryStore,
@@ -46,7 +46,7 @@ import {
 ```
 
 ```svelte
-<!-- app route — runtime -->
+<!-- app route: runtime -->
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
 </script>
@@ -60,7 +60,7 @@ Every page module emitted by the adapter exports the same three named bindings:
 
 ```ts
 export const meta;     // PageMeta
-export const content;  // RenderOutput — a fragment
+export const content;  // RenderOutput (a fragment)
 export const manifest; // HydrationManifest
 ```
 
@@ -76,7 +76,7 @@ export const manifest; // HydrationManifest
 
 | Prop | Type | Required | Description |
 | --- | --- | --- | --- |
-| `nodes` | `RenderOutput \| RenderOutput[]` | Yes | The serialized tree — the `content` export of a compiled page, or any subtree. A single node is normalized to an array internally. |
+| `nodes` | `RenderOutput \| RenderOutput[]` | Yes | The serialized tree: the `content` export of a compiled page, or any subtree. A single node is normalized to an array internally. |
 | `registry` | `ComponentRegistry` | No | Resolves custom directive components by name. |
 
 #### Rendering behaviour
@@ -107,7 +107,7 @@ Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`). Its `renderP
 
 If no `registry` is supplied, an empty one is used.
 
-Syntax highlighting is **not** a renderer option. It is a build-time plugin —
+Syntax highlighting is **not** a renderer option. It is a build-time plugin:
 add [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` in your
 docvia config, and the highlighted HTML is baked into the IR before the
 renderer ever runs.
@@ -143,7 +143,7 @@ A Vite plugin (`name: "docvia"`) that resolves `virtual:docvia/<slug>` imports t
 > populated that store, `virtual:docvia/<slug>` will not resolve.
 >
 > In a normal app you do not use this. Load pages through the collection instead
-> — see [Usage](#usage) below.
+> as shown under [Usage](#usage) below.
 
 ### invalidateModules()
 
@@ -161,12 +161,12 @@ Tells the Vite dev server to invalidate the virtual modules for the given slugs 
 import { hydrate } from "@docvia/renderer-core";
 import { registry } from "virtual:docvia/source";
 
-// `page` came from `docs.getPage(slugs)` in a server load — see Usage below.
+// `page` came from `docs.getPage(slugs)` in a server load; see Usage below.
 // no-ops on the server; honours client:load / client:idle / client:visible
 hydrate(page.manifest, registry);
 ```
 
-`data-hid` is the universal hydration anchor — the `Renderer` component sets it on every `element` and `component` wrapper, and `hydrate()` looks each island up by `[data-hid="<id>"]`.
+`data-hid` is the universal hydration anchor. The `Renderer` component sets it on every `element` and `component` wrapper, and `hydrate()` looks each island up by `[data-hid="<id>"]`.
 
 ## Usage
 
@@ -185,7 +185,7 @@ export default defineConfig({
 
 ### Rendering a page in a SvelteKit route
 
-Pages are loaded through the collection, in a **server** load — `virtual:docvia/source`
+Pages are loaded through the collection, in a **server** load, because `virtual:docvia/source`
 eagerly imports every compiled page, so importing it from a universal `+page.ts`
 would ship your whole content set to the browser.
 
@@ -226,7 +226,7 @@ load and into the component:
 ### Rendering with a component registry
 
 When you declare `components` in `docvia.config.ts`, docvia generates the registry
-for you — import it from the source module rather than hand-rolling one:
+for you, so import it from the source module rather than hand-rolling one:
 
 ```svelte
 <script lang="ts">

@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 42
 ---
 
-`@docvia/plugin-openapi` is a docvia compiler plugin that renders OpenAPI 3.x operations inline in your Markdown. Point it at a spec file, then drop fenced ` ```openapi METHOD /path` blocks anywhere in your docs. Each block is replaced — at build time — with a fully rendered endpoint: heading, description, parameter table, and request/response samples. No runtime spec parsing ships to the browser.
+`@docvia/plugin-openapi` is a docvia compiler plugin that renders OpenAPI 3.x operations inline in your Markdown. Point it at a spec file, then drop fenced ` ```openapi METHOD /path` blocks anywhere in your docs. Each block is replaced at build time with a fully rendered endpoint: heading, description, parameter table, and request/response samples. No runtime spec parsing ships to the browser.
 
 ## Install
 
@@ -74,13 +74,13 @@ Creates the plugin. The returned `docviaPlugin` has:
 | `phase` | `"normal"` |
 | `priority` | `100` |
 
-- `cacheKey()` returns `@docvia/plugin-openapi@<specHash>:<fenceLang>` — the spec content hash is folded into the key, so changing the spec rebuilds every page that references it.
-- The spec is loaded lazily and cached. Loading is kicked off eagerly at plugin construction (so the first file doesn't pay the full cost) but never throws synchronously — config evaluation must stay sync.
+- `cacheKey()` returns `@docvia/plugin-openapi@<specHash>:<fenceLang>`. The spec content hash is folded into the key, so changing the spec rebuilds every page that references it.
+- The spec is loaded lazily and cached. Loading is kicked off eagerly at plugin construction (so the first file doesn't pay the full cost) but never throws synchronously, because config evaluation must stay sync.
 - `afterParse` loads the spec and transforms matching code nodes in place.
 
 ### Type definitions
 
-The package also exports a minimal set of OpenAPI 3.x types — only the fields the renderer reads. Unknown fields are preserved as `unknown`, keeping the types forward-compatible with 3.1.
+The package also exports a minimal set of OpenAPI 3.x types, covering only the fields the renderer reads. Unknown fields are preserved as `unknown`, keeping the types forward-compatible with 3.1.
 
 #### `HttpMethod`
 
@@ -215,26 +215,26 @@ The header is parsed case-insensitively (`GET`, `get`, `Post` all work). A block
 
 ## How it works
 
-The plugin hooks `afterParse`. For each Markdown file it walks the mdast tree and replaces every `code` node whose `lang` equals `fenceLang` with a sequence of structured mdast block nodes. The rest of docvia's pipeline turns those nodes into IR, framework-native modules, and rendered output — exactly the same path as hand-written Markdown.
+The plugin hooks `afterParse`. For each Markdown file it walks the mdast tree and replaces every `code` node whose `lang` equals `fenceLang` with a sequence of structured mdast block nodes. The rest of docvia's pipeline turns those nodes into IR, framework-native modules, and rendered output, along exactly the same path as hand-written Markdown.
 
 ## What is rendered
 
 For each matched block, the plugin emits the following mdast in order:
 
-- **Heading** — an `h3` of the form **`METHOD`** ` /path` (method bolded, path as inline code).
-- **Summary** — the operation's `summary`, rendered as a bold paragraph (when present).
-- **Description** — the operation's `description`, as a paragraph (when present).
-- **Deprecated callout** — when `deprecated` is true, a blockquote: _"**Deprecated.** This endpoint will be removed in a future version."_
-- **Parameters** — an `h4` "Parameters" heading followed by a table with columns **Name**, **In**, **Type**, **Required**, **Description** (only when the operation declares parameters). `In` is the parameter location (`query`, `path`, `header`, `cookie`); `Required` renders as `yes` / `no`.
-- **Request body** — an `h4` "Request body" heading, the body description (when present), and one code sample per media type. Each media type emits a paragraph naming the content type (e.g. `application/json`) followed by a fenced code block.
-- **Responses** — an `h4` "Responses" heading, then for each status code (sorted ascending) a bold-status paragraph with the response description and one code sample per media type.
+- **Heading.** An `h3` of the form **`METHOD`** ` /path` (method bolded, path as inline code).
+- **Summary.** The operation's `summary`, rendered as a bold paragraph (when present).
+- **Description.** The operation's `description`, as a paragraph (when present).
+- **Deprecated callout.** When `deprecated` is true, a blockquote: _"**Deprecated.** This endpoint will be removed in a future version."_
+- **Parameters.** An `h4` "Parameters" heading followed by a table with columns **Name**, **In**, **Type**, **Required**, **Description** (only when the operation declares parameters). `In` is the parameter location (`query`, `path`, `header`, `cookie`); `Required` renders as `yes` / `no`.
+- **Request body.** An `h4` "Request body" heading, the body description (when present), and one code sample per media type. Each media type emits a paragraph naming the content type (e.g. `application/json`) followed by a fenced code block.
+- **Responses.** An `h4` "Responses" heading, then for each status code (sorted ascending) a bold-status paragraph with the response description and one code sample per media type.
 - A trailing **thematic break** (`---`).
 
 Code-block languages are inferred from the media type: types containing `json` → `json`, `xml` → `xml`, `yaml`/`yml` → `yaml`, `html` → `html`, `text` → `text`, otherwise `text`.
 
 ## Schema example synthesis
 
-When a media type provides an `example` (or an `examples` map — the first entry's `value` is used), that value is rendered verbatim. When it provides neither, the plugin **synthesizes** a sample from the schema shape:
+When a media type provides an `example` (or an `examples` map, where the first entry's `value` is used), that value is rendered verbatim. When it provides neither, the plugin **synthesizes** a sample from the schema shape:
 
 | Schema | Synthesized value |
 |---|---|
@@ -279,6 +279,6 @@ A `GET /pets` operation responding with an array of `Pet` and no explicit exampl
 ## Caveats
 
 - **External and cross-file `$ref`s are not dereferenced.** Only internal `#/...` refs are resolved; anything else falls back to the ref name.
-- **Security schemes, server lists, and response headers are not surfaced** — the renderer only covers summary/description, parameters, request body, and responses.
+- **Security schemes, server lists, and response headers are not surfaced.** The renderer only covers summary/description, parameters, request body, and responses.
 - The plugin **only works inside docvia's `compile` pipeline.** It is a compiler plugin, not a standalone Markdown transformer.
 - Spec read or parse errors raise a `docviaError` with code `CONFIG_ERROR`; a missing/unparseable block header or absent operation raises `PLUGIN_ERROR` when `onMissing` is `"throw"`.

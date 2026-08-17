@@ -1,12 +1,12 @@
 ---
 title: "@docvia/plugin-vite"
-description: "The in-process docvia() Vite plugin — virtual modules, incremental HMR, and a production module graph."
+description: "The in-process docvia() Vite plugin: virtual modules, incremental HMR, and a production module graph."
 eyebrow: "Packages"
 order: 40
 ---
 
 `@docvia/plugin-vite` integrates docvia into any Vite-based app (plain Vite or
-SvelteKit). The recommended export is **`docvia()`** — a single plugin that
+SvelteKit). The recommended export is **`docvia()`**, a single plugin that
 runs the [`CompileService`](/docs/packages/runtime) in-process, so there is no
 separate `docvia build` step.
 
@@ -20,9 +20,9 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Contents |
 |---|---|
-| `.` | `docvia` — the in-process Vite plugin. |
+| `.` | `docvia`, the in-process Vite plugin. |
 
-## `docvia()` — the in-process plugin
+## `docvia()`, the in-process plugin
 
 ```ts
 function docvia(config: docviaConfig, options?: DocviaVitePluginOptions): Plugin;
@@ -30,14 +30,14 @@ function docvia(config: docviaConfig, options?: DocviaVitePluginOptions): Plugin
 
 A single Vite plugin that owns the whole docvia integration:
 
-- **Virtual modules** — following the Vite virtual-module convention, the plugin
+- **Virtual modules.** Following the Vite virtual-module convention, the plugin
   serves `virtual:docvia/source` (eager, server/SSR) and
   `virtual:docvia/source/browser` (lazy, client code-split) from its `load` hook
-  — in **dev and build alike**, so nothing is written to disk for Vite to
+  in **dev and build alike**, so nothing is written to disk for Vite to
   resolve. `handleHotUpdate` hot-swaps a `.md?docvia` module on a content change
   and triggers a reload on a route-map change; a `configureServer` watcher picks
   up added and removed files. Compile errors surface in Vite's error overlay.
-- **`.md?docvia` transform** — compiles each Markdown file as a module in place
+- **`.md?docvia` transform.** Compiles each Markdown file as a module in place
   (through the shared core transform), so content lives once in the `.md` and the
   virtual source modules just import it.
 
@@ -62,5 +62,5 @@ import page from "./docs/index.md?docvia";
 
 ## See also
 
-- [Framework integration](/docs/guide/frameworks) — SvelteKit and plain Vite setups.
-- [`@docvia/runtime`](/docs/packages/runtime) — the `CompileService` the plugin runs.
+- [Framework integration](/docs/guide/frameworks): SvelteKit and plain Vite setups.
+- [`@docvia/runtime`](/docs/packages/runtime): the `CompileService` the plugin runs.

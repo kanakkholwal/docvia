@@ -1,6 +1,6 @@
 ---
 title: "@docvia/plugin-shiki"
-description: "Build-time syntax highlighting for docvia, powered by Shiki — pluggable and zero-runtime."
+description: "Build-time syntax highlighting for docvia, powered by Shiki: pluggable and zero-runtime."
 eyebrow: "Packages"
 order: 43
 ---
@@ -11,7 +11,7 @@ compilation its `beforeRender` hook walks the document IR, highlights every
 fenced code block, and embeds the resulting HTML on the node.
 
 Because highlighting happens at **build time**, no syntax highlighter ships to
-the runtime or the edge bundle — the renderer just emits the pre-highlighted
+the runtime or the edge bundle. The renderer just emits the pre-highlighted
 markup.
 
 ## Installation
@@ -61,13 +61,13 @@ incremental cache correctly re-highlights when either changes.
 ## Pluggable highlighting
 
 Highlighting is not hardwired to Shiki. Any highlighter can be wired the same
-way — a docvia plugin whose `beforeRender` populates `props.html` on
+way: a docvia plugin whose `beforeRender` populates `props.html` on
 `code-block` nodes. Projects that need a smaller build footprint can swap Shiki
 for a lighter library (Sugar High, Prism, …) behind the same contract, and the
 end-user bundle still ships zero highlighter either way.
 
 ## See also
 
-- [Writing plugins](/docs/guide/plugins) — the plugin hook system.
-- [Architecture](/docs/guide/architecture) — highlighting as a build-time IR
+- [Writing plugins](/docs/guide/plugins): the plugin hook system.
+- [Architecture](/docs/guide/architecture): highlighting as a build-time IR
   transform.

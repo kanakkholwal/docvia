@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 14
 ---
 
-`@docvia/plugins` is the plugin runtime and configuration layer of docvia. It does two jobs. First, it validates and orders the configured plugins, then runs their lifecycle hooks during a build, wrapping any failure in a `docviaError` that names the offending plugin. Second, it provides the configuration helpers — `defineConfig` for authoring a config and `loadConfig` for loading one from disk.
+`@docvia/plugins` is the plugin runtime and configuration layer of docvia. It does two jobs. First, it validates and orders the configured plugins, then runs their lifecycle hooks during a build, wrapping any failure in a `docviaError` that names the offending plugin. Second, it provides the configuration helpers: `defineConfig` for authoring a config and `loadConfig` for loading one from disk.
 
 The package depends on `@docvia/ir` (for the plugin and config contracts and the error class) and [`jiti`](https://github.com/unjs/jiti) (to import TypeScript config files at runtime without a separate build step).
 
@@ -46,7 +46,7 @@ function resolvePlugins(
 
 Validates a plugin list and returns it sorted into execution order.
 
-**Validation** — every plugin is checked, and a `docviaError` with code `PLUGIN_ERROR` is thrown if any of the following holds:
+**Validation.** Every plugin is checked, and a `docviaError` with code `PLUGIN_ERROR` is thrown if any of the following holds:
 
 | Condition | Error message |
 | --- | --- |
@@ -54,10 +54,10 @@ Validates a plugin list and returns it sorted into execution order.
 | A plugin has no `version` | `Plugin "<name>" missing version` |
 | Two plugins share a `name` | `Duplicate plugin: "<name>"` |
 
-**Ordering** — valid plugins are sorted by phase first, then by priority:
+**Ordering.** Valid plugins are sorted by phase first, then by priority:
 
-1. **Phase** — `pre` plugins run before `normal`, which run before `post`. A plugin with no `phase` is treated as `normal`.
-2. **Priority** — within a phase, plugins are sorted by ascending `priority`; **lower runs first**. A plugin with no `priority` is treated as `100`.
+1. **Phase.** `pre` plugins run before `normal`, which run before `post`. A plugin with no `phase` is treated as `normal`.
+2. **Priority.** Within a phase, plugins are sorted by ascending `priority`; **lower runs first**. A plugin with no `priority` is treated as `100`.
 
 The input array is not mutated; a sorted copy is returned.
 
@@ -79,7 +79,7 @@ class PluginRunner {
 
 The `PluginRunner` drives the plugin lifecycle for a build. The constructor passes the plugin list through `resolvePlugins`, so a runner always holds validated, correctly ordered plugins.
 
-Each `run*` method corresponds to one lifecycle hook. For a given hook, the runner iterates the resolved plugins in order; for each plugin that implements that hook, it feeds the **output of the previous plugin** into the next. The hooks form a transformation chain — every plugin gets the chance to inspect or rewrite the value as it flows through.
+Each `run*` method corresponds to one lifecycle hook. For a given hook, the runner iterates the resolved plugins in order; for each plugin that implements that hook, it feeds the **output of the previous plugin** into the next. The hooks form a transformation chain, so every plugin gets the chance to inspect or rewrite the value as it flows through.
 
 | Method | Hook | Input → output |
 | --- | --- | --- |
@@ -89,7 +89,7 @@ Each `run*` method corresponds to one lifecycle hook. For a given hook, the runn
 | `runAfterTransform` | `afterTransform` | `IRDocument` → `IRDocument` |
 | `runBeforeRender` | `beforeRender` | `IRDocument` → `IRDocument` |
 
-**Error wrapping** — every hook call is wrapped. If a hook throws something that is already a `docviaError`, it propagates unchanged. Anything else is re-wrapped as a `docviaError` with code `PLUGIN_ERROR` and a message of the form `Plugin "<name>@<version>" failed in <hook>: <reason>`, with the original error attached as `cause`. For the file-bound hooks (`beforeParse`, `afterParse`) the file path is attached too.
+**Error wrapping.** Every hook call is wrapped. If a hook throws something that is already a `docviaError`, it propagates unchanged. Anything else is re-wrapped as a `docviaError` with code `PLUGIN_ERROR` and a message of the form `Plugin "<name>@<version>" failed in <hook>: <reason>`, with the original error attached as `cause`. For the file-bound hooks (`beforeParse`, `afterParse`) the file path is attached too.
 
 ### `getPluginCacheKeys`
 
@@ -138,7 +138,7 @@ Loads a config file from disk and returns a resolved `docviaConfig`. The steps:
 3. Unwraps a `default` export if present (the typical `export default defineConfig({...})` form), otherwise uses the module itself.
 4. Passes the result through `defineConfig` to apply defaults.
 
-Failure modes — both throw a `docviaError` with code `CONFIG_ERROR`:
+Failure modes, both of which throw a `docviaError` with code `CONFIG_ERROR`:
 
 | Condition | Behavior |
 | --- | --- |

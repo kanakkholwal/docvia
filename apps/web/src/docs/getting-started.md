@@ -25,7 +25,7 @@ dependency because its types and the generated module graph reference it.
 npx docvia init
 ```
 
-The `init` command autodetects your renderer from `package.json` — it picks
+The `init` command autodetects your renderer from `package.json`. It picks
 `svelte` when it sees `svelte` or `@sveltejs/kit`, `react` when it sees `react`
 or `next`, and `none` otherwise. Pass `--renderer react` or
 `--renderer svelte` to choose explicitly. It creates a `docs/` directory with
@@ -39,14 +39,14 @@ npx docvia build
 ```
 
 The first run compiles every Markdown file in `docs/` and writes a small
-module graph to `.docvia/` — thin glue that imports the Markdown in place; the
-content itself lives once, in the `.md`, and is compiled by the bundler's
-`?docvia` transform:
+module graph to `.docvia/`. The graph is thin glue that imports the Markdown in
+place; the content itself lives once, in the `.md`, and is compiled by the
+bundler's `?docvia` transform:
 
 | File | Purpose |
 |---|---|
-| `source.ts` | The typed collection helper — `getPage`, `getPages`, `pageTree`. Eager imports, so **server-only** (see below). |
-| `browser.ts` | The lazy, client counterpart — `() => import()` per page, so each page code-splits into its own chunk. |
+| `source.ts` | The typed collection helper: `getPage`, `getPages`, `pageTree`. Eager imports, so **server-only** (see below). |
+| `browser.ts` | The lazy, client counterpart. One `() => import()` per page, so each page code-splits into its own chunk. |
 | `dynamic.ts` | The page module map the collections read from. |
 | `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
 | `types.d.ts` | Generated frontmatter and route-key types. |
@@ -55,14 +55,14 @@ content itself lives once, in the `.md`, and is compiled by the bundler's
 A project-root `docvia-env.d.ts` is also written so the source module resolves
 in TypeScript (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
 with a `/browser` counterpart). Subsequent runs read `.docvia.cache.json` and
-skip files whose content hash is unchanged — see
+skip files whose content hash is unchanged. See
 [Incremental builds](/docs/guide/incremental-builds).
 
 > [!WARNING]
 > **`source.ts` is server-only.** It statically imports every compiled page, so
 > that `getPages()` and `pageTree` have their metadata up front. Import it from a
-> universal module — a SvelteKit `+page.ts`, a `"use client"` component — and
-> your whole content set is bundled into the browser.
+> universal module, such as a SvelteKit `+page.ts` or a `"use client"` component,
+> and your whole content set is bundled into the browser.
 >
 > Read it from server-only modules (`+page.server.ts`, a React Server Component)
 > and pass the page down. For the client, use the lazy `browser.ts` counterpart,
@@ -82,9 +82,19 @@ reloads the config when it changes and shuts down cleanly on `Ctrl+C`.
 ## Use it in an app
 
 To render docs in a real app, pair docvia with a framework integration. The
-recommended setup runs docvia **in-process** inside your bundler — the Vite
-plugin or the Next.js wrapper — so there is no separate `docvia build` step,
-and dev recompiles incrementally as you edit.
+recommended setup runs docvia **in-process** inside your bundler, through the
+Vite plugin or the Next.js wrapper, so there is no separate `docvia build`
+step, and dev recompiles incrementally as you edit.
+
+```mermaid
+%% title: From install to rendered page
+flowchart LR
+  I["pnpm add -D @docvia/cli"] --> C["docvia.config.ts"]
+  C --> B["docvia build<br/>or the Vite plugin"]
+  B --> D[".docvia/"]
+  D --> S["import { docs }<br/>from the source module"]
+  S --> R["&lt;Renderer nodes={page.content} /&gt;"]
+```
 
 See [Framework integration](/docs/guide/frameworks) for SvelteKit, Next.js, plain
 Vite, and server-side rendering setups.
@@ -100,7 +110,7 @@ export default defineConfig({
   sourceDir: "docs",
   outDir: ".docvia",
   renderer: createReactRenderer(),
-  // Syntax highlighting is a build-time plugin — the highlighted HTML is baked
+  // Syntax highlighting is a build-time plugin. The highlighted HTML is baked
   // into the IR, so no highlighter ships to the browser.
   plugins: [shiki({ theme: "github-dark" })],
 });

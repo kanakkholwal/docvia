@@ -1,6 +1,6 @@
 ---
 title: "CLI reference"
-description: "Every docvia command and flag — init, build, dev, and preview."
+description: "Every docvia command and flag: init, build, dev, and preview."
 eyebrow: "Guide"
 order: 3
 ---
@@ -14,6 +14,15 @@ npx docvia <command>
 ```
 
 Run `docvia --version` to print the installed version.
+
+```mermaid
+%% title: The four commands
+flowchart LR
+  I["docvia init<br/><i>scaffold docs/ + config</i>"] --> B["docvia build<br/><i>compile once</i>"]
+  I --> D["docvia dev<br/><i>build, then watch</i>"]
+  B --> P["docvia preview<br/><i>serve .docvia/</i>"]
+  D --> P
+```
 
 ## docvia init
 
@@ -51,7 +60,7 @@ docvia build [--docs <dir>] [--out <dir>] [--config <path>] [--no-cache]
 | `--docs <dir>` | from config | Override `sourceDir`. |
 | `--out <dir>` | from config | Override `outDir`. |
 | `--config <path>` | `./docvia.config.ts` | Path to the config file. |
-| `--no-cache` | — | Disable the incremental cache; force a full rebuild. |
+| `--no-cache` | none | Disable the incremental cache; force a full rebuild. |
 
 `build` loads the config, then compiles every file to the module graph in
 `outDir` and persists `.docvia.cache.json`. It fails with a `CONFIG_ERROR` if
@@ -75,14 +84,14 @@ docvia dev [--docs <dir>] [--out <dir>] [--config <path>]
 
 `dev` does an initial build, then watches both `sourceDir` and the config file
 on a single long-lived `CompileService`. Each change recompiles only the
-affected files through the service's incremental `invalidate()` — a full
+affected files through the service's incremental `invalidate()`, so a full
 rebuild is not repeated per change. A config change recreates the service. An
-initial-build failure does not stop the watcher — fix the error and save again.
+initial-build failure does not stop the watcher; fix the error and save again.
 `Ctrl+C` shuts the watcher down cleanly.
 
 > `docvia dev` is a standalone watcher for the `.docvia/` output. When docvia
 > is embedded in a Vite or Next.js app, the framework integration runs the
-> compile core in-process and handles watching itself — see
+> compile core in-process and handles watching itself. See
 > [Framework integration](/docs/guide/frameworks).
 
 ## docvia preview
@@ -99,8 +108,7 @@ docvia preview [--out <dir>] [-p <port>]
 | `-p, --port <port>` | `4173` | Port to listen on. |
 
 `preview` serves `outDir` over `sirv`. It is a sanity check for the compiled
-module graph only — it is not a runtime. Use a framework integration for a real
-site.
+module graph, not a runtime. Use a framework integration for a real site.
 
 ## Programmatic use
 

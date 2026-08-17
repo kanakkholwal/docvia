@@ -72,7 +72,7 @@ Edge cases:
 - An empty or whitespace-only frontmatter block yields `data: {}` and the body that follows.
 - If the parsed YAML is not an object (for example, a bare scalar), `data` falls back to `{}`.
 
-Failure modes — both throw a `docviaError` with code `SCHEMA_ERROR`:
+Failure modes, both of which throw a `docviaError` with code `SCHEMA_ERROR`:
 
 | Condition | Error message | Location |
 | --- | --- | --- |

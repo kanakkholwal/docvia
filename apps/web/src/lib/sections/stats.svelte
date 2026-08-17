@@ -15,7 +15,7 @@ const stats = [
 		<h2
 			class="mx-auto mt-4 max-w-2xl font-display text-[28px] leading-[1.2] tracking-[-0.025em] text-ink sm:text-[40px] sm:leading-[1.3333]"
 		>
-			Nothing to meter, nothing to trust us with.
+			What the compiler guarantees
 		</h2>
 	</div>
 

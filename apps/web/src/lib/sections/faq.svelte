@@ -23,24 +23,12 @@ const faqs = [
 		a: "Most Markdown tools either parse at request time (slow, large bundles) or at build time without caching (slow rebuilds). docvia parses, sanitizes, and transforms once at build time, persists a content-addressable cache, and emits a typed module graph the bundler can tree-shake.",
 	},
 	{
-		q: "How are incremental builds handled?",
-		a: "A .docvia.cache.json file stores per-file content hashes alongside the config and plugin cache keys. Files whose hashes are unchanged are skipped; the rest go through the full pipeline. The cache is invalidated automatically when the tool, config, or plugin set changes.",
-	},
-	{
-		q: "How do I extend the frontmatter schema?",
-		a: "Pass a Zod object as the frontmatter option in defineConfig. docvia merges it with the built-in schema, validates every page at build time, and generates a typed Frontmatter interface for each collection in types.d.ts.",
-	},
-	{
 		q: "Does it ship a Markdown parser to the browser?",
 		a: "No. The parser, sanitizer, and IR transformer all run at build time. The browser receives pre-rendered output plus, optionally, the Orama search index for client-side search.",
 	},
 	{
 		q: "Is it production ready?",
 		a: "v0.1 is a public preview. The core compiler, CLI, and integrations are stable enough to use in real projects, but APIs may shift before v1.0. Each release ships with a changeset describing what changed.",
-	},
-	{
-		q: "What's the licence?",
-		a: "MIT, for every package in the workspace: the compiler, the CLI, the renderers, and the plugins.",
 	},
 ];
 </script>

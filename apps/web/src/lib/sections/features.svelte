@@ -92,11 +92,11 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
 			>
-				Static output. Any host. Your VPC.
+				Deploy the build artifact anywhere
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
-				No proprietary runtime, no required cloud. Drop the build artifact on
-				Vercel, Cloudflare, an S3 bucket, or your own infrastructure.
+				There is no proprietary runtime and no required cloud. Drop the build
+				artifact on Vercel, Cloudflare, an S3 bucket, or your own boxes.
 			</p>
 			<ul class="mt-auto grid grid-cols-2 gap-1.5 text-[14px] text-body-strong">
 				{#each deployTargets as host}
@@ -116,7 +116,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
 			>
-				Your schema. Your types. Auto-generated.
+				Frontmatter types generated from your Zod schema
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
 				Define frontmatter with Zod once. docvia emits a typed Frontmatter
@@ -140,7 +140,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
 			>
-				Rebuild changed pages. Skip everything else.
+				Incremental rebuilds gated by a content hash
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
 				Content-addressable cache keyed on source, frontmatter, config, and
@@ -203,7 +203,7 @@ const cell = "flex flex-col gap-5 bg-canvas p-5 sm:p-10";
 			<h3
 				class="font-display text-[24px] leading-[1.1667] text-ink"
 			>
-				Fast local search. Your AI keys.
+				Client-side search with optional semantic ranking
 			</h3>
 			<p class="text-[16px] leading-[1.75] text-body">
 				Section-level Orama indexing ships client-side. Add semantic search

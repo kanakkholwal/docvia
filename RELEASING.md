@@ -36,7 +36,7 @@ publishing automatically once changesets land on `main`.
 **Not published** (4 private workspaces, ignored by `.changeset/config.json`):
 
 ```
-@docvia/web   @docvia/docs   demo-next   demo-svelte
+@docvia/web   @docvia/docs-redirect   demo-next   demo-svelte
 ```
 
 ---

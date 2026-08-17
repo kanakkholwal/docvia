@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 30
 ---
 
-`@docvia/source` defines the runtime data model that frameworks use to consume compiled docvia documentation. It declares the page, collection, and page-tree types and the `createCollection` / `createSource` factories that the generated `.docvia/source.ts` file relies on. It contains **no Markdown loader** — under the in-place architecture the host bundler's `?docvia` transform compiles each `.md` file as a module, and these factories just wire those modules into collections.
+`@docvia/source` defines the runtime data model that frameworks use to consume compiled docvia documentation. It declares the page, collection, and page-tree types and the `createCollection` / `createSource` factories that the generated `.docvia/source.ts` file relies on. It contains **no Markdown loader**. Under the in-place architecture the host bundler's `?docvia` transform compiles each `.md` file as a module, and these factories just wire those modules into collections.
 
 ## Install
 
@@ -17,11 +17,11 @@ pnpm add @docvia/source
 
 | Subpath | Contents | Notes |
 |---|---|---|
-| `.` | Re-exports `./runtime` | The default entry — **types only**, no runtime values. **Does not** re-export the `./internal` factories. |
+| `.` | Re-exports `./runtime` | The default entry: **types only**, no runtime values. **Does not** re-export the `./internal` factories. |
 | `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, `HydrationManifest`. |
 | `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated `.docvia/source.ts`. |
 
-> `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly — the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
+> `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly, because the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
 
 This package ships no binary.
 
@@ -125,9 +125,9 @@ interface docviaCollection<TFrontmatter = unknown, _TRouteKey extends string = s
 | Member | Signature | Behavior |
 |---|---|---|
 | `ready` | `() => Promise<void>` | Resolves page metadata, so the synchronous members below return real data. No-op on the server (metadata is already in hand); required on the browser build before reading `getPages` / `pageTree`. |
-| `getPage` | `(slugs) => Promise<docviaPage \| undefined>` | Resolves a single page by slug segments. Returns `undefined` when no page matches. Always accurate — it awaits the page module regardless of build. |
-| `getPages` | `() => Array<{ slugs, url, data }>` | Lightweight listing of every page, without loading content. `data` is the page's full frontmatter, including any custom fields your schema defines. Synchronous — see `ready`. |
-| `pageTree` | getter `=> PageTree.Root` | The navigation tree as a property. Synchronous — see `ready`. |
+| `getPage` | `(slugs) => Promise<docviaPage \| undefined>` | Resolves a single page by slug segments. Returns `undefined` when no page matches. Always accurate, since it awaits the page module regardless of build. |
+| `getPages` | `() => Array<{ slugs, url, data }>` | Lightweight listing of every page, without loading content. `data` is the page's full frontmatter, including any custom fields your schema defines. Synchronous; see `ready`. |
+| `pageTree` | getter `=> PageTree.Root` | The navigation tree as a property. Synchronous; see `ready`. |
 | `getPageTree` | `() => PageTree.Root` | The navigation tree as a method (equivalent to `pageTree`). |
 | `generateParams` | `(slug?) => Record<TSlug, string[]>[]` | Produces route params for static generation, keyed by the given `slug` name. |
 
@@ -210,7 +210,7 @@ const docs = createCollection({
   name: "docs",
   baseUrl: "/",
   routeKeys: ["index", "getting-started", "guides/install"],
-  // `?docvia` is compiled in place by the bundler — content lives in the .md
+  // `?docvia` is compiled in place by the bundler; content lives in the .md
   getModule: (slug) => import(`../src/docs/${slug}.md?docvia`),
   // eager metadata for the page tree / getPages()
   getEagerModules: () => _modules.docs,
@@ -242,9 +242,10 @@ const same = await docviaSource.collections.docs.getPage(["getting-started"]);
 > [!WARNING]
 > **Importing a collection is server-only.** `virtual:docvia/source` statically
 > imports *every* compiled page so that `getPages()` and `pageTree` have their
-> metadata up front. Import it from a universal module — a SvelteKit `+page.ts`,
-> a client component — and your entire content set is bundled into the browser,
-> which defeats the bundle-size benefit the compiler exists to provide.
+> metadata up front. Import it from a universal module, such as a SvelteKit
+> `+page.ts` or a client component, and your entire content set is bundled into
+> the browser, which defeats the bundle-size benefit the compiler exists to
+> provide.
 >
 > Read it from server-only modules (`+page.server.ts`, `+layout.server.ts`, a
 > React Server Component, `getStaticProps`). If you genuinely need a collection
@@ -257,7 +258,7 @@ const same = await docviaSource.collections.docs.getPage(["getting-started"]);
 
 On the server the page metadata is in hand synchronously, so `getPages()` and
 `pageTree` are correct on first read. On the **browser** build it is resolved
-through a dynamic import per page and cannot be produced synchronously — reading
+through a dynamic import per page and cannot be produced synchronously, so reading
 those two before it lands yields slug-derived titles and alphabetical ordering
 (and logs a warning). Await `ready()` first:
 
@@ -267,4 +268,4 @@ const tree = docs.pageTree; // real titles, frontmatter order
 ```
 
 `ready()` resolves immediately on the server, so universal code can always await
-it. `getPage()` is unaffected — it awaits the page module either way.
+it. `getPage()` is unaffected, since it awaits the page module either way.

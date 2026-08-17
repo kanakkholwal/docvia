@@ -29,7 +29,7 @@ const logos = [
 	     centred meta label. -->
 	<div class="mx-auto max-w-page px-5 pt-12 pb-8 sm:px-10">
 		<h2 class="font-display text-[20px] leading-7 text-ink">
-			Markdown in. Your framework out.
+			Works with the toolchain you already have
 		</h2>
 	</div>
 

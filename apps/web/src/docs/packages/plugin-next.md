@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 41
 ---
 
-`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/docs/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and — in development — starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
+`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/docs/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and, in development, starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
 
 ## Install
 
@@ -59,16 +59,16 @@ On the first invocation, `withDocvia` runs an `init()` step exactly once (the re
 
 Failure handling depends on `phase`:
 
-- In a **production build**, a compile failure is rethrown — the Next.js build fails loudly.
+- In a **production build**, a compile failure is rethrown, so the Next.js build fails loudly.
 - In **development**, a compile failure is tolerated so the dev server can still start.
 
 #### Development watcher
 
-In dev, `withDocvia` starts a **singleton** watcher over the source directory. Only one watcher is created regardless of how many times the config function runs. Each change recompiles only the affected files through `service.invalidate()` and re-emits the module graph — incremental, not a full rebuild.
+In dev, `withDocvia` starts a **singleton** watcher over the source directory. Only one watcher is created regardless of how many times the config function runs. Each change recompiles only the affected files through `service.invalidate()` and re-emits the module graph incrementally rather than rebuilding everything.
 
 #### Returned config
 
-The returned `NextConfig` registers two resolve aliases for **both bundlers** — Next.js may run on webpack or Turbopack, and docvia resolves under either:
+The returned `NextConfig` registers two resolve aliases for **both bundlers**, since Next.js may run on webpack or Turbopack and docvia resolves under either:
 
 | Alias | Target |
 |---|---|
@@ -78,9 +78,9 @@ The returned `NextConfig` registers two resolve aliases for **both bundlers** �
 
 The aliases are added to a `webpack()` hook *and* to `turbopack.resolveAlias`. Any `webpack()` hook already present on your config is preserved and composed.
 
-It also registers a `.md?docvia` loader for both bundlers (a `module.rules` entry on webpack, a `turbopack.rules` entry on Turbopack) so each Markdown file is compiled as a module **in place** — content lives once in the `.md`, with no emitted JSON.
+It also registers a `.md?docvia` loader for both bundlers (a `module.rules` entry on webpack, a `turbopack.rules` entry on Turbopack) so each Markdown file is compiled as a module **in place**: content lives once in the `.md`, with no emitted JSON.
 
-> The on-disk module graph is used for both webpack and Turbopack — Turbopack has no plugin API, so there is a single resolution path.
+> The on-disk module graph is used for both webpack and Turbopack. Turbopack has no plugin API, so there is a single resolution path.
 
 ## Usage
 

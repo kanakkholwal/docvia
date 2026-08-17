@@ -1,0 +1,51 @@
+{
+	"name": "@docvia/plugin-mermaid",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"import": "./dist/index.mjs",
+			"default": "./dist/index.mjs"
+		}
+	},
+	"main": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch --no-clean",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@docvia/ir": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"typescript": "^5.9.3"
+	},
+	"description": "Build-time Mermaid diagram plugin for docvia",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/plugin-mermaid"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia",
+		"mermaid",
+		"diagrams"
+	]
+}

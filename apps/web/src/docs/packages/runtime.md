@@ -1,11 +1,11 @@
 ---
 title: "@docvia/runtime"
-description: "CompileService — the stateful compile core shared by the build, the dev server, and SSR."
+description: "CompileService: the stateful compile core shared by the build, the dev server, and SSR."
 eyebrow: "Packages"
 order: 15
 ---
 
-`@docvia/runtime` is the heart of docvia. It exposes **`CompileService`**, a
+`@docvia/runtime` is docvia's compile core. It exposes **`CompileService`**, a
 stateful, long-lived object that holds the resolved config, the plugin runner,
 the incremental cache, and the in-memory module graph for the lifetime of a
 process.
@@ -14,12 +14,12 @@ Every docvia mode drives this one service, which is why build, dev, and
 request-time output never drift apart:
 
 - [`@docvia/compiler`](/docs/packages/compiler)'s `compile()` is a thin wrapper over
-  `CompileService` — a behaviour-identical batch build.
+  `CompileService`, giving a behaviour-identical batch build.
 - [`@docvia/plugin-vite`](/docs/packages/plugin-vite) and
   [`@docvia/plugin-next`](/docs/packages/plugin-next) run the service in-process for
   incremental dev compilation.
 - [`@docvia/ssr`](/docs/packages/ssr) renders documents resolved through the service
-  — a live `CompileService` is itself a valid `ContentSource`, so it can be
+  A live `CompileService` is itself a valid `ContentSource`, so it can be
   passed straight to `createDocviaSSR({ provider })`.
 
 > `@docvia/runtime` is the engine, not a public-facing API surface. Most
@@ -36,7 +36,7 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 ## Why a stateful service?
 
-The original `compile()` was batch, stateless, and disk-based — fine for a
+The original `compile()` was batch, stateless, and disk-based. That suits a
 one-shot build, but a poor fit for a dev server that needs to recompile a
 single changed file, or for SSR that needs to render one document on demand.
 
@@ -86,7 +86,7 @@ and a full reload (`routeMapChanged`).
 
 ## See also
 
-- [Architecture](/docs/guide/architecture) — how the compile core fits the three
+- [Architecture](/docs/guide/architecture): how the compile core fits the three
   run modes.
-- [`@docvia/compiler`](/docs/packages/compiler) — the batch build wrapper.
-- [`@docvia/ssr`](/docs/packages/ssr) — request-time rendering.
+- [`@docvia/compiler`](/docs/packages/compiler): the batch build wrapper.
+- [`@docvia/ssr`](/docs/packages/ssr): request-time rendering.

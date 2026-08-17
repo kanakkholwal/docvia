@@ -32,28 +32,28 @@ editor completion on every field.
 |---|---|---|---|
 | `sourceDir` | `string` | `"docs"` | Directory of Markdown source files. |
 | `outDir` | `string` | `".docvia"` | Where the generated module graph is written. |
-| `renderer` | `RendererAdapter` | — | Required at build time. Use `createReactRenderer(...)` or `createSvelteRenderer(...)`. |
+| `renderer` | `RendererAdapter` | none | Required at build time. Use `createReactRenderer(...)` or `createSvelteRenderer(...)`. |
 | `plugins` | `docviaPlugin[]` | `[]` | Pipeline plugins, sorted by phase then priority. |
-| `components` | `Record<string, ComponentConfig>` | — | Components referenced by `:::name` directives. |
+| `components` | `Record<string, ComponentConfig>` | none | Components referenced by `:::name` directives. |
 | `collections` | `CollectionConfig[]` | one default `docs` collection | One or more named source roots. |
-| `frontmatter` | `z.ZodObject` | — | Extends the built-in frontmatter schema. |
+| `frontmatter` | `z.ZodObject` | none | Extends the built-in frontmatter schema. |
 | `markdown.remarkPlugins` | `unknown[]` | `[]` | Extra remark plugins inserted into the parse pipeline. |
 | `theme.name` | `string` | `"default"` | UI theme name. |
 | `theme.options` | `Record<string, unknown>` | `{}` | Theme-specific options. |
 
-> **Syntax highlighting is a plugin.** Add the
-> [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) plugin — `shiki({ theme, langs })`
-> — to `plugins`. It highlights every code block at build time and bakes the
-> HTML into the IR, so no highlighter ships to the browser. Highlighting is no
-> longer a renderer option.
+> **Syntax highlighting is a plugin.** Add
+> [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` as
+> `shiki({ theme, langs })`. It highlights every code block at build time and
+> bakes the HTML into the IR, so no highlighter ships to the browser.
+> Highlighting is no longer a renderer option.
 >
 > A `syntax` config block (`syntax.highlighter` / `syntax.theme` / `syntax.langs`)
 > still exists in the config schema for backward compatibility, but it no longer
-> drives highlighting — configure the `shiki()` plugin instead.
+> drives highlighting. Configure the `shiki()` plugin instead.
 
 ## Renderers
 
-The `renderer` field is required for `docvia build` to succeed — a build with
+The `renderer` field is required for `docvia build` to succeed; a build with
 no renderer throws a `CONFIG_ERROR`. Choose the adapter that matches your app:
 
 ```ts
@@ -64,13 +64,13 @@ renderer: createReactRenderer();
 ```
 
 ```ts
-// Svelte — note the /node subpath, the build-time entry
+// Svelte: use the /node subpath, the build-time entry
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 renderer: createSvelteRenderer();
 ```
 
-Syntax highlighting is no longer a renderer option — add the
+Syntax highlighting is no longer a renderer option. Add the
 [`shiki()`](/docs/packages/plugin-shiki) plugin to `plugins` instead.
 
 See [`@docvia/renderer-react`](/docs/packages/renderer-react) and
@@ -81,7 +81,7 @@ API.
 
 By default docvia compiles a single collection named `docs`, rooted at
 `sourceDir` and served from `/`. Define `collections` to compile several named
-source roots — for example, separate guides and an API reference:
+source roots, for example separate guides and an API reference:
 
 ```ts
 collections: [
@@ -100,16 +100,16 @@ against this base schema:
 
 | Field | Type | Default | Required |
 |---|---|---|---|
-| `title` | `string` | — | yes |
+| `title` | `string` | none | yes |
 | `description` | `string` | `""` | no |
 | `tags` | `string[]` | `[]` | no |
 | `draft` | `boolean` | `false` | no |
-| `order` | `number` | — | no |
+| `order` | `number` | none | no |
 | `slug` | `string` | derived from path | no |
 
 The base schema uses `.passthrough()`, so any additional keys you write are
-preserved and available on `page.data` — they are simply untyped unless you
-extend the schema.
+preserved and available on `page.data`. They are untyped unless you extend the
+schema.
 
 ## Extending the frontmatter schema
 
@@ -137,7 +137,7 @@ A file that omits a required custom field now fails the build with a
 ## Components
 
 Register components once under `components` and docvia generates the runtime
-registry — you do not repeat the wiring in every route.
+registry, so you do not repeat the wiring in every route.
 
 ```ts
 components: {

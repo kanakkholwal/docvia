@@ -99,7 +99,7 @@ HMR, and serves them from the `load` hook for production builds too. The config 
 (`createSvelteRenderer` from `@docvia/renderer-svelte/node`). Consume pages in a
 catch-all route via `docs.getPage(...)` and render them with the `Renderer`
 component from `@docvia/renderer-svelte`. See
-[`examples/demo-svelte`](./examples/demo-svelte) and [`apps/docs`](./apps/docs)
+[`examples/demo-svelte`](./examples/demo-svelte) and [`apps/web`](./apps/web)
 for working setups.
 
 ### Next.js
