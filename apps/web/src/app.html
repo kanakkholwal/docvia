@@ -4,15 +4,21 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#0d0d11" />
+		<meta name="theme-color" content="#16171d" />
+		<link
+			rel="preload"
+			href="%sveltekit.assets%/fonts/satoshi-variable.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin
+		/>
 		<script>
-			// Inline theme bootstrap — runs before paint to avoid a flash.
+			// Inline theme bootstrap, runs before paint to avoid a flash. Dark is
+			// the canonical theme; light is opt-in via the toggle only.
 			(() => {
 				try {
 					const stored = localStorage.getItem("docvia-theme");
-					const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-					const theme = stored ?? (prefersDark ? "dark" : "light");
-					document.documentElement.setAttribute("data-theme", theme);
+					document.documentElement.setAttribute("data-theme", stored ?? "dark");
 				} catch {}
 			})();
 		</script>

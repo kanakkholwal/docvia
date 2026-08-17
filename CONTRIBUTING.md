@@ -22,8 +22,8 @@ output of others, so tests and the dev servers expect it to exist.
 | Path | What it is |
 |---|---|
 | `packages/*` | The published `@docvia/*` packages (compiler, CLI, renderers, plugins). |
-| `apps/web` | Marketing/landing site (SvelteKit + Tailwind + shadcn-svelte). |
-| `apps/docs` | Documentation site (SvelteKit + docvia). |
+| `apps/web` | Marketing site **and** the documentation at `/docs` (SvelteKit + Tailwind + docvia). Markdown lives in `apps/web/src/docs/`. |
+| `apps/docs` | Redirect-only Worker keeping `docs.docvia.dev` pointed at `docvia.dev/docs`. |
 | `examples/demo-next` | End-to-end React/Next.js example. |
 | `examples/demo-svelte` | End-to-end Svelte/SvelteKit example. |
 
@@ -35,11 +35,10 @@ need them.
 
 | Script | What it watches |
 |---|---|
-| `pnpm dev` | All packages + both apps (`apps/web`, `apps/docs`) |
+| `pnpm dev` | All packages + `apps/web` |
 | `pnpm dev:packages` | Only `packages/*` (compiler, CLI, renderers, …) |
-| `pnpm dev:apps` | Only `apps/*` (landing + docs site) |
-| `pnpm dev:web` | Only `apps/web` |
-| `pnpm dev:docs` | Only `apps/docs` |
+| `pnpm dev:apps` | Only `apps/*` |
+| `pnpm dev:web` | Only `apps/web` (landing + docs) |
 | `pnpm dev:examples` | Both example demos (`demo-next`, `demo-svelte`) |
 | `pnpm dev:next` | Only `examples/demo-next` |
 | `pnpm dev:svelte` | Only `examples/demo-svelte` |

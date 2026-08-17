@@ -16,7 +16,6 @@
 		"dev:packages": "turbo run dev --filter=\"./packages/*\" --concurrency=20",
 		"dev:apps": "turbo run dev --filter=\"./apps/*\" --concurrency=10",
 		"dev:web": "turbo run dev --filter=@docvia/web",
-		"dev:docs": "turbo run dev --filter=@docvia/docs",
 		"dev:examples": "turbo run dev --filter=\"./examples/*\" --concurrency=10",
 		"dev:next": "turbo run dev --filter=demo-next",
 		"dev:svelte": "turbo run dev --filter=demo-svelte",

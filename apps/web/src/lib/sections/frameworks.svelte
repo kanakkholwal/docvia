@@ -25,13 +25,15 @@ const logos = [
 </script>
 
 <section class="border-b border-hairline bg-canvas">
-	<div class="px-6 pt-10 pb-8 md:px-10">
-		<p class="text-center text-[13px] font-medium tracking-wide text-muted">
-			Markdown in. Your framework out.
-		</p>
+	<!-- vite.dev's equivalent row is a left-aligned 20px display heading, not a
+	     centred meta label. -->
+	<div class="mx-auto max-w-page px-5 pt-12 pb-8 sm:px-10">
+		<h2 class="font-display text-[20px] leading-7 text-ink">
+			Works with the toolchain you already have
+		</h2>
 	</div>
 
-	<div class="marquee pb-10" aria-hidden="true">
+	<div class="marquee pb-12" aria-hidden="true">
 		<div class="marquee-track">
 			{#each [...logos, ...logos] as logo}
 				<span class="logo">
@@ -92,8 +94,10 @@ const logos = [
 		color: var(--muted);
 		transition: color var(--motion-base) var(--ease-out);
 	}
-	.logo:hover {
-		color: var(--ink);
+	@media (hover: hover) and (pointer: fine) {
+		.logo:hover {
+			color: var(--ink);
+		}
 	}
 	@keyframes marquee {
 		to {

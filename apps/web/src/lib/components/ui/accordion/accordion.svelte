@@ -1,5 +1,6 @@
 <script lang="ts">
 import { ChevronDown } from "@lucide/svelte";
+import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 import { cn } from "$lib/utils";
 
@@ -16,7 +17,7 @@ let isOpen = $state(open);
 
 <div
 	class={cn(
-		"border-b border-border/60 last:border-b-0",
+		"border-b border-hairline last:border-b-0",
 		className,
 	)}
 >
@@ -24,22 +25,22 @@ let isOpen = $state(open);
 		type="button"
 		aria-expanded={isOpen}
 		onclick={() => (isOpen = !isOpen)}
-		class="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors duration-[var(--motion-fast)] hover:text-accent"
+		class="flex w-full items-center justify-between gap-4 py-5 text-left text-ink transition-colors duration-(--motion-fast) ease-out hover:text-brand-ink"
 	>
-		<span class="font-display text-base font-medium tracking-tight md:text-lg">
+		<span class="text-[16px] font-medium leading-[1.35] md:text-[17px]">
 			{question}
 		</span>
 		<ChevronDown
 			class={cn(
-				"h-5 w-5 shrink-0 text-fg-muted transition-transform duration-[var(--motion-base)]",
-				isOpen && "rotate-180 text-accent",
+				"h-5 w-5 shrink-0 text-muted transition-transform duration-(--motion-base) ease-out",
+				isOpen && "rotate-180 text-brand-ink",
 			)}
 		/>
 	</button>
 	{#if isOpen}
 		<div
-			transition:slide={{ duration: 200 }}
-			class="pb-5 pr-8 text-sm leading-relaxed text-fg-muted"
+			transition:slide={{ duration: 200, easing: cubicOut }}
+			class="pb-5 pr-8 text-[15px] leading-[1.7] text-body"
 		>
 			{@render children?.()}
 		</div>

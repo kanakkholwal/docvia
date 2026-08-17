@@ -21,16 +21,12 @@ const steps = [
 ];
 </script>
 
-<section id="quickstart" class="border-b border-hairline bg-canvas scroll-mt-16">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
-		<div class="mb-16 max-w-3xl">
-			<span
-				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
-			>
-				Quickstart
-			</span>
+<section id="quickstart" class="border-b border-hairline bg-canvas scroll-mt-20">
+	<div class="mx-auto max-w-page px-5 py-14 sm:px-10 sm:py-28">
+		<div class="mb-14 text-center">
+			<span class="label-meta">Quickstart</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
+				class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 			>
 				Zero to compiled in under a minute.
 			</h2>
@@ -39,19 +35,19 @@ const steps = [
 		<ol class="mx-auto grid max-w-3xl gap-3">
 			{#each steps as { step, cmd, label }}
 				<li
-					class="flex flex-col gap-3 rounded-lg bg-surface-card p-5 sm:flex-row sm:items-center"
+					class="flex flex-col gap-3 rounded-md border border-hairline bg-surface-soft p-5 sm:flex-row sm:items-center"
 				>
 					<span
-						class="font-mono text-[11px] font-semibold uppercase tracking-widest text-brand-ink sm:w-10"
+						class="font-mono text-[11px] font-semibold tracking-[0.08em] text-brand-ink sm:w-10"
 					>
 						{step}
 					</span>
 					<code
-						class="flex-1 rounded-md bg-canvas px-3 py-2 font-mono text-[14px] text-ink"
+						class="flex-1 rounded-md border border-hairline bg-canvas px-3 py-2 font-mono text-[14px] text-ink"
 					>
 						{cmd}
 					</code>
-					<span class="text-[14px] text-body sm:max-w-[18rem]">
+					<span class="text-[14px] leading-normal text-body sm:max-w-[18rem]">
 						{label}
 					</span>
 				</li>
@@ -59,8 +55,8 @@ const steps = [
 		</ol>
 
 		<div class="mt-10 text-center">
-			<Button variant="ghost" href="https://docs.docvia.dev/getting-started">
-				Read the full guide
+			<Button variant="ghost" href="/docs/getting-started">
+				Read the getting-started guide
 				<ArrowRight />
 			</Button>
 		</div>

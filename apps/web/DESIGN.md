@@ -1,85 +1,195 @@
-# docvia — Design tokens (source of truth)
+---
+version: alpha
+name: Vite Dark
+description: A high-contrast developer-focused dark system with vivid violet accents and restrained editorial typography.
+colors:
+  primary: "#B39AFF"
+  primary-strong: "#8E57FF"
+  secondary: "#16171D"
+  tertiary: "#374151"
+  neutral: "#FFFFFF"
+  neutral-muted: "#C7CAD1"
+  surface: "#1B1C23"
+  surface-raised: "#20212A"
+  on-surface: "#FFFFFF"
+  border: "#343545"
+  border-strong: "#4B4A5D"
+  error: "#EF4444"
+typography:
+  headline-display:
+    fontFamily: "APK Protocol"
+    fontSize: "60px"
+    fontWeight: 500
+    lineHeight: 1.12
+    letterSpacing: "-0.05em"
+  headline-lg:
+    fontFamily: "APK Protocol"
+    fontSize: "48px"
+    fontWeight: 500
+    lineHeight: 1
+    letterSpacing: "-0.025em"
+  headline-md:
+    fontFamily: "APK Protocol"
+    fontSize: "40px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  headline-sm:
+    fontFamily: "Inter"
+    fontSize: "18px"
+    fontWeight: 500
+    lineHeight: 1.22
+    letterSpacing: "0em"
+  body-lg:
+    fontFamily: "Inter"
+    fontSize: "18px"
+    fontWeight: 400
+    lineHeight: 1.56
+    letterSpacing: "0em"
+  body-md:
+    fontFamily: "Inter"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.75
+    letterSpacing: "0em"
+  body-sm:
+    fontFamily: "Inter"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.6
+    letterSpacing: "0em"
+  label-lg:
+    fontFamily: "Inter"
+    fontSize: "16px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "0em"
+  label-md:
+    fontFamily: "Inter"
+    fontSize: "14px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "0.01em"
+  label-sm:
+    fontFamily: "Inter"
+    fontSize: "12px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "0.04em"
+  code-md:
+    fontFamily: "Inter"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.6
+    letterSpacing: "0em"
+rounded:
+  none: 0px
+  sm: 4px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  full: 9999px
+spacing:
+  xs: 12px
+  sm: 24px
+  md: 40px
+  lg: 80px
+  xl: 112px
+components:
+  button-primary:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.neutral}"
+    typography: "{typography.label-lg}"
+    rounded: "{rounded.md}"
+    padding: "8px 16px"
+    height: "38px"
+  button-primary-hover:
+    backgroundColor: "{colors.surface-raised}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+  button-secondary:
+    backgroundColor: "{colors.secondary}"
+    textColor: "{colors.neutral}"
+    typography: "{typography.label-lg}"
+    rounded: "{rounded.md}"
+    padding: "8px 16px"
+    height: "38px"
+  button-tertiary:
+    backgroundColor: "transparent"
+    textColor: "{colors.neutral}"
+    typography: "{typography.label-lg}"
+    rounded: "{rounded.md}"
+    padding: "8px 16px"
+    height: "38px"
+  card:
+    backgroundColor: "{colors.secondary}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  input:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+    padding: "12px 14px"
+    height: "40px"
+  chip:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.neutral-muted}"
+    rounded: "{rounded.full}"
+    padding: "4px 10px"
+  code-block:
+    backgroundColor: "{colors.secondary}"
+    textColor: "{colors.neutral}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+---
 
-> This file supersedes the earlier Clay.com-inspired spec. The cream canvas and
-> the 6-color saturated card palette have been retired — they read as
-> "AI-generated / web-poster." The system is now **monochrome + one accent**.
->
-> For the full design system (typography, spacing, motion, components, page
-> archetypes) see the root [`DESIGN.md`](../../DESIGN.md). This file documents the
-> exact color / radius tokens as implemented in `apps/web/src/app.css` and
-> `apps/docs/src/app.css` (the two files are kept byte-identical in their token
-> blocks).
+# Vite Dark
 
 ## Overview
+Vite’s visual language is dark, technical, and confident, with a strong developer-tool personality. It feels spacious and editorial rather than dense, using a large hero headline, restrained copy, and prominent violet accents to signal speed and innovation. The overall tone is professional but energetic, balancing utility with a polished launch-brand aesthetic.
 
-The base atmosphere is a **cool-neutral canvas** (`--canvas` — `#ffffff` light /
-`#0a0a0a` dark) holding ink type, with a single **electric lime** (`--brand` —
-`#c6f24e`) as the only brand voltage. The lime is used **scarcely** at the element
-level (status dots, active states, one accent detail per card, the featured tier)
-and **generously** in exactly one place: the full-bleed lime pre-footer CTA band.
-That scarcity-then-abundance is what gives the lime its punch.
+## Colors
+- **Primary (#B39AFF):** A luminous violet used for active states, highlights, focus moments, and the signature glow of the brand. It gives the interface a future-facing, energetic feel without overpowering the content.
+- **Primary-Strong (#8E57FF):** A deeper electric violet for hover states, emphasis strokes, and layered gradients where a more saturated accent is needed.
+- **Secondary (#16171D):** The core near-black canvas that defines the site’s dark theme. It supports a calm, low-noise reading environment and makes light text and accents feel crisp.
+- **Surface (#1B1C23):** Slightly lifted from the background, this token is useful for panels, buttons, and code surfaces that need separation without breaking the dark mood.
+- **Surface-Raised (#20212A):** A subtle raised layer for interactive surfaces, hover feedback, and cards that need a touch more depth.
+- **Neutral (#FFFFFF):** Pure white used for the highest-contrast text, primary CTA labels, and key navigation items.
+- **Neutral-Muted (#C7CAD1):** Soft gray text for supporting copy, meta labels, and secondary interface content.
+- **Border (#343545):** The understated divider color for cards, code containers, nav rules, and structural boundaries.
+- **Border-Strong (#4B4A5D):** A slightly clearer divider for selected or more prominent edges.
+- **Error (#EF4444):** Reserved for validation and destructive states; it should stay visually separate from the brand violet.
 
-Primary CTAs are **ink** (near-black fill, white text), never the lime — so the
-accent never has to carry a button on a light surface. Feature and use-case cards
-are uniform neutral `--surface-card` panels with a hairline border; the old
-per-card color cycle is gone.
+## Typography
+Headlines use **APK Protocol**, giving the brand a compact, modern, slightly geometric character. The display hierarchy is strong and editorial: `headline-display` and `headline-lg` are large, tightly tracked, and weighted at 500 to create a crisp, product-launch feel rather than a heavy marketing look.
 
-### Key characteristics
+Body and UI text use **Inter**, which keeps the interface highly legible and familiar for developer audiences. `body-md` is the default reading size, while `label-lg`, `label-md`, and `label-sm` support navigation, buttons, tabs, and metadata with a medium weight for clarity. Letter spacing stays mostly neutral, with only small positive tracking on smaller labels to improve clarity; uppercase treatment should be used sparingly, mainly for compact meta or utility contexts.
 
-- Cool-neutral (zinc) surfaces — no warm/cream tint. Light is canonical; dark is a
-  near-pure-black inversion.
-- One accent: electric lime `#c6f24e`. Pair fills with `--on-brand` (`#0a0a0a`)
-  text; for lime-colored *text/icons* use `--brand-ink` (dark lime on light,
-  bright lime on dark) so it stays legible.
-- Ink primary CTAs (`--accent` aliases to `--ink`). The lime is not a button color.
-- Uniform neutral cards (`--surface-card` + `--hairline`), one lime detail each.
-- The featured pricing tier is a near-black `--surface-dark` card with lime accents
-  — premium, not toy.
-- Exactly one large lime moment per page: the closing `cta` band.
-- Tightened radii (buttons 8px, cards 12px, panels 16px). Pills/dots stay full.
-- Generous section rhythm retained: `--space-section` (96px) between bands.
+## Layout & Spacing
+The layout is built around a wide, fixed-max-width hero container with clear vertical sections and strong structural dividers. The page breathes: large left/right padding, generous hero spacing, and a visible rhythm between navigation, hero, social proof, and content blocks. Use the spacing scale as a simple progression from `xs` 12px and `sm` 24px to `md` 40px, `lg` 80px, and `xl` 112px for major section breaks and large compositional gaps.
 
-## Color tokens
+Cards, terminal/code blocks, and grouped UI elements should use compact internal padding, typically 16px to 24px, while primary sections need much larger outer spacing. Horizontal rules and borders are preferred over dense shadow stacking, which keeps the page feeling crisp and engineered.
 
-See the token tables in the root [`DESIGN.md` § 2](../../DESIGN.md). Summary:
+## Elevation & Depth
+Depth is intentionally minimal and mostly achieved through tonal layering, thin borders, and contrast rather than shadow. The interface uses a nearly flat treatment overall, with `card` and `code-block` surfaces distinguished by subtle boundary lines and slight surface variation instead of dramatic elevation. Where motion or prominence is needed, use the violet accent and stronger contrast rather than heavy shadows.
 
-| Group | Tokens |
-|---|---|
-| Surface | `--canvas` · `--surface-soft` · `--surface-card` · `--surface-strong` · `--surface-dark` · `--surface-dark-elevated` |
-| Text | `--ink` · `--body-strong` · `--body` · `--muted` · `--muted-soft` · `--on-primary` |
-| Border | `--hairline` · `--hairline-strong` |
-| Brand | `--brand` · `--brand-strong` · `--brand-ink` · `--brand-soft` · `--on-brand` · `--check` |
-| Dark-panel text (absolute) | `--card-on-dark` (`#ffffff`) · `--card-on-light` (`#09090b`) |
-| Semantic | `--success` · `--warning` · `--error` |
+## Shapes
+The shape language is clean and moderately rounded, with 8px corners as the default. Buttons, cards, inputs, and code panels all feel softly engineered rather than pill-shaped or sharply angular. Reserve `rounded.full` for compact chips or badges where a more capsule-like treatment is appropriate.
 
-Every token is exposed to Tailwind as `bg-*` / `text-* / border-*` via
-`@theme inline` (e.g. `bg-brand`, `text-brand-ink`, `bg-surface-card`, `text-check`).
+## Components
+Buttons should be crisp, compact, and text-forward. `button-primary` and `button-secondary` both use `rounded.md`, 8px vertical padding, and 16px horizontal padding, with a fixed 38px height for consistency. Primary actions should feel slightly more prominent through surface contrast and hover treatment (`button-primary-hover`), while secondary and tertiary buttons remain restrained and low-chrome. Avoid oversized button chrome; the emphasis should come from spacing, contrast, and typography, not decoration.
 
-### Usage rules
+Cards use `card` styling: dark surface, 1px border, 8px radius, and 16px padding. They should look like contained functional modules rather than lifted sheets. Inputs should follow the same visual language as cards, with dark backgrounds, clear text, and modest padding so they blend into the system. Chips use `rounded.full` and compact padding for tag-like metadata, especially in navigation, filters, and utility areas.
 
-- **Do** reserve `--brand` for dots, active states, one detail per card, the
-  featured tier accents, and the single CTA band.
-- **Do** use `--brand-ink` for any lime-colored text or icon (never raw `--brand`
-  as text on a light surface — it fails contrast).
-- **Do** keep primary CTAs on `--ink`.
-- **Don't** reintroduce a second brand hue or a per-card color cycle.
-- **Don't** put a large lime fill anywhere except the closing CTA band.
-- **Don't** use a warm/cream surface — surfaces are cool neutral.
+Code blocks and terminal panels should feel utilitarian and precise, with subtle surface differences and a quiet border. Tabs or segmented controls, if used, should stay low-contrast and rely on spacing and underline/active indicators instead of heavy fill. Icons should be monochrome by default, with violet reserved for active or branded emphasis.
 
-## Radius tokens
-
-| Token | Value | Use |
-|---|---|---|
-| `--radius-xs` | 4px | Badge accents, syntax chips |
-| `--radius-sm` | 6px | Inline pills, tags |
-| `--radius-md` | 8px | Buttons, inputs, render-target chips |
-| `--radius-lg` | 12px | Feature / use-case / edition cards, code blocks |
-| `--radius-xl` | 16px | Hero panel, CTA band, modals |
-| `--radius-pill` | 9999px | Nav pill, badges, status dots, avatars |
-
-## Spacing & typography
-
-Unchanged. Spacing scale (`--space-xxs` 4px … `--space-section` 96px) and the Geist
-sans / Geist Mono type stack carry over. Display headlines are `.font-display`
-(Geist 600, `-0.025em` tracking). See root [`DESIGN.md`](../../DESIGN.md) for the
-full type scale, motion, and component specs.
+## Do's and Don'ts
+- Do keep the interface dark, restrained, and high-contrast, using white and muted grays for legibility.
+- Do use violet sparingly but decisively for active states, highlights, and brand moments.
+- Do preserve generous whitespace and large typographic hierarchy in hero areas.
+- Do favor thin borders and surface shifts over shadows for separation.
+- Don't introduce bright or saturated secondary hues that compete with the primary violet.
+- Don't make buttons overly tall, glossy, or heavily shadowed.
+- Don't compress the layout into dense blocks; the system should feel spacious and intentional.
+- Don't use rounded corners larger than the established 8px pattern except for pills and chips.

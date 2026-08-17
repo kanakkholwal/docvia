@@ -27,23 +27,18 @@ export default defineConfig({
 });`;
 </script>
 
-<section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-16">
+<section id="how-it-works" class="border-b border-hairline bg-surface-soft scroll-mt-20">
 	<div
-		class="mx-auto grid max-w-7xl gap-16 px-6 py-24 md:px-10 md:py-24 lg:grid-cols-2 lg:items-center lg:gap-12"
+		class="mx-auto grid max-w-page gap-14 px-5 py-14 sm:px-10 sm:py-28 lg:grid-cols-2 lg:items-center lg:gap-12"
 	>
 		<div>
-			<span
-				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
-			>
-				The pipeline
-			</span>
+			<span class="label-meta">The pipeline</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-[48px] lg:leading-[1.08]"
-				style="letter-spacing: -0.03em;"
+				class="mt-4 font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 			>
 				A compiler, not a renderer.
 			</h2>
-			<p class="mt-6 max-w-xl text-lg leading-[1.55] text-body">
+			<p class="mt-6 max-w-xl text-[18px] leading-7 text-body">
 				docvia treats your docs the way a modern bundler treats source code:
 				hash, transform, cache, emit. Six stages, parallelized across cores,
 				gated by a content-addressable cache.
@@ -53,38 +48,37 @@ export default defineConfig({
 				{#each stages as stage, i}
 					<li class="flex items-start gap-4">
 						<span
-							class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-surface-card font-mono text-xs font-semibold text-body-strong"
+							class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-hairline bg-surface-card font-mono text-[11px] font-semibold text-muted"
 						>
 							{String(i + 1).padStart(2, "0")}
 						</span>
 						<div>
-							<div
-								class="font-display text-[16px] font-medium text-ink"
-								style="letter-spacing: -0.01em;"
-							>
+							<div class="text-[16px] font-medium leading-[1.22] text-ink">
 								{stage.name}
 							</div>
-							<div class="text-[14px] text-body">{stage.body}</div>
+							<div class="mt-0.5 text-[14px] leading-[1.6] text-body">
+								{stage.body}
+							</div>
 						</div>
 					</li>
 				{/each}
 			</ol>
 
 			<a
-				href="https://docs.docvia.dev/guide/architecture"
-				class="mt-10 inline-flex items-center gap-1.5 text-[14px] font-semibold text-ink underline underline-offset-4 hover:text-body-strong"
+				href="/docs/guide/architecture"
+				class="group mt-10 inline-flex items-center gap-1.5 text-[15px] font-medium text-brand-ink underline underline-offset-4 transition-colors duration-(--motion-fast) ease-out hover:text-brand-hover"
 			>
 				Read the architecture overview
-				<ArrowRight class="h-4 w-4" />
+				<ArrowRight
+					class="h-4 w-4 transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
+				/>
 			</a>
 		</div>
 
 		<!-- Code window -->
-		<div
-			class="overflow-hidden rounded-lg border border-hairline bg-canvas"
-		>
+		<div class="overflow-hidden rounded-md border border-hairline bg-canvas">
 			<div
-				class="flex items-center border-b border-hairline bg-surface-card/60 px-2 text-[12px]"
+				class="flex items-center border-b border-hairline bg-surface-card px-2 text-[12px]"
 			>
 				<button
 					class="flex items-center gap-1.5 border-r border-hairline bg-canvas px-3 py-2 font-mono text-ink"
@@ -93,12 +87,12 @@ export default defineConfig({
 					docvia.config.ts
 				</button>
 				<button
-					class="px-3 py-2 font-mono text-muted hover:text-ink"
+					class="px-3 py-2 font-mono text-muted transition-colors duration-(--motion-fast) ease-out hover:text-ink"
 				>
 					schema.ts
 				</button>
 				<button
-					class="px-3 py-2 font-mono text-muted hover:text-ink"
+					class="px-3 py-2 font-mono text-muted transition-colors duration-(--motion-fast) ease-out hover:text-ink"
 				>
 					app.tsx
 				</button>
@@ -106,7 +100,7 @@ export default defineConfig({
 			<pre
 				class="overflow-x-auto p-5 font-mono text-[13px] leading-[1.6] text-ink"><code>{codeConfig}</code></pre>
 			<div
-				class="flex items-center justify-between border-t border-hairline bg-surface-card/60 px-4 py-2 text-[11px] font-mono text-muted"
+				class="flex items-center justify-between border-t border-hairline bg-surface-card px-4 py-2 text-[11px] font-mono text-muted"
 			>
 				<span>typescript · 18 lines</span>
 				<span class="flex items-center gap-1.5">

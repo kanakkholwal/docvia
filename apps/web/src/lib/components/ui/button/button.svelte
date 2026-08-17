@@ -2,22 +2,25 @@
 import { tv, type VariantProps } from "tailwind-variants";
 
 export const buttonVariants = tv({
-	base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors duration-[var(--motion-fast)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+	base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 	variants: {
 		variant: {
-			primary:
-				"bg-accent text-accent-fg hover:bg-accent/90 active:bg-accent/95 shadow-sm",
-			secondary:
-				"bg-bg-muted text-fg hover:bg-bg-muted/80 border border-border",
-			ghost: "text-fg hover:bg-bg-muted",
-			outline: "border border-border-strong bg-bg text-fg hover:bg-bg-muted",
-			link: "text-accent underline-offset-4 hover:underline",
+			// vite.dev's "Get Started" is white-on-canvas, not the violet. Violet
+			// stays an accent (prompts, active states, links).
+			primary: "bg-action text-on-action hover:bg-action-hover",
+			secondary: "bg-surface-soft text-ink hover:bg-surface-card",
+			ghost: "text-body hover:bg-surface-soft hover:text-ink",
+			outline:
+				"border border-control-border bg-transparent text-ink hover:bg-surface-soft",
+			brand: "bg-brand text-on-brand hover:bg-brand-hover",
+			link: "text-brand-ink underline-offset-4 hover:underline",
 		},
 		size: {
-			sm: "h-8 px-3 text-sm",
-			default: "h-9 px-4 text-sm",
-			lg: "h-11 px-6 text-base",
-			icon: "h-9 w-9",
+			// 38px / 8px radius / 8-16px padding / 16px-500 label, measured.
+			sm: "h-8 px-3 text-[14px]",
+			default: "h-9.5 px-4 text-[16px]",
+			lg: "h-11 px-5 text-[16px]",
+			icon: "h-9.5 w-9.5",
 		},
 	},
 	defaultVariants: {

@@ -23,14 +23,6 @@ const faqs = [
 		a: "Most Markdown tools either parse at request time (slow, large bundles) or at build time without caching (slow rebuilds). docvia parses, sanitizes, and transforms once at build time, persists a content-addressable cache, and emits a typed module graph the bundler can tree-shake.",
 	},
 	{
-		q: "How are incremental builds handled?",
-		a: "A .docvia.cache.json file stores per-file content hashes alongside the config and plugin cache keys. Files whose hashes are unchanged are skipped; the rest go through the full pipeline. The cache is invalidated automatically when the tool, config, or plugin set changes.",
-	},
-	{
-		q: "How do I extend the frontmatter schema?",
-		a: "Pass a Zod object as the frontmatter option in defineConfig. docvia merges it with the built-in schema, validates every page at build time, and generates a typed Frontmatter interface for each collection in types.d.ts.",
-	},
-	{
 		q: "Does it ship a Markdown parser to the browser?",
 		a: "No. The parser, sanitizer, and IR transformer all run at build time. The browser receives pre-rendered output plus, optionally, the Orama search index for client-side search.",
 	},
@@ -38,30 +30,22 @@ const faqs = [
 		q: "Is it production ready?",
 		a: "v0.1 is a public preview. The core compiler, CLI, and integrations are stable enough to use in real projects, but APIs may shift before v1.0. Each release ships with a changeset describing what changed.",
 	},
-	{
-		q: "What's the licence?",
-		a: "MIT, for every package in the workspace: the compiler, the CLI, the renderers, and the plugins.",
-	},
 ];
 </script>
 
-<section id="faq" class="border-b border-hairline bg-surface-soft scroll-mt-16">
-	<div class="mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-24">
-		<div class="mb-12 max-w-3xl">
-			<span
-				class="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted"
-			>
-				FAQ
-			</span>
+<section id="faq" class="border-b border-hairline bg-surface-soft scroll-mt-20">
+	<div class="mx-auto max-w-page px-5 py-14 sm:px-10 sm:py-28">
+		<div class="mb-12 text-center">
+			<span class="label-meta">FAQ</span>
 			<h2
-				class="mt-4 font-display text-4xl text-ink md:text-5xl lg:text-display-2 lg:leading-[1.05]"
+				class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
 			>
 				Frequently asked questions.
 			</h2>
 		</div>
 
 		<div
-			class="mx-auto max-w-3xl divide-y divide-hairline rounded-lg border border-hairline bg-canvas px-6"
+			class="mx-auto max-w-3xl rounded-md border border-hairline bg-canvas px-6"
 		>
 			{#each faqs as faq, i}
 				<Accordion question={faq.q} open={i === 0}>
