@@ -17,7 +17,8 @@
 			"!**/build",
 			"!**/coverage",
 			"!**/docvia-env.d.ts",
-			"!**/CHANGELOG.md"
+			"!**/CHANGELOG.md",
+			"!**/baby-ui.registry.css"
 		]
 	},
 	"formatter": {

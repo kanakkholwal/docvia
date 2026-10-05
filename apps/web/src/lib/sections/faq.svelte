@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Accordion } from "#lib/components/ui/accordion/index.ts";
+import * as Accordion from "#lib/components/ui/accordion/index.ts";
 
 // Every answer here is checked against the code. No claim goes in that a
 // reader could not verify by opening the repo.
@@ -50,14 +50,23 @@ const faqs = [
 			</h2>
 		</div>
 
-		<div
-			class="mx-auto max-w-3xl rounded-md border border-hairline bg-canvas px-6"
+		<Accordion.Root
+			type="single"
+			value="faq-0"
+			class="mx-auto max-w-3xl rounded-md bg-canvas"
 		>
 			{#each faqs as faq, i}
-				<Accordion question={faq.q} open={i === 0}>
-					<p>{faq.a}</p>
-				</Accordion>
+				<Accordion.Item value={`faq-${i}`}>
+					<Accordion.Trigger
+						class="px-6 py-5 text-[16px] leading-[1.35] text-ink md:text-[17px]"
+					>
+						{faq.q}
+					</Accordion.Trigger>
+					<Accordion.Content class="px-6 pr-14 pb-5 text-[15px] leading-[1.7] text-body">
+						<p>{faq.a}</p>
+					</Accordion.Content>
+				</Accordion.Item>
 			{/each}
-		</div>
+		</Accordion.Root>
 	</div>
 </section>

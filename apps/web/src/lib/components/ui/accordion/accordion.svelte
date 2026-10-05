@@ -1,48 +1,57 @@
 <script lang="ts">
-import { ChevronDown } from "@lucide/svelte";
-import { cubicOut } from "svelte/easing";
-import { slide } from "svelte/transition";
-import { cn } from "#lib/utils.ts";
+import { Accordion as AccordionPrimitive } from "bits-ui";
+import type { Snippet } from "svelte";
+import { cn } from "#lib/cn.js";
 
-type Props = {
-	question: string;
-	open?: boolean;
+let {
+	children,
+	type = "single",
+	collapsible: _collapsible,
+	value = $bindable(),
+	onValueChange,
+	class: classProp,
+	...rest
+}: {
+	children?: Snippet;
+	type?: "single" | "multiple";
+	/** Ignored: bits-ui's single mode always allows closing the open item. Kept so
+	 * existing callers passing `collapsible={false}` still compile. */
+	collapsible?: boolean;
+	/** The open item in single mode, the open items in multiple mode. Bindable. */
+	value?: string | string[];
+	onValueChange?: (value: string | string[]) => void;
 	class?: string;
-	children?: import("svelte").Snippet;
-};
+} = $props();
 
-let { question, open = false, class: className, children }: Props = $props();
-let isOpen = $state(open);
+const rootClass = $derived(
+	cn("divide-y divide-border overflow-hidden rounded-xl border border-border", classProp),
+);
+
+function commit(next: string | string[]) {
+	value = next;
+	onValueChange?.(next);
+}
 </script>
 
-<div
-	class={cn(
-		"border-b border-hairline last:border-b-0",
-		className,
-	)}
->
-	<button
-		type="button"
-		aria-expanded={isOpen}
-		onclick={() => (isOpen = !isOpen)}
-		class="flex w-full items-center justify-between gap-4 py-5 text-left text-ink transition-colors duration-(--motion-fast) ease-out hover:text-brand-ink"
+<!-- bits-ui fixes `type` when the root mounts, so each mode is its own root with its own value shape. -->
+{#if type === "multiple"}
+	<AccordionPrimitive.Root
+		{...rest}
+		type="multiple"
+		bind:value={() => (Array.isArray(value) ? value : value ? [value] : []), commit}
+		data-slot="accordion"
+		class={rootClass}
 	>
-		<span class="text-[16px] font-medium leading-[1.35] md:text-[17px]">
-			{question}
-		</span>
-		<ChevronDown
-			class={cn(
-				"h-5 w-5 shrink-0 text-muted transition-transform duration-(--motion-base) ease-out",
-				isOpen && "rotate-180 text-brand-ink",
-			)}
-		/>
-	</button>
-	{#if isOpen}
-		<div
-			transition:slide={{ duration: 200, easing: cubicOut }}
-			class="pb-5 pr-8 text-[15px] leading-[1.7] text-body"
-		>
-			{@render children?.()}
-		</div>
-	{/if}
-</div>
+		{@render children?.()}
+	</AccordionPrimitive.Root>
+{:else}
+	<AccordionPrimitive.Root
+		{...rest}
+		type="single"
+		bind:value={() => (Array.isArray(value) ? (value[0] ?? "") : (value ?? "")), commit}
+		data-slot="accordion"
+		class={rootClass}
+	>
+		{@render children?.()}
+	</AccordionPrimitive.Root>
+{/if}
