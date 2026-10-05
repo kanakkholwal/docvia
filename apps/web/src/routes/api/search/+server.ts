@@ -1,5 +1,5 @@
-import { source } from "#lib/source.ts";
 import { createFromSource, createSearchHandler } from "@docvia/search";
+import { source } from "#lib/source.ts";
 import type { RequestHandler } from "./$types";
 
 // Built once per Worker instance from compile-time `structuredData`: no filesystem, no index dump.

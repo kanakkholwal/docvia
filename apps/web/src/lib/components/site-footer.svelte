@@ -1,73 +1,74 @@
 <script lang="ts">
-import Brand from "#lib/components/brand.svelte";
+import { RollText } from "#lib/components/text/roll-text/index.ts";
+import { VERSION } from "#lib/version.ts";
+import { ArrowUp } from "@lucide/svelte";
 
 const columns = [
 	{
-		heading: "Product",
+		title: "Product",
 		links: [
-			{ label: "Features", href: "/#features" },
-			{ label: "How it works", href: "/#how-it-works" },
+			{ label: "Why docvia", href: "/#why" },
+			{ label: "Renderers", href: "/#renderers" },
+			{ label: "Numbers", href: "/#numbers" },
 			{ label: "Quickstart", href: "/#quickstart" },
-			{ label: "FAQ", href: "/#faq" },
 		],
 	},
 	{
-		heading: "Resources",
+		title: "Docs",
 		links: [
-			{ label: "Documentation", href: "/docs" },
 			{ label: "Getting started", href: "/docs/getting-started" },
-			{ label: "Config reference", href: "/docs/guide/configuration" },
-			{ label: "Plugins", href: "/docs/packages/plugins" },
-			{ label: "Changelog", href: "https://github.com/kanakkholwal/docvia/releases" },
+			{ label: "Configuration", href: "/docs/guide/configuration" },
+			{ label: "Architecture", href: "/docs/guide/architecture" },
+			{ label: "Packages", href: "/docs/packages" },
 		],
 	},
 	{
-		heading: "Community",
+		title: "Community",
 		links: [
 			{ label: "GitHub", href: "https://github.com/kanakkholwal/docvia" },
 			{ label: "npm", href: "https://www.npmjs.com/org/docvia" },
-			{ label: "Report an issue", href: "https://github.com/kanakkholwal/docvia/issues" },
-			{ label: "Discussions", href: "https://github.com/kanakkholwal/docvia/discussions" },
+			{ label: "Issues", href: "https://github.com/kanakkholwal/docvia/issues" },
+			{ label: "Changelog", href: "https://github.com/kanakkholwal/docvia/releases" },
 		],
 	},
 ];
+
+function toTop() {
+	const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+	window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+	document.getElementById("main")?.focus({ preventScroll: true });
+}
 </script>
 
-<footer class="relative border-t border-hairline bg-surface-soft">
-	<div class="mx-auto max-w-page border-x border-hairline px-5 pt-20 sm:px-10 md:pt-24">
-		<!-- Brand + tagline. The social icon row that used to sit here linked to
-		     GitHub, npm and Discussions — the same three destinations, in the same
-		     order, as the Community column below it. -->
-		<div class="flex flex-col gap-5 border-b border-hairline pb-12">
-			<Brand size="lg" />
-			<p class="max-w-md text-[16px] leading-[1.6] text-body">
-				The build-time documentation compiler. Open source,
-				framework-agnostic, self-host anywhere.
+<footer class="mx-auto w-full max-w-page px-5 pb-10 sm:px-10 lg:px-16">
+	<div class="grid grid-cols-2 gap-x-6 gap-y-10 border-t border-dashed border-hairline-strong pt-10 sm:grid-cols-[1.4fr_1fr_1fr_1fr]">
+		<div class="col-span-2 flex flex-col gap-3 sm:col-span-1">
+			<p class="font-pixel text-2xl text-ink">docvia.</p>
+			<p class="max-w-64 text-sm text-pretty text-muted">
+				Markdown docs, built into your React or Svelte app. No second site to host.
 			</p>
+			<p class="font-mono text-xs text-muted tabular-nums">CLI v{VERSION} · packages MIT</p>
 		</div>
-
-		<div class="grid gap-10 py-12 md:grid-cols-3 md:gap-8">
-			{#each columns as column (column.heading)}
-				<div>
-					<h4 class="label-meta mb-4">{column.heading}</h4>
-					<ul class="space-y-2.5 text-[15px]">
-						{#each column.links as link (link.href)}
-							<li>
-								<a
-									href={link.href}
-									class="text-body transition-colors duration-(--motion-fast) ease-out hover:text-ink"
-								>
-									{link.label}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</div>
-			{/each}
-		</div>
-
-		<div class="border-t border-hairline pt-6 pb-10 text-[13px] text-muted">
-			<span>© {new Date().getFullYear()} docvia · Released under the MIT licence.</span>
-		</div>
+		{#each columns as col}
+			<nav aria-label={col.title} class="dim-list flex flex-col gap-2.5 text-sm">
+				<p class="font-mono text-xs text-muted">{col.title}</p>
+				{#each col.links as link}
+					<a
+						href={link.href}
+						class="group/roll w-fit text-muted transition-colors duration-(--duration-fast) hover:text-ink"
+						{...link.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {}}
+					>
+						<RollText text={link.label} groupHover size="sm" class="cursor-[inherit]" />
+					</a>
+				{/each}
+			</nav>
+		{/each}
+	</div>
+	<div class="mt-12 flex items-center justify-between gap-4 font-mono text-xs text-muted">
+		<span>© {new Date().getFullYear()} docvia</span>
+		<button type="button" onclick={toTop} class="group/roll inline-flex items-center gap-1 transition-colors hover:text-ink">
+			<RollText text="Back to top" groupHover size="sm" class="cursor-[inherit] text-xs" />
+			<ArrowUp class="size-3.5 transition-transform duration-(--duration-fast) ease-(--ease-out) group-hover/roll:-translate-y-0.5" />
+		</button>
 	</div>
 </footer>

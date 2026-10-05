@@ -13,7 +13,8 @@ export default defineConfig({
 	plugins: [
 		mermaid(),
 		shiki({
-			theme: "github-dark",
+			themes: { light: "github-light", dark: "github-dark" },
+			defaultColor: false,
 			langs: [
 				"javascript",
 				"typescript",

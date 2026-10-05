@@ -32,7 +32,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 		});
 		if (!configPath) {
 			log.warn(
-				`No ${c.cyan("docvia.config.ts")} found; using defaults (no renderer).`,
+				`No ${c.brand("docvia.config.ts")} found; using defaults (no renderer).`,
 			);
 		} else if (verbose) {
 			step("config", rel(configPath), performance.now() - tConfig);

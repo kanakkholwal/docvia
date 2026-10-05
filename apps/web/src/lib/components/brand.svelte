@@ -29,7 +29,7 @@ const d = $derived(dims[size]);
 	href="/"
 	aria-label="docvia home"
 	class={cn(
-		"inline-flex w-fit items-center text-ink transition-opacity duration-(--motion-fast) ease-out hover:opacity-80",
+		"inline-flex w-fit items-center text-ink transition-opacity duration-(--duration-fast) ease-out hover:opacity-80",
 		d.gap,
 		className,
 	)}

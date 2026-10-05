@@ -5,6 +5,12 @@ import type { NodeRenderer, RendererMap, RenderOutput } from "./types";
 
 let warnedUnhighlighted = false;
 
+/** Appended to every code block; `installCopyButtons()` from `@docvia/renderer-core/client` wires it. */
+export const COPY_BUTTON_HTML =
+	'<button type="button" class="docvia-copy" data-docvia-copy aria-label="Copy code">Copy</button>';
+
+const copyButton: RenderOutput = { kind: "html", value: COPY_BUTTON_HTML };
+
 /** Wrap a titled block: ```ts title="a.ts" -> figure > figcaption + block. */
 function withTitle(block: RenderOutput, title: unknown): RenderOutput {
 	if (typeof title !== "string" || title === "") return block;
@@ -31,8 +37,8 @@ const renderCodeBlock: NodeRenderer = async (n, ctx) => {
 		return {
 			kind: "element",
 			tag: "div",
-			props: { class: "docvia-code-block" },
-			children: [{ kind: "html", value: prehighlighted }],
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
+			children: [{ kind: "html", value: prehighlighted + COPY_BUTTON_HTML }],
 			id: n.id,
 		};
 	}
@@ -46,7 +52,7 @@ const renderCodeBlock: NodeRenderer = async (n, ctx) => {
 		return {
 			kind: "element",
 			tag: "pre",
-			props: { class: "docvia-code-block" },
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
 			children: [
 				{
 					kind: "element",
@@ -54,6 +60,7 @@ const renderCodeBlock: NodeRenderer = async (n, ctx) => {
 					props: n.props.lang ? { "data-lang": n.props.lang as string } : {},
 					children: [{ kind: "text", value: n.props.value as string }],
 				},
+				copyButton,
 			],
 			id: n.id,
 		};
@@ -66,8 +73,8 @@ const renderCodeBlock: NodeRenderer = async (n, ctx) => {
 		return {
 			kind: "element",
 			tag: "div",
-			props: { class: "docvia-code-block" },
-			children: [{ kind: "html", value: res.html }], // Raw HTML injection
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
+			children: [{ kind: "html", value: res.html + COPY_BUTTON_HTML }],
 			id: n.id,
 		};
 	} catch (e) {

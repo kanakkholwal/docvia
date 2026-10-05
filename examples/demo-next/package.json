@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "next build",
-		"dev": "next dev --turbopack",
+		"dev": "cross-env PORTLESS_HTTPS=0 portless",
+		"dev:app": "next dev --turbopack",
 		"start": "next start"
 	},
 	"dependencies": {
@@ -27,5 +28,9 @@
 		"@types/react-dom": "^19.3.0",
 		"typescript": "catalog:",
 		"zod": "^4.6.5"
+	},
+	"portless": {
+		"name": "next.demo.docvia",
+		"script": "dev:app"
 	}
 }

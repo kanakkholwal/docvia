@@ -44,6 +44,32 @@ export default defineConfig({
 });
 ```
 
+## Light and dark themes
+
+Pass `themes` instead of `theme` to highlight with two themes at once. Each
+token then carries both palettes as CSS variables (`--shiki-light`,
+`--shiki-dark`), and each block gets `--shiki-light-bg` and `--shiki-dark-bg`.
+
+```ts
+shiki({
+  themes: { light: "github-light", dark: "github-dark" },
+  defaultColor: false,
+});
+```
+
+`defaultColor` is passed to Shiki. `"light"` (Shiki's default) or `"dark"`
+also writes that theme's colors inline; `false` emits only the variables, so
+your CSS picks the palette:
+
+```css
+pre.shiki { background-color: var(--shiki-light-bg); }
+pre.shiki span { color: var(--shiki-light); }
+[data-theme="dark"] pre.shiki { background-color: var(--shiki-dark-bg); }
+[data-theme="dark"] pre.shiki span { color: var(--shiki-dark); }
+```
+
+Switching the site theme then needs no re-highlight.
+
 ## How it works
 
 1. The plugin's `beforeRender` hook receives the document IR.
@@ -55,9 +81,9 @@ export default defineConfig({
 5. The renderer's `code-block` renderer prefers that pre-highlighted `props.html`
    over any render-time highlighter.
 
-The plugin's `cacheKey()` is keyed on the theme and language list, so pages
-re-highlight when either changes. Fence titles,
-tabs, and package-manager tabs work with or without Shiki; see
+The plugin's `cacheKey()` is keyed on the theme (or `themes` and
+`defaultColor`) and the regex engine, so pages re-highlight when either
+changes. Fence titles, tabs, and package-manager tabs work with or without Shiki; see
 [Code blocks](/docs/packages/renderer-core#code-blocks).
 
 ## Pluggable highlighting

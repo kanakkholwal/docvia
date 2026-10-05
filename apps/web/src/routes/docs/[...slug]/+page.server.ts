@@ -1,5 +1,5 @@
-import { source } from "#lib/source.ts";
 import { error } from "@sveltejs/kit";
+import { source } from "#lib/source.ts";
 import type { EntryGenerator, PageServerLoad } from "./$types";
 
 // Enumerate every doc slug so the prerenderer knows all [...slug] routes —

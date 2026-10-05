@@ -2,14 +2,23 @@
 // node, so no highlighter ships to the runtime or edge bundle.
 
 import type { docviaPlugin, IRDocument, IRNode } from "@docvia/ir";
-import { bundledLanguages, createHighlighter, type Highlighter } from "shiki";
+import {
+	bundledLanguages,
+	type CodeOptionsThemes,
+	createHighlighter,
+	type Highlighter,
+} from "shiki";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
 const DEFAULT_THEME = "github-dark";
 
 export interface ShikiPluginOptions {
-	/** Shiki theme id. Default: "github-dark". */
+	/** Shiki theme id. Default: "github-dark". Ignored when `themes` is set. */
 	readonly theme?: string;
+	/** Light and dark theme ids; tokens carry both palettes as `--shiki-light` / `--shiki-dark`. */
+	readonly themes?: { readonly light: string; readonly dark: string };
+	/** Shiki's `defaultColor` for `themes`. `false` emits only CSS variables, no inline color. */
+	readonly defaultColor?: "light" | "dark" | false;
 	/**
 	 * Languages to load up front. Any other bundled Shiki language loads on first use;
 	 * unknown languages render as plain text.
@@ -38,7 +47,7 @@ function escapeHtml(str: string): string {
 function highlightTree(
 	nodes: readonly IRNode[],
 	hl: Highlighter,
-	theme: string,
+	themeOptions: CodeOptionsThemes,
 ): IRNode[] {
 	return nodes.map((node): IRNode => {
 		if (node.type === "code-block") {
@@ -46,16 +55,19 @@ function highlightTree(
 			const lang = String(node.props.lang ?? "").trim() || "text";
 			let html: string;
 			try {
-				html = hl.codeToHtml(code, { lang, theme });
+				html = hl.codeToHtml(code, { lang, ...themeOptions });
 			} catch {
-				// Language not preloaded (or other Shiki error) — fall back to
+				// Language not preloaded (or other Shiki error): fall back to
 				// plain text so a single odd code block never breaks the build.
 				html = `<pre><code>${escapeHtml(code)}</code></pre>`;
 			}
 			return { ...node, props: { ...node.props, html } };
 		}
 		if (node.children.length > 0) {
-			return { ...node, children: highlightTree(node.children, hl, theme) };
+			return {
+				...node,
+				children: highlightTree(node.children, hl, themeOptions),
+			};
 		}
 		return node;
 	});
@@ -74,14 +86,19 @@ const hasCode = (nodes: readonly IRNode[]): boolean =>
  * ```
  */
 export function shiki(options: ShikiPluginOptions = {}): docviaPlugin {
+	const { themes, defaultColor } = options;
 	const theme = options.theme ?? DEFAULT_THEME;
+	const themeOptions: CodeOptionsThemes = themes
+		? { themes: { light: themes.light, dark: themes.dark }, defaultColor }
+		: { theme };
+	const themeIds = themes ? [themes.light, themes.dark] : [theme];
 	const langs = [...new Set(options.langs ?? [])];
 
 	// One highlighter per plugin instance, created on the first code block it sees.
 	let highlighterPromise: Promise<Highlighter> | null = null;
 	const getHighlighter = (): Promise<Highlighter> => {
 		highlighterPromise ??= createHighlighter({
-			themes: [theme],
+			themes: themeIds,
 			langs: langs.filter((l) => l in bundledLanguages),
 			...(options.engine === "javascript"
 				? { engine: createJavaScriptRegexEngine({ forgiving: true }) }
@@ -117,16 +134,22 @@ export function shiki(options: ShikiPluginOptions = {}): docviaPlugin {
 	return {
 		name: "@docvia/plugin-shiki",
 		version: "0.1.0",
-		// Highlighting is a finishing step — run after content-shaping plugins.
+		// Highlighting is a finishing step; run after content-shaping plugins.
 		phase: "post",
 		cacheKey() {
-			return `shiki@2|${theme}|${options.engine ?? "oniguruma"}`;
+			const themeKey = themes
+				? `${themes.light}+${themes.dark}+${String(defaultColor)}`
+				: theme;
+			return `shiki@2|${themeKey}|${options.engine ?? "oniguruma"}`;
 		},
 		async beforeRender(doc: IRDocument): Promise<IRDocument> {
 			if (!hasCode(doc.children)) return doc;
 			const hl = await getHighlighter();
 			await ensureLanguages(hl, doc.children);
-			return { ...doc, children: highlightTree(doc.children, hl, theme) };
+			return {
+				...doc,
+				children: highlightTree(doc.children, hl, themeOptions),
+			};
 		},
 	};
 }

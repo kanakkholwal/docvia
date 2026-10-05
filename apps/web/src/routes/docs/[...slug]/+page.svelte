@@ -6,6 +6,7 @@ import { docsRegistry } from "#lib/components/docs/registry.ts";
 import Toc from "#lib/components/docs/toc.svelte";
 import { Renderer } from "@docvia/renderer-svelte";
 import { Pencil } from "@lucide/svelte";
+import { RollText } from "#lib/components/text/roll-text/index.ts";
 import type { PageProps } from "./$types";
 
 let { data }: PageProps = $props();
@@ -38,10 +39,10 @@ const eyebrow = $derived(fm.eyebrow ? String(fm.eyebrow) : undefined);
 		href={data.editUrl}
 		target="_blank"
 		rel="noreferrer"
-		class="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted transition-colors duration-(--motion-fast) hover:text-ink"
+		class="group/roll inline-flex items-center gap-1.5 text-sm text-muted transition-colors duration-(--duration-fast) hover:text-ink"
 	>
-		<Pencil class="h-3.5 w-3.5" />
-		Edit this page on GitHub
+		<Pencil class="size-3.5" />
+		<RollText text="Edit this page on GitHub" groupHover size="sm" class="cursor-[inherit]" />
 	</a>
 </div>
 

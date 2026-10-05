@@ -32,7 +32,7 @@ import type {
 	HydrationEntry,
 	HydrationManifest,
 } from "@docvia/renderer-core";
-import { installCodeGroups } from "@docvia/renderer-core/client";
+import { installCodeGroups, installCopyButtons } from "@docvia/renderer-core/client";
 import React from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 
@@ -66,6 +66,7 @@ export function hydrate(
 ): void {
 	const { ssr = false } = options;
 	installCodeGroups();
+	installCopyButtons();
 
 	for (const entry of manifest) {
 		if (hydrated.has(entry.id)) continue;

@@ -1,0 +1,126 @@
+{
+	"date": "2026-10-05",
+	"source": ".local/bench/results.md",
+	"versions": {
+		"fumadocs-mdx": "15.4.6",
+		"fumadocs-core": "16.16.1",
+		"vite": "8.3.2",
+		"next": "16.3.8"
+	},
+	"machine": {
+		"cpu": "AMD Ryzen 7 7435HS",
+		"ramGB": 16,
+		"os": "win32",
+		"node": "v22.20.0"
+	},
+	"vite": [
+		{
+			"pages": 300,
+			"tool": "fumadocs async",
+			"ready": 385,
+			"firstPage": 2590,
+			"edit": 222,
+			"add": null,
+			"build": 6010,
+			"ssrImport": 69,
+			"heapMB": 8,
+			"renderWarm": 38,
+			"htmlKB": 1658
+		},
+		{
+			"pages": 300,
+			"tool": "docvia svelte",
+			"ready": 713,
+			"firstPage": 1530,
+			"edit": 49,
+			"add": 104,
+			"build": 4030,
+			"ssrImport": 15,
+			"heapMB": 5,
+			"renderWarm": 6,
+			"htmlKB": 873
+		},
+		{
+			"pages": 300,
+			"tool": "docvia react",
+			"ready": 93,
+			"firstPage": 929,
+			"edit": 53,
+			"add": 95,
+			"build": 4000,
+			"ssrImport": 63,
+			"heapMB": 7,
+			"renderWarm": 17,
+			"htmlKB": 843
+		},
+		{
+			"pages": 1500,
+			"tool": "fumadocs async",
+			"ready": 374,
+			"firstPage": 7850,
+			"edit": 778,
+			"add": null,
+			"build": 25460,
+			"ssrImport": 85,
+			"heapMB": 13,
+			"renderWarm": 287,
+			"htmlKB": 8300
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia svelte",
+			"ready": 718,
+			"firstPage": 3320,
+			"edit": 284,
+			"add": 671,
+			"build": 16480,
+			"ssrImport": 31,
+			"heapMB": 9,
+			"renderWarm": 26,
+			"htmlKB": 4372
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia react",
+			"ready": 103,
+			"firstPage": 3340,
+			"edit": 266,
+			"add": 605,
+			"build": 16900,
+			"ssrImport": 93,
+			"heapMB": 11,
+			"renderWarm": 50,
+			"htmlKB": 4222
+		}
+	],
+	"next": [
+		{
+			"pages": 300,
+			"tool": "fumadocs",
+			"build": 48380,
+			"devFirstPage": 15580,
+			"devEdit": 414
+		},
+		{
+			"pages": 300,
+			"tool": "docvia",
+			"build": 20470,
+			"devFirstPage": 13790,
+			"devEdit": 302
+		},
+		{
+			"pages": 1500,
+			"tool": "fumadocs",
+			"build": 52280,
+			"devFirstPage": 26860,
+			"devEdit": 565
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia",
+			"build": 44990,
+			"devFirstPage": 24620,
+			"devEdit": 779
+		}
+	]
+}

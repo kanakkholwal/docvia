@@ -1,14 +1,8 @@
 import type { Plugin } from "vite";
 import { snippets } from "./src/lib/snippets.ts";
 
-// Highlights the landing-page code samples with Shiki during the build and
-// serves the resulting HTML as a virtual module. The same argument docvia makes
-// for docs applies here: no highlighter reaches the browser or the Worker.
-//
-// Dual themes emit `--shiki-light` / `--shiki-dark` custom properties per token
-// rather than baked colours, so one payload serves both themes and the toggle
-// costs nothing. app.css picks the side via [data-theme].
-
+// Highlights landing-page snippets at build with dual themes (--shiki-light / --shiki-dark),
+// so neither the browser nor the Worker ships a highlighter.
 const VIRTUAL_ID = "virtual:docvia-snippets";
 const RESOLVED_ID = `\0${VIRTUAL_ID}`;
 

@@ -33,6 +33,20 @@ export function note(body: string, title?: string): void {
 	out.write(`${lines.join("\n")}\n`);
 }
 
+/** `note`, but lines arrive one by one on an interactive terminal, as on the docvia site. */
+export async function streamNote(body: string, title?: string): Promise<void> {
+	if (!isInteractive() || process.env.CI) {
+		note(body, title);
+		return;
+	}
+	out.write(`${bar()}\n`);
+	if (title) out.write(`${c.green(S.submit)}  ${c.bold(title)}\n`);
+	for (const line of body.split("\n")) {
+		await new Promise((resolve) => setTimeout(resolve, 18));
+		out.write(`${bar(line)}\n`);
+	}
+}
+
 /** A single informational line on the rail. */
 export function message(text: string): void {
 	out.write(`${bar(text)}\n`);
@@ -361,8 +375,8 @@ export function spinner(): Spinner {
 			out.write(cursor.hide);
 			timer = setInterval(() => {
 				frame = (frame + 1) % frames.length;
-				out.write(`\r${c.cyan(frames[frame] ?? "")}  ${label}\x1b[0K`);
-			}, 80);
+				out.write(`\r${c.brand(frames[frame] ?? "")}  ${label}\x1b[0K`);
+			}, 120);
 		},
 		update(msg) {
 			label = msg;

@@ -200,8 +200,8 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	watcher.on("unlink", schedule);
 
 	const watching = configPath
-		? `${c.cyan(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.cyan(rel(configPath))}`
-		: c.cyan(rel(sourceDir));
+		? `${c.brand(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.brand(rel(configPath))}`
+		: c.brand(rel(sourceDir));
 	console.log("");
 	console.log(`  ${c.gray("watching")} ${watching}`);
 	console.log(`  ${c.gray("press Ctrl+C to stop")}`);

@@ -160,8 +160,8 @@ export async function runInit(opts: InitOptions): Promise<void> {
 		} catch (err) {
 			manual.push(
 				project.framework === "next"
-					? `Wrap your Next config: ${c.cyan("export default withDocvia()(config)")} from @docvia/plugin-next`
-					: `Add ${c.cyan("docvia()")} from @docvia/plugin-vite to your Vite plugins`,
+					? `Wrap your Next config: ${c.brand("export default withDocvia()(config)")} from @docvia/plugin-next`
+					: `Add ${c.brand("docvia()")} from @docvia/plugin-vite to your Vite plugins`,
 				c.dim(`(${(err as Error).message})`),
 			);
 		}
@@ -198,17 +198,17 @@ export async function runInit(opts: InitOptions): Promise<void> {
 			} catch (err) {
 				spin.stop("Install failed", false);
 				manual.push(
-					...installCommands(project.pm, deps).map((cmd) => c.cyan(cmd)),
+					...installCommands(project.pm, deps).map((cmd) => c.brand(cmd)),
 				);
 				manual.push(c.dim((err as Error).message));
 			}
 		} else {
 			manual.push(
-				...installCommands(project.pm, deps).map((cmd) => c.cyan(cmd)),
+				...installCommands(project.pm, deps).map((cmd) => c.brand(cmd)),
 			);
 		}
 
-		ui.note(
+		await ui.streamNote(
 			[
 				...written.map((f) => `${c.green("+")} ${f}`),
 				...kept.map((f) => `${c.dim(`= ${f} (kept, use --force to replace)`)}`),
@@ -220,8 +220,8 @@ export async function runInit(opts: InitOptions): Promise<void> {
 		const run = project.pm === "npm" ? "npm run" : project.pm;
 		const next =
 			project.framework === "standalone"
-				? `${c.cyan(`${run} docvia dev`)}  ${c.dim("watch and rebuild content/docs")}`
-				: `${c.cyan(`${run} dev`)}  then open ${c.cyan(devUrl(project))}`;
+				? `${c.brand(`${run} docvia dev`)}  ${c.dim("watch and rebuild content/docs")}`
+				: `${c.brand(`${run} dev`)}  then open ${c.brand(devUrl(project))}`;
 		ui.note(next, "Next");
 		ui.outro(`Done in ${fmtMs(performance.now() - started)}`);
 	} catch (err) {

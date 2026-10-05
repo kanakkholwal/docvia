@@ -15,7 +15,8 @@
 	--primary: var(--action);
 	--primary-foreground: var(--on-action);
 	--primary-hover: var(--action-hover);
-	--secondary: var(--surface-soft);
+	/* baby-ui's secondary is its muted step: 27% L on dark, about 95% on light. */
+	--secondary: var(--surface-strong);
 	--secondary-foreground: var(--ink);
 	--muted-foreground: var(--muted);
 	--input: var(--control-border);
@@ -34,8 +35,19 @@
 	--info-strong: var(--brand-ink);
 	--surface: var(--surface-card);
 	--overlay: var(--surface-card);
+	/* Charts and canvas backgrounds read these; all violet so nothing adds a hue. */
+	--chart-1: var(--brand-strong);
+	--chart-2: var(--brand-deep);
+	--chart-3: var(--brand-hover);
+	--chart-4: var(--brand);
+	--chart-5: var(--brand-soft);
+	--chart-scale-4: var(--brand-deep);
 	--default: color-mix(in oklab, var(--foreground) 6%, transparent);
 	--default-hover: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+[data-theme="light"] {
+	--secondary: var(--surface-card);
 }
 
 /* --- baby-ui motion and depth tokens (non-colour, taken as-is) --- */

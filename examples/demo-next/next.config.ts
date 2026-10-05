@@ -2,4 +2,8 @@ import { withDocvia } from "@docvia/plugin-next";
 
 const withDocs = withDocvia();
 
-export default withDocs({ agentRules: false });
+// portless serves this at next.demo.docvia.localhost; Next only trusts one-label *.localhost by default.
+export default withDocs({
+	agentRules: false,
+	allowedDevOrigins: ["*.demo.docvia.localhost"],
+});

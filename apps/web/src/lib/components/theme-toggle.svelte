@@ -1,38 +1,21 @@
 <script lang="ts">
-import { Moon, Sun } from "@lucide/svelte";
+import { ThemeToggle } from "#lib/components/ui/theme-toggle/index.ts";
 import { onMount } from "svelte";
-import { Button } from "./ui/button";
 
-let theme = $state<"light" | "dark">("dark");
+type Theme = "light" | "dark";
+let theme = $state<Theme>("dark");
 
 onMount(() => {
-	const stored = localStorage.getItem("docvia-theme") as
-		| "light"
-		| "dark"
-		| null;
-	theme =
-		stored ??
-		(document.documentElement.dataset.theme as "light" | "dark") ??
-		"dark";
+	theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
 });
 
-function toggle() {
-	theme = theme === "dark" ? "light" : "dark";
-	document.documentElement.dataset.theme = theme;
-	localStorage.setItem("docvia-theme", theme);
+function apply(next: Theme) {
+	theme = next;
+	document.documentElement.dataset.theme = next;
+	try {
+		localStorage.setItem("docvia-theme", next);
+	} catch {}
 }
 </script>
 
-<Button
-	variant="ghost"
-	size="icon"
-	onclick={toggle}
-	aria-label="Toggle theme"
-	title="Toggle theme"
->
-	{#if theme === "dark"}
-		<Sun />
-	{:else}
-		<Moon />
-	{/if}
-</Button>
+<ThemeToggle {theme} onThemeChange={apply} variant="circle" start="top-right" iconClass="size-4" class="size-9 rounded-lg text-muted transition-[color,background-color] duration-(--duration-fast) hover:bg-ink/[0.06] hover:text-ink" />

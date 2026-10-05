@@ -83,6 +83,71 @@ describe("@docvia/plugin-shiki", () => {
 		expect(html).toContain("DISPLAY");
 	});
 
+	it("keeps single-theme output as inline colors", {
+		timeout: 30000,
+	}, async () => {
+		const plugin = shiki({ theme: "github-dark" });
+		const result = await plugin.beforeRender?.(
+			doc([codeBlock("typescript", "const x = 1;")]),
+		);
+		const html = findCodeBlock(result!.children)?.props.html as string;
+
+		expect(html).toContain("github-dark");
+		expect(html).toContain("background-color:#24292e");
+		expect(html).not.toContain("--shiki-");
+	});
+
+	it("emits light and dark CSS variables for dual themes", {
+		timeout: 30000,
+	}, async () => {
+		const plugin = shiki({
+			themes: { light: "github-light", dark: "github-dark" },
+			defaultColor: false,
+		});
+		const result = await plugin.beforeRender?.(
+			doc([codeBlock("typescript", "const x = 1;")]),
+		);
+		const html = findCodeBlock(result!.children)?.props.html as string;
+
+		expect(html).toContain("shiki-themes github-light github-dark");
+		expect(html).toContain("--shiki-light:");
+		expect(html).toContain("--shiki-dark:");
+		expect(html).toContain("--shiki-light-bg:#fff");
+		expect(html).toContain("--shiki-dark-bg:#24292e");
+		expect(html).not.toMatch(/[;"]color:/);
+	});
+
+	it("passes defaultColor through to Shiki", {
+		timeout: 30000,
+	}, async () => {
+		const plugin = shiki({
+			themes: { light: "github-light", dark: "github-dark" },
+		});
+		const result = await plugin.beforeRender?.(
+			doc([codeBlock("typescript", "const x = 1;")]),
+		);
+		const html = findCodeBlock(result!.children)?.props.html as string;
+
+		expect(html).toContain("background-color:#fff");
+		expect(html).toContain("--shiki-dark:");
+		expect(html).not.toContain("--shiki-light:");
+	});
+
+	it("derives a cache key that changes with dual themes", () => {
+		const dual = (dark: string, defaultColor?: "light" | false) =>
+			shiki({
+				themes: { light: "github-light", dark },
+				defaultColor,
+			}).cacheKey?.();
+
+		expect(dual("github-dark")).toBe(dual("github-dark"));
+		expect(dual("github-dark")).not.toBe(dual("one-dark-pro"));
+		expect(dual("github-dark")).not.toBe(dual("github-dark", false));
+		expect(dual("github-dark")).not.toBe(
+			shiki({ theme: "github-light" }).cacheKey?.(),
+		);
+	});
+
 	it("derives a cache key that changes with the theme", () => {
 		expect(shiki({ theme: "github-dark" }).cacheKey?.()).toBe(
 			shiki({ theme: "github-dark" }).cacheKey?.(),

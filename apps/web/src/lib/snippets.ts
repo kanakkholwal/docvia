@@ -4,7 +4,7 @@ export type Snippet = { lang: string; code: string };
 export const snippets = {
 	"config.ts": {
 		lang: "typescript",
-		code: `import { defineConfig } from "@docvia/cli";
+		code: `import { defineConfig } from "@docvia/plugin-vite";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -55,8 +55,19 @@ export default async function DocPage({ params }) {
 
 <!-- Same compiled IR the React adapter renders. -->
 <article>
-  <Renderer nodes={data.page.content} />
+  <Renderer nodes={data.content} />
 </article>`,
+	},
+	"search-worker.ts": {
+		lang: "typescript",
+		code: `import { createFromSource, createSearchHandler } from "@docvia/search";
+import { source } from "$lib/source";
+
+// Built once per Worker isolate from compile-time data. No filesystem, no index file.
+let handler: Promise<(request: Request) => Promise<Response>> | undefined;
+
+export const GET = async ({ request }) =>
+  (await (handler ??= createFromSource(source).then(createSearchHandler)))(request);`,
 	},
 	frontmatter: {
 		lang: "typescript",

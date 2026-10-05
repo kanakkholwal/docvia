@@ -1,10 +1,4 @@
-// Visual vocabulary for the interactive CLI toolkit.
-//
-// The look is a left-hand "rail" — a vertical │ that connects every step of a
-// flow, opened by ┌ (intro) and closed by └ (outro). It reads as one continuous
-// panel instead of a stream of disconnected log lines. Everything here is a few
-// box-drawing glyphs plus the colors from `logger` — no dependency, no bundle
-// cost, and a consistent style build/dev already share.
+// The CLI look: a │ rail from ┌ to └, the same glyphs and colors the docvia site shows.
 import { c } from "../logger";
 
 /** Step lifecycle — drives which glyph and color a prompt's header shows. */
@@ -28,8 +22,8 @@ export const S = {
 	checkOff: "◻",
 	// Inline separators.
 	pointer: "›",
-	// Spinner frames (braille — smooth and widely supported).
-	spinner: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+	// Quarter-circle spinner, matching the site's terminal.
+	spinner: ["◒", "◐", "◓", "◑"],
 } as const;
 
 /** Raw cursor-control sequences (bare — callers write these to stdout). */
@@ -47,7 +41,7 @@ export function bar(text = ""): string {
 export function stepGlyph(status: StepStatus): string {
 	if (status === "submit") return c.green(S.submit);
 	if (status === "cancel") return c.red(S.cancel);
-	return c.cyan(S.active);
+	return c.brand(S.active);
 }
 
 /** A prompt's header line: `◆  Message`. */
@@ -68,6 +62,6 @@ export function summary(
 	message: string,
 	value: string,
 ): string {
-	const shown = status === "cancel" ? c.dim(value) : c.cyan(value);
+	const shown = status === "cancel" ? c.dim(value) : c.brand(value);
 	return `${head(status, message)}  ${c.dim(S.pointer)} ${shown}\n${bar()}`;
 }

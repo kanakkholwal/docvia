@@ -51,17 +51,9 @@ const groups = $derived<Group[]>(
 
 let toggled = $state<Record<string, boolean>>({});
 
-function holdsActive(group: Group): boolean {
-	return (
-		group.overview?.url === activeUrl ||
-		group.pages.some((p) => p.url === activeUrl)
-	);
-}
-
-// Default open state follows the URL so the server and client agree and no
-// group flashes shut on hydration. An explicit toggle outranks it.
+// Every group starts open so the whole docs are one scan away; an explicit toggle wins.
 function isOpen(group: Group): boolean {
-	return toggled[group.name] ?? holdsActive(group);
+	return toggled[group.name] ?? true;
 }
 
 let scrollEl = $state<HTMLElement | null>(null);
@@ -92,11 +84,11 @@ $effect(() => {
 			data-active={active}
 			aria-current={active ? "page" : undefined}
 			class={cn(
-				"flex items-center gap-2 rounded-md py-1.5 pr-2.5 pl-2 transition-colors duration-(--motion-fast)",
+				"flex items-center gap-2 rounded-md py-1.5 pr-2.5 pl-2 transition-colors duration-(--duration-fast)",
 				mobile && "min-h-11",
 				active
-					? "bg-surface-card font-medium text-ink"
-					: "text-body active:bg-surface-strong hover:bg-surface-card/60 hover:text-ink",
+					? "bg-well-body font-medium text-ink shadow-surface ring-1 ring-ink/[0.04]"
+					: "text-muted hover:bg-ink/[0.04] hover:text-ink",
 			)}
 		>
 			<span
@@ -139,31 +131,26 @@ $effect(() => {
 					aria-controls={panelId}
 					onclick={() => (toggled[group.name] = !isOpen(group))}
 					class={cn(
-						"group flex items-center gap-1.5 rounded-md py-1.5 pr-2 pl-1 text-left text-muted transition-colors duration-(--motion-fast) hover:text-ink",
+						"group flex items-center gap-1.5 rounded-md py-1.5 pr-2 pl-1 text-left text-muted transition-colors duration-(--duration-fast) hover:text-ink",
 						mobile && "min-h-11",
 					)}
 				>
 					<ChevronRight
 						aria-hidden="true"
 						class={cn(
-							"h-3.5 w-3.5 shrink-0 transition-transform duration-(--motion-base) ease-out",
+							"h-3.5 w-3.5 shrink-0 transition-transform duration-(--duration-base) ease-out",
 							open && "rotate-90",
 						)}
 					/>
-					<!-- `.label-meta` hard-codes its colour, which would beat the hover
-					     state; same scale, inheritable colour. -->
-					<span
-						class="font-mono text-[12px] leading-[1.2] font-medium tracking-[0.025em] uppercase"
-					>
-						{group.name}
-					</span>
+					<span class="font-mono text-xs">{group.name.toLowerCase()}</span>
 					{#if group.prefix}
-						<span class="font-mono text-[11px]">{group.prefix}</span>
+						<span class="font-mono text-xs opacity-70">{group.prefix}</span>
 					{/if}
+					<span class="ml-auto font-mono text-xs tabular-nums opacity-70">{group.pages.length + (group.overview ? 1 : 0)}</span>
 				</button>
 
 				<div
-					class="grid transition-[grid-template-rows] duration-(--motion-base) ease-out"
+					class="grid transition-[grid-template-rows] duration-(--duration-base) ease-out"
 					style:grid-template-rows={open ? "1fr" : "0fr"}
 				>
 					<!-- The clipped element carries no padding of its own: under

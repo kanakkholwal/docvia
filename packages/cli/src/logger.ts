@@ -1,6 +1,4 @@
-// Tiny logger with ANSI colors. Honors NO_COLOR / FORCE_COLOR / non-TTY.
-// Intentionally dependency-free — a hand-rolled ~30 lines of ANSI beats
-// pulling another package into the supply chain.
+// ANSI colors with no dependency. Honors NO_COLOR, FORCE_COLOR and non-TTY output.
 import { docviaError } from "@docvia/ir";
 
 /** Whether ANSI styling is emitted. Honors FORCE_COLOR / NO_COLOR / TTY. */
@@ -15,7 +13,11 @@ const ansi = (code: string, s: string) =>
 export const fg256 = (code: number, s: string): string =>
 	colorEnabled ? `\x1b[38;5;${code}m${s}\x1b[0m` : s;
 
+// The site's --brand (#b39aff) on truecolor terminals; magenta is the closest basic color.
+const truecolor = /truecolor|24bit/i.test(process.env.COLORTERM ?? "");
+
 export const c = {
+	brand: (s: string) => ansi(truecolor ? "38;2;179;154;255" : "35", s),
 	red: (s: string) => ansi("31", s),
 	green: (s: string) => ansi("32", s),
 	yellow: (s: string) => ansi("33", s),
@@ -81,7 +83,7 @@ export function formatError(err: unknown): string {
 }
 
 export const log = {
-	info: (msg: string) => console.log(`${c.cyan(symbols.diamond)} ${msg}`),
+	info: (msg: string) => console.log(`${c.brand(symbols.diamond)} ${msg}`),
 	success: (msg: string) => console.log(`${c.green(symbols.tick)} ${msg}`),
 	warn: (msg: string) => console.warn(`${c.yellow("!")} ${msg}`),
 	error: (msg: string) => console.error(msg),

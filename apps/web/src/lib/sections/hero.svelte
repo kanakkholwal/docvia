@@ -1,113 +1,77 @@
 <script lang="ts">
-import InstallCommand from "#lib/components/install-command.svelte";
-import PipelineStack from "#lib/components/pipeline-stack.svelte";
-import { Button } from "#lib/components/ui/button/index.ts";
-import { ArrowRight, Check } from "@lucide/svelte";
 import Github from "#lib/components/icons/github.svelte";
+import InitTerminal from "#lib/components/site/init-terminal.svelte";
+import WorkersBadge from "#lib/components/site/workers-badge.svelte";
+import { TextLoop } from "#lib/components/text/text-loop/index.ts";
+import { Button } from "#lib/components/ui/button/index.ts";
+import { ArrowRight } from "@lucide/svelte";
+import { siNextdotjs, siSvelte, siTanstack } from "simple-icons";
 
-const guarantees = ["MIT licensed", "Self-host anywhere", "No vendor lock-in"];
+const lines = [
+	{ words: ["Markdown", "docs,"], pixel: false },
+	{ words: ["built", "into", "your", "app."], pixel: true },
+];
+const hosts = [
+	{ name: "Next.js", path: siNextdotjs.path },
+	{ name: "SvelteKit", path: siSvelte.path },
+	{ name: "TanStack Start", path: siTanstack.path },
+];
 </script>
 
+{#snippet arrow(cls: string)}
+	<span class="icon-roll {cls}" aria-hidden="true">
+		<span><ArrowRight class="size-full" /><ArrowRight class="-ml-[100%] size-full -translate-x-full" /></span>
+	</span>
+{/snippet}
 
-<section class="relative overflow-hidden border-b border-hairline bg-canvas">
+<section class="mx-auto max-w-page px-5 pt-14 sm:px-10 sm:pt-20 lg:px-16">
+	<div class="grid items-center gap-14 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+		<div class="flex flex-col max-lg:items-center max-lg:text-center">
+			<div class="rise">
+				<WorkersBadge href="/#workers" label="Built for Cloudflare Workers" />
+			</div>
 
-	<div class="relative mx-auto grid max-w-page lg:grid-cols-2">
-		<div
-			class="flex flex-col px-5 py-14 sm:px-10 sm:py-20 lg:border-r lg:border-hairline"
-		>
-			<a
-				href="https://github.com/kanakkholwal/docvia/releases"
-				class="reveal group label-meta inline-flex w-fit items-center gap-2 transition-colors duration-(--motion-fast) ease-out hover:text-ink"
-				style="animation-delay: 0ms"
-			>
-				<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-				What's new
-				<ArrowRight
-					class="h-3 w-3 transition-transform duration-(--motion-fast) ease-out group-hover:translate-x-0.5"
-				/>
-			</a>
-
-			<h1
-				class="reveal mt-4 max-w-104 font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
-				style="animation-delay: 40ms"
-			>
-				The build tool for your docs.
+			<h1 class="mt-7 font-display text-5xl leading-[1.05] tracking-tighter text-ink sm:text-6xl lg:text-[3.25rem] xl:text-6xl">
+				{#each lines as line, l}
+					<span class="block lg:whitespace-nowrap {line.pixel ? 'font-pixel tracking-normal' : ''}">
+						{#each line.words as word, w}
+							<span class="word {line.pixel && w >= 2 ? 'text-brand-ink' : ''}" style="--i: {l * 2 + w}"
+								>{word}</span
+							>{" "}
+						{/each}
+					</span>
+				{/each}
 			</h1>
 
-			<p
-				class="reveal mt-3 max-w-md text-[18px] leading-7 text-body"
-				style="animation-delay: 80ms"
-			>
-				docvia compiles Markdown into typed, pre-rendered modules for React,
-				Svelte, and any framework with an adapter. Nothing parses at runtime.
+			<p class="rise mt-6 max-w-md text-lg text-body" style="--i: 5">
+				Collections, a page tree, typed frontmatter and search, compiled into
+				<TextLoop items={["Next.js", "SvelteKit", "TanStack Start"]} intervalMs={2400} class="font-pixel text-ink" />
 			</p>
 
-			<div
-				class="reveal mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
-				style="animation-delay: 120ms"
-			>
-				<Button href="/docs" class="cta-glow">
+			<div class="rise mt-8 flex flex-wrap items-center gap-3 max-lg:justify-center" style="--i: 6">
+				<Button href="/docs/getting-started" size="lg" class="group">
 					Get started
-					<ArrowRight />
+					{@render arrow("size-4")}
 				</Button>
-				<Button variant="outline" href="https://github.com/kanakkholwal/docvia">
+				<Button href="https://github.com/kanakkholwal/docvia" variant="secondary" size="lg">
 					<Github />
-					View on GitHub
+					GitHub
 				</Button>
 			</div>
 
-			<div
-				class="reveal mt-8 w-full max-w-md pt-8"
-				style="animation-delay: 160ms"
-			>
-				<InstallCommand pkg="@docvia/cli" />
-			</div>
-
-			<ul
-				class="reveal mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-muted"
-				style="animation-delay: 200ms"
-			>
-				{#each guarantees as item}
-					<li class="inline-flex items-center gap-1.5">
-						<Check class="h-4 w-4 text-check" />
-						{item}
-					</li>
+			<div class="rise mt-10 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs text-muted max-lg:justify-center" style="--i: 7">
+				<span>Works with</span>
+				{#each hosts as host}
+					<span class="inline-flex items-center gap-1.5 text-body">
+						<svg viewBox="0 0 24 24" class="size-3.5 fill-current" aria-hidden="true"><path d={host.path} /></svg>
+						{host.name}
+					</span>
 				{/each}
-			</ul>
+			</div>
 		</div>
 
-		<!-- ── Right: the compile pipeline as stacked layers ───────────── -->
-		<div
-			class="reveal flex items-center px-5 py-14 sm:px-10 sm:py-20"
-			style="animation-delay: 200ms"
-		>
-			<PipelineStack />
+		<div class="rise min-w-0" style="--i: 6">
+			<InitTerminal />
 		</div>
 	</div>
 </section>
-
-<style>
-	/* Entrance, CSS-driven so `prefers-reduced-motion` (handled globally in
-	   app.css) neutralizes it, and content is present on first paint / no-JS. */
-	.reveal {
-		opacity: 0;
-		animation: reveal-rise 0.5s var(--ease-out) forwards;
-	}
-	@keyframes reveal-rise {
-		from {
-			opacity: 0;
-			transform: translateY(12px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.reveal {
-			opacity: 1;
-			animation: none;
-			transform: none;
-		}
-	}
-</style>

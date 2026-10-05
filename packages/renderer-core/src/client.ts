@@ -27,3 +27,27 @@ export function installCodeGroups(): void {
 		if (tab) select(tab);
 	});
 }
+
+let copyInstalled = false;
+
+/** Make the copy button on every code block work. One delegated listener; safe to call repeatedly. */
+export function installCopyButtons(): void {
+	if (copyInstalled || typeof document === "undefined") return;
+	copyInstalled = true;
+	document.addEventListener("click", async (event) => {
+		const button = (event.target as Element | null)?.closest?.<HTMLElement>("[data-docvia-copy]");
+		const code = button?.closest("[data-docvia-code]")?.querySelector("code");
+		if (!button || !code) return;
+		try {
+			await navigator.clipboard.writeText(code.textContent ?? "");
+		} catch {
+			return;
+		}
+		button.dataset.copied = "";
+		button.textContent = "Copied";
+		setTimeout(() => {
+			delete button.dataset.copied;
+			button.textContent = "Copy";
+		}, 1600);
+	});
+}
