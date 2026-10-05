@@ -1,16 +1,40 @@
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import type { docviaConfig, RendererAdapter } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { resolveConfigPath, resolveProject } from "@docvia/plugins";
 import {
-	CompileService,
-	compileMarkdownToModule,
-	type InvalidationResult,
+	assertCollectionDirs,
+	assertComponentsExist,
+	collectionTypeData,
+	emitTypeDeclarations,
+	generateVirtualRegistry,
+	generateVirtualSource,
+	type IndexedPage,
+	locate,
+	MACRO_SOURCE,
+	type MacroCollection,
+	PagePipeline,
+	type ResolvedCollection,
+	relativeInside,
+	resolveComponents,
+	samePath,
+	scanCollection,
+	transformMacroModule,
 } from "@docvia/runtime";
-import type { EnvironmentModuleGraph, Plugin, Rollup } from "vite";
-
-type SourceMapInput = Rollup.SourceMapInput;
+import type {
+	AliasOptions,
+	EnvironmentModuleGraph,
+	Plugin,
+	ViteDevServer,
+} from "vite";
+import {
+	bodiesCollection,
+	bodiesModuleId,
+	evaluateWithVite,
+	generateBodiesModule,
+} from "./macro";
 
 // Vite convention: public `virtual:` ids, resolved ids prefixed with `\0`.
 const IDS = {
@@ -22,11 +46,9 @@ const RESOLVED = new Map<string, string>(
 	Object.values(IDS).map((id) => [id, `\0${id}`]),
 );
 const RESOLVED_IDS = [...RESOLVED.values()];
-const MARKDOWN_QUERY = /\.md\?docvia$/;
+const MARKDOWN = /\.md\?docvia(?:[&=].*)?$/;
 
 export interface DocviaVitePluginOptions {
-	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
-	readonly noCache?: boolean;
 	/**
 	 * `docvia.config.*` path, relative to the Vite root. Auto-detected when omitted. It is
 	 * loaded when no config object is passed, and always used for generated frontmatter types.
@@ -70,8 +92,10 @@ function assertSourceInstalled(root: string): void {
 }
 
 /**
- * Compiles markdown in-process and serves `virtual:docvia/{source,source/browser,registry}`.
- * Without a config argument it loads `docvia.config.*` from the Vite root.
+ * Serves `virtual:docvia/{source,source/browser,registry}` and compiles pages on demand: the
+ * index reads frontmatter only, bodies compile when first imported. Nothing is written in
+ * build; dev writes `.docvia/*.d.ts` in the background. Without a config argument it loads
+ * `docvia.config.*` from the Vite root.
  */
 export function docvia(
 	inlineConfig?: docviaConfig,
@@ -81,74 +105,131 @@ export function docvia(
 	let configPath: string | undefined;
 	let root = process.cwd();
 	let isDev = false;
-	let ready: Promise<CompileService> | null = null;
-	let queue: Promise<unknown> = Promise.resolve();
-	const recompiles = new Map<string, Promise<InvalidationResult>>();
-	const warned = new Set<string>();
-
-	function warnOnce(key: string, message: string): void {
-		if (warned.has(key)) return;
-		warned.add(key);
-		console.warn(`[docvia] ${message}`);
-	}
+	let pipeline: PagePipeline | undefined;
+	let alias: AliasOptions | undefined;
 
 	function requireConfig(): docviaConfig & { renderer: RendererAdapter } {
 		if (!config?.renderer) {
 			throw new docviaError(
 				"CONFIG_ERROR",
-				"No renderer configured in docvia config",
+				"No renderer found: install @docvia/renderer-react or @docvia/renderer-svelte, or set `renderer` in docvia.config.ts",
 				configPath,
 			);
 		}
 		return config as docviaConfig & { renderer: RendererAdapter };
 	}
 
-	async function initialCompile(): Promise<CompileService> {
-		const cfg = requireConfig();
-		const service = new CompileService({
-			sourceDir: cfg.sourceDir,
-			outDir: cfg.outDir,
-			renderer: cfg.renderer,
-			plugins: [...cfg.plugins],
-			config: cfg,
-			projectRoot: root,
-			configPath,
-			incremental: !options.noCache,
-		});
-		await service.compileAll();
-		if (isDev) {
-			await service.emitTypeDeclarations();
-		} else {
-			await service.emitDiskModuleGraph();
-		}
-		return service;
+	function getPipeline(): PagePipeline {
+		pipeline ??= new PagePipeline(requireConfig(), root);
+		return pipeline;
 	}
 
-	function getService(): Promise<CompileService> {
-		ready ??= initialCompile();
-		return ready;
-	}
+	// Frontmatter of every page, scanned once and kept current per file event. It feeds the
+	// source module (instead of one module per page) and `.docvia/*.d.ts`.
+	const pagesByPath = new Map<string, IndexedPage>();
+	const scanned = new Map<string, Promise<void>>();
+	const indexUpdates = new Map<string, Promise<boolean>>();
+	// Modules that inlined a collection's index through `defineDocs()`, for HMR.
+	const macroModules = new Map<string, Set<string>>();
+	let devServer: ViteDevServer | undefined;
+	let typesTimer: ReturnType<typeof setTimeout> | undefined;
 
-	/** One recompile per file event, shared by every environment's `hotUpdate`. */
-	function recompile(
-		file: string,
-		timestamp: number,
-	): Promise<InvalidationResult> {
-		const key = `${file}\0${timestamp}`;
-		let pending = recompiles.get(key);
+	function indexCollection(collection: ResolvedCollection): Promise<void> {
+		let pending = scanned.get(collection.name);
 		if (!pending) {
-			pending = getService().then((service) => {
-				const run = queue.then(async () => {
-					const result = await service.invalidate([file]);
-					await service.emitTypeDeclarations();
-					return result;
-				});
-				queue = run.catch(() => {});
-				return run;
+			pending = scanCollection(getPipeline(), collection).then((pages) => {
+				for (const p of pages) {
+					pagesByPath.set(resolve(p.absPath), {
+						collection: p.collection.name,
+						absPath: p.absPath,
+						meta: p.meta,
+					});
+				}
 			});
-			recompiles.set(key, pending);
-			// Every environment runs `hotUpdate` within one HMR pass; drop the entry after it.
-			setTimeout(() => recompiles.delete(key), 5000).unref?.();
+			pending.catch(() => scanned.delete(collection.name));
+			scanned.set(collection.name, pending);
+		}
+		return pending;
+	}
+
+	async function getIndex(): Promise<Map<string, IndexedPage>> {
+		await Promise.all(getPipeline().collections.map(indexCollection));
+		return pagesByPath;
+	}
+
+	/** Register a `defineDocs()` collection and return its frontmatter keyed by relative path. */
+	async function macroIndex(
+		def: MacroCollection,
+	): Promise<Record<string, unknown>> {
+		const pipelineNow = getPipeline();
+		const previous = pipelineNow.collections.find((c) => c.name === def.name);
+		const collection = pipelineNow.registerCollection(def);
+		if (!previous) devServer?.watcher.add(def.dir);
+		// A new schema re-validates every page of the collection.
+		if (previous && previous.frontmatter !== collection.frontmatter) {
+			scanned.delete(def.name);
+		}
+		await indexCollection(collection);
+		const out: Record<string, unknown> = {};
+		for (const page of pagesByPath.values()) {
+			if (page.collection !== def.name) continue;
+			const rel = relativeInside(def.dir, page.absPath);
+			if (rel) out[rel] = page.meta;
+		}
+		return out;
+	}
+
+	function writeTypes(server: ViteDevServer): void {
+		// `defineDocs()` apps get their types from their own file: write nothing for them.
+		const typed = getPipeline().collections.filter(
+			(c) => !c.macro && existsSync(c.dir),
+		);
+		if (typed.length === 0) return;
+		clearTimeout(typesTimer);
+		typesTimer = setTimeout(() => {
+			const p = getPipeline();
+			const outDir = resolve(root, p.config.outDir);
+			getIndex()
+				.then((pages) =>
+					emitTypeDeclarations({
+						outDir,
+						projectRoot: root,
+						config: p.config,
+						collections: collectionTypeData(
+							p.collections,
+							[...pages.values()],
+							outDir,
+							configPath,
+						),
+					}),
+				)
+				.catch((err) => server.config.logger.warn(toErrorPayload(err).message));
+		}, 100);
+		typesTimer.unref?.();
+	}
+
+	/** Apply one file event to the index; true when the route index must be regenerated. */
+	function updateIndex(
+		file: string,
+		collection: string,
+		read: () => string | Promise<string>,
+		deleted: boolean,
+		timestamp: number,
+	): Promise<boolean> {
+		const key = `${file}|${timestamp}`;
+		let pending = indexUpdates.get(key);
+		if (!pending) {
+			pending = (async () => {
+				const pages = await getIndex();
+				const abs = resolve(file);
+				const before = pages.get(abs);
+				if (deleted) return pages.delete(abs);
+				const meta = await getPipeline().meta(abs, await read(), collection);
+				pages.set(abs, { collection, absPath: before?.absPath ?? abs, meta });
+				return JSON.stringify(before?.meta) !== JSON.stringify(meta);
+			})();
+			indexUpdates.set(key, pending);
+			setTimeout(() => indexUpdates.delete(key), 5000).unref?.();
 		}
 		return pending;
 	}
@@ -163,7 +244,6 @@ export function docvia(
 					cwd: viteRoot,
 					configPath:
 						options.configPath === false ? undefined : options.configPath,
-					required: true,
 				});
 				config = project.config;
 				configPath = project.configPath;
@@ -183,88 +263,137 @@ export function docvia(
 
 		configResolved(resolved) {
 			root = resolved.root;
+			alias = resolved.resolve?.alias;
 			isDev = resolved.command === "serve";
+			pipeline = undefined;
 			assertSourceInstalled(root);
 		},
 
-		async buildStart() {
-			await getService();
+		buildStart() {
+			// Cheap checks only: no content is read here.
+			assertComponentsExist(requireConfig(), root);
+			assertCollectionDirs(getPipeline().collections);
 		},
 
 		resolveId(id) {
+			if (bodiesCollection(id) !== undefined) return `\0${id}`;
 			return RESOLVED.get(id) ?? null;
 		},
 
 		async load(id) {
+			const bodiesOf = bodiesCollection(id);
+			if (bodiesOf !== undefined) {
+				const collection = getPipeline().collections.find(
+					(c) => c.name === bodiesOf,
+				);
+				return collection ? generateBodiesModule(root, collection) : null;
+			}
 			if (!RESOLVED_IDS.includes(id)) return null;
-			const service = await getService();
 			if (id === `\0${IDS.registry}`) {
-				if (service.componentCount() === 0) {
-					warnOnce(
-						"empty-registry",
+				if (isDev && resolveComponents(requireConfig(), root).length === 0) {
+					this.warn(
 						"virtual:docvia/registry is empty: no `components` are configured.",
 					);
 				}
-				return service.getVirtualRegistryModule();
+				return generateVirtualRegistry(requireConfig(), root);
 			}
-			if (id === `\0${IDS.browser}`) return service.getVirtualBrowserModule();
-			if (this.environment?.config.consumer === "client") {
-				warnOnce(
-					"client-source",
-					"virtual:docvia/source was imported by client code, which bundles every page. Import `virtual:docvia/source/browser` (lazy pages) or `virtual:docvia/registry` instead.",
-				);
-			}
-			return service.getVirtualSourceModule();
+			// Bodies are lazy, so one module serves server and browser alike.
+			const configCollections = getPipeline().collections.filter(
+				(c) => !c.macro,
+			);
+			return getIndex().then((pages) =>
+				generateVirtualSource(configCollections, root, pages),
+			);
 		},
 
-		transform: {
-			filter: { id: MARKDOWN_QUERY },
-			async handler(code, id) {
-				const filePath = id.slice(0, -"?docvia".length);
-				const service = await getService();
-				const cfg = requireConfig();
-				const ir = await service.getDocumentByPath(filePath);
-				// Markdown outside every collection still runs the full plugin pipeline.
-				const rendered = ir
-					? await cfg.renderer.renderPage(ir)
-					: await compileMarkdownToModule({
-							code,
-							filePath,
-							relativePath: basename(filePath),
-							config: cfg,
-						});
+		async transform(code, id) {
+			if (!MARKDOWN.test(id)) {
+				if (id.includes("/node_modules/") || !code.includes(MACRO_SOURCE)) {
+					return null;
+				}
+				const file = id.split("?")[0] ?? id;
+				const result = await transformMacroModule(code, id, {
+					root,
+					config: requireConfig(),
+					index: macroIndex,
+					evaluate: () => evaluateWithVite(file, root, alias),
+					emit: { kind: "glob", bodiesModule: bodiesModuleId },
+				});
+				if (!result) return null;
+				for (const { name } of result.collections) {
+					const ids = macroModules.get(name) ?? new Set();
+					ids.add(id);
+					macroModules.set(name, ids);
+				}
+				return { code: result.code, map: result.map };
+			}
+			const [filePath = "", query = ""] = id.split("?");
+			const params = new URLSearchParams(query);
+			const collection = params.get("collection") ?? undefined;
+			const p = getPipeline();
+			if (params.get("only") === "meta") {
+				const meta = await p.meta(filePath, code, collection);
 				return {
-					code: rendered.code,
-					map: (rendered.map ?? null) as SourceMapInput | null,
+					code: `export const meta = ${JSON.stringify(meta)};`,
+					map: null,
 				};
-			},
+			}
+			return { code: await p.module(filePath, code, collection), map: null };
 		},
 
-		async hotUpdate({ file, type, modules, timestamp }) {
-			const service = await getService();
-			if (!service.owns(file)) return;
-			const env = this.environment;
+		async hotUpdate({ file, type, modules, server, read, timestamp }) {
+			const owner = file.endsWith(".md")
+				? locate(getPipeline().collections, file)
+				: undefined;
+			if (!owner) return;
+			let routesChanged: boolean;
 			try {
-				const result = await recompile(file, timestamp);
-				if (type === "update" && !result.routeMapChanged) return modules;
+				routesChanged = await updateIndex(
+					file,
+					owner.collection.name,
+					read,
+					type === "delete",
+					timestamp,
+				);
 			} catch (err) {
-				if (env.name === "client") {
-					env.hot.send({ type: "error", err: toErrorPayload(err) });
+				if (this.environment.name === "client") {
+					this.environment.hot.send({
+						type: "error",
+						err: toErrorPayload(err),
+					});
 				}
 				return [];
 			}
-			// A page appeared, disappeared or moved: regenerate the virtual modules everywhere.
-			invalidateVirtualModules(env.moduleGraph);
-			env.hot.send({ type: "full-reload" });
+			if (this.environment.name === "client") writeTypes(server);
+			// Body-only edits hot-swap the page module; frontmatter, adds and deletes rebuild the index.
+			if (!routesChanged && type === "update") return modules;
+			invalidateVirtualModules(this.environment.moduleGraph);
+			const graph = this.environment.moduleGraph;
+			const stale = [...(macroModules.get(owner.collection.name) ?? [])];
+			// Adds and deletes change the body globs; frontmatter edits don't.
+			if (type !== "update") {
+				stale.push(`\0${bodiesModuleId(owner.collection.name)}`);
+			}
+			for (const id of stale) {
+				const mod = graph.getModuleById(id);
+				if (mod) graph.invalidateModule(mod);
+			}
+			this.environment.hot.send({ type: "full-reload" });
 			return [];
 		},
 
 		configureServer(server) {
+			devServer = server;
 			// Collections may live outside the Vite root (e.g. a submodule); watch them all.
-			getService().then(
-				(service) => server.watcher.add(service.collectionDirs()),
-				(err) => server.config.logger.error(toErrorPayload(err).message),
-			);
+			server.watcher.add(getPipeline().collections.map((c) => c.dir));
+			writeTypes(server);
+			const watched = inlineConfig ? undefined : configPath;
+			if (watched) {
+				server.watcher.add(watched);
+				server.watcher.on("change", (file) => {
+					if (samePath(file, watched)) void server.restart();
+				});
+			}
 		},
 	};
 }

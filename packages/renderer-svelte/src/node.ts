@@ -17,7 +17,12 @@ export function createSvelteRenderer(
 	options: ModuleRendererOptions = {},
 ): RendererAdapter {
 	return createModuleRenderer(
-		{ name: "svelte", runtimePackage: "@docvia/renderer-svelte" },
+		{
+			name: "svelte",
+			runtimePackage: "@docvia/renderer-svelte",
+			// `{@html}` needs no wrapper, so whole runs of static blocks become one node.
+			staticHtml: { mergeSiblings: true },
+		},
 		options,
 	);
 }

@@ -24,8 +24,9 @@ const renderer = createSvelteRenderer({
 });
 ```
 
-Render pages with `<Renderer nodes={page.content} {registry} />` from
-`@docvia/renderer-svelte`, importing `registry` from `virtual:docvia/registry`.
+Render pages with `<Renderer nodes={content} {registry} />` from
+`@docvia/renderer-svelte`, where `content` comes from `await page.data.load()`
+and `registry` from `defineRegistry()` (`@docvia/source/macro`).
 
 Syntax highlighting is a build-time plugin, not a renderer option. Add
 [`@docvia/plugin-shiki`](https://github.com/kanakkholwal/docvia/tree/main/packages/plugin-shiki)

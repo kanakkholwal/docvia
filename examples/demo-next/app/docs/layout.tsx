@@ -1,4 +1,4 @@
-import { docs } from "docvia/source";
+import { source } from "@/lib/source";
 import type { ReactNode } from "react";
 import { Search } from "../../components/Search";
 import { Sidebar } from "../../components/Sidebar";
@@ -9,7 +9,7 @@ export default async function DocsLayout({
 }: {
 	children: ReactNode;
 }) {
-	const tree = docs.pageTree;
+	const tree = source.pageTree;
 
 	return (
 		<div className="docs-layout">

@@ -32,8 +32,6 @@ import { openapi } from "@docvia/plugin-openapi";
 import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [
     openapi({ spec: "./openapi.yaml" }),

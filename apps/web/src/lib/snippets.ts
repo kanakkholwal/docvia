@@ -9,40 +9,39 @@ import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [
     shiki({ theme: "github-dark", langs: ["typescript", "bash", "json"] }),
   ],
 });`,
 	},
-	"schema.ts": {
+	"source.ts": {
 		lang: "typescript",
-		code: `import { defineConfig } from "@docvia/cli";
+		code: `import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
 import { z } from "zod";
 
-export default defineConfig({
-  // Frontmatter is validated at compile time, and the matching
-  // TypeScript interface is generated for every collection.
-  frontmatter: z.object({
-    title: z.string(),
-    tags: z.array(z.string()).default([]),
-    publishedAt: z.coerce.date().optional(),
-  }),
-});`,
+const docs = defineDocs({
+  dir: "content/docs",
+  // Validated at compile time; page.data is typed from it.
+  docs: { schema: z.object({ publishedAt: z.coerce.date().optional() }) },
+});
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });`,
 	},
 	"page.tsx": {
 		lang: "tsx",
 		code: `import { DocviaContent } from "@docvia/renderer-react";
-import { docs } from "docvia/source";
+import { notFound } from "next/navigation";
+import { source } from "@/lib/source";
 
 export default async function DocPage({ params }) {
-  const page = await docs.getPage(params.slug);
-  if (!page) return null;
+  const page = source.getPage((await params).slug);
+  if (!page) notFound();
 
   // No parser, no highlighter, just a compiled module.
-  return <DocviaContent nodes={page.content} />;
+  const { content } = await page.data.load();
+  return <DocviaContent nodes={content} />;
 }`,
 	},
 	"page.svelte": {

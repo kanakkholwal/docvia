@@ -5,6 +5,8 @@
 	"exports": {
 		".": "./dist/index.js",
 		"./internal": "./dist/internal.js",
+		"./macro": "./dist/macro.js",
+		"./macro-runtime": "./dist/macro-runtime.js",
 		"./runtime": "./dist/runtime.js",
 		"./package.json": "./package.json"
 	},
@@ -15,7 +17,8 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/renderer-core": "workspace:*"
+		"@docvia/renderer-core": "workspace:*",
+		"@standard-schema/spec": "^1.1.0"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",

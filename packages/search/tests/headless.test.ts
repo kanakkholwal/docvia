@@ -196,3 +196,53 @@ describe("createFetchClient", () => {
 		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });
+
+describe("createFromSource with a loader() source", () => {
+	it("loads bodies through page.data.load()", async () => {
+		const page = {
+			slugs: ["guide"],
+			url: "/docs/guide",
+			data: {
+				title: "Guide",
+				load: async () => ({ content }),
+			},
+		};
+		const server = await createFromSource({
+			getPages: () => [page],
+			getPage: () => page,
+		});
+		expect(server.size).toBeGreaterThan(0);
+		expect((await server.search("widgets"))[0]?.url).toContain("/docs/guide");
+	});
+});
+
+describe("createFromSource with compile-time structuredData", () => {
+	it("indexes sections without walking the render tree", async () => {
+		const page = {
+			slugs: ["setup"],
+			url: "/docs/setup",
+			data: {
+				title: "Setup",
+				load: async () => ({
+					content: [],
+					headings: [{ id: "install", depth: 3, text: "Install" }],
+					structuredData: {
+						headings: [{ id: "install", content: "Install" }],
+						contents: [
+							{ heading: undefined, content: "Overview of gizmos" },
+							{ heading: "install", content: "Run the gizmo installer" },
+						],
+					},
+				}),
+			},
+		};
+		const server = await createFromSource({
+			getPages: () => [page],
+			getPage: () => page,
+		});
+		expect(server.size).toBe(2);
+		const [hit] = await server.search("installer");
+		expect(hit?.url).toBe("/docs/setup#install");
+		expect(hit?.sectionTitle).toBe("Install");
+	});
+});

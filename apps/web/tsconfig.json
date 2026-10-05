@@ -7,6 +7,6 @@
 		"skipLibCheck": true,
 		"noUncheckedSideEffectImports": false
 	},
-	"include": ["src", "*", ".docvia/*.d.ts"],
+	"include": ["src", "*"],
 	"exclude": ["src/service-worker"]
 }

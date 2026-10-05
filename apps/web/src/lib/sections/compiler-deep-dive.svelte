@@ -9,7 +9,7 @@ import { fade } from "svelte/transition";
 // React and Svelte side by side: the same compiled IR, two adapters.
 const files = [
 	"config.ts",
-	"schema.ts",
+	"source.ts",
 	"page.tsx",
 	"page.svelte",
 ] as const satisfies readonly SnippetName[];

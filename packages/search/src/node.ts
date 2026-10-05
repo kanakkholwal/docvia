@@ -63,7 +63,6 @@ export async function loadIRDocuments(
 		config,
 		projectRoot,
 		// A one-shot index build — no cache to consult or write.
-		incremental: false,
 	});
 
 	await service.compileAll();

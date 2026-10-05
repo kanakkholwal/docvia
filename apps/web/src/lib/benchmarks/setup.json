@@ -1,0 +1,51 @@
+{
+	"date": "2026-10-05",
+	"machine": {
+		"cpu": "AMD Ryzen 7 7435HS",
+		"cores": 16,
+		"ramGB": 16,
+		"os": "win32",
+		"node": "v22.20.0"
+	},
+	"frameworks": [
+		{
+			"framework": "Next.js",
+			"version": "16.3.8",
+			"initMs": 18020,
+			"installMs": 17080,
+			"files": 12,
+			"manualEdits": 0,
+			"buildBaseMs": 41292,
+			"buildDocsMs": 53816,
+			"docsFirstMs": 13528,
+			"editMs": 404,
+			"addMs": 851
+		},
+		{
+			"framework": "SvelteKit",
+			"version": "3.0.0",
+			"initMs": 10846,
+			"installMs": 9760,
+			"files": 11,
+			"manualEdits": 0,
+			"buildBaseMs": 9056,
+			"buildDocsMs": 12611,
+			"docsFirstMs": 581,
+			"editMs": 302,
+			"addMs": 201
+		},
+		{
+			"framework": "TanStack Start",
+			"version": "1.168.60",
+			"initMs": 11336,
+			"installMs": 10540,
+			"files": 12,
+			"manualEdits": 0,
+			"buildBaseMs": 29626,
+			"buildDocsMs": 42707,
+			"docsFirstMs": 571,
+			"editMs": 180,
+			"addMs": 182
+		}
+	]
+}

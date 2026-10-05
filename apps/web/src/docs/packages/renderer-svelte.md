@@ -121,11 +121,11 @@ renderer ever runs.
 
 ```ts
 import { hydrate } from "@docvia/renderer-core";
-import { registry } from "virtual:docvia/registry";
+import { registry } from "$lib/registry";
 
-// `page` came from `docs.getPage(slugs)` in a server load; see Usage below.
+// `manifest` comes from `page.data.load()` in a server load; see Usage below.
 // no-ops on the server; honours client:load / client:idle / client:visible
-hydrate(page.manifest, registry);
+hydrate(manifest, registry);
 ```
 
 `Renderer` also makes tabbed code groups (`role="tablist"`) switch on click; no extra setup is needed.
@@ -149,20 +149,20 @@ export default defineConfig({
 
 ### Rendering a page in a SvelteKit route
 
-Pages are loaded through the collection, in a **server** load, because `virtual:docvia/source`
-eagerly imports every compiled page, so importing it from a universal `+page.ts`
-would ship your whole content set to the browser.
+Declare the collection once with `defineDocs()` (see
+[`@docvia/source`](/docs/packages/source)), then load pages in a **server** load:
 
 ```ts
 // src/routes/docs/[...slug]/+page.server.ts
-import { docs } from "virtual:docvia/source";
 import { error } from "@sveltejs/kit";
+import { source } from "$lib/source";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
-  const page = await docs.getPage(params.slug?.split("/") ?? []);
-  if (!page) throw error(404, "Page not found");
-  return { page };
+  const page = source.getPage(params.slug?.split("/").filter(Boolean));
+  if (!page) error(404, "Page not found");
+  const { content, headings, manifest } = await page.data.load();
+  return { page: { title: page.data.title, content, headings, manifest } };
 };
 ```
 
@@ -179,24 +179,31 @@ load and into the component:
 </script>
 
 <article>
-  <h1>{data.page.data.title}</h1>
+  <h1>{data.page.title}</h1>
   <Renderer nodes={data.page.content} />
 </article>
 ```
 
-`data.page.data` is the page's frontmatter, including any custom fields your
-`frontmatter` schema defines. `data.page.content` is typed `RenderOutput`, and
-`data.page.headings` is always present, ready for a table of contents.
+`page.data` is the page's frontmatter, including any fields your `defineDocs()`
+schema adds. `content` is typed `RenderOutput`, and `headings` is always present,
+ready for a table of contents.
 
 ### Rendering with a component registry
 
-When you declare `components` in `docvia.config.ts`, docvia generates the registry
-for you, so import it from `virtual:docvia/registry` rather than hand-rolling one:
+When you declare `components` in `docvia.config.ts`, `defineRegistry()` builds the
+registry for you:
+
+```ts
+// src/lib/registry.ts
+import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
+```
 
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/registry";
+  import { registry } from "$lib/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -234,7 +241,7 @@ To resolve components yourself instead, pass any `ComponentRegistry`:
   import { onMount } from "svelte";
   import { Renderer } from "@docvia/renderer-svelte";
   import { hydrate } from "@docvia/renderer-core";
-  import { registry } from "virtual:docvia/registry";
+  import { registry } from "$lib/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -244,5 +251,5 @@ To resolve components yourself instead, pass any `ComponentRegistry`:
   });
 </script>
 
-<Renderer nodes={content} {registry} />
+<Renderer nodes={data.page.content} {registry} />
 ```

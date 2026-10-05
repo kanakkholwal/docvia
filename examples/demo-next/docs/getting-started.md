@@ -6,24 +6,24 @@ order: 1
 
 # Getting Started
 
-Set up Docvia in an existing Next.js (App Router) project. Follow these steps
-in order and you'll have a working docs section — installation, config, the
-Next plugin, TypeScript wiring, and a catch-all route that renders pages.
+Set up Docvia in an existing Next.js (App Router) project: install, config, the
+Next plugin, a source file, and a catch-all route that renders pages.
 
 ## 1. Install
 
 ```bash
-npm install -D @docvia/cli @docvia/plugin-next @docvia/plugin-shiki
+npm install -D @docvia/plugin-next @docvia/plugin-shiki
 npm install @docvia/renderer-react @docvia/source
 ```
 
-The CLI, Next plugin, and Shiki plugin are dev-only. The renderer and
-`@docvia/source` are runtime dependencies: the generated module graph imports
-`@docvia/source`, and your routes render with the renderer.
+The Next and Shiki plugins are dev-only. The renderer and `@docvia/source` are
+runtime dependencies: your source file imports `@docvia/source`, and your routes
+render with the renderer.
 
 ## 2. Configure Docvia
 
-Create `docvia.config.ts` in your project root:
+Create `docvia.config.ts` in your project root. It holds the renderer, plugins,
+and components; collections are declared in code (step 4).
 
 ```typescript
 import { defineConfig } from "@docvia/plugin-next";
@@ -31,15 +31,9 @@ import { shiki } from "@docvia/plugin-shiki";
 import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
-  collections: [{ name: "docs", sourceDir: "docs", baseUrl: "/docs" }],
-
   renderer: createReactRenderer(),
 
-  // Syntax highlighting is a build-time plugin: it highlights every code block
-  // during compilation and bakes the HTML into the IR, so no highlighter ships
-  // to the browser.
+  // Highlights code blocks at compile time, so no highlighter ships to the browser.
   plugins: [
     shiki({
       theme: "github-dark",
@@ -51,10 +45,8 @@ export default defineConfig({
 
 ## 3. Wrap the Next config
 
-Update `next.config.ts` so Docvia compiles in-process. `withDocvia` runs the
-compiler on config evaluation and aliases `docvia/source` for **both webpack
-and Turbopack** — there's no separate `docvia build` step, and dev recompiles
-changed files incrementally.
+`withDocvia` compiles in-process for **both webpack and Turbopack**. There is no
+separate build step, and dev recompiles changed files.
 
 ```typescript
 import { withDocvia } from "@docvia/plugin-next";
@@ -64,18 +56,30 @@ const withDocs = withDocvia();
 export default withDocs({});
 ```
 
-## 4. Declare the module types
+## 4. Declare the source
 
-docvia writes `.docvia/env.d.ts`, declaring `docvia/source`,
-`docvia/source/browser`, and `docvia/registry`. Include it in `tsconfig.json`:
+Create `lib/source.ts`. The plugin rewrites `defineDocs()` at build time into an
+index of the folder, so nothing is scanned at runtime.
 
-```json
-{
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".docvia/*.d.ts"]
-}
+```typescript title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "docs" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
 
-In CI, run `docvia sync` before `tsc` so the file exists.
+Add `lib/registry.ts` for the components listed in `docvia.config.ts`:
+
+```typescript title="lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
+```
+
+`withDocvia` only transforms files named `source.{ts,tsx,js,mjs}` or
+`registry.{ts,tsx,js}`. Use other names with `withDocvia({ macroFiles: [...] })`.
 
 ## 5. Create your first page
 
@@ -99,8 +103,8 @@ React Server Component, so it renders on the server with no client bundle:
 
 ```tsx
 import { DocviaContent } from "@docvia/renderer-react";
-import { docs } from "docvia/source";
-import { registry } from "docvia/registry";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -109,32 +113,33 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
-  return docs.generateParams();
+  return source.generateParams();
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await docs.getPage(slug);
+  const page = source.getPage(slug);
   if (!page) return {};
   return { title: page.data.title, description: page.data.description };
 }
 
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
-  const page = await docs.getPage(slug);
+  const page = source.getPage(slug);
   if (!page) notFound();
+  const { content } = await page.data.load();
 
   return (
     <article className="prose">
-      <DocviaContent nodes={page.content} registry={registry} />
+      <DocviaContent nodes={content} registry={registry} />
     </article>
   );
 }
 ```
 
-> **Interactive components.** Pages that use `:::component` directives ship a
-> hydration `manifest` on `page.manifest`. Render the islands on the client by
-> passing it to a hydrator, such as the `DocviaHydrator` component in this demo.
+> **Interactive components.** Pages that use `:::component` directives return a
+> hydration `manifest` from `page.data.load()`. Pass it to a client hydrator,
+> such as the `DocviaHydrator` component in this demo.
 
 ## 7. Run it
 
@@ -142,17 +147,18 @@ export default async function DocPage({ params }: PageProps) {
 npm run dev
 ```
 
-`withDocvia` compiles `docs/` on startup and watches it for changes, so no
-separate build command is needed. Visit `http://localhost:3000/docs` to see your
-page. A production build runs the same compilation via `npm run build`.
+Visit `http://localhost:3000/docs`. Pages compile lazily in memory on first
+request, keyed by content hash; nothing is written to disk. `npm run build`
+compiles every page returned by `generateStaticParams`.
 
 ## Project structure
 
 | Path | Purpose |
 | --- | --- |
-| `docs/` | Markdown source files |
-| `.docvia/` | Generated module graph and `env.d.ts` declarations (gitignore this) |
-| `docvia.config.ts` | Docvia configuration |
+| `docs/` | Markdown source files and optional `meta.json` per folder |
+| `lib/source.ts` | `defineDocs()` collection and `loader()` source |
+| `lib/registry.ts` | `defineRegistry()` component registry |
+| `docvia.config.ts` | Renderer, plugins, components, markdown options |
 | `app/docs/` | Next.js routes for documentation |
 
 ## Frontmatter fields
@@ -166,7 +172,7 @@ Every Markdown file starts with YAML frontmatter:
 | `order` | `number` | No | Sort order in navigation |
 | `tags` | `string[]` | No | Tags for categorization |
 | `slug` | `string` | No | Override the auto-generated slug |
-| `draft` | `boolean` | No | Exclude from production builds |
+| `draft` | `boolean` | No | Draft flag; filter it in your routes |
 
-You can extend these with custom fields via a Standard Schema (Zod, Valibot,
-...) in your config. See [Configuration](/docs/configuration) for details.
+Add custom fields with a Standard Schema (Zod, Valibot, ArkType) in
+`defineDocs({ docs: { schema } })`. See [Configuration](/docs/configuration).

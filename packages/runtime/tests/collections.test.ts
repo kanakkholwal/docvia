@@ -11,6 +11,7 @@ import { join } from "node:path";
 import type { FrontmatterSchema, RendererAdapter } from "@docvia/ir";
 import { defineConfig } from "@docvia/plugins";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { generateVirtualRegistry, resolveComponents } from "../src/emit";
 import { relativeInside, samePath } from "../src/paths";
 import { CompileService } from "../src/service";
 
@@ -61,7 +62,6 @@ function service(config: Parameters<typeof defineConfig>[0]) {
 		plugins: [],
 		config: defineConfig(config),
 		projectRoot: root,
-		incremental: false,
 	});
 }
 
@@ -103,7 +103,9 @@ describe("optional collections", () => {
 			],
 		});
 		await svc.compileAll();
-		expect(svc.getVirtualSourceModule()).toContain("export const pro");
+		expect(
+			svc.getCollectionData().find((c) => c.name === "pro")?.slugs,
+		).toEqual([]);
 	});
 
 	it("names the collection when a required sourceDir is missing", async () => {
@@ -138,7 +140,6 @@ describe("hashExclude", () => {
 				],
 				config: defineConfig({ hashExclude: exclude }),
 				projectRoot: root,
-				incremental: false,
 			});
 			await svc.compileAll();
 			return (await svc.getDocument("docs", "button"))?.contentHash;
@@ -173,11 +174,11 @@ describe("components", () => {
 			],
 		});
 		await svc.compileAll();
-		const registry = svc.getVirtualRegistryModule();
+		const registry = generateVirtualRegistry(svc.config, root);
 		for (const name of ["button-demo", "code-group", "counter"]) {
 			expect(registry).toContain(`"${name}"`);
 		}
-		expect(svc.componentCount()).toBe(3);
+		expect(resolveComponents(svc.config, root)).toHaveLength(3);
 	});
 
 	it("emits an empty but present registry when none are configured", async () => {
@@ -185,7 +186,9 @@ describe("components", () => {
 			collections: [{ name: "guides", sourceDir: "guides" }],
 		});
 		await svc.compileAll();
-		expect(svc.getVirtualRegistryModule()).toContain("export const registry");
+		expect(generateVirtualRegistry(svc.config, root)).toContain(
+			"export const registry",
+		);
 	});
 });
 

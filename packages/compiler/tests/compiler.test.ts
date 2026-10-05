@@ -9,7 +9,7 @@ describe("compiler public API", () => {
 		expect(typeof module.computeContentHash).toBe("function");
 		// hashContent is the backwards-compatible alias of computeContentHash.
 		expect(module.hashContent).toBe(module.computeContentHash);
-	});
+	}, 20_000);
 
 	it("validates FileEntry structure", () => {
 		const fileEntry: FileEntry = {

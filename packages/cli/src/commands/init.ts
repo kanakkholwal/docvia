@@ -1,199 +1,229 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
-import { join, relative, resolve } from "node:path";
-import { c } from "../logger";
+import { basename, dirname, join, relative, resolve } from "node:path";
+import { performance } from "node:perf_hooks";
 import {
-	DEFAULT_PM,
-	detectPackageManager,
-	isPackageManager,
-	type PackageManager,
-} from "../pm";
-import { getScaffold, installHint, type RendererTemplate } from "../templates";
+	detectProject,
+	FRAMEWORK_LABEL,
+	type Framework,
+	type Project,
+} from "../init/detect";
+import {
+	dependenciesFor,
+	installCommands,
+	installDependencies,
+} from "../init/install";
+import {
+	findConfig,
+	findTailwindCss,
+	type PatchResult,
+	patchNextConfig,
+	patchTailwindCss,
+	patchViteConfig,
+} from "../init/patch";
+import { planFiles } from "../init/scaffold";
+import { c, fmtMs } from "../logger";
+import { isPackageManager } from "../pm";
 import * as ui from "../ui";
 
 export interface InitOptions {
-	dir: string;
-	renderer?: RendererTemplate;
-	force?: boolean;
-	/** Preferred package manager from `--pm`; prompts when omitted. */
-	pm?: string;
+	readonly dir: string;
+	readonly framework?: string;
+	readonly pm?: string;
+	/** `false` from `--no-install`: print the install commands instead of running them. */
+	readonly install: boolean;
+	/** Accept every detected default without prompting. */
+	readonly yes: boolean;
+	/** Overwrite files that already exist. */
+	readonly force: boolean;
 }
 
-const VALID_RENDERERS: RendererTemplate[] = ["react", "svelte", "none"];
+const FRAMEWORKS = Object.keys(FRAMEWORK_LABEL) as Framework[];
 
-const RENDERER_OPTIONS: Array<ui.SelectOption<RendererTemplate>> = [
-	{ value: "react", label: "React", hint: "React / Next.js" },
-	{ value: "svelte", label: "Svelte", hint: "Svelte / SvelteKit" },
-	{ value: "none", label: "None", hint: "wire a renderer later" },
-];
+const rel = (root: string, p: string) =>
+	relative(root, p).split("\\").join("/") || ".";
 
-const PM_OPTIONS: Array<ui.SelectOption<PackageManager>> = [
-	{ value: "pnpm", label: "pnpm", hint: "recommended" },
-	{ value: "npm", label: "npm" },
-	{ value: "yarn", label: "yarn" },
-	{ value: "bun", label: "bun" },
-];
-
-function detectRenderer(projectDir: string): RendererTemplate {
-	// Best-effort autodetection from package.json deps
+function devUrl(project: Project): string {
+	let script = "";
 	try {
-		const pkgPath = join(projectDir, "package.json");
-		if (!existsSync(pkgPath)) return "none";
-		const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
-			dependencies?: Record<string, string>;
-			devDependencies?: Record<string, string>;
-		};
-		const all = { ...pkg.dependencies, ...pkg.devDependencies };
-		if (all.svelte || all["@sveltejs/kit"]) return "svelte";
-		if (all.react || all.next) return "react";
-		return "none";
-	} catch {
-		return "none";
-	}
+		const pkg = JSON.parse(
+			readFileSync(join(project.root, "package.json"), "utf8"),
+		);
+		script = String(pkg.scripts?.dev ?? "");
+	} catch {}
+	const port =
+		/--port[ =](\d+)|-p[ =](\d+)/.exec(script)?.slice(1).find(Boolean) ??
+		(project.framework === "next" ? "3000" : "5173");
+	return `http://localhost:${port}/docs`;
 }
 
-/** Path relative to the cwd — friendlier than an absolute path. */
-function rel(p: string): string {
-	const r = relative(process.cwd(), p);
-	return r === "" ? "." : r;
+function patchConfig(project: Project): PatchResult | undefined {
+	if (project.framework === "standalone") return undefined;
+	const kind = project.framework === "next" ? "next" : "vite";
+	const file = findConfig(project.root, kind);
+	if (!file) throw new Error(`no ${kind}.config file found in ${project.root}`);
+	return kind === "next" ? patchNextConfig(file) : patchViteConfig(file);
+}
+
+async function chooseFramework(
+	opts: InitOptions,
+	detected: Framework,
+): Promise<Framework> {
+	if (opts.framework) {
+		if (FRAMEWORKS.includes(opts.framework as Framework)) {
+			return opts.framework as Framework;
+		}
+		ui.message(
+			c.yellow(
+				`Unknown --framework "${opts.framework}"; expected ${FRAMEWORKS.join(" | ")}.`,
+			),
+		);
+	}
+	if (opts.yes || detected !== "standalone") return detected;
+	return ui.select({
+		message: "No supported framework found. Set up",
+		options: FRAMEWORKS.map((value) => ({
+			value,
+			label: FRAMEWORK_LABEL[value],
+		})),
+		initialValue: detected,
+	});
 }
 
 export async function runInit(opts: InitOptions): Promise<void> {
+	const started = performance.now();
 	ui.printBanner();
-	ui.intro(c.bold("New documentation project"));
+	ui.intro(c.bold("Add docs to your app"));
 
 	try {
-		// 1 — Where. The directory drives renderer autodetection, so ask it first.
-		const dir = await ui.text({
-			message: "Project directory",
-			placeholder: ".",
-			defaultValue: opts.dir || ".",
-			initialValue: opts.dir && opts.dir !== "." ? opts.dir : "",
-		});
-		const projectDir = resolve(dir);
-
-		// 2 — Renderer. Honor a valid --renderer; otherwise offer a pick seeded
-		// with what we can autodetect from the project's package.json.
-		const detected = detectRenderer(projectDir);
-		let renderer: RendererTemplate;
-		if (opts.renderer && VALID_RENDERERS.includes(opts.renderer)) {
-			renderer = opts.renderer;
-		} else {
-			if (opts.renderer) {
-				ui.message(
-					c.yellow(
-						`Unknown --renderer "${opts.renderer}"; falling back to a pick.`,
-					),
-				);
-			}
-			renderer = await ui.select({
-				message: "Which renderer?",
-				options: RENDERER_OPTIONS,
-				initialValue: detected,
-			});
-		}
-
-		// 3 — Package manager. Honor a valid --pm; otherwise pick, seeded from the
-		// manager that invoked us (npm_config_user_agent) or the default.
-		let pm: PackageManager;
+		const root = resolve(opts.dir);
+		const detected = detectProject(root);
+		const framework = await chooseFramework(opts, detected.framework);
+		let project =
+			framework === detected.framework
+				? detected
+				: detectProject(root, framework);
 		if (opts.pm && isPackageManager(opts.pm)) {
-			pm = opts.pm;
-		} else {
-			if (opts.pm) {
-				ui.message(
-					c.yellow(`Unknown --pm "${opts.pm}"; falling back to a pick.`),
-				);
-			}
-			pm = await ui.select({
-				message: "Package manager",
-				options: PM_OPTIONS,
-				initialValue: detectPackageManager() ?? DEFAULT_PM,
-			});
+			project = { ...project, pm: opts.pm, pmSource: "lockfile" };
 		}
 
-		// 4 — Sample content. Handy on a fresh project, noise on an existing one.
-		const includeSamples = await ui.confirm({
-			message: "Add sample documentation pages?",
-			initialValue: true,
-		});
+		const files = planFiles(project);
+		const conflicts = files.filter((f) => f.exists);
+		ui.note(
+			[
+				`${c.dim("framework")}  ${FRAMEWORK_LABEL[project.framework]}`,
+				`${c.dim("packages ")}  ${project.pm} ${c.dim(`(${project.pmSource})`)}`,
+				`${c.dim("content  ")}  content/docs`,
+				`${c.dim("routes   ")}  ${project.framework === "standalone" ? "none" : `${rel(root, join(root, project.routesDir, "docs"))}/`}`,
+			].join("\n"),
+			basename(root),
+		);
 
-		// 5 — Overwrite guard. Interactive runs ask; scripted runs need --force.
-		const configPath = join(projectDir, "docvia.config.ts");
-		if (existsSync(configPath) && !opts.force) {
-			if (ui.isInteractive()) {
-				const overwrite = await ui.confirm({
-					message: `${c.cyan("docvia.config.ts")} already exists. Overwrite?`,
-					initialValue: false,
-				});
-				if (!overwrite) {
-					ui.cancelOutro("Left your existing config untouched.");
-					return;
-				}
-			} else {
-				ui.cancelOutro(
-					`${configPath} already exists. Re-run with --force to overwrite.`,
-				);
-				process.exitCode = 1;
+		if (!opts.yes && ui.isInteractive()) {
+			const go = await ui.confirm({
+				message: "Set it up?",
+				initialValue: true,
+			});
+			if (!go) {
+				ui.cancelOutro("Nothing written.");
 				return;
 			}
 		}
 
-		// 6 — Scaffold.
-		const spin = ui.spinner();
-		spin.start("Scaffolding project…");
-
-		const docsDir = join(projectDir, "docs");
-		await mkdir(docsDir, { recursive: true });
-
-		const scaffold = getScaffold(renderer, pm);
-		const created: string[] = ["docs/index.md", "docvia.config.ts"];
-		const writes: Array<Promise<void>> = [
-			writeFile(join(docsDir, "index.md"), scaffold.indexMd, "utf-8"),
-			writeFile(configPath, scaffold.configFile, "utf-8"),
-		];
-		if (includeSamples) {
-			writes.push(
-				writeFile(
-					join(docsDir, "getting-started.md"),
-					scaffold.gettingStartedMd,
-					"utf-8",
-				),
-				writeFile(
-					join(docsDir, "components.md"),
-					scaffold.componentsMd,
-					"utf-8",
-				),
-			);
-			created.splice(1, 0, "docs/getting-started.md", "docs/components.md");
+		let overwrite = opts.force;
+		if (conflicts.length > 0 && !overwrite && !opts.yes && ui.isInteractive()) {
+			overwrite = await ui.confirm({
+				message: `${conflicts.length} file(s) already exist. Overwrite them?`,
+				initialValue: false,
+			});
 		}
-		await Promise.all(writes);
-		spin.stop(`Scaffolded into ${c.cyan(rel(projectDir))}`);
 
-		// 7 — Summary + next steps.
-		ui.note(
-			created.map((f) => `${c.green("+")} ${c.cyan(f)}`).join("\n"),
-			`Created ${created.length} files (renderer: ${renderer})`,
-		);
+		const written: string[] = [];
+		const kept: string[] = [];
+		for (const file of files) {
+			if (file.exists && !overwrite) {
+				kept.push(rel(root, file.path));
+				continue;
+			}
+			await mkdir(dirname(file.path), { recursive: true });
+			await writeFile(file.path, file.content);
+			written.push(rel(root, file.path));
+		}
 
-		const steps: string[] = [];
-		if (renderer === "none") {
-			steps.push(
-				`${c.dim("1.")} Install a renderer:`,
-				`   ${c.cyan(installHint(renderer, pm))}`,
-				`${c.dim("2.")} Wire it up in ${c.cyan("docvia.config.ts")}`,
-				`${c.dim("3.")} ${c.cyan("docvia build")}`,
+		const manual: string[] = [];
+		try {
+			const patched = patchConfig(project);
+			if (patched?.code) {
+				await writeFile(patched.file, patched.code);
+				written.push(`${rel(root, patched.file)} ${c.dim("(updated)")}`);
+			}
+		} catch (err) {
+			manual.push(
+				project.framework === "next"
+					? `Wrap your Next config: ${c.cyan("export default withDocvia()(config)")} from @docvia/plugin-next`
+					: `Add ${c.cyan("docvia()")} from @docvia/plugin-vite to your Vite plugins`,
+				c.dim(`(${(err as Error).message})`),
 			);
+		}
+
+		const css = findTailwindCss(root, [
+			...new Set([
+				project.routesDir,
+				project.srcDir,
+				join(project.srcDir, "styles"),
+			]),
+		]);
+		const tailwind = css
+			? patchTailwindCss(css, join(root, "content"))
+			: undefined;
+		if (tailwind?.code) {
+			await writeFile(tailwind.file, tailwind.code);
+			written.push(
+				`${rel(root, tailwind.file)} ${c.dim("(Tailwind skips content/)")}`,
+			);
+		}
+
+		const deps = dependenciesFor(project.framework);
+		if (opts.install) {
+			const spin = ui.spinner();
+			const t0 = performance.now();
+			spin.start(
+				`Installing ${[...deps.runtime, ...deps.dev].length} packages with ${project.pm}`,
+			);
+			try {
+				await installDependencies(root, project.pm, deps);
+				spin.stop(
+					`Installed with ${project.pm} in ${fmtMs(performance.now() - t0)}`,
+				);
+			} catch (err) {
+				spin.stop("Install failed", false);
+				manual.push(
+					...installCommands(project.pm, deps).map((cmd) => c.cyan(cmd)),
+				);
+				manual.push(c.dim((err as Error).message));
+			}
 		} else {
-			steps.push(
-				`${c.dim("1.")} Install runtime peers:`,
-				`   ${c.cyan(installHint(renderer, pm))}`,
-				`${c.dim("2.")} ${c.cyan("docvia build")}  ${c.dim("compile")}`,
-				`   ${c.cyan("docvia dev")}    ${c.dim("watch & rebuild")}`,
+			manual.push(
+				...installCommands(project.pm, deps).map((cmd) => c.cyan(cmd)),
 			);
 		}
-		ui.note(steps.join("\n"), "Next steps");
 
-		ui.outro(`You're all set. Happy documenting ${c.magenta("✨")}`);
+		ui.note(
+			[
+				...written.map((f) => `${c.green("+")} ${f}`),
+				...kept.map((f) => `${c.dim(`= ${f} (kept, use --force to replace)`)}`),
+			].join("\n"),
+			`${written.length} file(s)`,
+		);
+		if (manual.length > 0) ui.note(manual.join("\n"), "Still to do");
+
+		const run = project.pm === "npm" ? "npm run" : project.pm;
+		const next =
+			project.framework === "standalone"
+				? `${c.cyan(`${run} docvia dev`)}  ${c.dim("watch and rebuild content/docs")}`
+				: `${c.cyan(`${run} dev`)}  then open ${c.cyan(devUrl(project))}`;
+		ui.note(next, "Next");
+		ui.outro(`Done in ${fmtMs(performance.now() - started)}`);
 	} catch (err) {
 		if (err instanceof ui.PromptCancelled) {
 			ui.cancelOutro("Setup cancelled.");

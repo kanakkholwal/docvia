@@ -4,21 +4,22 @@ import { Button } from "#lib/components/ui/button/index.ts";
 import { cn } from "#lib/utils.ts";
 import { ArrowRight, Check, Copy } from "@lucide/svelte";
 
+// The real `docvia init` output on a fresh create-next-app (see the benchmarks section).
 const steps = [
 	{
-		label: "Install the CLI",
-		cmd: "pnpm add -D @docvia/cli",
-		out: "+ @docvia/cli 1.0.0",
+		label: "Start from a Next.js, SvelteKit or TanStack Start app",
+		cmd: "pnpm create next-app@latest my-app",
+		out: "Success! Created my-app",
 	},
 	{
-		label: "Scaffold docs/ and a config",
-		cmd: "npx docvia init --renderer react",
-		out: "created docs/ · docvia.config.ts",
+		label: "Add docs: framework, routes and package manager are detected",
+		cmd: "pnpm dlx @docvia/cli init",
+		out: "Next.js · 11 files · next.config.ts updated · 5 packages installed",
 	},
 	{
-		label: "Compile to a typed module graph",
-		cmd: "npx docvia build",
-		out: "3 pages · .docvia/ ready",
+		label: "Run it",
+		cmd: "pnpm dev",
+		out: "open http://localhost:3000/docs",
 	},
 ];
 
@@ -57,7 +58,7 @@ async function copyAll() {
 			<h2
 				class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-tight text-ink sm:text-[48px] sm:leading-none"
 			>
-				Zero to compiled in three commands.
+				From a fresh app to /docs in three commands.
 			</h2>
 		</div>
 

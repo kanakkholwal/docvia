@@ -1,7 +1,7 @@
 {
 	"name": "@docvia/cli",
 	"version": "1.0.0",
-	"description": "Build-time documentation compiler — CLI entry point",
+	"description": "docvia CLI: add docs to a Next.js, SvelteKit or TanStack Start app",
 	"type": "module",
 	"bin": {
 		"docvia": "./bin.mjs"
@@ -13,6 +13,7 @@
 	"files": [
 		"bin.mjs",
 		"dist",
+		"templates",
 		"README.md",
 		"LICENSE"
 	],
@@ -36,7 +37,7 @@
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
 		"typecheck": "tsc --noEmit",
-		"test": "echo \"no tests yet\""
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@docvia/compiler": "workspace:*",
@@ -45,7 +46,9 @@
 		"@docvia/runtime": "workspace:*",
 		"chokidar": "^5.0.0",
 		"commander": "^15.0.0",
-		"sirv": "^3.0.2"
+		"sirv": "^3.0.2",
+		"magic-string": "^1.4.3",
+		"oxc-parser": "^0.152.0"
 	},
 	"peerDependencies": {
 		"@docvia/source": "workspace:*"

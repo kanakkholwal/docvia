@@ -1,11 +1,13 @@
 ---
 title: "@docvia/source"
-description: "Runtime collection model for consuming compiled docvia output."
+description: "Declare docs collections in code and query them with loader()."
 eyebrow: "Packages"
 order: 30
 ---
 
-`@docvia/source` defines the runtime data model that frameworks use to consume compiled docvia documentation. It declares the page, collection, and page-tree types and the `createCollection` / `createSource` factories that the generated `.docvia/source.ts` file relies on. It contains **no Markdown loader**. Under the in-place architecture the host bundler's `?docvia` transform compiles each `.md` file as a module, and these factories just wire those modules into collections.
+`@docvia/source` is how an app reads its docs. Declare a collection with `defineDocs()` from `@docvia/source/macro`, then pass it to `loader()` for page lookup, the page tree and static params. The API mirrors fumadocs (`fumadocs-mdx/macro` + `fumadocs-core/source`).
+
+The docvia bundler plugin (`docvia()` for Vite, `withDocvia()` for Next.js) rewrites the macro calls at build time into an index of the folder's pages. Nothing is scanned at runtime, and page bodies compile lazily, in memory, on first `load()`.
 
 ## Install
 
@@ -15,255 +17,125 @@ pnpm add @docvia/source
 
 ## Package exports
 
-| Subpath | Contents | Notes |
+| Subpath | Contents |
+|---|---|
+| `.` | `loader()` and its types (`Source`, `Page`, `MetaData`, `LoaderOutput`), plus `PageTree`, `RenderOutput`, `ComponentRegistry`, `HydrationManifest`, `StructuredData`. |
+| `./macro` | `defineDocs()`, `defineRegistry()`, `BaseFrontmatter`, `LoadedPage`, `TocItem`. |
+| `./runtime` | Types only (`PageTree`, legacy `docviaCollection` types). |
+| `./macro-runtime`, `./internal` | Used by generated code. Not public API. |
+
+## Declare a collection
+
+```ts title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+import { z } from "zod";
+
+const docs = defineDocs({
+  dir: "content/docs",
+  // optional: extra frontmatter fields, any Standard Schema lib
+  docs: { schema: z.object({ author: z.string().optional() }) },
+});
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
+```
+
+| Option | Type | Purpose |
 |---|---|---|
-| `.` | Re-exports `./runtime` | The default entry: **types only**, no runtime values. **Does not** re-export the `./internal` factories. |
-| `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, plus `RenderOutput`, `ComponentRegistry`, `HydrationManifest`, and `HydrationEntry` re-exported from `@docvia/renderer-core`. |
-| `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated source modules. |
-| `./package.json` | Package metadata | |
+| `dir` | `string` | Content directory, relative to the project root. Must be a string literal. |
+| `docs.schema` | Standard Schema | Extra frontmatter fields (Zod, Valibot, ArkType), merged with the built-ins. |
 
-> `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly, because the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
+Every page's frontmatter includes `title`, `description`, `tags`, `draft`, optional `order` and `slug`, plus your schema's fields, all typed.
 
-This package ships no binary. Every docvia-generated module imports only `@docvia/source`, so apps must list it as a direct dependency.
+In Vite, any module that imports `@docvia/source/macro` is transformed. In Next.js only files named in `macroFiles` are (default `source.{ts,tsx,js,mjs}` and `registry.{ts,tsx,js}`). Calling `defineDocs()` without the plugin throws.
 
-## Runtime types (`@docvia/source/runtime`)
+## Component registry
 
-### `RenderOutput`, `ComponentRegistry`, `HydrationManifest`
+```ts title="lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
 
-Re-exported from [`@docvia/renderer-core`](/docs/packages/renderer-core), so app code can type pages without depending on a renderer. `HydrationManifest` is the list of interactive islands embedded in a page.
+// Components from `components` in docvia.config.ts.
+export const registry = defineRegistry();
+```
 
-### `namespace PageTree`
+Pass `registry` to `<Renderer>` (Svelte) or `<DocviaContent>` (React).
 
-The navigation tree model. A `Root` holds an ordered list of `Node`s; each `Node` is one of three shapes.
+## `loader()`
+
+```ts
+function loader<D>(options: { baseUrl: string; source: Source<D> }): LoaderOutput<D>;
+```
+
+| Member | Returns | Behavior |
+|---|---|---|
+| `getPage(slugs?)` | `Page \| undefined` | Synchronous lookup by slug segments. `[]` or `undefined` is the index page. |
+| `getPages()` | `Page[]` | Every page, frontmatter only. |
+| `pageTree` / `getPageTree()` | `PageTree.Root` | Navigation tree, built once and cached. |
+| `getPageByHref(href)` | `{ page, hash? } \| undefined` | Resolves a link like `/docs/guide#setup`. |
+| `generateParams(key?)` | `Record<key, string[]>[]` | Static params, keyed `slug` by default. |
+| `serializePageTree(tree)` | `Promise<PageTree.Root>` | Identity (fumadocs parity: the tree already holds plain strings). |
+
+A `Page` has `slugs`, `url`, `path` (relative to the collection directory) and `data`. For a `defineDocs()` source, `data` is the frontmatter plus `load()`:
+
+```ts
+const page = source.getPage(slugs); // sync, frontmatter only
+if (!page) notFound();
+const { content, toc, headings, manifest, structuredData } = await page.data.load();
+```
+
+| `load()` field | Meaning |
+|---|---|
+| `content` | Render tree for `<Renderer nodes>` / `<DocviaContent nodes>`. |
+| `toc` | `{ title, url: "#id", depth }[]` |
+| `headings` | `{ depth, text, id }[]`, the h2 to h6 outline. |
+| `manifest` | Island hydration manifest. |
+| `structuredData` | Search sections, extracted at compile time. Used by `createFromSource()`. |
+
+`load()` is memoised per page, so repeated calls share one compile. Bodies stay out of the index, which keeps SSR cold start small on Cloudflare Workers.
+
+`loader()` also accepts any hand-built `Source`: `{ files: Array<PageFile | MetaFile> }`.
+
+## `meta.json`
+
+A `meta.json` in a content folder controls that folder's tree node:
+
+```json title="content/docs/guide/meta.json"
+{
+  "title": "Guide",
+  "pages": ["install", "---Basics---", "...", "!drafts", "[GitHub](https://github.com/kanakkholwal/docvia)"],
+  "defaultOpen": true
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `title` | Folder name in the tree. Defaults to the folder's `index.md` title. |
+| `pages` | Child order: names, `...` (the rest, sorted by `order` then name), `---Label---` (separator), `!name` (exclude), `[Text](url)` (link). |
+| `defaultOpen` | Folder starts expanded. |
+| `root` | Folder starts its own sidebar. |
+
+Without `meta.json`, children sort by frontmatter `order`, then name.
+
+## `namespace PageTree`
 
 ```ts
 namespace PageTree {
-  interface Root {
-    name: string;
-    children: Node[];
-  }
-
-  interface Item {
-    type: "page";
-    name: string;
-    url: string;
-    $id?: string;
-  }
-
+  interface Root { name: string; children: Node[] }
+  interface Item { type: "page"; name: string; url: string; external?: boolean; $id?: string }
   interface Folder {
     type: "folder";
     name: string;
     children: Node[];
     index?: Item;
     defaultOpen?: boolean;
+    root?: boolean;
     $id?: string;
   }
-
-  interface Separator {
-    type: "separator";
-    name: string;
-  }
-
+  interface Separator { type: "separator"; name: string }
   type Node = Item | Folder | Separator;
 }
 ```
 
-| Member | Field | Meaning |
-|---|---|---|
-| `Root` | `name` | Display name of the tree root. |
-| `Root` | `children` | Top-level nodes. |
-| `Item` | `type` | Always `"page"`. |
-| `Item` | `name` | Link label. |
-| `Item` | `url` | Resolved page URL. |
-| `Item` | `$id` | Optional stable identifier. |
-| `Folder` | `type` | Always `"folder"`. |
-| `Folder` | `children` | Nested nodes. |
-| `Folder` | `index` | Optional `Item` rendered as the folder's own landing page. |
-| `Folder` | `defaultOpen` | Whether the folder starts expanded. |
-| `Folder` | `$id` | Optional stable identifier. |
-| `Separator` | `type` | Always `"separator"`. |
-| `Separator` | `name` | Separator label. |
+## Legacy config collections
 
-### `interface docviaPage`
-
-```ts
-interface docviaPage<TFrontmatter = unknown> {
-  slugs: string[];
-  url: string;
-  data: TFrontmatter;
-  content: RenderOutput;
-  manifest: HydrationManifest;
-  headings: Array<{ depth: number; text: string; id: string }>;
-}
-```
-
-| Field | Type | Meaning |
-|---|---|---|
-| `slugs` | `string[]` | Path segments identifying the page. |
-| `url` | `string` | Resolved URL. |
-| `data` | `TFrontmatter` | Validated frontmatter. |
-| `content` | `RenderOutput` | The render tree; pass it to the renderer's `<Renderer nodes>` / `<DocviaContent nodes>`. |
-| `manifest` | `HydrationManifest` | Island hydration manifest. |
-| `headings` | array | Always present. The h2 to h6 outline, for building a table of contents. |
-
-### `interface docviaCollection`
-
-```ts
-interface docviaCollection<TFrontmatter = unknown, _TRouteKey extends string = string> {
-  ready(): Promise<void>;
-  getPage(slugs: string[] | undefined): Promise<docviaPage<TFrontmatter> | undefined>;
-  getPages(): Array<{ slugs: string[]; url: string; data: TFrontmatter }>;
-  get pageTree(): PageTree.Root;
-  getPageTree(): PageTree.Root;
-  generateParams<TSlug extends string = "slug">(slug?: TSlug): Record<TSlug, string[]>[];
-}
-```
-
-| Member | Signature | Behavior |
-|---|---|---|
-| `ready` | `() => Promise<void>` | Resolves page metadata, so the synchronous members below return real data. No-op on the server (metadata is already in hand); required on the browser build before reading `getPages` / `pageTree`. |
-| `getPage` | `(slugs) => Promise<docviaPage \| undefined>` | Resolves a single page by slug segments. Returns `undefined` when no page matches. Always accurate, since it awaits the page module regardless of build. |
-| `getPages` | `() => Array<{ slugs, url, data }>` | Lightweight listing of every page, without loading content. `data` is the page's full frontmatter, including any custom fields your schema defines. Synchronous; see `ready`. |
-| `pageTree` | getter `=> PageTree.Root` | The navigation tree as a property. Synchronous; see `ready`. |
-| `getPageTree` | `() => PageTree.Root` | The navigation tree as a method (equivalent to `pageTree`). |
-| `generateParams` | `(slug?) => Record<TSlug, string[]>[]` | Produces route params for static generation, keyed by the given `slug` name. |
-
-### `interface docviaSource`
-
-```ts
-interface docviaSource {
-  collections: Record<string, docviaCollection<unknown, string>>;
-}
-```
-
-The top-level container. `collections` maps each collection name to its `docviaCollection`.
-
-## Internal factories (`@docvia/source/internal`)
-
-### `interface ModuleExports`
-
-```ts
-interface ModuleExports {
-  meta: unknown;
-  content: any;
-  manifest: unknown;
-}
-```
-
-The shape of a compiled page module emitted into `.docvia/`. `meta` carries frontmatter (including `order`), `content` is the renderer-native module, and `manifest` is the hydration manifest.
-
-### `createCollection`
-
-```ts
-function createCollection<TFrontmatter, TRouteKey extends string>(opts: {
-  name: string;
-  baseUrl: string;
-  routeKeys: readonly TRouteKey[];
-  getModule(slug: string): Promise<ModuleExports | undefined>;
-  getEagerModules(): Promise<Record<string, ModuleExports> | null>;
-  sourceModuleUrl: string;
-}): docviaCollection<TFrontmatter, TRouteKey>;
-```
-
-Builds a `docviaCollection` from a set of route keys and module loaders.
-
-| Option | Type | Purpose |
-|---|---|---|
-| `name` | `string` | Collection name. |
-| `baseUrl` | `string` | URL prefix prepended to every page. |
-| `routeKeys` | `readonly TRouteKey[]` | All known page slugs in the collection. |
-| `getModule` | `(slug) => Promise<ModuleExports \| undefined>` | Lazily loads one page module. |
-| `getEagerModules` | `() => Promise<Record<string, ModuleExports> \| null>` | Loads every module up front (or `null` to disable eager mode). |
-| `sourceModuleUrl` | `string` | URL of the generated source module, used for relative resolution. |
-
-Behavior:
-
-- Builds a **parent → children page tree** from `routeKeys`.
-- Sorts siblings by `meta.order`, then by slug.
-- A slug that has children becomes a `Folder`; otherwise it becomes an `Item`.
-- `getPage` normalizes the incoming slugs and keys on `slugs.join("/") || "index"`.
-- `generateParams(slug = "slug")` maps every route key to `{ [slug]: segments }`, where the index page maps to an empty array `[]`.
-
-### `createSource`
-
-```ts
-function createSource<TCollections>(
-  collections: TCollections,
-): docviaSource & { collections: TCollections };
-```
-
-Wraps a record of collections into a `docviaSource`. The return type preserves the concrete `TCollections` shape, so accessing `docviaSource.collections.docs` stays fully typed.
-
-## Generated source example
-
-The compiler emits a `.docvia/source.ts` that uses the internal factories. Under
-the in-place architecture `getModule` resolves the Markdown file as a module via
-the host bundler's `?docvia` transform (no JSON, no filesystem read):
-
-```ts
-import { createCollection, createSource } from "@docvia/source/internal";
-
-const docs = createCollection({
-  name: "docs",
-  baseUrl: "/",
-  routeKeys: ["index", "getting-started", "guides/install"],
-  // `?docvia` is compiled in place by the bundler; content lives in the .md
-  getModule: (slug) => import(`../src/docs/${slug}.md?docvia`),
-  // eager metadata for the page tree / getPages()
-  getEagerModules: () => _modules.docs,
-  sourceModuleUrl: import.meta.url,
-});
-
-// Each collection is exported by name, and all of them together as `docviaSource`.
-export { docs };
-export const docviaSource = createSource({ docs });
-```
-
-Consuming it from a framework app. The import specifier is **bundler-specific**. The component registry is a separate module (`virtual:docvia/registry` / `docvia/registry`), not an export of the source module:
-
-```ts
-// Vite (and SvelteKit): the Vite plugin serves a virtual module
-import { docs, docviaSource } from "virtual:docvia/source";
-
-// Next.js (webpack + Turbopack): the plugin aliases the bare specifier
-import { docs, docviaSource } from "docvia/source";
-
-// Import the collection by name…
-const page = await docs.getPage(["getting-started"]);
-const tree = docs.pageTree;
-
-// …or reach it through the source, which is handy when the name is dynamic.
-const same = await docviaSource.collections.docs.getPage(["getting-started"]);
-```
-
-> [!WARNING]
-> **Importing a collection is server-only.** `virtual:docvia/source` statically
-> imports *every* compiled page so that `getPages()` and `pageTree` have their
-> metadata up front. Import it from a universal module, such as a SvelteKit
-> `+page.ts` or a client component, and your entire content set is bundled into
-> the browser, which defeats the bundle-size benefit the compiler exists to
-> provide.
->
-> Read it from server-only modules (`+page.server.ts`, `+layout.server.ts`, a
-> React Server Component, `getStaticProps`). The Vite plugin logs a warning when
-> client code imports `virtual:docvia/source`. If you genuinely need a collection
-> on the client, import the lazy counterpart instead:
-> `virtual:docvia/source/browser` (Vite) / `docvia/source/browser` (Next). Its
-> `getModule` uses `() => import("…md?docvia")`, so each page is its own chunk
-> and only the page you ask for is fetched.
-
-### Metadata timing on the browser build
-
-On the server the page metadata is in hand synchronously, so `getPages()` and
-`pageTree` are correct on first read. On the **browser** build it is resolved
-through a dynamic import per page and cannot be produced synchronously, so reading
-those two before it lands yields slug-derived titles and alphabetical ordering
-(and logs a warning). Await `ready()` first:
-
-```ts
-await docs.ready();
-const tree = docs.pageTree; // real titles, frontmatter order
-```
-
-`ready()` resolves immediately on the server, so universal code can always await
-it. `getPage()` is unaffected, since it awaits the page module either way.
+Collections declared in `docvia.config.ts` (`collections`, `frontmatter`, `sourceDir`) are still served as `virtual:docvia/source` (Vite) and `docvia/source` (Next), typed by `docviaCollection` in `./runtime`, whose `getPage()` is async. Prefer `defineDocs()` for new projects.

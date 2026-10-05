@@ -36,7 +36,6 @@ beforeAll(async () => {
 		plugins: [],
 		config: defineConfig({}),
 		projectRoot,
-		incremental: false,
 	};
 	service = new CompileService(options);
 	await service.compileAll();

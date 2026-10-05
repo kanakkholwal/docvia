@@ -24,11 +24,10 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 
 ## Compile core
 
-- [`@docvia/runtime`](/docs/packages/runtime) holds `CompileService`, the
-  stateful compile core shared by build, dev, and SSR.
+- [`@docvia/runtime`](/docs/packages/runtime) holds the page pipeline and the
+  `defineDocs()` transform shared by the plugins and the CLI.
 - [`@docvia/compiler`](/docs/packages/compiler) is the batch build entry
-  (`compile()`), content hashing, the incremental cache, and module-graph
-  generation.
+  (`compile()`), content hashing, and module-graph generation.
 - [`@docvia/plugins`](/docs/packages/plugins) provides `defineConfig`,
   `loadConfig`, and the `PluginRunner`.
 
@@ -41,8 +40,8 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 
 ## Runtime
 
-- [`@docvia/source`](/docs/packages/source) is the runtime collection model
-  (`createCollection` / `createSource`) the generated `source.ts` is built on.
+- [`@docvia/source`](/docs/packages/source) declares collections
+  (`defineDocs()`) and queries them (`loader()`).
 - [`@docvia/ssr`](/docs/packages/ssr) does request-time rendering for Node and
   edge runtimes.
 - [`@docvia/search`](/docs/packages/search) provides section-level Orama indexing

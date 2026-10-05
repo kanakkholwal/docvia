@@ -1,90 +1,100 @@
 ---
 title: Source API
-description: Access your compiled documentation with type-safe methods for pages, navigation, and route generation.
+description: Fetch pages, build navigation, and prerender routes with loader().
 order: 2
 ---
 
 # Source API
 
-The source API is your interface to compiled documentation. Import the collection and use its methods in your SvelteKit load functions.
+`loader()` turns a `defineDocs()` collection into a source you call from
+SvelteKit load functions. The method names match fumadocs.
 
-```typescript
-import { docs } from "virtual:docvia/source";
+```typescript title="src/lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "src/docs" });
+
+export const source = loader({
+  baseUrl: "/docs",
+  source: docs.toDocviaSource(),
+});
 ```
 
 ## getPage
 
-Fetch a single page by its slug segments:
+Find a page by its slug segments. It is synchronous and returns frontmatter
+only; call `page.data.load()` for the compiled body.
 
 ```typescript
-const page = await docs.getPage(["getting-started"]);
+const page = source.getPage(["getting-started"]);
 
-// page.data      — frontmatter (title, description, tags, ...)
-// page.content   — pre-compiled RenderOutput tree
-// page.manifest  — hydration entries for interactive components
-// page.headings  — array of { depth, text, id } for TOC
-// page.url       — resolved URL path
-// page.slugs     — slug segments as array
+// page.data   frontmatter (title, description, tags, ...) plus load()
+// page.url    resolved URL path
+// page.slugs  slug segments
+
+const { content, toc, headings, manifest, structuredData } = await page.data.load();
 ```
 
 ### Usage in SvelteKit
 
 ```typescript
 // +page.server.ts
-import { docs } from "virtual:docvia/source";
 import { error } from "@sveltejs/kit";
+import { source } from "#lib/source.ts";
 
 export const load = async ({ params }) => {
-  const slugs = params.slug?.split("/") || [];
-  const page = await docs.getPage(slugs);
-  if (!page) throw error(404, "Page not found");
-  return { page };
+  const page = source.getPage(params.slug?.split("/").filter(Boolean));
+  if (!page) error(404, "Page not found");
+  const { content, headings } = await page.data.load();
+  return { page: { title: page.data.title, content, headings } };
 };
 ```
 
 ## getPages
 
-Returns metadata for all pages in the collection:
+Returns every page with its frontmatter. Bodies are not loaded.
 
 ```typescript
-const pages = docs.getPages();
-// [{ slugs: ["getting-started"], url: "/getting-started", data: { title: "..." } }]
+const pages = source.getPages();
+// [{ slugs: ["getting-started"], url: "/docs/getting-started", path: "getting-started.md", data: { title: "..." } }]
 ```
+
+`source.getPageByHref("/docs/source-api#getpage")` resolves a link to `{ page, hash }`.
 
 ## pageTree
 
-A lazily-built navigation tree derived from your file structure:
+A lazily built navigation tree derived from your file structure and `meta.json`
+files:
 
 ```typescript
-const tree = docs.pageTree;
-// { name: "docs", children: [...] }
+const tree = source.pageTree;
+// { name: "Docs", children: [...] }
 ```
 
 ### Node types
 
 | Type | Fields | Description |
 | --- | --- | --- |
-| `page` | `name`, `url`, `$id` | A navigable page |
-| `folder` | `name`, `children`, `index?` | A directory with child pages |
+| `page` | `name`, `url`, `$id`, `external?` | A navigable page or a `meta.json` link |
+| `folder` | `name`, `children`, `index?`, `defaultOpen?`, `root?` | A directory with child pages |
 | `separator` | `name` | A visual divider |
 
-## generateParams
+A folder's `meta.json` sets `title`, `pages` (order; supports `...`,
+`---Separator---`, `!exclude`, `[Text](url)`), `defaultOpen`, and `root`.
 
-Generates route parameters for SvelteKit prerendering:
+## Prerendering
+
+`source.generateParams()` returns `{ slug: string[] }` entries. SvelteKit rest
+params are strings, so join the slugs:
 
 ```typescript
 // +page.server.ts
-export const entries = () => {
-  return docs.getPages().map(p => ({
-    slug: p.slugs.join("/") || undefined,
-  }));
-};
+export const entries = () =>
+  source.getPages().map((p) => ({ slug: p.slugs.join("/") }));
 ```
 
 ## TypeScript types
 
-The collection is fully typed:
-
-```typescript
-import type { docs_Frontmatter, docs_RouteKey } from "./.docvia/types";
-```
+`page.data` is typed from `defineDocs()`: the built-in fields plus the output of
+an optional `docs.schema` (any Standard Schema library).

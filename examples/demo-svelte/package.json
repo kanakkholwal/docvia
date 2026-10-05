@@ -11,8 +11,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "docvia sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "docvia sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"deploy": "wrangler deploy"
 	},
 	"devDependencies": {

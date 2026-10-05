@@ -6,6 +6,7 @@ import type { CompilerOptions, RendererAdapter } from "@docvia/ir";
 import { toPageMeta } from "@docvia/ir";
 import { defineConfig } from "@docvia/plugins";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { generateVirtualSource } from "../src/emit";
 import { CompileService } from "../src/service";
 
 // The compile service never invokes the renderer (rendering happens in the
@@ -41,7 +42,7 @@ afterAll(async () => {
 	await rm(projectRoot, { recursive: true, force: true });
 });
 
-function options(outSubdir: string, incremental: boolean): CompilerOptions {
+function options(outSubdir: string): CompilerOptions {
 	return {
 		sourceDir: "docs",
 		outDir: join(projectRoot, outSubdir),
@@ -49,18 +50,16 @@ function options(outSubdir: string, incremental: boolean): CompilerOptions {
 		plugins: [],
 		config: defineConfig({}),
 		projectRoot,
-		incremental,
 	};
 }
 
 describe("CompileService.compileAll", () => {
 	it("compiles every file in the source tree", async () => {
-		const service = new CompileService(options(".out-all", false));
+		const service = new CompileService(options(".out-all"));
 		const result = await service.compileAll();
 
 		expect(result.stats.total).toBe(2);
 		expect(result.stats.compiled).toBe(2);
-		expect(result.stats.cached).toBe(0);
 		expect(result.pages).toHaveLength(2);
 		for (const page of result.pages) {
 			expect(page.contentHash).toBeTruthy();
@@ -68,7 +67,7 @@ describe("CompileService.compileAll", () => {
 	});
 
 	it("getDocument returns IR whose contentHash matches the page", async () => {
-		const service = new CompileService(options(".out-doc", false));
+		const service = new CompileService(options(".out-doc"));
 		const result = await service.compileAll();
 
 		for (const page of result.pages) {
@@ -79,8 +78,8 @@ describe("CompileService.compileAll", () => {
 	});
 
 	it("is deterministic — two cold runs produce identical content hashes", async () => {
-		const a = new CompileService(options(".out-det-a", false));
-		const b = new CompileService(options(".out-det-b", false));
+		const a = new CompileService(options(".out-det-a"));
+		const b = new CompileService(options(".out-det-b"));
 		const ra = await a.compileAll();
 		const rb = await b.compileAll();
 
@@ -90,29 +89,10 @@ describe("CompileService.compileAll", () => {
 	});
 });
 
-describe("CompileService incremental cache", () => {
-	it("reuses cached entries on a second run with no changes", async () => {
-		const first = new CompileService(options(".out-incr", true));
-		const firstResult = await first.compileAll();
-		await first.emitDiskModuleGraph();
-		expect(firstResult.stats.compiled).toBe(2);
-
-		const second = new CompileService(options(".out-incr", true));
-		const secondResult = await second.compileAll();
-
-		expect(secondResult.stats.cached).toBe(2);
-		expect(secondResult.stats.compiled).toBe(0);
-
-		const hashes = (pages: typeof firstResult.pages) =>
-			Object.fromEntries(pages.map((p) => [p.slug, p.contentHash]));
-		expect(hashes(secondResult.pages)).toEqual(hashes(firstResult.pages));
-	});
-});
-
 describe("CompileService.emitDiskModuleGraph", () => {
 	it("writes the module-graph files", async () => {
 		const outDir = join(projectRoot, ".out-emit");
-		const service = new CompileService(options(".out-emit", false));
+		const service = new CompileService(options(".out-emit"));
 		await service.compileAll();
 		await service.emitDiskModuleGraph();
 
@@ -132,18 +112,19 @@ describe("CompileService.emitDiskModuleGraph", () => {
 	});
 });
 
-describe("CompileService.getVirtualSourceModule", () => {
-	it("generates a self-contained docvia/source module", async () => {
-		const service = new CompileService(options(".out-virtual", false));
-		const result = await service.compileAll();
-
-		const mod = service.getVirtualSourceModule();
+describe("generateVirtualSource", () => {
+	it("indexes frontmatter eagerly and bodies lazily through Vite globs", () => {
+		const mod = generateVirtualSource(
+			[{ name: "docs", baseUrl: "/docs", dir: join(projectRoot, "docs") }],
+			projectRoot,
+		);
+		expect(mod).toContain(
+			'import.meta.glob("/docs/**/*.md", { eager: true, import: "meta", query: "?docvia&collection=docs&only=meta" })',
+		);
+		expect(mod).toContain(
+			'import.meta.glob("/docs/**/*.md", { query: "?docvia&collection=docs" })',
+		);
 		expect(mod).toContain("createSource");
-		expect(mod).toContain("createCollection");
-		expect(mod).toContain("?docvia");
-		for (const page of result.pages) {
-			expect(mod).toContain(JSON.stringify(page.slug));
-		}
 	});
 });
 
@@ -167,7 +148,6 @@ describe("CompileService.invalidate", () => {
 			plugins: [],
 			config: defineConfig({}),
 			projectRoot: dir,
-			incremental: false,
 		});
 	}
 
@@ -225,7 +205,7 @@ describe("CompileService.invalidate", () => {
 		const result = await service.invalidate([join(dir, "docs", "b.md")]);
 
 		expect(result.routeMapChanged).toBe(true);
-		expect(service.getVirtualSourceModule()).not.toContain('"b"');
+		expect(await service.getDocument("docs", "b")).toBeUndefined();
 
 		await rm(dir, { recursive: true, force: true });
 	});
@@ -274,7 +254,6 @@ describe("custom frontmatter reaches the emitted meta", () => {
 			plugins: [],
 			config: defineConfig({ frontmatter }),
 			projectRoot: dir,
-			incremental: false,
 		});
 		await service.compileAll();
 
@@ -320,7 +299,6 @@ describe("custom frontmatter reaches the emitted meta", () => {
 			config: defineConfig({ frontmatter }),
 			configPath: join(dir, "docvia.config.ts"),
 			projectRoot: dir,
-			incremental: false,
 		});
 		await service.compileAll();
 		await service.emitTypeDeclarations();

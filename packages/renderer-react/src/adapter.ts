@@ -12,7 +12,12 @@ export function createReactRenderer(
 	options: ModuleRendererOptions = {},
 ): RendererAdapter {
 	return createModuleRenderer(
-		{ name: "react", runtimePackage: "@docvia/renderer-react" },
+		{
+			name: "react",
+			runtimePackage: "@docvia/renderer-react",
+			// `components` can override these (e.g. a router link), so they stay nodes.
+			staticHtml: { keepTags: ["a", "img"] },
+		},
 		options,
 	);
 }

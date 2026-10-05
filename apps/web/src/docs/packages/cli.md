@@ -5,7 +5,9 @@ eyebrow: "Packages"
 order: 1
 ---
 
-`@docvia/cli` is the command-line entry point for docvia. It ships the `docvia` binary, loads your `docvia.config.ts`, and drives `@docvia/compiler`'s `compile()` routine. It is a dev dependency only. It also re-exports `defineConfig`, but config files should import it from `@docvia/plugin-vite` or `@docvia/plugin-next`.
+`@docvia/cli` ships the `docvia` binary. It is a dev dependency only. It also re-exports `defineConfig`, but config files should import it from `@docvia/plugin-vite` or `@docvia/plugin-next`.
+
+Apps that declare collections with `defineDocs()` do not need the CLI at runtime: the Vite or Next.js plugin compiles pages on demand. `build`, `dev` and `preview` drive the standalone compiler, which writes a `.docvia/` module graph for hosts without a docvia bundler plugin.
 
 ## Install
 
@@ -26,8 +28,7 @@ A typical `package.json` wires the commands into scripts:
   "scripts": {
     "docs:dev": "docvia dev",
     "docs:build": "docvia build",
-    "docs:preview": "docvia preview",
-    "check": "docvia sync && tsc --noEmit"
+    "docs:preview": "docvia preview"
   }
 }
 ```
@@ -62,8 +63,8 @@ The programmatic entry point. It builds the underlying [commander](https://githu
 ```ts
 import { runCli } from "@docvia/cli";
 
-// Equivalent to running `docvia build --no-cache`
-await runCli(["node", "docvia", "build", "--no-cache"]);
+// Equivalent to running `docvia build --verbose`
+await runCli(["node", "docvia", "build", "--verbose"]);
 ```
 
 The `bin.mjs` shim calls `runCli()` explicitly; any downstream tooling that wants to run docvia in-process can do the same.
@@ -76,9 +77,10 @@ Re-exported from `@docvia/plugins`. It is the helper used in `docvia.config.ts` 
 // docvia.config.ts
 import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
 
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
+  renderer: createSvelteRenderer(),
 });
 ```
 
@@ -101,49 +103,60 @@ The CLI exposes five commands: `init`, `build`, `dev`, `sync`, and `preview`.
 
 ### `docvia init`
 
-Scaffolds a new docvia project: a `docs/` directory with three starter Markdown files plus a `docvia.config.ts` at the project root.
-
-| Flag | Alias | Default | Behavior |
-|---|---|---|---|
-| `--dir <dir>` | `-d` | `.` | Target project directory. |
-| `--renderer <renderer>` | `-r` | autodetected | Renderer template: `react`, `svelte`, or `none`. |
-| `--force` | `-f` | `false` | Overwrite an existing `docvia.config.ts`. |
-
-When `--renderer` is omitted, the renderer is autodetected from `package.json` dependencies:
-
-- `svelte` or `@sveltejs/kit` present → `svelte`
-- `react` or `next` present → `react`
-- otherwise → `none`
-
-Files created:
-
-- `docs/index.md`
-- `docs/getting-started.md`
-- `docs/components.md`
-- `docvia.config.ts`
-
-After scaffolding, `init` prints install hints for the packages that match the chosen renderer.
+Add docs to an existing Next.js, SvelteKit or TanStack Start app.
 
 ```bash
-# Scaffold into the current directory, autodetecting the renderer
-docvia init
-
-# Scaffold a Svelte project into ./website, overwriting any existing config
-docvia init --dir ./website --renderer svelte --force
+pnpm dlx @docvia/cli init [dir] [--yes] [--no-install] [--framework <name>] [--pm <manager>] [-f]
 ```
+
+| Flag | Default | Description |
+|---|---|---|
+| `[dir]` | `.` | The app directory. |
+| `-y, --yes` | `false` | Accept the detected setup without prompting. |
+| `--no-install` | installs | Print the install commands instead of running them. |
+| `--framework <name>` | detected | `next`, `sveltekit`, `tanstack-start` or `standalone`. |
+| `--pm <manager>` | detected | `npm`, `pnpm`, `yarn` or `bun`. |
+| `-f, --force` | `false` | Replace files that already exist. |
+
+What it detects:
+
+- **Framework** from `package.json`: `next`, `@sveltejs/kit` or `@tanstack/react-start`.
+- **Package manager** from the lockfile, then the `packageManager` field, then the command that ran it.
+- **Import aliases** from `tsconfig.json` `paths` and `package.json` `imports` (`@/lib/source`, `#lib/source.ts`), with relative imports as the fallback.
+- **`src/` layout** for Next.js apps that use `src/app`.
+- **Tailwind v4**: adds `@source not "../content"` to the app's Tailwind stylesheet, so a
+  Markdown edit does not rebuild the app's CSS (about 9 s per edit through Next.js PostCSS).
+
+What it writes, shown for Next.js. SvelteKit and TanStack Start get the same pieces as their own route files:
+
+| File | Purpose |
+|---|---|
+| `content/docs/index.md`, `content/docs/guides/` | Starter pages and a `meta.json` |
+| `lib/source.ts` | `defineDocs()` and `loader()` |
+| `app/docs/layout.tsx`, `app/docs/[[...slug]]/page.tsx`, `docs.css` | Sidebar, page, table of contents, starter styles |
+| `app/api/search/route.ts` | Search endpoint |
+| `components/docs-tree.tsx`, `components/docvia-client.tsx` | Sidebar tree and code-tab switching |
+| `next.config.ts` | Wrapped in `withDocvia()` (Vite apps get `docvia()` in `plugins`) |
+
+Existing files are kept unless you pass `--force`. No `docvia.config.ts` is written: the
+renderer is picked from your dependencies and Shiki is enabled when installed. Add a config
+file only to register components or change plugins.
+
+In a directory without a supported framework, `init` sets up a standalone project for
+`docvia build` and `docvia dev` instead.
 
 ### `docvia build`
 
-Compiles documentation once. It loads the config, validates the environment, and calls `compile()`.
+Compiles every page once with `CompileService` and writes the module graph to `outDir`.
 
 | Flag | Default | Behavior |
 |---|---|---|
 | `--docs <dir>` | from config | Override the config's `sourceDir`. |
 | `--out <dir>` | from config | Override the config's `outDir`. |
 | `--config <path>` | `./docvia.config.ts` | Path to the config file. |
-| `--no-cache` | cache enabled | Force a full rebuild, disabling the incremental cache. |
+| `--verbose`, `-v` | `false` | Show intermediate build steps. |
 
-`build` throws a `docviaError` with code `CONFIG_ERROR` when the docs directory is missing or no renderer is configured. It passes `incremental: !noCache` to `compile()`, so omitting `--no-cache` keeps the incremental cache, and passing it forces a clean build.
+`build` throws a `docviaError` with code `CONFIG_ERROR` when the docs directory is missing or no renderer is configured. There is no disk cache: every run compiles in memory.
 
 On success it prints the build duration along with file and page counts.
 
@@ -151,8 +164,8 @@ On success it prints the build duration along with file and page counts.
 # Standard build
 docvia build
 
-# Full rebuild with overridden paths
-docvia build --docs content --out dist/docs --no-cache
+# Overridden paths
+docvia build --docs content --out dist/docs
 ```
 
 ### `docvia dev`
@@ -164,6 +177,7 @@ Runs an initial compile, then watches for changes and rebuilds incrementally.
 | `--docs <dir>` | from config | Override the config's `sourceDir`. |
 | `--out <dir>` | from config | Override the config's `outDir`. |
 | `--config <path>` | `./docvia.config.ts` | Path to the config file. |
+| `--verbose`, `-v` | `false` | Show each changed file as it rebuilds. |
 
 Behavior:
 
@@ -179,7 +193,7 @@ docvia dev --docs content
 
 ### `docvia sync`
 
-Compiles the content and writes `.docvia/types.d.ts` and `.docvia/env.d.ts` without a bundler, like `svelte-kit sync`. Run it before `tsc` or `svelte-check` in CI, where no dev server has written them.
+For legacy config collections only: writes `.docvia/types.d.ts` and `.docvia/env.d.ts` from frontmatter, without a bundler, like `svelte-kit sync`. `defineDocs()` apps get their types from their own source file and do not need it.
 
 | Flag | Default | Behavior |
 |---|---|---|
@@ -202,7 +216,7 @@ Serves the already-compiled `.docvia/` output over a local HTTP server using [si
 
 The command validates that the port is within the valid range before binding via `node:http`.
 
-> `preview` is a sanity check for the compiled artifacts, **not** a runtime. Render the compiled output inside your framework app (Vite, Next.js, SvelteKit) for the real integration.
+> `preview` is a sanity check for the compiled artifacts, **not** a runtime.
 
 ```bash
 docvia preview --out .docvia --port 5000
@@ -211,13 +225,7 @@ docvia preview --out .docvia --port 5000
 ## End-to-end example
 
 ```bash
-# 1. Scaffold
-docvia init --renderer react
-
-# 2. Iterate
-docvia dev
-
-# 3. Ship
-docvia build
-docvia preview
+# Inside a Next.js, SvelteKit or TanStack Start app
+pnpm dlx @docvia/cli init
+pnpm dev
 ```

@@ -77,8 +77,9 @@ describe("code blocks", () => {
 		const ir = await compile(fence("npm", "", "@docvia/cli"));
 		const renderer = createModuleRenderer({ name: "t", runtimePackage: "t" });
 		const { code } = await renderer.renderPage(ir);
-		expect(code).toContain('"role":"tablist"');
-		expect(code).toContain('"data-docvia-code-group"');
+		// Pre-rendered HTML, JSON-escaped inside the module source.
+		expect(code).toMatch(/role=\\"tablist\\"/);
+		expect(code).toContain("data-docvia-code-group");
 		expect(code).toContain("pnpm add @docvia/cli");
 	});
 });

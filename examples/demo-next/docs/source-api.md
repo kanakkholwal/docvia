@@ -1,39 +1,46 @@
 ---
 title: Source API
-description: Access your compiled documentation with type-safe methods for pages, navigation, and route generation.
+description: Fetch pages, build navigation, and generate routes with loader().
 order: 2
 ---
 
 # Source API
 
-The source API is your interface to compiled documentation. Import the collection and use its methods to fetch pages, build navigation, and generate routes.
+`loader()` turns a `defineDocs()` collection into a source with methods to fetch
+pages, build navigation, and generate routes. The method names match fumadocs.
 
-```typescript
-import { docs } from "docvia/source";
+```typescript title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "docs" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
 
 ## getPage
 
-Fetch a single page by its slug segments. Returns the full page content, frontmatter, and metadata.
+Find a page by its slug segments. It is synchronous and returns frontmatter
+only; call `page.data.load()` for the compiled body.
 
 ```typescript
-const page = await docs.getPage(["getting-started"]);
-
+const page = source.getPage(["getting-started"]);
 if (!page) notFound();
 
-// page.data      — frontmatter (title, description, tags, ...)
-// page.content   — pre-compiled RenderOutput tree
-// page.manifest  — hydration entries for interactive components
-// page.headings  — array of { depth, text, id } for TOC
-// page.url       — resolved URL path
-// page.slugs     — slug segments as array
+// page.data   frontmatter (title, description, tags, ...) plus load()
+// page.url    resolved URL path
+// page.slugs  slug segments
+// page.path   source path relative to the collection directory
+
+const { content, toc, headings, manifest, structuredData } = await page.data.load();
 ```
 
-For the index page, pass an empty array or `undefined`:
+`load()` compiles the page lazily in memory, keyed by content hash. For the
+index page, pass an empty array or `undefined`:
 
 ```typescript
-const index = await docs.getPage([]);
-const index = await docs.getPage(undefined);
+const index = source.getPage([]);
+const index = source.getPage(undefined);
 ```
 
 ### Usage in Next.js
@@ -41,40 +48,67 @@ const index = await docs.getPage(undefined);
 ```typescript
 export default async function DocPage({ params }) {
   const { slug } = await params;
-  const page = await docs.getPage(slug);
+  const page = source.getPage(slug);
   if (!page) notFound();
+  const { content } = await page.data.load();
 
-  return <DocviaContent nodes={page.content} />;
+  return <DocviaContent nodes={content} registry={registry} />;
 }
 ```
 
 ## getPages
 
-Returns metadata for all pages in the collection. On the server, this includes full frontmatter data.
+Returns every page with its frontmatter. Bodies are not loaded.
 
 ```typescript
-const pages = docs.getPages();
-// [{ slugs: ["getting-started"], url: "/getting-started", data: { title: "..." } }]
+const pages = source.getPages();
+// [{ slugs: ["getting-started"], url: "/docs/getting-started", path: "getting-started.md", data: { title: "..." } }]
 ```
 
-Useful for building sitemaps, search indices, or custom navigation.
+Useful for sitemaps, prev/next links, or custom navigation.
+
+## getPageByHref
+
+Resolve a link to its page and hash:
+
+```typescript
+const result = source.getPageByHref("/docs/source-api#getpage");
+// { page, hash: "getpage" }
+```
 
 ## pageTree
 
-A lazily-built navigation tree derived from your file structure. Matches the Fumadocs `PageTree` shape.
+A lazily built navigation tree derived from your file structure. Matches the
+fumadocs `PageTree` shape.
 
 ```typescript
-const tree = docs.pageTree;
-// { name: "docs", children: [...] }
+const tree = source.pageTree;
+// { name: "Docs", children: [...] }
 ```
 
 ### Node types
 
 | Type | Fields | Description |
 | --- | --- | --- |
-| `page` | `name`, `url`, `$id` | A navigable documentation page |
-| `folder` | `name`, `children`, `index?` | A directory with child pages |
+| `page` | `name`, `url`, `$id`, `external?` | A navigable page or a `meta.json` link |
+| `folder` | `name`, `children`, `index?`, `defaultOpen?`, `root?` | A directory with child pages |
 | `separator` | `name` | A visual divider in navigation |
+
+### meta.json
+
+Add `meta.json` to a folder to control its title and order:
+
+```json
+{
+  "title": "Guides",
+  "pages": ["index", "---Basics---", "install", "...", "!drafts", "[GitHub](https://github.com)"],
+  "defaultOpen": true
+}
+```
+
+`...` inserts the remaining pages, `---Label---` adds a separator, `!name`
+excludes an entry, and `[Text](url)` adds a link. `root: true` marks the folder
+as a root.
 
 ### Rendering navigation
 
@@ -99,11 +133,12 @@ function Nav({ nodes }) {
 
 ## generateParams
 
-Generates parameters for Next.js `generateStaticParams`. Pre-renders all documentation pages at build time.
+Parameters for Next.js `generateStaticParams`, so every page pre-renders at
+build time.
 
 ```typescript
 export async function generateStaticParams() {
-  return docs.generateParams();
+  return source.generateParams();
 }
 // [{ slug: [] }, { slug: ["getting-started"] }, { slug: ["source-api"] }]
 ```
@@ -111,25 +146,31 @@ export async function generateStaticParams() {
 Custom parameter name:
 
 ```typescript
-docs.generateParams("path");
+source.generateParams("path");
 // [{ path: [] }, { path: ["getting-started"] }]
 ```
 
 ## getPageTree
 
-Method form of `pageTree` for future i18n support.
+Method form of `pageTree`. `serializePageTree(tree)` exists for fumadocs parity
+and returns the tree unchanged.
 
 ```typescript
-const tree = docs.getPageTree();
+const tree = source.getPageTree();
 ```
 
 ## TypeScript types
 
-The collection is fully typed based on your content:
+Frontmatter types come from `defineDocs()`: the built-in fields plus your schema
+output.
 
-```typescript
-import type { docs_Frontmatter, docs_RouteKey } from "./.docvia/types";
+```typescript title="lib/source.ts"
+import { z } from "zod/v3";
 
-// docs_RouteKey = "index" | "getting-started" | "source-api" | ...
-// docs_Frontmatter = { title: string; description: string; order?: number; ... }
+const docs = defineDocs({
+  dir: "docs",
+  docs: { schema: z.object({ author: z.string().optional() }) },
+});
+
+// source.getPage(slugs)?.data.author is string | undefined
 ```

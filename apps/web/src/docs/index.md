@@ -18,8 +18,8 @@ core and rendered by `@docvia/renderer-svelte`.
 
 Most documentation toolchains ship the Markdown parser to the browser, or walk
 it on every server request. docvia treats your docs the way a modern bundler
-treats your source code: hash content, cache aggressively, and emit a tiny
-module graph the bundler can tree-shake.
+treats your source code: compile inside the bundler, memoise by content hash,
+and load each page body lazily.
 
 The result is a clean separation:
 
@@ -36,8 +36,8 @@ flowchart LR
   V --> T[Transform to IR]
   T --> PL[Plugins]
   PL --> R[Renderer adapter]
-  R --> G[".docvia/<br/>module graph"]
-  G --> A["Your app<br/>imports typed modules"]
+  R --> G["Lazy page modules<br/>in memory"]
+  G --> A["Your app<br/>source.getPage()"]
 
   subgraph compile ["Compile time"]
     MD
@@ -56,31 +56,33 @@ flowchart LR
 
 ## Three modes, one core
 
-docvia runs in three modes, all driven by a single stateful `CompileService`
-(see [Architecture](/docs/guide/architecture)), so their output is identical:
+docvia runs in three modes, all driven by the same `PagePipeline` from
+`@docvia/runtime` (see [Architecture](/docs/guide/architecture)), so their
+output is identical:
 
-- **Build.** Compile the whole tree ahead of time into a typed module graph.
+- **Build.** The bundler plugin compiles pages as part of `vite build` or
+  `next build`.
 - **Dev.** Compile in-process inside the framework dev server, recompiling
   incrementally on every file change. No separate build script.
 - **SSR.** Render a single document per request, on Node or the edge.
 
 ```mermaid
-%% title: One CompileService behind all three modes
+%% title: One pipeline behind all three modes
 flowchart TD
-  CLI["docvia build<br/>(@docvia/cli)"] --> CS
-  VITE["Vite / Next dev server<br/>(@docvia/plugin-vite)"] --> CS
+  VITE["Vite / Next build and dev<br/>(plugin-vite, plugin-next)"] --> CS
+  CLI["Standalone build<br/>(@docvia/cli)"] --> CS
   SSR["Per-request render<br/>(@docvia/ssr)"] --> CS
-  CS["CompileService<br/>@docvia/runtime"] --> OUT[Identical IR and output]
+  CS["PagePipeline<br/>@docvia/runtime"] --> OUT[Identical IR and output]
 ```
 
 ## Highlights
 
 - **No runtime Markdown parser.** Pages are compiled to an IR; the client
   bundle ships neither a parser nor a syntax highlighter.
-- **Incremental everywhere.** A content-hash cache skips unchanged files,
-  across builds and, in dev, on every keystroke.
-- **Typed end-to-end.** Frontmatter, route keys, and the generated `source`
-  helper are all typed.
+- **Incremental everywhere.** Pages compile lazily and are memoised by
+  content hash, so an edit recompiles only that page.
+- **Typed end-to-end.** `defineDocs()` infers frontmatter types from your
+  schema; no generated type files.
 - **Pluggable pipeline.** Five hook points let you mutate the pipeline at any
   stage: `beforeParse`, `afterParse`, `beforeTransform`, `afterTransform`,
   `beforeRender`.
@@ -91,26 +93,28 @@ flowchart TD
 
 ## How it fits together
 
-```bash
-docvia build          # Markdown ──▶ .docvia/ module graph
+```ts title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "content/docs" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
 
 ```ts
-// Vite resolves a virtual module; Next.js aliases the bare specifier.
-import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
-
-const page = await docs.getPage(["getting-started"]);
-const tree = docs.pageTree; // navigation tree
+const page = source.getPage(["getting-started"]); // frontmatter only
+const { content } = await page.data.load(); // compiled body, lazy
+const tree = source.pageTree; // navigation tree
 ```
 
-A framework integration (the Vite plugin or the Next.js wrapper) runs the
-compile core for you and resolves the source module to the compiled output, so
-your app only ever imports typed modules.
+The bundler plugin (Vite or Next.js) rewrites `defineDocs()` at build time, so
+your app imports plain package subpaths and never the compiler.
 
 ## Next steps
 
-- [Getting started](/docs/getting-started) covers installing the CLI and
-  compiling your first build.
+- [Getting started](/docs/getting-started) covers installing docvia and
+  rendering your first page.
 - [Configuration](/docs/guide/configuration) lists every option accepted by
   `defineConfig`.
 - [Framework integration](/docs/guide/frameworks) wires docvia into SvelteKit,

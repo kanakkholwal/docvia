@@ -398,7 +398,7 @@ interface CompileResult {
 | `duration` | `number` | Wall-clock build time in milliseconds. |
 | `stats.total` | `number` | Total source files discovered. |
 | `stats.compiled` | `number` | Files compiled fresh this run. |
-| `stats.cached` | `number` | Files served from the incremental cache. |
+| `stats.cached` | `number` | Always `0`: there is no disk cache. |
 
 ## Plugin contract
 

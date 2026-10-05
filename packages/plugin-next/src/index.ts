@@ -18,7 +18,20 @@ export { defineConfig } from "@docvia/plugins";
 export interface DocviaNextOptions {
 	/** Path to docvia.config.ts relative to project root (default: './docvia.config.ts') */
 	configPath?: string;
+	/** File names that may call `defineDocs()` / `defineRegistry()` (default: `source.*`, `registry.*`). */
+	macroFiles?: string[];
 }
+
+const DEFAULT_MACRO_FILES = [
+	"source.ts",
+	"source.tsx",
+	"source.js",
+	"source.mjs",
+	"registry.ts",
+	"registry.tsx",
+	"registry.js",
+];
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const logger = {
 	info(msg: string) {
@@ -237,6 +250,15 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 				sourceDir: docviaConfigInfo
 					? resolve(docviaConfigInfo.sourceDir ?? "docs")
 					: resolve("docs"),
+				root: process.cwd(),
+			};
+			const macroFiles = options.macroFiles ?? DEFAULT_MACRO_FILES;
+			const macroLoader = {
+				loader: "@docvia/plugin-next/macro-loader",
+				options: {
+					configPath: loaderOptions.configPath,
+					root: loaderOptions.root,
+				},
 			};
 
 			const turbopackRoot = process.cwd();
@@ -264,6 +286,15 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 								options: loaderOptions,
 							},
 						],
+					});
+					// `defineDocs()` files, before SWC: the transform reads TypeScript directly.
+					config.module.rules.push({
+						test: new RegExp(
+							`[\\\\/](${macroFiles.map(escapeRegExp).join("|")})$`,
+						),
+						exclude: /node_modules/,
+						enforce: "pre",
+						use: [macroLoader],
 					});
 
 					return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
@@ -296,6 +327,9 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 							],
 							as: "*.js",
 						},
+						...Object.fromEntries(
+							macroFiles.map((name) => [name, { loaders: [macroLoader] }]),
+						),
 					},
 				},
 			};
@@ -307,7 +341,7 @@ async function init(
 	dev: boolean,
 	options: DocviaNextOptions,
 ): Promise<docviaConfig | null> {
-	const { CompileService } = await import("@docvia/runtime");
+	const { CompileService, findMacroModules } = await import("@docvia/runtime");
 	const { resolveProject } = await import("@docvia/plugins");
 	const { docviaError } = await import("@docvia/ir");
 
@@ -316,6 +350,15 @@ async function init(
 	const { config, configPath } = await resolveProject({
 		configPath: options.configPath,
 	});
+
+	// `defineDocs()` apps compile lazily through the loaders; no `.docvia` output needed.
+	const macroFiles = options.macroFiles ?? DEFAULT_MACRO_FILES;
+	if (
+		!config.collections &&
+		findMacroModules(process.cwd(), macroFiles).length > 0
+	) {
+		return config;
+	}
 
 	const sourceDir = resolve(config.sourceDir ?? "docs");
 	const outDir = resolve(config.outDir ?? ".docvia");

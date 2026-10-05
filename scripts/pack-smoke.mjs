@@ -62,7 +62,7 @@ try {
 				imports: { "#lib/*": "./src/lib/*" },
 				scripts: {
 					check:
-						"docvia sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+						"svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
 					build: "vite build",
 				},
 				dependencies: {
@@ -122,7 +122,6 @@ import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-	collections: [{ name: "docs", sourceDir: "docs", baseUrl: "/docs" }],
 	components: ["./src/lib/docs/*.svelte"],
 	renderer: createSvelteRenderer(),
 	plugins: [shiki()],
@@ -135,11 +134,28 @@ export default defineConfig({
 			{
 				extends: "$app/tsconfig",
 				compilerOptions: { strict: true },
-				include: ["src", "*", ".docvia/*.d.ts"],
+				include: ["src", "*"],
 			},
 			null,
 			2,
 		),
+	);
+	// The macro API: types come from this file, no `.docvia/` or sync step.
+	write(
+		"src/lib/source.ts",
+		`import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "docs" });
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
+`,
+	);
+	write(
+		"src/lib/registry.ts",
+		`import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
+`,
 	);
 	write(
 		"docs/index.md",
@@ -153,16 +169,17 @@ export default defineConfig({
 	write(
 		"src/routes/docs/[...slug]/+page.server.ts",
 		`import { error } from "@sveltejs/kit";
-import { docs } from "virtual:docvia/source";
+import { source } from "#lib/source.ts";
 
 export const prerender = true;
-export const entries = () => docs.generateParams().map((p) => ({ slug: p.slug.join("/") }));
+export const entries = () => source.generateParams().map((p) => ({ slug: p.slug.join("/") }));
 
 export async function load({ params }: { params: { slug: string } }) {
-	const page = await docs.getPage(params.slug.split("/").filter(Boolean));
+	const page = source.getPage(params.slug.split("/").filter(Boolean));
 	if (!page) error(404);
-	const drafts: boolean[] = docs.getPages().map((p) => p.data.draft);
-	return { content: page.content, title: page.data.title, drafts };
+	const drafts: boolean[] = source.getPages().map((p) => p.data.draft);
+	const { content, toc } = await page.data.load();
+	return { content, toc, title: page.data.title, drafts };
 }
 `,
 	);
@@ -170,7 +187,7 @@ export async function load({ params }: { params: { slug: string } }) {
 		"src/routes/docs/[...slug]/+page.svelte",
 		`<script lang="ts">
 import { Renderer } from "@docvia/renderer-svelte";
-import { registry } from "virtual:docvia/registry";
+import { registry } from "#lib/registry.ts";
 
 let { data } = $props();
 </script>

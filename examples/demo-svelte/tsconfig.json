@@ -4,6 +4,6 @@
 		"strict": true,
 		"skipLibCheck": true
 	},
-	"include": ["src", "*", ".docvia/*.d.ts"],
+	"include": ["src", "*"],
 	"exclude": ["src/service-worker"]
 }

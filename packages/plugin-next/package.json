@@ -5,6 +5,7 @@
 	"exports": {
 		".": "./dist/index.js",
 		"./loader": "./dist/loader.js",
+		"./macro-loader": "./dist/macro-loader.js",
 		"./package.json": "./package.json"
 	},
 	"scripts": {
@@ -17,7 +18,8 @@
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
 		"@docvia/runtime": "workspace:*",
-		"chokidar": "^5.0.0"
+		"chokidar": "^5.0.0",
+		"jiti": "^2.7.0"
 	},
 	"devDependencies": {
 		"@docvia/source": "workspace:*",

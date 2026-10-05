@@ -1,5 +1,9 @@
+import { resolve } from "node:path";
 import { resolveProject } from "@docvia/plugins";
-import { CompileService } from "./service";
+import { emitTypeDeclarations } from "./emit";
+import { PagePipeline } from "./pages";
+import { scanPages } from "./scan";
+import { collectionTypeData } from "./type-data";
 
 export interface SyncOptions {
 	/** Directory to search for `docvia.config.*`. Default: `process.cwd()`. */
@@ -9,8 +13,8 @@ export interface SyncOptions {
 }
 
 /**
- * Compile the content and write `.docvia/types.d.ts` + `.docvia/env.d.ts` without a
- * bundler. Run it before `tsc` / `svelte-check` in CI, like `svelte-kit sync`.
+ * Write `.docvia/types.d.ts` + `.docvia/env.d.ts` from frontmatter alone, without a bundler or a
+ * full compile. Run it before `tsc` / `svelte-check` in CI, like `svelte-kit sync`.
  */
 export async function syncTypes(options: SyncOptions = {}): Promise<{
 	readonly outDir: string;
@@ -21,19 +25,19 @@ export async function syncTypes(options: SyncOptions = {}): Promise<{
 		configPath: options.configPath,
 		required: true,
 	});
-	if (!config.renderer) {
-		throw new Error("[docvia] No renderer configured in docvia config");
-	}
-	const service = new CompileService({
-		sourceDir: config.sourceDir,
-		outDir: config.outDir,
-		renderer: config.renderer,
-		plugins: [...config.plugins],
-		config,
+	const pipeline = new PagePipeline(config, projectRoot);
+	const pages = await scanPages(pipeline);
+	const outDir = resolve(projectRoot, config.outDir);
+	await emitTypeDeclarations({
+		outDir,
 		projectRoot,
-		configPath,
+		config,
+		collections: collectionTypeData(
+			pipeline.collections,
+			pages.map((p) => ({ collection: p.collection.name, meta: p.meta })),
+			outDir,
+			configPath,
+		),
 	});
-	const result = await service.compileAll();
-	await service.emitTypeDeclarations();
-	return { outDir: service.outDir, pages: result.stats.total };
+	return { outDir, pages: pages.length };
 }

@@ -6,19 +6,20 @@ order: 3
 
 # Rendering
 
-Docvia compiles Markdown into a `RenderOutput` tree at build time. The `DocviaContent` component renders this tree in your React application.
+Docvia compiles Markdown into a `RenderOutput` tree. `page.data.load()` returns it as `content`, and the `DocviaContent` component renders it in your React application.
 
 ## Basic usage
 
 ```tsx
 import { DocviaContent } from "@docvia/renderer-react";
-import { docs } from "docvia/source";
+import { source } from "@/lib/source";
 
 export default async function Page() {
-  const page = await docs.getPage(["getting-started"]);
+  const page = source.getPage(["getting-started"]);
   if (!page) notFound();
+  const { content } = await page.data.load();
 
-  return <DocviaContent nodes={page.content} />;
+  return <DocviaContent nodes={content} />;
 }
 ```
 
@@ -30,7 +31,7 @@ Override how HTML elements are rendered using the `components` prop:
 
 ```tsx
 <DocviaContent
-  nodes={page.content}
+  nodes={content}
   components={{
     a: ({ href, children, ...props }) => (
       <Link href={href ?? "/"} {...props}>{children}</Link>
@@ -72,15 +73,15 @@ components={{
 For interactive components embedded in Markdown via directives, pass a `registry`:
 
 ```tsx
-import { registry } from "docvia/registry";
+import { registry } from "@/lib/registry";
 
 <DocviaContent
-  nodes={page.content}
+  nodes={content}
   registry={registry}
 />
 ```
 
-The registry resolves directive component names (like `:::counter`) to actual React components. It is generated from the `components` field in your `docvia.config.ts`.
+The registry resolves directive component names (like `:::counter`) to actual React components. `defineRegistry()` in `lib/registry.ts` builds it from the `components` field in your `docvia.config.ts`.
 
 You can also pass a custom registry to override the global one:
 
@@ -92,17 +93,19 @@ const customRegistry = {
   },
 };
 
-<DocviaContent nodes={page.content} registry={customRegistry} />
+<DocviaContent nodes={content} registry={customRegistry} />
 ```
 
 ## Hydration
 
-When a page contains interactive components, the page's `manifest` describes which components need client-side hydration:
+When a page contains interactive components, the `manifest` from `page.data.load()` describes which components need client-side hydration:
 
 ```tsx
 import { DocviaHydrator } from "./DocviaHydrator";
 
-{page.manifest.length > 0 && <DocviaHydrator manifest={page.manifest} />}
+const { content, manifest } = await page.data.load();
+
+{manifest.length > 0 && <DocviaHydrator manifest={manifest} />}
 ```
 
 `hydrate()` also makes tabbed code groups (`tab="..."` fences, `:::code-group`, `npm` fences) switch. On pages without islands, call `installCodeGroups()` from `@docvia/renderer-react/client` in a client component instead.

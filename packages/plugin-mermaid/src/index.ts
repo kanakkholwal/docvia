@@ -31,7 +31,8 @@ const TITLE_COMMENT = /^\s*%%\s*title:\s*(.+?)\s*$/;
  */
 function parseCode(raw: string): { code: string; title?: string } {
 	const lines = raw.trim().split("\n");
-	const match = lines.length > 0 ? TITLE_COMMENT.exec(lines[0]) : null;
+	const first = lines[0];
+	const match = first === undefined ? null : TITLE_COMMENT.exec(first);
 	if (!match) return { code: raw.trim() };
 	return { code: lines.slice(1).join("\n").trim(), title: match[1] };
 }

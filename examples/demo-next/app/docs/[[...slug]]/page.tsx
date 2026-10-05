@@ -1,6 +1,6 @@
 import { DocviaContent } from "@docvia/renderer-react";
-import { registry } from "docvia/registry";
-import { docs } from "docvia/source";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,14 +11,14 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-	return docs.generateParams();
+	return source.generateParams();
 }
 
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
 	const { slug } = await params;
-	const page = await docs.getPage(slug);
+	const page = source.getPage(slug);
 	if (!page) return {};
 	return {
 		title: page.data.title,
@@ -28,11 +28,11 @@ export async function generateMetadata({
 
 export default async function DocPage({ params }: PageProps) {
 	const { slug } = await params;
-	const page = await docs.getPage(slug);
-
+	const page = source.getPage(slug);
 	if (!page) notFound();
+	const { content, headings, manifest } = await page.data.load();
 
-	const allPages = docs.getPages();
+	const allPages = source.getPages();
 	const currentSlug = page.slugs.join("/") || "index";
 	const currentIndex = allPages.findIndex(
 		(p) => (p.slugs.join("/") || "index") === currentSlug,
@@ -46,7 +46,7 @@ export default async function DocPage({ params }: PageProps) {
 			<article className="doc-content">
 				<div className="prose">
 					<DocviaContent
-						nodes={page.content}
+						nodes={content}
 						registry={registry}
 						components={{
 							a: ({ href, children, ...props }) => (
@@ -86,16 +86,14 @@ export default async function DocPage({ params }: PageProps) {
 					</nav>
 				)}
 
-				{page.manifest.length > 0 && (
-					<DocviaHydrator manifest={page.manifest} />
-				)}
+				{manifest.length > 0 && <DocviaHydrator manifest={manifest} />}
 			</article>
 
-			{page.headings && page.headings.length > 0 && (
+			{headings && headings.length > 0 && (
 				<aside className="toc" aria-label="Table of contents">
 					<p className="toc-title">On this page</p>
 					<ul className="toc-list">
-						{page.headings
+						{headings
 							.filter((h) => h.depth <= 3)
 							.map((h) => (
 								<li

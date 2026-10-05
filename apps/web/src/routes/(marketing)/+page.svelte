@@ -1,4 +1,5 @@
 <script lang="ts">
+import Benchmarks from "#lib/sections/benchmarks.svelte";
 import CompilerDeepDive from "#lib/sections/compiler-deep-dive.svelte";
 import Cta from "#lib/sections/cta.svelte";
 import Faq from "#lib/sections/faq.svelte";
@@ -41,6 +42,7 @@ import UseCases from "#lib/sections/use-cases.svelte";
 	<UseCases />
 	<Stats />
 	<Quickstart />
+	<Benchmarks />
 	<OpenSource />
 	<Faq />
 	<Cta />

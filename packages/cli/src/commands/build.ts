@@ -10,7 +10,6 @@ export interface BuildOptions {
 	docs?: string;
 	out?: string;
 	config?: string;
-	noCache?: boolean;
 	verbose?: boolean;
 }
 
@@ -67,7 +66,6 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 			config,
 			projectRoot,
 			configPath,
-			incremental: !opts.noCache,
 		});
 
 		// 2 — compile

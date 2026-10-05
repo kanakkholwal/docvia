@@ -4,16 +4,6 @@ import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-	sourceDir: "src/docs",
-	outDir: ".docvia",
-	collections: [
-		{
-			name: "docs",
-			sourceDir: "src/docs",
-			baseUrl: "/docs",
-		},
-	],
-
 	renderer: createSvelteRenderer(),
 
 	// Both plugins run at compile time. `mermaid()` claims ```mermaid fences

@@ -73,7 +73,6 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			config: cfg,
 			projectRoot,
 			configPath,
-			incremental: true,
 		});
 	}
 

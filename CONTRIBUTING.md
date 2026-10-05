@@ -29,7 +29,7 @@ output of others, so tests and the dev servers expect it to exist.
 
 The `packages/*` are MIT licensed (each ships its own `LICENSE`); `apps/` and
 `examples/` fall under the repository's GPL-3.0 license. The apps and examples
-run `docvia sync` before `svelte-check`, so build the packages first.
+load docvia through the bundler plugins, so build the packages first.
 
 ## Watch modes
 

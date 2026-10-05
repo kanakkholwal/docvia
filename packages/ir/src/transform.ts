@@ -432,7 +432,8 @@ function addDependency(ctx: TransformContext, dep: Dependency): void {
 	}
 }
 
-function computeSlug(filePath: string, explicitSlug?: string): string {
+/** Route slug for a source-relative path: `guide/index.md` -> `guide`, `index.md` -> `index`. */
+export function computeSlug(filePath: string, explicitSlug?: string): string {
 	if (explicitSlug) return explicitSlug;
 	return (
 		filePath

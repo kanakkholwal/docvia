@@ -36,8 +36,6 @@ import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-  sourceDir: "src/docs",
-  outDir: ".docvia",
   renderer: createSvelteRenderer(),
   plugins: [mermaid(), shiki({ theme: "github-dark" })],
 });
@@ -76,8 +74,8 @@ flowchart LR
 | `component` | `string` | `"Mermaid"` | Component name emitted into the IR. |
 | `props` | `Record<string, unknown>` | `{}` | Extra props merged into every diagram component. |
 
-`cacheKey()` is derived from all three, so changing any of them invalidates the
-incremental cache.
+`cacheKey()` is derived from all three, so changing any of them recompiles
+every page.
 
 ## Drawing the diagrams
 

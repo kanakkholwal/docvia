@@ -5,10 +5,11 @@ eyebrow: "Guide"
 order: 1
 ---
 
-docvia is configured with a single `docvia.config.ts` file at your project
-root. The CLI loads it (via [`loadConfig`](/docs/packages/plugins)), the Vite plugin
-loads it from the Vite root when called as `docvia()`, and the Next.js wrapper
-reads it on config evaluation.
+`docvia.config.ts` at your project root holds the compile settings: renderer,
+plugins, components, and Markdown options. Collections are declared in code
+with [`defineDocs()`](#collections). The Vite plugin loads the config from the
+Vite root when called as `docvia()`, the Next.js wrapper reads it on config
+evaluation, and the CLI loads it via [`loadConfig`](/docs/packages/plugins).
 
 ## defineConfig
 
@@ -32,13 +33,9 @@ editor completion on every field.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `sourceDir` | `string` | `"docs"` | Directory of Markdown source files. |
-| `outDir` | `string` | `".docvia"` | Where the generated module graph is written. |
-| `renderer` | `RendererAdapter` | none | Required at build time. Use `createReactRenderer(...)` or `createSvelteRenderer(...)`. |
+| `renderer` | `RendererAdapter` | none | Required. Use `createReactRenderer(...)` or `createSvelteRenderer(...)`. |
 | `plugins` | `docviaPlugin[]` | `[]` | Pipeline plugins, sorted by phase then priority. |
 | `components` | `Record<string, ComponentConfig>` or an array of globs and `{ name, ...ComponentConfig }` | none | Components referenced by `:::name` directives. |
-| `collections` | `CollectionConfig[]` | one default `docs` collection | One or more named source roots. |
-| `frontmatter` | `StandardSchemaV1` | none | Extends the built-in frontmatter schema. Any Standard Schema library. |
 | `hashExclude` | `string[]` | `[]` | Frontmatter keys left out of a page's `contentHash`, for derived or volatile values. |
 | `markdown.remarkPlugins` | `unknown[]` | `[]` | Extra remark plugins inserted into the parse pipeline. |
 | `theme.name` | `string` | `"default"` | UI theme name. |
@@ -58,8 +55,8 @@ editor completion on every field.
 
 ## Renderers
 
-The `renderer` field is required for `docvia build` to succeed; a build with
-no renderer throws a `CONFIG_ERROR`. Choose the adapter that matches your app:
+The `renderer` field is required; compiling with no renderer throws a
+`CONFIG_ERROR`. Choose the adapter that matches your app:
 
 ```ts
 // React
@@ -93,25 +90,33 @@ API.
 
 ## Collections
 
-By default docvia compiles a single collection named `docs`, rooted at
-`sourceDir` and served from `/`. Define `collections` to compile several named
-source roots, for example separate guides and an API reference:
+A collection is a folder of Markdown, declared in a source file with
+`defineDocs()` from `@docvia/source/macro`. The bundler plugin rewrites the call
+at build time:
 
-```ts
-collections: [
-  { name: "docs", sourceDir: "src/docs", baseUrl: "/" },
-  { name: "api", sourceDir: "src/api", baseUrl: "/api", frontmatter: apiSchema },
-  { name: "internal", sourceDir: "vendor/internal-docs", optional: true },
-];
+```ts title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "content/docs" });
+const api = defineDocs({ dir: "content/api" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
+export const apiSource = loader({ baseUrl: "/api", source: api.toDocviaSource() });
 ```
 
-| Field | Description |
+| Option | Description |
 |---|---|
-| `name` | A valid JS identifier. It becomes a named export of the source module. |
-| `sourceDir` | The collection's root. May live outside the project root. |
-| `baseUrl` | URL prefix for the collection's pages. |
-| `frontmatter` | A Standard Schema for this collection. Defaults to the top-level `frontmatter`; its type flows into this collection's generated types. |
-| `optional` | `true` makes a missing `sourceDir` an empty collection instead of an error (for example, a private submodule). |
+| `dir` | Folder relative to the project root, as a string literal. Defaults to `"content/docs"`. May live outside the project root. |
+| `docs.schema` | A Standard Schema adding frontmatter fields. See [below](#extending-the-frontmatter-schema). |
+
+`baseUrl` belongs to `loader()`, not the collection. See
+[`@docvia/source`](/docs/packages/source) for the loader API and `meta.json`.
+
+> Legacy config collections (`collections`, `sourceDir`, `outDir`, and a
+> top-level `frontmatter` in this file) still work through
+> `virtual:docvia/source` / `docvia/source`, but new apps should use
+> `defineDocs()`.
 
 ## Built-in frontmatter
 
@@ -133,33 +138,39 @@ untyped unless you extend the schema.
 ## Extending the frontmatter schema
 
 Pass a [Standard Schema](https://standardschema.dev) (Zod, Valibot, ArkType, ...)
-as `frontmatter` to add typed fields. docvia validates every file against the
-base fields plus your schema, and generates a typed `Frontmatter` for the
-collection from the schema's output type. Set `frontmatter` on a collection to
-give it its own schema.
+as `docs.schema` to add typed fields. docvia validates every file against the
+base fields plus your schema, and `page.data` is typed from the schema's output
+type. No type files are generated.
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineDocs } from "@docvia/source/macro";
 import { z } from "zod";
 
-export default defineConfig({
-  frontmatter: z.object({
-    author: z.string(),
-    publishedAt: z.string().optional(),
-  }),
-  // ...
+const docs = defineDocs({
+  dir: "content/docs",
+  docs: {
+    schema: z.object({
+      author: z.string(),
+      publishedAt: z.string().optional(),
+    }),
+  },
 });
 ```
 
-A file that omits a required custom field now fails the build with a
+A file that omits a required custom field fails the build with a
 `SCHEMA_ERROR` pointing at the offending file. See
 [`@docvia/schema`](/docs/packages/schema) for the validation and codegen details.
 
 ## Components
 
-Register components once under `components` and docvia generates the runtime
-registry (`virtual:docvia/registry` on Vite, `docvia/registry` on Next.js), so
-you do not repeat the wiring in every route.
+Register components once under `components`, then expose them to your routes
+with `defineRegistry()`, which the bundler plugin rewrites into real imports:
+
+```ts title="lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
+```
 
 ```ts
 // Array form: globs and explicit entries. Names come from file names:
@@ -193,10 +204,10 @@ import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "src/docs",
-  outDir: ".docvia",
-  collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/" }],
   renderer: createSvelteRenderer(),
+  components: {
+    counter: { path: "./src/lib/components/Counter.svelte", hydrate: true },
+  },
   plugins: [
     shiki({ theme: "github-dark", langs: ["typescript", "svelte", "bash", "json"] }),
   ],

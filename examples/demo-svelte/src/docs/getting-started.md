@@ -6,24 +6,24 @@ order: 1
 
 # Getting Started
 
-Set up Docvia in an existing SvelteKit project. Follow these steps in order and
-you'll have a working docs section at the end — installation, config, the Vite
-plugin, TypeScript wiring, and a catch-all route that renders pages.
+Set up Docvia in an existing SvelteKit project: install, config, the Vite
+plugin, a source file, and a catch-all route that renders pages.
 
 ## 1. Install
 
 ```bash
-npm install -D @docvia/cli @docvia/plugin-vite @docvia/plugin-shiki
+npm install -D @docvia/plugin-vite @docvia/plugin-shiki
 npm install @docvia/renderer-svelte @docvia/source
 ```
 
-The CLI, Vite plugin, and Shiki plugin are dev-only. The renderer and
-`@docvia/source` are runtime dependencies: the generated modules import
-`@docvia/source`, and your routes render with the renderer.
+The Vite and Shiki plugins are dev-only. The renderer and `@docvia/source` are
+runtime dependencies: your source file imports `@docvia/source`, and your routes
+render with the renderer.
 
 ## 2. Configure Docvia
 
-Create `docvia.config.ts` in your project root:
+Create `docvia.config.ts` in your project root. It holds the renderer, plugins,
+and components; collections are declared in code (step 4).
 
 ```typescript
 import { defineConfig } from "@docvia/plugin-vite";
@@ -31,15 +31,9 @@ import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-  sourceDir: "src/docs",
-  outDir: ".docvia",
-  collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" }],
-
   renderer: createSvelteRenderer(),
 
-  // Syntax highlighting is a build-time plugin: it highlights every code block
-  // during compilation and bakes the HTML into the IR, so no highlighter ships
-  // to the browser.
+  // Highlights code blocks at compile time, so no highlighter ships to the browser.
   plugins: [
     shiki({
       theme: "dracula",
@@ -49,17 +43,15 @@ export default defineConfig({
 });
 ```
 
-> Note the `/node` subpath on `@docvia/renderer-svelte/node` — that's the
-> build-time entry used inside the config. The `<Renderer>` component in step 5
+> Note the `/node` subpath on `@docvia/renderer-svelte/node`: that is the
+> build-time entry used inside the config. The `<Renderer>` component in step 6
 > imports from `@docvia/renderer-svelte` (no subpath).
 
 ## 3. Add the Vite plugin
 
-Update `vite.config.ts` to run Docvia in-process. The single `docvia()` plugin
-loads `docvia.config.ts` and compiles your Markdown during dev and build. There's
-no separate `docvia build` step, and edits (including new, renamed, or deleted
-pages) recompile incrementally with HMR. SvelteKit 3 takes its options in
-`sveltekit({ ... })`; there is no `svelte.config.js`.
+Update `vite.config.ts`. With no arguments, `docvia()` loads `docvia.config.ts`
+and compiles Markdown during dev and build, with HMR on edits. SvelteKit 3 takes
+its options in `sveltekit({ ... })`; there is no `svelte.config.js`.
 
 ```typescript
 import { docvia } from "@docvia/plugin-vite";
@@ -72,25 +64,32 @@ export default defineConfig({
 });
 ```
 
-## 4. Module types
+## 4. Declare the source
 
-docvia writes `.docvia/env.d.ts` on every dev/build run, declaring
-`virtual:docvia/source`, `virtual:docvia/source/browser`, and
-`virtual:docvia/registry` with types generated from your frontmatter. Include it
-in `tsconfig.json`:
+Create `src/lib/source.ts`. The plugin rewrites `defineDocs()` at build time into
+an index of the folder, so nothing is scanned at runtime.
 
-```json
-{
-  "extends": "$app/tsconfig",
-  "include": ["src", "*", ".docvia/*.d.ts"]
-}
+```typescript title="src/lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "src/docs" });
+
+export const source = loader({
+  baseUrl: "/docs",
+  source: docs.toDocviaSource(),
+});
 ```
 
-In CI no dev server has run, so generate the types first:
+Add `src/lib/registry.ts` for the components listed in `docvia.config.ts`:
 
-```json
-"check": "docvia sync && svelte-kit sync && svelte-check"
+```typescript title="src/lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
 ```
+
+Types come from `defineDocs()`, so there is no generated types file or sync step.
 
 ## 5. Create your first page
 
@@ -109,39 +108,37 @@ This is your first documentation page.
 
 ## 6. Render pages in a route
 
-Add a server load that exposes the page tree at `src/routes/docs/+layout.server.ts`:
+Expose the page tree from `src/routes/docs/+layout.server.ts`:
 
 ```typescript
-import { docs } from "virtual:docvia/source";
+import { source } from "#lib/source.ts";
 import type { LayoutServerLoad } from "./$types";
 
-export const load: LayoutServerLoad = async () => {
-  return { tree: docs.pageTree };
-};
+export const load: LayoutServerLoad = () => ({ tree: source.pageTree });
 ```
 
 Add a catch-all page load at `src/routes/docs/[...slug]/+page.server.ts`:
 
 ```typescript
 import { error } from "@sveltejs/kit";
-import { docs } from "virtual:docvia/source";
+import { source } from "#lib/source.ts";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
-  const slugs = params.slug ? params.slug.split("/") : [];
-  const page = await docs.getPage(slugs);
-  if (!page) throw error(404, "Page not found");
-  return { page };
+  const page = source.getPage(params.slug?.split("/").filter(Boolean));
+  if (!page) error(404, "Page not found");
+  const { content, headings } = await page.data.load();
+  return { page: { title: page.data.title, content, headings } };
 };
 ```
 
 And render it in `src/routes/docs/[...slug]/+page.svelte` with the `Renderer`
-component and the generated `registry`:
+component and the registry:
 
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/registry";
+  import { registry } from "#lib/registry.ts";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -158,18 +155,17 @@ component and the generated `registry`:
 npm run dev
 ```
 
-The `docvia()` Vite plugin compiles `src/docs/` on startup and on every edit, so
-no separate build command is needed. Visit `/docs` and you'll see your page.
-
-For a production build, `npm run build` runs the same compilation.
+Visit `/docs`. Pages compile lazily in memory on first request, keyed by content
+hash; nothing is written to disk. `npm run build` uses the same pipeline.
 
 ## Project structure
 
 | Path | Purpose |
 | --- | --- |
-| `src/docs/` | Markdown source files |
-| `.docvia/` | Generated types, including `env.d.ts` module declarations (gitignore this) |
-| `docvia.config.ts` | Docvia configuration |
+| `src/docs/` | Markdown source files and optional `meta.json` per folder |
+| `src/lib/source.ts` | `defineDocs()` collection and `loader()` source |
+| `src/lib/registry.ts` | `defineRegistry()` component registry |
+| `docvia.config.ts` | Renderer, plugins, components, markdown options |
 | `src/routes/` | SvelteKit routes |
 
 ## Frontmatter fields

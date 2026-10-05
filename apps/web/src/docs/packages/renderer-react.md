@@ -211,20 +211,19 @@ export default defineConfig({
 
 ### Rendering a page (RSC / Next.js App Router)
 
-Pages are loaded through the collection. In Next.js the plugin aliases the bare
-specifier `docvia/source`; under Vite the same module is served as
-`virtual:docvia/source`. Either way it eagerly imports every compiled page, so
-read it from a **Server Component**, never from a `"use client"` module.
+Declare the collection and registry with `defineDocs()` / `defineRegistry()`
+(see [`@docvia/source`](/docs/packages/source)), then read pages from a **Server
+Component**:
 
 ```tsx
 // app/docs/[[...slug]]/page.tsx: a Server Component, no "use client"
 import { DocviaContent } from "@docvia/renderer-react";
-import { docs } from "docvia/source";
-import { registry } from "docvia/registry";
 import { notFound } from "next/navigation";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
 
 export async function generateStaticParams() {
-  return docs.generateParams();
+  return source.generateParams();
 }
 
 export default async function DocPage({
@@ -233,27 +232,28 @@ export default async function DocPage({
   params: Promise<{ slug?: string[] }>;
 }) {
   const { slug } = await params;
-  const page = await docs.getPage(slug);
+  const page = source.getPage(slug);
   if (!page) notFound();
+  const { content } = await page.data.load();
 
   return (
     <article>
       <h1>{page.data.title}</h1>
-      <DocviaContent nodes={page.content} registry={registry} />
+      <DocviaContent nodes={content} registry={registry} />
     </article>
   );
 }
 ```
 
-`page.data` is the page's frontmatter, including any custom fields your
-`frontmatter` schema defines. `page.content` is typed `RenderOutput`, and
-`page.headings` is always present for a table of contents.
+`page.data` is the page's frontmatter, including any fields your `defineDocs()`
+schema adds. `load()` returns `content` (typed `RenderOutput`), `headings`, `toc`
+and `manifest`.
 
 ### Tag and code-block overrides
 
 ```tsx
 import { DocviaContent, type DocviaComponents } from "@docvia/renderer-react";
-import { docs } from "docvia/source";
+import { source } from "@/lib/source";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -269,16 +269,15 @@ const components: DocviaComponents = {
 };
 
 export default async function Doc() {
-  const page = await docs.getPage(["getting-started"]);
-  return <DocviaContent nodes={page!.content} components={components} />;
+  const { content } = await source.getPage(["getting-started"])!.data.load();
+  return <DocviaContent nodes={content} components={components} />;
 }
 ```
 
 ### Hydrating interactive islands
 
-The manifest comes off the page you loaded on the server, so pass it into the
-client component as a prop; a `"use client"` module must not import the
-collection itself.
+The manifest comes from `page.data.load()` on the server, so pass it into the
+client component as a prop.
 
 ```tsx
 // components/DocviaHydrator.tsx
@@ -287,7 +286,7 @@ collection itself.
 import { useEffect } from "react";
 import { hydrate } from "@docvia/renderer-react/client";
 import type { HydrationManifest } from "@docvia/renderer-react";
-import { registry } from "docvia/registry";
+import { registry } from "@/lib/registry";
 
 export function DocviaHydrator({ manifest }: { manifest: HydrationManifest }) {
   useEffect(() => {
@@ -301,7 +300,7 @@ export function DocviaHydrator({ manifest }: { manifest: HydrationManifest }) {
 Render it from the Server Component alongside the content:
 
 ```tsx
-{page.manifest.length > 0 && <DocviaHydrator manifest={page.manifest} />}
+{manifest.length > 0 && <DocviaHydrator manifest={manifest} />}
 ```
 
 For a Vite SPA with no server render, call `hydrate` directly with `{ ssr: false }`

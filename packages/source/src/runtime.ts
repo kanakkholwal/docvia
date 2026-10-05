@@ -1,10 +1,15 @@
-import type { HydrationManifest, RenderOutput } from "@docvia/renderer-core";
+import type {
+	HydrationManifest,
+	RenderOutput,
+	StructuredData,
+} from "@docvia/renderer-core";
 
 export type {
 	ComponentRegistry,
 	HydrationEntry,
 	HydrationManifest,
 	RenderOutput,
+	StructuredData,
 } from "@docvia/renderer-core";
 
 // PageTree types (Fumadocs-compatible)
@@ -18,6 +23,8 @@ export namespace PageTree {
 		type: "page";
 		name: string;
 		url: string;
+		/** Links to another site (from `[Text](https://...)` in `meta.json`). */
+		external?: boolean;
 		$id?: string;
 	}
 	export interface Folder {
@@ -26,6 +33,8 @@ export namespace PageTree {
 		children: Node[];
 		index?: Item;
 		defaultOpen?: boolean;
+		/** A root folder starts its own sidebar (`"root": true` in `meta.json`). */
+		root?: boolean;
 		$id?: string;
 	}
 	export interface Separator {
@@ -44,50 +53,32 @@ export interface docviaPage<TFrontmatter = unknown> {
 	manifest: HydrationManifest;
 	/** h2-h6 outline for a table of contents. */
 	headings: Array<{ depth: number; text: string; id: string }>;
+	/** Search sections, extracted at compile time. */
+	structuredData?: StructuredData;
 }
 
 export interface docviaCollection<
 	TFrontmatter = unknown,
 	_TRouteKey extends string = string,
 > {
-	/**
-	 * Resolve page metadata, so the synchronous readers below return real data.
-	 *
-	 * Only needed on the browser build, where metadata is resolved through a
-	 * dynamic import per page and cannot be produced synchronously. On the server
-	 * the metadata is already in hand and this resolves immediately — awaiting it
-	 * is harmless, so universal code can always await it.
-	 */
+	/** Resolves immediately: page metadata is always available synchronously. */
 	ready(): Promise<void>;
 
-	/**
-	 * Get a single page by slug segments. Always accurate — it awaits the page
-	 * module regardless of build.
-	 */
+	/** One page, loading its compiled body on demand. */
 	getPage(
 		slugs: string[] | undefined,
 	): Promise<docviaPage<TFrontmatter> | undefined>;
 
-	/**
-	 * Get all pages with their frontmatter.
-	 *
-	 * Synchronous, so on the browser build it returns empty `data` (and logs a
-	 * warning) until metadata resolves — `await ready()` first there.
-	 */
+	/** Every page with its frontmatter, without loading any body. */
 	getPages(): Array<{ slugs: string[]; url: string; data: TFrontmatter }>;
 
-	/**
-	 * Page tree for navigation (lazily built from route keys).
-	 *
-	 * Same caveat as {@link getPages}: on the browser build, reading this before
-	 * {@link ready} resolves yields slug-derived titles and alphabetical order.
-	 */
+	/** Navigation tree built from page titles and `order`. */
 	pageTree: PageTree.Root;
 
-	/** Method form of pageTree (for future i18n). */
+	/** Method form of `pageTree`. */
 	getPageTree(): PageTree.Root;
 
-	/** Generate params for Next.js generateStaticParams(). */
+	/** Params for static generation (`generateStaticParams`, prerender entries). */
 	generateParams<TSlug extends string = "slug">(
 		slug?: TSlug,
 	): Record<TSlug, string[]>[];

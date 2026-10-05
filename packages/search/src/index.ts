@@ -3,6 +3,7 @@ import type {
 	IRDocument,
 	IRNode,
 	SearchDocument,
+	StructuredData,
 } from "@docvia/ir";
 import type { RenderOutput } from "@docvia/renderer-core";
 import {
@@ -301,12 +302,55 @@ export function extractSectionsFromContent(
 	return sections;
 }
 
+interface PageBody {
+	content?: unknown;
+	headings?: ReadonlyArray<{ id: string; depth: number }>;
+	structuredData?: StructuredData;
+}
+
 /** Minimal structural view of a docvia collection — what indexing needs. */
+interface IndexablePage extends PageBody {
+	data?: unknown;
+}
+
+/** Sections from compile-time `structuredData`: one per heading, plus `_top`. */
+export function sectionsFromStructuredData(
+	data: StructuredData,
+	page: {
+		slug: string;
+		pageTitle: string;
+		depths?: ReadonlyMap<string, number>;
+	},
+): SearchDocument[] {
+	const byHeading = new Map<string | undefined, string[]>();
+	for (const { heading, content } of data.contents) {
+		const parts = byHeading.get(heading) ?? [];
+		parts.push(content);
+		byHeading.set(heading, parts);
+	}
+	const sections: SearchDocument[] = [];
+	const push = (id: string | undefined, title: string) => {
+		const parts = byHeading.get(id);
+		if (!parts) return;
+		sections.push({
+			slug: page.slug,
+			sectionId: id ?? "_top",
+			sectionTitle: title || page.pageTitle,
+			content: parts.join(" "),
+			depth: id ? (page.depths?.get(id) ?? 2) : 0,
+			pageTitle: page.pageTitle,
+		});
+	};
+	push(undefined, page.pageTitle);
+	for (const h of data.headings) push(h.id, h.content);
+	return sections;
+}
+/** A docvia collection or a `loader()` source: `getPage` may be sync or async. */
 interface IndexableCollection {
 	getPages(): ReadonlyArray<{ slugs: string[]; url?: string }>;
 	getPage(
 		slugs: string[],
-	): Promise<{ data?: unknown; content?: unknown } | undefined>;
+	): IndexablePage | undefined | Promise<IndexablePage | undefined>;
 }
 interface IndexableSource {
 	collections: Record<string, IndexableCollection>;
@@ -356,13 +400,21 @@ export async function createFromSource(
 		for (const { slugs, url } of collection.getPages()) {
 			const page = await collection.getPage(slugs);
 			if (!page) continue;
+			const load = (page.data as { load?: () => Promise<PageBody> })?.load;
+			const body: PageBody = load ? await load() : page;
 			const slug = slugs.join("/") || "index";
 			const pageTitle =
 				(page.data as { title?: string } | undefined)?.title ?? slug;
-			const sections = extractSectionsFromContent(
-				page.content as RenderOutput | undefined,
-				{ slug, pageTitle },
-			);
+			const sections = body.structuredData
+				? sectionsFromStructuredData(body.structuredData, {
+						slug,
+						pageTitle,
+						depths: new Map(body.headings?.map((h) => [h.id, h.depth])),
+					})
+				: extractSectionsFromContent(body.content as RenderOutput | undefined, {
+						slug,
+						pageTitle,
+					});
 			if (sections.length > 0) {
 				await insertMultiple(
 					db,

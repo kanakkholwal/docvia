@@ -11,8 +11,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "docvia sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"typecheck": "docvia sync && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"deploy": "wrangler deploy",
 		"cf:typegen": "wrangler types"
 	},

@@ -186,12 +186,6 @@ export interface CompilerOptions {
 	 * permissive type.
 	 */
 	readonly configPath?: string;
-	/**
-	 * When true (default), the compiler reads/writes `.docvia.cache.json` and
-	 * skips files whose content hash and pipeline cache key match the previous
-	 * build. Pass `false` to force a full rebuild.
-	 */
-	readonly incremental?: boolean;
 }
 
 export interface CompileResult {
@@ -384,10 +378,63 @@ export function toPageMeta(ir: IRDocument): PageMeta {
 	};
 }
 
+/** Search data per page, same shape as fumadocs' `structuredData`. */
+export interface StructuredData {
+	readonly headings: ReadonlyArray<{
+		readonly id: string;
+		readonly content: string;
+	}>;
+	/** One entry per block; `heading` is the id of the section it sits in. */
+	readonly contents: ReadonlyArray<{
+		readonly heading: string | undefined;
+		readonly content: string;
+	}>;
+}
+
+const SEARCH_BLOCKS = new Set<IRNodeType>([
+	"paragraph",
+	"code-block",
+	"table-cell",
+]);
+
+function irText(node: IRNode): string {
+	if (node.type === "text" || node.type === "inline-code") {
+		return String(node.props.value ?? "");
+	}
+	if (node.type === "code-block") return String(node.props.value ?? "");
+	return node.children.map(irText).join("");
+}
+
+export function toStructuredData(ir: IRDocument): StructuredData {
+	const headings: Array<{ id: string; content: string }> = [];
+	const contents: Array<{ heading: string | undefined; content: string }> = [];
+	let heading: string | undefined;
+	const push = (text: string) => {
+		const content = text.replace(/\s+/g, " ").trim();
+		if (content) contents.push({ heading, content });
+	};
+	const walk = (nodes: readonly IRNode[]) => {
+		for (const node of nodes) {
+			if (node.type === "heading") {
+				heading = String(node.props.id ?? "");
+				headings.push({ id: heading, content: irText(node).trim() });
+			} else if (SEARCH_BLOCKS.has(node.type)) {
+				push(irText(node));
+			} else if (node.type === "text") {
+				push(String(node.props.value ?? ""));
+			} else {
+				walk(node.children);
+			}
+		}
+	};
+	walk(ir.children);
+	return { headings, contents };
+}
+
 export type { FenceMeta, PackageManager } from "./code";
 export {
 	convertNpmCommand,
 	PACKAGE_MANAGERS,
 	parseFenceMeta,
 } from "./code";
-export { transformToIR } from "./transform";
+export { computeSlug, transformToIR } from "./transform";

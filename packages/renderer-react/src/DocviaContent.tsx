@@ -273,7 +273,7 @@ function getNodeKey(node: RenderOutput, index: number): string {
 		case "text":
 			return `text:${index}:${node.value}`;
 		case "html":
-			return `html:${index}:${node.value}`;
+			return `html:${index}:${node.value.length}`;
 		case "fragment":
 			return `fragment:${index}:${node.children.length}`;
 	}

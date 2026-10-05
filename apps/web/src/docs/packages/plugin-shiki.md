@@ -34,8 +34,6 @@ import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [
     shiki({
@@ -57,8 +55,8 @@ export default defineConfig({
 5. The renderer's `code-block` renderer prefers that pre-highlighted `props.html`
    over any render-time highlighter.
 
-The plugin's `cacheKey()` is keyed on the theme and language list, so the
-incremental cache correctly re-highlights when either changes. Fence titles,
+The plugin's `cacheKey()` is keyed on the theme and language list, so pages
+re-highlight when either changes. Fence titles,
 tabs, and package-manager tabs work with or without Shiki; see
 [Code blocks](/docs/packages/renderer-core#code-blocks).
 

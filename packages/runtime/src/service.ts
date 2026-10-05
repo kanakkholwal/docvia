@@ -1,141 +1,64 @@
-// CompileService — the stateful core shared by build, dev, and SSR modes.
-//
-// It holds the resolved config, plugin runner, plugin cache keys, the
-// incremental cache, and the in-memory module graph for the lifetime of a
-// process. The batch `compile()` in @docvia/compiler is a thin wrapper around
-// `compileAll()` + `emitDiskModuleGraph()`; dev and SSR adapters (later
-// milestones) drive the same instance so all modes share one render path.
-
 import { existsSync } from "node:fs";
-import { join, relative, resolve as resolvePath } from "node:path";
+import { readFile } from "node:fs/promises";
+import { resolve as resolvePath } from "node:path";
 import { performance } from "node:perf_hooks";
 import type {
 	CompileResult,
 	CompilerOptions,
 	docviaConfig,
-	FileEntry,
-	FrontmatterSchema,
 	IRDocument,
 	PageMeta,
 } from "@docvia/ir";
-import { docviaError, toPageMeta } from "@docvia/ir";
-import { PluginRunner } from "@docvia/plugins";
-import { composeFrontmatterType, inferSchemaOutput } from "@docvia/schema";
+import { toPageMeta } from "@docvia/ir";
 import {
-	CACHE_VERSION,
-	type CachedEntry,
-	type CacheFile,
-	cacheIsCompatible,
-	readCache,
-	writeCache,
-} from "./cache";
+	assertCollectionDirs,
+	assertComponentsExist,
+	locate,
+} from "./collections";
 import {
 	type CollectionData,
 	emitModuleGraphFiles,
-	generateVirtualRegistry,
-	generateVirtualSource,
-	type RouteFile,
-	resolveComponents,
 	warnInvalidShikiLangs,
 	emitTypeDeclarations as writeTypeDeclarations,
 } from "./emit";
-import { compileParallel, readFileEntry, readFileTree } from "./fs";
-import { computeContentHash, hashConfig, stableStringify } from "./hash";
-import { relativeInside, samePath } from "./paths";
-import { markdownToIR } from "./pipeline";
-
-// Tool version: keep in sync with package.json. Bumped when the generated
-// module shape changes — invalidates the on-disk cache automatically.
-export const TOOL_VERSION = "0.2.0";
-
-interface ResolvedCollection {
-	readonly name: string;
-	/** Absolute source directory. */
-	readonly dir: string;
-	readonly baseUrl?: string;
-	readonly frontmatter?: FrontmatterSchema;
-	/** True when the collection declares its own schema (affects generated types). */
-	readonly ownSchema: boolean;
-	readonly optional: boolean;
-}
-
-// Component paths may omit the extension; the host bundler resolves it.
-const COMPONENT_EXTENSIONS = [".svelte", ".tsx", ".ts", ".jsx", ".js", ".vue"];
-
-function componentExists(absPath: string): boolean {
-	return (
-		existsSync(absPath) ||
-		COMPONENT_EXTENSIONS.some(
-			(ext) =>
-				existsSync(absPath + ext) || existsSync(join(absPath, `index${ext}`)),
-		)
-	);
-}
-
-function omitKeys(
-	data: Record<string, unknown>,
-	keys: readonly string[] | undefined,
-): Record<string, unknown> {
-	if (!keys?.length) return data;
-	const out = { ...data };
-	for (const k of keys) delete out[k];
-	return out;
-}
+import { compileParallel } from "./fs";
+import { PagePipeline } from "./pages";
+import { samePath } from "./paths";
+import { scanPages } from "./scan";
+import { collectionTypeData } from "./type-data";
 
 /** In-memory record for one compiled document. */
 export interface ServiceEntry {
 	readonly collectionName: string;
 	readonly relativePath: string;
 	readonly filePath: string;
-	readonly fileHash: string;
-	readonly contentHash: string;
+	readonly meta: Record<string, unknown> & { readonly slug: string };
 	readonly page: PageMeta;
-	readonly route: string;
-	/** True when served from the incremental cache (no fresh IR available). */
-	readonly cached: boolean;
-	/** Populated only for freshly-compiled entries. */
-	readonly ir?: IRDocument;
+	readonly ir: IRDocument;
 }
 
-/** Outcome of an incremental `invalidate()` call. */
+/** Outcome of an `invalidate()` call. */
 export interface InvalidationResult {
-	/** Routes that were recompiled (added or content-changed). */
 	readonly changed: ReadonlyArray<{
 		readonly collection: string;
 		readonly slug: string;
 		readonly contentHash: string;
 	}>;
-	/**
-	 * True when a slug appeared, disappeared, or was renamed. The route map —
-	 * and therefore the virtual `docvia/source` module — must be regenerated,
-	 * which a dev server handles with a full reload rather than a hot-swap.
-	 */
+	/** A slug appeared, disappeared or moved: regenerate the route index. */
 	readonly routeMapChanged: boolean;
 }
 
+/**
+ * Batch compiler for hosts that need everything up front (the CLI, Next.js, search indexing).
+ * Vite apps don't use it: they compile pages on demand through {@link PagePipeline}.
+ */
 export class CompileService {
 	readonly config: docviaConfig;
-
+	readonly pipeline: PagePipeline;
 	private readonly projectRoot: string;
 	private readonly resolvedOutDir: string;
-
-	/** Absolute output directory for generated files. */
-	get outDir(): string {
-		return this.resolvedOutDir;
-	}
 	private readonly configPath?: string;
-	private readonly incremental: boolean;
-	private readonly pluginRunner: PluginRunner;
-	private readonly configHash: string;
-	private readonly pluginCacheKeys: string[];
-	private readonly collections: readonly ResolvedCollection[];
-
-	private prevCache: CacheFile | null = null;
-	private cacheCompatible = false;
-	private cacheLoaded = false;
-	private readonly newCacheEntries: Record<string, CachedEntry> = {};
 	private readonly entries = new Map<string, ServiceEntry>();
-	private collectionData: CollectionData[] = [];
 
 	constructor(options: CompilerOptions) {
 		this.config = options.config;
@@ -144,296 +67,82 @@ export class CompileService {
 		this.configPath = options.configPath
 			? resolvePath(options.configPath)
 			: undefined;
-		this.incremental = options.incremental !== false;
-		this.pluginRunner = new PluginRunner(options.plugins);
-		this.configHash = hashConfig(options.config);
-		this.pluginCacheKeys = this.pluginRunner.getPluginCacheKeys();
-		this.collections = (
-			options.config.collections ?? [
-				{ name: "docs", sourceDir: options.sourceDir, baseUrl: "/" },
-			]
-		).map((c) => {
-			if (!/^[A-Za-z_$][\w$]*$/.test(c.name)) {
-				throw new docviaError(
-					"CONFIG_ERROR",
-					`Collection name "${c.name}" must be a valid JS identifier: it becomes an export name.`,
-				);
-			}
-			return {
-				name: c.name,
-				dir: resolvePath(this.projectRoot, c.sourceDir),
-				baseUrl: c.baseUrl,
-				frontmatter: c.frontmatter ?? options.config.frontmatter,
-				ownSchema: c.frontmatter !== undefined,
-				optional: c.optional === true,
-			};
-		});
+		this.pipeline = new PagePipeline(
+			{
+				...options.config,
+				sourceDir: options.sourceDir,
+				plugins: options.plugins,
+			},
+			this.projectRoot,
+		);
+	}
+
+	/** Absolute output directory for generated files. */
+	get outDir(): string {
+		return this.resolvedOutDir;
 	}
 
 	/** Absolute source directory of every collection, for file watchers. */
 	collectionDirs(): string[] {
-		return this.collections.map((c) => c.dir);
+		return this.pipeline.collections.map((c) => c.dir);
 	}
 
 	/** True when `filePath` is a markdown file inside one of the collections. */
 	owns(filePath: string): boolean {
 		return (
-			filePath.endsWith(".md") && this.collectionForPath(filePath) !== undefined
+			filePath.endsWith(".md") &&
+			locate(this.pipeline.collections, resolvePath(filePath)) !== undefined
 		);
 	}
 
-	/** Number of registered components, after glob expansion. */
-	componentCount(): number {
-		return resolveComponents(this.config, this.projectRoot).length;
-	}
-
-	/** Throw a `CONFIG_ERROR` for any registered component whose file is missing. */
-	private assertComponentsExist(): void {
-		for (const c of resolveComponents(this.config, this.projectRoot)) {
-			if (!componentExists(c.absPath)) {
-				throw new docviaError(
-					"CONFIG_ERROR",
-					`Component "${c.name}" not found at ${c.absPath}. Component paths resolve from the project root (${this.projectRoot}).`,
-				);
-			}
-		}
-	}
-
-	/** Load the on-disk incremental cache. Idempotent. */
-	async loadCache(): Promise<void> {
-		if (this.cacheLoaded) return;
-		this.cacheLoaded = true;
-		this.prevCache = this.incremental
-			? await readCache(this.resolvedOutDir)
-			: null;
-		this.cacheCompatible = cacheIsCompatible(
-			this.prevCache,
-			TOOL_VERSION,
-			this.configHash,
-			this.pluginCacheKeys,
-		);
-	}
-
-	private cacheKeyFor(collectionName: string, relativePath: string): string {
-		return `${collectionName}:${relativePath}`;
-	}
-
-	/**
-	 * Run the full parse → transform → plugin pipeline for one file. Always
-	 * recompiles — the cache is consulted by `compileFile`, not here. This is
-	 * the single source of truth for how a document becomes IR.
-	 */
-	private async runPipeline(
-		collection: ResolvedCollection,
-		file: FileEntry,
+	private async compileEntry(
+		collection: string,
+		absPath: string,
+		relativePath: string,
+		code: string,
 	): Promise<ServiceEntry> {
-		const { ir: irDoc } = await markdownToIR({
-			file,
-			config: this.config,
-			frontmatterSchema: collection.frontmatter,
-			runner: this.pluginRunner,
-			contentHash: (frontmatter) =>
-				computeContentHash({
-					fileContent: file.hash,
-					frontmatter: stableStringify(
-						omitKeys(frontmatter, this.config.hashExclude),
-					),
-					configHash: this.configHash,
-					pluginCacheKeys: this.pluginCacheKeys,
-					dependencyHashes: [],
-				}),
-		});
-		const contentHash = irDoc.contentHash;
-
-		const relPath = relative(
-			this.resolvedOutDir,
-			resolvePath(file.path),
-		).replace(/\\/g, "/");
-		const route = `./${relPath}?docvia`;
-
-		const page = toPageMeta(irDoc);
-
-		return {
-			collectionName: collection.name,
-			relativePath: file.relativePath,
-			filePath: file.path,
-			fileHash: file.hash,
-			contentHash,
-			page,
-			route,
-			cached: false,
-			ir: irDoc,
+		const [meta, ir] = await Promise.all([
+			this.pipeline.meta(absPath, code, collection),
+			this.pipeline.document(absPath, code, collection),
+		]);
+		const entry: ServiceEntry = {
+			collectionName: collection,
+			relativePath,
+			filePath: absPath,
+			meta,
+			page: toPageMeta(ir),
+			ir,
 		};
-	}
-
-	/**
-	 * Compile one file, reusing the incremental cache when the file hash and
-	 * pipeline key are unchanged. Records the result in the in-memory graph.
-	 */
-	async compileFile(
-		collection: ResolvedCollection,
-		file: FileEntry,
-	): Promise<ServiceEntry> {
-		const cacheKey = this.cacheKeyFor(collection.name, file.relativePath);
-		const prev = this.cacheCompatible
-			? this.prevCache?.entries[cacheKey]
-			: undefined;
-
-		// Cache hit: file content unchanged AND cache is compatible.
-		if (prev && prev.fileHash === file.hash) {
-			const entry: ServiceEntry = {
-				collectionName: collection.name,
-				relativePath: file.relativePath,
-				filePath: file.path,
-				fileHash: file.hash,
-				contentHash: prev.contentHash,
-				page: prev.page,
-				route: prev.route,
-				cached: true,
-			};
-			this.newCacheEntries[cacheKey] = prev;
-			this.entries.set(cacheKey, entry);
-			return entry;
-		}
-
-		// Cache miss: full pipeline.
-		const entry = await this.runPipeline(collection, file);
-		this.newCacheEntries[cacheKey] = {
-			fileHash: entry.fileHash,
-			contentHash: entry.contentHash,
-			page: entry.page,
-			route: entry.route,
-		};
-		this.entries.set(cacheKey, entry);
+		this.entries.set(absPath, entry);
 		return entry;
 	}
 
-	/** Compile every file in every collection and build the module graph. */
+	/** Compile every page of every collection. */
 	async compileAll(): Promise<CompileResult> {
-		const startTime = performance.now();
-		await this.loadCache();
+		const start = performance.now();
 		warnInvalidShikiLangs(this.config.syntax.langs);
-		this.assertComponentsExist();
+		assertComponentsExist(this.config, this.projectRoot);
+		assertCollectionDirs(this.pipeline.collections);
+		this.entries.clear();
 
-		const allPages: PageMeta[] = [];
-		let totalFiles = 0;
-		let totalCompiled = 0;
-		let totalCached = 0;
-
-		for (const collection of this.collections) {
-			if (!existsSync(collection.dir)) {
-				if (collection.optional) continue;
-				throw new docviaError(
-					"CONFIG_ERROR",
-					`Collection "${collection.name}": sourceDir not found at ${collection.dir}. Set \`optional: true\` if it may be absent.`,
-				);
-			}
-			const files = await readFileTree(collection.dir);
-			totalFiles += files.length;
-
-			await compileParallel(files, async (file) => {
-				const entry = await this.compileFile(collection, file);
-				allPages.push(entry.page);
-				if (entry.cached) {
-					totalCached++;
-				} else {
-					totalCompiled++;
-				}
-			});
-		}
-
-		this.rebuildCollectionData();
-
+		const scanned = await scanPages(this.pipeline);
+		await compileParallel(scanned, async (p) => {
+			await this.compileEntry(
+				p.collection.name,
+				p.absPath,
+				p.relativePath,
+				await readFile(p.absPath, "utf-8"),
+			);
+		});
+		const pages = [...this.entries.values()].map((e) => e.page);
 		return {
-			pages: allPages,
-			searchIndex: "",
-			duration: performance.now() - startTime,
-			stats: {
-				total: totalFiles,
-				compiled: totalCompiled,
-				cached: totalCached,
-			},
+			pages,
+			duration: performance.now() - start,
+			stats: { total: pages.length, compiled: pages.length, cached: 0 },
 		};
 	}
 
-	/** Rebuild `collectionData` (routes + frontmatter types) from `entries`. */
-	private rebuildCollectionData(): void {
-		this.collectionData = this.collections.map((collection) => {
-			const routes: Record<string, string> = {};
-			const frontmatterSamples: string[] = [];
-			for (const entry of this.entries.values()) {
-				if (entry.collectionName !== collection.name) continue;
-				routes[entry.page.slug] = entry.route;
-				if (entry.ir) {
-					frontmatterSamples.push(stableStringify(entry.ir.frontmatter));
-				}
-			}
-
-			let frontmatterTypeDef: string;
-			if (collection.frontmatter) {
-				frontmatterTypeDef = this.frontmatterTypeExpression(collection);
-			} else {
-				const unique = Array.from(new Set(frontmatterSamples));
-				frontmatterTypeDef =
-					unique.length > 0 ? unique.join(" | ") : "Record<string, unknown>";
-			}
-
-			return {
-				name: collection.name,
-				baseUrl: (
-					collection.baseUrl ??
-					`/${collection.name === "docs" ? "" : collection.name}`
-				).replace(/\/+/g, "/"),
-				routes,
-				frontmatterTypeDef,
-			};
-		});
-	}
-
-	/**
-	 * Build the generated `Frontmatter` type for a configured schema. Owns the
-	 * one runtime-specific concern — locating the config file relative to the
-	 * output dir — and delegates the type's shape to `@docvia/schema`, which
-	 * derives it from the config's schema via its compile-time `~standard.types`
-	 * (precise for any Standard Schema library, no runtime introspection). Falls
-	 * back to a permissive record when the config path is unknown (no config file).
-	 */
-	private frontmatterTypeExpression(collection: ResolvedCollection): string {
-		if (!this.configPath) {
-			return composeFrontmatterType();
-		}
-
-		const relConfig = relative(this.resolvedOutDir, this.configPath)
-			.replace(/\\/g, "/")
-			.replace(/\.(mts|cts|ts|tsx|mjs|cjs|js|jsx)$/, "");
-		const importSpecifier = relConfig.startsWith(".")
-			? relConfig
-			: `./${relConfig}`;
-
-		const config = `(typeof import(${JSON.stringify(importSpecifier)}))["default"]`;
-		const schemaRef = collection.ownSchema
-			? `NonNullable<Extract<NonNullable<${config}["collections"]>[number], { name: ${JSON.stringify(collection.name)} }>["frontmatter"]>`
-			: `NonNullable<${config}["frontmatter"]>`;
-		return composeFrontmatterType(inferSchemaOutput(schemaRef));
-	}
-
-	/** Find which collection (if any) owns a source file. */
-	private collectionForPath(
-		absPath: string,
-	): { collection: ResolvedCollection; relativePath: string } | undefined {
-		for (const collection of this.collections) {
-			const rel = relativeInside(collection.dir, absPath);
-			if (rel) return { collection, relativePath: rel };
-		}
-		return undefined;
-	}
-
-	/**
-	 * Incrementally recompile a set of changed source files. Recompiles changed
-	 * files, drops deleted ones, and reports whether the route map changed (a
-	 * slug appeared, disappeared, or was renamed) so the caller can choose
-	 * between a content hot-swap and a full reload.
-	 */
+	/** Recompile changed files and drop deleted ones. */
 	async invalidate(filePaths: readonly string[]): Promise<InvalidationResult> {
 		const changed: Array<{
 			collection: string;
@@ -441,172 +150,68 @@ export class CompileService {
 			contentHash: string;
 		}> = [];
 		let routeMapChanged = false;
-
-		for (const rawPath of filePaths) {
-			const absPath = resolvePath(rawPath);
-			const match = this.collectionForPath(absPath);
+		for (const raw of filePaths) {
+			const absPath = resolvePath(raw);
+			const match = locate(this.pipeline.collections, absPath);
 			if (!match) continue;
-			const { collection, relativePath } = match;
-			const cacheKey = this.cacheKeyFor(collection.name, relativePath);
-			const existing = this.entries.get(cacheKey);
-
-			// Deleted file — drop the entry.
+			const key = [...this.entries.keys()].find((k) => samePath(k, absPath));
+			const existing = key ? this.entries.get(key) : undefined;
 			if (!existsSync(absPath)) {
-				if (existing) {
-					this.entries.delete(cacheKey);
-					delete this.newCacheEntries[cacheKey];
+				if (key) {
+					this.entries.delete(key);
 					routeMapChanged = true;
 				}
 				continue;
 			}
-
-			// Added or changed — recompile through the full pipeline.
-			const file = await readFileEntry(absPath, relativePath);
-			const entry = await this.runPipeline(collection, file);
-			this.entries.set(cacheKey, entry);
-			this.newCacheEntries[cacheKey] = {
-				fileHash: entry.fileHash,
-				contentHash: entry.contentHash,
-				page: entry.page,
-				route: entry.route,
-			};
-
-			if (!existing || existing.page.slug !== entry.page.slug) {
+			if (key && key !== absPath) this.entries.delete(key);
+			const entry = await this.compileEntry(
+				match.collection.name,
+				absPath,
+				match.relativePath,
+				await readFile(absPath, "utf-8"),
+			);
+			if (!existing || existing.meta.slug !== entry.meta.slug)
 				routeMapChanged = true;
-			}
 			changed.push({
-				collection: collection.name,
-				slug: entry.page.slug,
-				contentHash: entry.contentHash,
+				collection: match.collection.name,
+				slug: entry.meta.slug,
+				contentHash: entry.ir.contentHash,
 			});
 		}
-
-		this.rebuildCollectionData();
 		return { changed, routeMapChanged };
 	}
 
-	/** The collection/route data backing the module graph. */
-	getCollectionData(): readonly CollectionData[] {
-		return this.collectionData;
-	}
-
-	/**
-	 * Resolve a single document's IR by collection + slug. Returns a
-	 * freshly-compiled IR; entries served from the incremental cache (which
-	 * stores no IR) are recompiled on demand.
-	 */
+	/** A compiled document by collection and slug. */
 	async getDocument(
 		collectionName: string,
 		slug: string,
 	): Promise<IRDocument | undefined> {
-		for (const entry of this.entries.values()) {
-			if (entry.collectionName !== collectionName) continue;
-			if (entry.page.slug !== slug) continue;
-			if (entry.ir) return entry.ir;
-
-			const collection = this.collections.find(
-				(c) => c.name === collectionName,
-			);
-			if (!collection) return undefined;
-			const file = await readFileEntry(entry.filePath, entry.relativePath);
-			const fresh = await this.runPipeline(collection, file);
-			return fresh.ir;
+		for (const e of this.entries.values()) {
+			if (e.collectionName === collectionName && e.meta.slug === slug)
+				return e.ir;
 		}
 		return undefined;
 	}
 
-	/**
-	 * Resolve a document's IR by its absolute source-file path. Used by the dev
-	 * plugin's `.md?docvia` transform so its output matches the build pipeline
-	 * (same plugins, same highlighting).
-	 */
-	async getDocumentByPath(absPath: string): Promise<IRDocument | undefined> {
-		for (const entry of this.entries.values()) {
-			if (!samePath(entry.filePath, absPath)) continue;
-			if (entry.ir) return entry.ir;
-
-			const collection = this.collections.find(
-				(c) => c.name === entry.collectionName,
-			);
-			if (!collection) return undefined;
-			const file = await readFileEntry(entry.filePath, entry.relativePath);
-			const fresh = await this.runPipeline(collection, file);
-			return fresh.ir;
-		}
-		return undefined;
-	}
-
-	/**
-	 * Resolve every compiled document's IR, optionally scoped to one collection
-	 * by name. Entries served from the incremental cache (which stores no IR)
-	 * are recompiled on demand, exactly like {@link getDocument}. Used by
-	 * build-time consumers — e.g. search indexing — that need the full IR for
-	 * every page rather than one lookup at a time. Call after `compileAll()`.
-	 */
+	/** Every compiled document, optionally for one collection. Call after `compileAll()`. */
 	async getDocuments(
 		collectionName?: string,
 	): Promise<Array<{ collection: string; document: IRDocument }>> {
-		const out: Array<{ collection: string; document: IRDocument }> = [];
-		for (const entry of this.entries.values()) {
-			if (collectionName && entry.collectionName !== collectionName) continue;
-
-			let ir = entry.ir;
-			if (!ir) {
-				const collection = this.collections.find(
-					(c) => c.name === entry.collectionName,
-				);
-				if (!collection) continue;
-				const file = await readFileEntry(entry.filePath, entry.relativePath);
-				ir = (await this.runPipeline(collection, file)).ir;
-			}
-			if (!ir) continue;
-			out.push({ collection: entry.collectionName, document: ir });
-		}
-		return out;
+		return [...this.entries.values()]
+			.filter((e) => !collectionName || e.collectionName === collectionName)
+			.map((e) => ({ collection: e.collectionName, document: e.ir }));
 	}
 
-	private buildRouteFiles(): Map<string, RouteFile[]> {
-		const routeFiles = new Map<string, RouteFile[]>();
-		for (const entry of this.entries.values()) {
-			let list = routeFiles.get(entry.collectionName);
-			if (!list) {
-				list = [];
-				routeFiles.set(entry.collectionName, list);
-			}
-			list.push({ slug: entry.page.slug, absPath: entry.filePath });
-		}
-		return routeFiles;
-	}
-
-	/**
-	 * Generate the consolidated `docvia/source` module as a string — the
-	 * dev-server virtual-module form of the on-disk module graph. Imports
-	 * markdown eagerly (server/SSR). Call after `compileAll()`.
-	 */
-	getVirtualSourceModule(): string {
-		return generateVirtualSource(
-			this.collectionData,
-			this.buildRouteFiles(),
-			this.projectRoot,
-		);
-	}
-
-	/** The `virtual:docvia/registry` module: every configured component, or an empty registry. */
-	getVirtualRegistryModule(): string {
-		return generateVirtualRegistry(this.config, this.projectRoot);
-	}
-
-	/**
-	 * The browser counterpart of `getVirtualSourceModule` — markdown is loaded
-	 * lazily (`() => import()`) so the client code-splits each page. Served as
-	 * the `docvia/source/browser` virtual module in dev.
-	 */
-	getVirtualBrowserModule(): string {
-		return generateVirtualSource(
-			this.collectionData,
-			this.buildRouteFiles(),
-			this.projectRoot,
-			true,
+	/** Route slugs and frontmatter types per collection. */
+	getCollectionData(): CollectionData[] {
+		return collectionTypeData(
+			this.pipeline.collections,
+			[...this.entries.values()].map((e) => ({
+				collection: e.collectionName,
+				meta: e.meta,
+			})),
+			this.resolvedOutDir,
+			this.configPath,
 		);
 	}
 
@@ -616,28 +221,22 @@ export class CompileService {
 			outDir: this.resolvedOutDir,
 			projectRoot: this.projectRoot,
 			config: this.config,
-			collections: this.collectionData,
+			collections: this.getCollectionData(),
 		});
 	}
 
-	/** Write the disk module graph (markdown imported in place) and persist the cache. */
+	/** Write the disk module graph used by non-Vite hosts. */
 	async emitDiskModuleGraph(): Promise<void> {
 		await emitModuleGraphFiles({
 			outDir: this.resolvedOutDir,
 			projectRoot: this.projectRoot,
 			config: this.config,
-			collections: this.collectionData,
+			collections: this.getCollectionData(),
+			pages: [...this.entries.values()].map((e) => ({
+				collection: e.collectionName,
+				absPath: e.filePath,
+				meta: e.meta,
+			})),
 		});
-
-		if (this.incremental) {
-			const cache: CacheFile = {
-				version: CACHE_VERSION,
-				toolVersion: TOOL_VERSION,
-				configHash: this.configHash,
-				pluginKeys: this.pluginCacheKeys,
-				entries: this.newCacheEntries,
-			};
-			await writeCache(this.resolvedOutDir, cache);
-		}
 	}
 }
