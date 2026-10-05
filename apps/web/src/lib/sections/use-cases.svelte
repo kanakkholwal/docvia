@@ -1,6 +1,6 @@
 <script lang="ts">
-import { inview } from "$lib/actions/inview";
-import { cn } from "$lib/utils";
+import { inview } from "#lib/actions/inview.ts";
+import { cn } from "#lib/utils.ts";
 import { BookOpen, GraduationCap, Library, Terminal } from "@lucide/svelte";
 
 // Each card carries a small artifact of the thing it describes rather than a

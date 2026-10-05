@@ -1,8 +1,9 @@
 <script lang="ts">
-import InstallCommand from "$lib/components/install-command.svelte";
-import PipelineStack from "$lib/components/pipeline-stack.svelte";
-import { Button } from "$lib/components/ui/button";
-import { ArrowRight, Check, Github } from "@lucide/svelte";
+import InstallCommand from "#lib/components/install-command.svelte";
+import PipelineStack from "#lib/components/pipeline-stack.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
+import { ArrowRight, Check } from "@lucide/svelte";
+import Github from "#lib/components/icons/github.svelte";
 
 const guarantees = ["MIT licensed", "Self-host anywhere", "No vendor lock-in"];
 </script>

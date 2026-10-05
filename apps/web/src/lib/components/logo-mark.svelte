@@ -1,5 +1,5 @@
 <script lang="ts">
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 
 // A geometric `d` emitting three stepped modules: the compiler turning one
 // source into a module graph. The letterform inherits currentColor so the mark

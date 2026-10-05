@@ -10,7 +10,7 @@ docvia follows a **Compiler-Grade Architecture** designed for scalability and ex
 1. **Core Parser (`@docvia/core`):** Micromark-based parser converts markdown strings into a standard `mdast` (Markdown Abstract Syntax Tree).
 2. **Plugins (`@docvia/plugins`):** `unified` plugins can intercept and modify the `mdast` before transformation.
 3. **IR Transform (`@docvia/ir`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
-4. **Compile core (`@docvia/runtime`):** A stateful, long-lived `CompileService` owns the resolved config, plugin runner, incremental cache, and module graph. It exposes `compileAll()`, incremental `invalidate()`, `getDocument()`, and module-graph / IR-chunk emitters.
+4. **Compile core (`@docvia/runtime`):** A stateful, long-lived `CompileService` owns the resolved config, plugin runner, incremental cache, and module graph. It exposes `compileAll()`, incremental `invalidate()`, `getDocument()`, and the emitters for `.docvia/` (`types.d.ts`, `env.d.ts`, plus `source.ts` / `browser.ts` / `registry.ts` for non-Vite hosts). `docvia sync` writes the two type files without a bundler.
 5. **Renderer (`@docvia/renderer-core` + adapters):** Takes IR nodes and produces framework output. Syntax highlighting is a build-time plugin (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR — no highlighter ships at runtime.
 
 ### 2. Run modes

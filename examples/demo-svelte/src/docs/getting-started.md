@@ -18,15 +18,15 @@ npm install @docvia/renderer-svelte @docvia/source
 ```
 
 The CLI, Vite plugin, and Shiki plugin are dev-only. The renderer and
-`@docvia/source` are runtime dependencies — the generated module graph imports
-from them.
+`@docvia/source` are runtime dependencies: the generated modules import
+`@docvia/source`, and your routes render with the renderer.
 
 ## 2. Configure Docvia
 
 Create `docvia.config.ts` in your project root:
 
 ```typescript
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
@@ -56,26 +56,41 @@ export default defineConfig({
 ## 3. Add the Vite plugin
 
 Update `vite.config.ts` to run Docvia in-process. The single `docvia()` plugin
-compiles your Markdown during dev and build — there's no separate
-`docvia build` step, and edits recompile incrementally with HMR.
+loads `docvia.config.ts` and compiles your Markdown during dev and build. There's
+no separate `docvia build` step, and edits (including new, renamed, or deleted
+pages) recompile incrementally with HMR. SvelteKit 3 takes its options in
+`sveltekit({ ... })`; there is no `svelte.config.js`.
 
 ```typescript
 import { docvia } from "@docvia/plugin-vite";
+import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docvia(docviaConfig)],
+  plugins: [sveltekit({ adapter: adapter() }), docvia()],
 });
 ```
 
 ## 4. Module types
 
-docvia writes a `docvia-env.d.ts` at your project root on every dev/build run,
-declaring `virtual:docvia/source` (and `virtual:docvia/source/browser`) with
-types generated from your frontmatter. Just make sure it's covered by your
-`tsconfig.json` `include` — no manual declaration needed.
+docvia writes `.docvia/env.d.ts` on every dev/build run, declaring
+`virtual:docvia/source`, `virtual:docvia/source/browser`, and
+`virtual:docvia/registry` with types generated from your frontmatter. Include it
+in `tsconfig.json`:
+
+```json
+{
+  "extends": "$app/tsconfig",
+  "include": ["src", "*", ".docvia/*.d.ts"]
+}
+```
+
+In CI no dev server has run, so generate the types first:
+
+```json
+"check": "docvia sync && svelte-kit sync && svelte-check"
+```
 
 ## 5. Create your first page
 
@@ -126,7 +141,7 @@ component and the generated `registry`:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/source";
+  import { registry } from "virtual:docvia/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -143,8 +158,8 @@ component and the generated `registry`:
 npm run dev
 ```
 
-The `docvia()` Vite plugin compiles `src/docs/` on startup and on every edit —
-no separate build command needed. Visit `/docs` and you'll see your page.
+The `docvia()` Vite plugin compiles `src/docs/` on startup and on every edit, so
+no separate build command is needed. Visit `/docs` and you'll see your page.
 
 For a production build, `npm run build` runs the same compilation.
 
@@ -153,9 +168,8 @@ For a production build, `npm run build` runs the same compilation.
 | Path | Purpose |
 | --- | --- |
 | `src/docs/` | Markdown source files |
-| `.docvia/` | Generated module graph (gitignore this) |
+| `.docvia/` | Generated types, including `env.d.ts` module declarations (gitignore this) |
 | `docvia.config.ts` | Docvia configuration |
-| `docvia-env.d.ts` | TypeScript module declarations |
 | `src/routes/` | SvelteKit routes |
 
 ## Frontmatter fields
@@ -168,5 +182,3 @@ For a production build, `npm run build` runs the same compilation.
 | `tags` | `string[]` | No | Tags for categorization |
 | `slug` | `string` | No | Override the auto-generated slug |
 | `draft` | `boolean` | No | Exclude from production |
-</content>
-</invoke>

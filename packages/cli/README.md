@@ -7,7 +7,7 @@ documentation compiler.
 
 ```bash
 pnpm add -D @docvia/cli
-pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
 ```
 
 ## Usage
@@ -16,6 +16,7 @@ pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
 docvia init [-d <dir>] [-r react|svelte|none] [-f]   # scaffold a project
 docvia build [--docs <dir>] [--out <dir>] [--config <path>] [--no-cache]
 docvia dev   [--docs <dir>] [--out <dir>] [--config <path>]
+docvia sync  [--config <path>]
 docvia preview [--out <dir>] [-p <port>]
 ```
 
@@ -24,15 +25,16 @@ docvia preview [--out <dir>] [-p <port>]
 | `init` | Creates `docs/` with sample pages and a working `docvia.config.ts`. Autodetects `react` / `svelte` from your project's `package.json` or pass `--renderer` explicitly. Refuses to overwrite an existing config without `--force`. |
 | `build` | Reads the config, compiles every Markdown file to the module graph in `<outDir>/`, and persists `.docvia.cache.json`. Skips unchanged files. Pass `--no-cache` to force a full rebuild. |
 | `dev` | Initial build, then watches `sourceDir` and the config file. Rebuilds incrementally with a build lock to prevent races. Reloads the config when it changes. Closes cleanly on Ctrl+C. |
-| `preview` | Serves `<outDir>/` via `sirv`. Sanity check only — embed docvia in your Vite/Next.js app for a real preview. |
+| `sync` | Writes `.docvia/types.d.ts` and `.docvia/env.d.ts` without a bundler. Run it before `tsc` / `svelte-check` in CI: `docvia sync && svelte-kit sync && svelte-check`. |
+| `preview` | Serves `<outDir>/` via `sirv`. Sanity check only; embed docvia in your Vite/Next.js app for a real preview. |
 
-## Programmatic use
+## Config
 
-`@docvia/cli` re-exports `defineConfig` so your `docvia.config.ts` can stay
-small:
+`@docvia/cli` is a dev dependency only. It re-exports `defineConfig`, but import
+it from your framework plugin (`@docvia/plugin-vite` or `@docvia/plugin-next`):
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 

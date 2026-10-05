@@ -16,6 +16,6 @@ docvia-env.d.ts
 
 tmp-*
 memory
-
+.local
 # Cloudflare Wrangler local state
 .wrangler/

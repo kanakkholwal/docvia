@@ -1,43 +1,39 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Vite plugin hook context and source-map shapes are intentionally loose passthroughs.
-// The `docvia()` Vite plugin — runs the markdown compiler in-process.
-//
-// No separate `docvia build` step: in dev it instantiates a CompileService,
-// serves `docvia/source` as a virtual module, watches the source tree, and
-// recompiles incrementally; in build it emits the on-disk module graph.
+import { createRequire } from "node:module";
+import { basename, join, resolve } from "node:path";
+import type { docviaConfig, RendererAdapter } from "@docvia/ir";
+import { docviaError } from "@docvia/ir";
+import { resolveConfigPath, resolveProject } from "@docvia/plugins";
+import {
+	CompileService,
+	compileMarkdownToModule,
+	type InvalidationResult,
+} from "@docvia/runtime";
+import type { EnvironmentModuleGraph, Plugin, Rollup } from "vite";
 
-import { resolve } from "node:path";
-import { parseMarkdown } from "@docvia/core";
-import type { docviaConfig, IRDocument, RendererAdapter } from "@docvia/ir";
-import { docviaError, transformToIR } from "@docvia/ir";
-import { resolveConfigPath } from "@docvia/plugins";
-import { CompileService } from "@docvia/runtime";
-import { extractFrontmatter, validateFrontmatter } from "@docvia/schema";
-import type { HmrContext, Plugin, ViteDevServer } from "vite";
+type SourceMapInput = Rollup.SourceMapInput;
 
-// Vite virtual-module convention (https://vite.dev/guide/api-plugin#importing-a-virtual-file):
-// the public id is `virtual:docvia/source`; the resolved id is prefixed with
-// `\0` so other plugins leave it alone. Served from the `load` hook in dev and
-// build alike — no on-disk `source.ts` wrapper for Vite.
-const SOURCE_ID = "virtual:docvia/source";
-const BROWSER_ID = "virtual:docvia/source/browser";
-const VIRTUAL_SOURCE_ID = `\0${SOURCE_ID}`;
-const VIRTUAL_BROWSER_ID = `\0${BROWSER_ID}`;
+// Vite convention: public `virtual:` ids, resolved ids prefixed with `\0`.
+const IDS = {
+	source: "virtual:docvia/source",
+	browser: "virtual:docvia/source/browser",
+	registry: "virtual:docvia/registry",
+} as const;
+const RESOLVED = new Map<string, string>(
+	Object.values(IDS).map((id) => [id, `\0${id}`]),
+);
+const RESOLVED_IDS = [...RESOLVED.values()];
+const MARKDOWN_QUERY = /\.md\?docvia$/;
 
 export interface DocviaVitePluginOptions {
 	/** Force a full rebuild, ignoring the incremental cache. Default: false. */
 	readonly noCache?: boolean;
 	/**
-	 * Path to the `docvia.config.*` file (relative to the Vite root or absolute),
-	 * used to derive a precise `Frontmatter` type from `config.frontmatter` (any
-	 * Standard Schema library) in the generated `types.d.ts`. Defaults to
-	 * auto-detecting a `docvia.config.{ts,mts,cts,js,mjs,cjs}` in the Vite root.
-	 * Set to `false` to opt out (or when the config is defined inline), which
-	 * falls back to a permissive type.
+	 * `docvia.config.*` path, relative to the Vite root. Auto-detected when omitted. It is
+	 * loaded when no config object is passed, and always used for generated frontmatter types.
 	 */
 	readonly configPath?: string | false;
 }
 
-/** Shape a compile error into a Vite HMR error-overlay payload. */
 function toErrorPayload(err: unknown): { message: string; stack: string } {
 	if (err instanceof docviaError) {
 		const where = err.file ? ` (${err.file})` : "";
@@ -52,177 +48,223 @@ function toErrorPayload(err: unknown): { message: string; stack: string } {
 	};
 }
 
+function invalidateVirtualModules(graph: EnvironmentModuleGraph): void {
+	for (const id of RESOLVED_IDS) {
+		const mod = graph.getModuleById(id);
+		if (mod) graph.invalidateModule(mod);
+	}
+}
+
+/** Generated modules import `@docvia/source`; fail at startup rather than at first request. */
+function assertSourceInstalled(root: string): void {
+	try {
+		createRequire(join(root, "package.json")).resolve(
+			"@docvia/source/internal",
+		);
+	} catch {
+		throw new docviaError(
+			"CONFIG_ERROR",
+			`@docvia/source is not resolvable from ${root}. docvia's generated modules import it: add it to your dependencies.`,
+		);
+	}
+}
+
 /**
- * The docvia Vite plugin. Compiles markdown alongside the dev server — no
- * separate `docvia build` step. In dev `docvia/source` is a virtual module
- * regenerated on every source change; in build the on-disk module graph is
- * emitted instead.
+ * Compiles markdown in-process and serves `virtual:docvia/{source,source/browser,registry}`.
+ * Without a config argument it loads `docvia.config.*` from the Vite root.
  */
 export function docvia(
-	config: docviaConfig,
+	inlineConfig?: docviaConfig,
 	options: DocviaVitePluginOptions = {},
 ): Plugin {
-	if (!config.renderer) {
-		throw new Error("[docvia] No renderer configured in docvia config");
-	}
-	// Explicitly typed so the value stays non-optional inside nested closures.
-	const renderer: RendererAdapter = config.renderer;
-
+	let config: docviaConfig | undefined = inlineConfig;
+	let configPath: string | undefined;
 	let root = process.cwd();
 	let isDev = false;
-	let service: CompileService | null = null;
-	let ready: Promise<void> | null = null;
+	let ready: Promise<CompileService> | null = null;
+	let queue: Promise<unknown> = Promise.resolve();
+	const recompiles = new Map<string, Promise<InvalidationResult>>();
+	const warned = new Set<string>();
 
-	function createService(): CompileService {
-		return new CompileService({
-			sourceDir: config.sourceDir,
-			outDir: config.outDir,
-			renderer,
-			plugins: [...config.plugins],
-			config,
+	function warnOnce(key: string, message: string): void {
+		if (warned.has(key)) return;
+		warned.add(key);
+		console.warn(`[docvia] ${message}`);
+	}
+
+	function requireConfig(): docviaConfig & { renderer: RendererAdapter } {
+		if (!config?.renderer) {
+			throw new docviaError(
+				"CONFIG_ERROR",
+				"No renderer configured in docvia config",
+				configPath,
+			);
+		}
+		return config as docviaConfig & { renderer: RendererAdapter };
+	}
+
+	async function initialCompile(): Promise<CompileService> {
+		const cfg = requireConfig();
+		const service = new CompileService({
+			sourceDir: cfg.sourceDir,
+			outDir: cfg.outDir,
+			renderer: cfg.renderer,
+			plugins: [...cfg.plugins],
+			config: cfg,
 			projectRoot: root,
-			configPath: resolveConfigPath(root, options.configPath),
+			configPath,
 			incremental: !options.noCache,
 		});
-	}
-
-	/** Compile everything; emit the disk graph (build) or just IDE types (dev). */
-	async function initialCompile(): Promise<void> {
-		const svc = createService();
-		await svc.compileAll();
+		await service.compileAll();
 		if (isDev) {
-			await svc.emitTypeDeclarations();
+			await service.emitTypeDeclarations();
 		} else {
-			await svc.emitDiskModuleGraph();
+			await service.emitDiskModuleGraph();
 		}
-		service = svc;
+		return service;
 	}
 
-	async function toIR(code: string, filePath: string): Promise<IRDocument> {
-		// Prefer the service's IR so dev output matches the build pipeline
-		// (plugin hooks + build-time highlighting all applied).
-		const fromService = await service?.getDocumentByPath(filePath);
-		if (fromService) return fromService;
+	function getService(): Promise<CompileService> {
+		ready ??= initialCompile();
+		return ready;
+	}
 
-		// Fallback: a markdown file outside any collection — parse standalone.
-		const extracted = extractFrontmatter(code);
-		const meta = validateFrontmatter(
-			extracted.data,
-			filePath,
-			config.frontmatter,
-		);
-		const { ast } = await parseMarkdown(extracted.content, {
-			remarkPlugins: config.markdown.remarkPlugins,
-		});
-		return transformToIR(ast, meta, filePath);
+	/** One recompile per file event, shared by every environment's `hotUpdate`. */
+	function recompile(
+		file: string,
+		timestamp: number,
+	): Promise<InvalidationResult> {
+		const key = `${file}\0${timestamp}`;
+		let pending = recompiles.get(key);
+		if (!pending) {
+			pending = getService().then((service) => {
+				const run = queue.then(async () => {
+					const result = await service.invalidate([file]);
+					await service.emitTypeDeclarations();
+					return result;
+				});
+				queue = run.catch(() => {});
+				return run;
+			});
+			recompiles.set(key, pending);
+			// Every environment runs `hotUpdate` within one HMR pass; drop the entry after it.
+			setTimeout(() => recompiles.delete(key), 5000).unref?.();
+		}
+		return pending;
 	}
 
 	return {
 		name: "docvia",
 
+		async config(userConfig) {
+			const viteRoot = resolve(userConfig.root ?? process.cwd());
+			if (!config) {
+				const project = await resolveProject({
+					cwd: viteRoot,
+					configPath:
+						options.configPath === false ? undefined : options.configPath,
+					required: true,
+				});
+				config = project.config;
+				configPath = project.configPath;
+			} else {
+				configPath = resolveConfigPath(viteRoot, options.configPath);
+			}
+			const runtimePackages = [
+				...(requireConfig().renderer.runtimePackages ?? []),
+			];
+			return {
+				optimizeDeps: {
+					include: ["@docvia/source/internal", ...runtimePackages],
+				},
+				ssr: { noExternal: runtimePackages },
+			};
+		},
+
 		configResolved(resolved) {
 			root = resolved.root;
 			isDev = resolved.command === "serve";
+			assertSourceInstalled(root);
 		},
 
 		async buildStart() {
-			ready = initialCompile();
-			await ready;
+			await getService();
 		},
 
 		resolveId(id) {
-			if (id === SOURCE_ID) return VIRTUAL_SOURCE_ID;
-			if (id === BROWSER_ID) return VIRTUAL_BROWSER_ID;
-			return null;
+			return RESOLVED.get(id) ?? null;
 		},
 
-		load(id) {
-			if (id === VIRTUAL_SOURCE_ID) {
-				return service ? service.getVirtualSourceModule() : null;
-			}
-			if (id === VIRTUAL_BROWSER_ID) {
-				return service ? service.getVirtualBrowserModule() : null;
-			}
-			return null;
-		},
-
-		async transform(code, id) {
-			if (!id.endsWith(".md?docvia")) return null;
-			const filePath = id.slice(0, -"?docvia".length);
-			if (ready) await ready;
-			const ir = await toIR(code, filePath);
-			const rendered = await renderer.renderPage(ir);
-			return { code: rendered.code, map: (rendered.map as any) ?? null };
-		},
-
-		/**
-		 * Markdown content change. Recompile the one file; a route-map change
-		 * (new/renamed/removed slug) needs a full reload, otherwise let Vite
-		 * hot-swap the `.md?docvia` module — the re-transform reads fresh IR.
-		 */
-		async handleHotUpdate(ctx: HmrContext) {
-			if (!service || !ctx.file.endsWith(".md")) return;
-			const sourceDirAbs = resolve(root, config.sourceDir);
-			if (!resolve(ctx.file).startsWith(sourceDirAbs)) return;
-
-			try {
-				const result = await service.invalidate([ctx.file]);
-				await service.emitTypeDeclarations();
-
-				if (result.routeMapChanged) {
-					for (const vid of [VIRTUAL_SOURCE_ID, VIRTUAL_BROWSER_ID]) {
-						const vmod = ctx.server.moduleGraph.getModuleById(vid);
-						if (vmod) ctx.server.moduleGraph.invalidateModule(vmod);
-					}
-					ctx.server.ws.send({ type: "full-reload" });
-					return [];
+		async load(id) {
+			if (!RESOLVED_IDS.includes(id)) return null;
+			const service = await getService();
+			if (id === `\0${IDS.registry}`) {
+				if (service.componentCount() === 0) {
+					warnOnce(
+						"empty-registry",
+						"virtual:docvia/registry is empty: no `components` are configured.",
+					);
 				}
-				return ctx.modules;
+				return service.getVirtualRegistryModule();
+			}
+			if (id === `\0${IDS.browser}`) return service.getVirtualBrowserModule();
+			if (this.environment?.config.consumer === "client") {
+				warnOnce(
+					"client-source",
+					"virtual:docvia/source was imported by client code, which bundles every page. Import `virtual:docvia/source/browser` (lazy pages) or `virtual:docvia/registry` instead.",
+				);
+			}
+			return service.getVirtualSourceModule();
+		},
+
+		transform: {
+			filter: { id: MARKDOWN_QUERY },
+			async handler(code, id) {
+				const filePath = id.slice(0, -"?docvia".length);
+				const service = await getService();
+				const cfg = requireConfig();
+				const ir = await service.getDocumentByPath(filePath);
+				// Markdown outside every collection still runs the full plugin pipeline.
+				const rendered = ir
+					? await cfg.renderer.renderPage(ir)
+					: await compileMarkdownToModule({
+							code,
+							filePath,
+							relativePath: basename(filePath),
+							config: cfg,
+						});
+				return {
+					code: rendered.code,
+					map: (rendered.map ?? null) as SourceMapInput | null,
+				};
+			},
+		},
+
+		async hotUpdate({ file, type, modules, timestamp }) {
+			const service = await getService();
+			if (!service.owns(file)) return;
+			const env = this.environment;
+			try {
+				const result = await recompile(file, timestamp);
+				if (type === "update" && !result.routeMapChanged) return modules;
 			} catch (err) {
-				ctx.server.ws.send({ type: "error", err: toErrorPayload(err) });
+				if (env.name === "client") {
+					env.hot.send({ type: "error", err: toErrorPayload(err) });
+				}
 				return [];
 			}
+			// A page appeared, disappeared or moved: regenerate the virtual modules everywhere.
+			invalidateVirtualModules(env.moduleGraph);
+			env.hot.send({ type: "full-reload" });
+			return [];
 		},
 
-		configureServer(server: ViteDevServer) {
-			const sourceDirAbs = resolve(root, config.sourceDir);
-			server.watcher.add(sourceDirAbs);
-
-			// Added/removed markdown files always change the route map, so the
-			// virtual source module is regenerated and the page is reloaded.
-			// Plain content edits are handled by `handleHotUpdate` instead.
-			let timer: ReturnType<typeof setTimeout> | null = null;
-			const pending = new Set<string>();
-
-			async function flush(): Promise<void> {
-				if (!service || pending.size === 0) return;
-				const files = [...pending];
-				pending.clear();
-				try {
-					await service.invalidate(files);
-					await service.emitTypeDeclarations();
-					for (const vid of [VIRTUAL_SOURCE_ID, VIRTUAL_BROWSER_ID]) {
-						const mod = server.moduleGraph.getModuleById(vid);
-						if (mod) server.moduleGraph.invalidateModule(mod);
-					}
-					server.ws.send({ type: "full-reload" });
-				} catch (err) {
-					server.ws.send({ type: "error", err: toErrorPayload(err) });
-				}
-			}
-
-			function schedule(file: string): void {
-				if (!file.endsWith(".md")) return;
-				if (!resolve(file).startsWith(sourceDirAbs)) return;
-				pending.add(file);
-				if (timer) clearTimeout(timer);
-				timer = setTimeout(() => {
-					void flush();
-				}, 30);
-			}
-
-			server.watcher.on("add", schedule);
-			server.watcher.on("unlink", schedule);
+		configureServer(server) {
+			// Collections may live outside the Vite root (e.g. a submodule); watch them all.
+			getService().then(
+				(service) => server.watcher.add(service.collectionDirs()),
+				(err) => server.config.logger.error(toErrorPayload(err).message),
+			);
 		},
 	};
 }

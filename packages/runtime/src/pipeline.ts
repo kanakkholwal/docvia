@@ -10,6 +10,7 @@ import type {
 	docviaConfig,
 	FileEntry,
 	FrontmatterData,
+	FrontmatterSchema,
 	IRDocument,
 } from "@docvia/ir";
 import { transformToIR } from "@docvia/ir";
@@ -21,6 +22,8 @@ export interface MarkdownToIROptions {
 	/** The source file. `hash` may be empty for one-shot loader compiles. */
 	readonly file: FileEntry;
 	readonly config: docviaConfig;
+	/** Overrides `config.frontmatter`, e.g. with a collection's own schema. */
+	readonly frontmatterSchema?: FrontmatterSchema;
 	/** Plugin runner to drive the hook phases. */
 	readonly runner: PluginRunner;
 	/**
@@ -55,7 +58,7 @@ export async function markdownToIR(
 	const frontmatter = validateFrontmatter(
 		extracted.data,
 		file.path,
-		config.frontmatter,
+		opts.frontmatterSchema ?? config.frontmatter,
 	);
 
 	const { ast } = await parseMarkdown(extracted.content, {

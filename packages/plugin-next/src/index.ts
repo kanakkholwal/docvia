@@ -13,6 +13,8 @@ import type { docviaConfig } from "@docvia/ir";
 import type { CompileService } from "@docvia/runtime";
 import type { NextConfig } from "next";
 
+export { defineConfig } from "@docvia/plugins";
+
 export interface DocviaNextOptions {
 	/** Path to docvia.config.ts relative to project root (default: './docvia.config.ts') */
 	configPath?: string;
@@ -250,7 +252,7 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 					config.resolve.alias["docvia/registry"] = registryAlias;
 
 					// In-place markdown loader: transform `*.md?docvia` imports
-					// (emitted into .docvia/dynamic.ts) through docvia's compiler.
+					// (emitted into .docvia/source.ts and browser.ts) through docvia's compiler.
 					config.module = config.module || {};
 					config.module.rules = config.module.rules || [];
 					config.module.rules.push({
@@ -326,11 +328,6 @@ async function init(
 		return config;
 	}
 
-	if (!existsSync(sourceDir)) {
-		logger.warn(`Source directory not found: ${sourceDir}`);
-		return config;
-	}
-
 	const lockResult = acquireFileLock(process.cwd());
 	if (lockResult !== "acquired") {
 		// Another live worker is compiling. Wait for its output to appear so
@@ -390,16 +387,13 @@ async function init(
 	}
 
 	if (dev && service) {
-		await startDevWatcher(service, sourceDir);
+		await startDevWatcher(service);
 	}
 
 	return config;
 }
 
-async function startDevWatcher(
-	service: CompileService,
-	sourceDir: string,
-): Promise<void> {
+async function startDevWatcher(service: CompileService): Promise<void> {
 	if (_watcherCleanup) return; // singleton
 
 	const { docviaError } = await import("@docvia/ir");
@@ -410,7 +404,9 @@ async function startDevWatcher(
 	let isRebuilding = false;
 	let rebuildQueued = false;
 
-	const watcher = watch(sourceDir, {
+	// Every collection, including ones outside the project root.
+	const dirs = service.collectionDirs();
+	const watcher = watch(dirs, {
 		ignoreInitial: true,
 		awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
 	});
@@ -470,6 +466,7 @@ async function startDevWatcher(
 	}
 
 	function schedule(filePath: string) {
+		if (!service.owns(filePath)) return;
 		pending.add(filePath);
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(flush, 20);
@@ -479,5 +476,5 @@ async function startDevWatcher(
 	watcher.on("add", schedule);
 	watcher.on("unlink", schedule);
 
-	logger.info(`Watching ${sourceDir} for changes...`);
+	logger.info(`Watching ${dirs.join(", ")} for changes...`);
 }

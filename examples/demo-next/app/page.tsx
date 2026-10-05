@@ -27,7 +27,7 @@ const features = [
 ];
 
 const codeSnippet = `// docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 

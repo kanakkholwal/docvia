@@ -13,8 +13,9 @@ this one service, so build, dev, and request-time output stay identical:
   valid `ContentSource`, so it can be passed straight to `createDocviaSSR`.
 
 Key surface: `compileAll()`, `compileFile()`, `getDocument()`,
-`invalidate(filePaths)`, `emitDiskModuleGraph()`, and the virtual-source /
-type-declaration emitters.
+`invalidate(filePaths)`, `emitDiskModuleGraph()`, the virtual source / browser /
+registry module generators, `emitTypeDeclarations()` (`.docvia/types.d.ts` and
+`.docvia/env.d.ts`), and `syncTypes()`, which backs `docvia sync`.
 
 Not a public-facing API surface; consume `@docvia/compiler` or a framework
 plugin instead.

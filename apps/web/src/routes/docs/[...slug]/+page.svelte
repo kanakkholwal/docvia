@@ -1,9 +1,9 @@
 <script lang="ts">
-import PageHeader from "$lib/components/docs/page-header.svelte";
-import Pager from "$lib/components/docs/pager.svelte";
-import Prose from "$lib/components/docs/prose.svelte";
-import { docsRegistry } from "$lib/components/docs/registry";
-import Toc from "$lib/components/docs/toc.svelte";
+import PageHeader from "#lib/components/docs/page-header.svelte";
+import Pager from "#lib/components/docs/pager.svelte";
+import Prose from "#lib/components/docs/prose.svelte";
+import { docsRegistry } from "#lib/components/docs/registry.ts";
+import Toc from "#lib/components/docs/toc.svelte";
 import { Renderer } from "@docvia/renderer-svelte";
 import { Pencil } from "@lucide/svelte";
 import type { PageProps } from "./$types";

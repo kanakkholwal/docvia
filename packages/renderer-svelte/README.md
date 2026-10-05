@@ -12,15 +12,22 @@ adapter.
 pnpm add @docvia/renderer-svelte svelte
 ```
 
+`svelte ^5` is a peer dependency.
+
 ## Usage
 
 ```ts
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
-const renderer = createSvelteRenderer();
+const renderer = createSvelteRenderer({
+  transform: (output, doc) => output, // optional: rewrite the RenderOutput tree
+});
 ```
 
-Syntax highlighting is a build-time plugin, not a renderer option — add
+Render pages with `<Renderer nodes={page.content} {registry} />` from
+`@docvia/renderer-svelte`, importing `registry` from `virtual:docvia/registry`.
+
+Syntax highlighting is a build-time plugin, not a renderer option. Add
 [`@docvia/plugin-shiki`](https://github.com/kanakkholwal/docvia/tree/main/packages/plugin-shiki)
 to `plugins` in your docvia config.
 

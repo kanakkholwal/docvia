@@ -1,6 +1,6 @@
 <script lang="ts">
-import { Github } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
+import Github from "#lib/components/icons/github.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
 
 const facts = [
 	{

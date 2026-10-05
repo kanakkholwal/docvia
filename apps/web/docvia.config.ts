@@ -1,6 +1,6 @@
-import { defineConfig } from "@docvia/cli";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({

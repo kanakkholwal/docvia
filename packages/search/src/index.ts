@@ -90,6 +90,7 @@ const searchSchema = {
 	slug: "string" as const,
 	sectionId: "string" as const,
 	depth: "number" as const,
+	url: "string" as const,
 };
 
 export interface SearchIndexer {
@@ -154,6 +155,8 @@ export interface SearchResult {
 	pageTitle: string;
 	/** Full section text — lets callers render a highlighted match snippet. */
 	content: string;
+	/** Link to the section (page URL plus `#heading`), when the page URL is known. */
+	url?: string;
 	score: number;
 }
 
@@ -185,6 +188,7 @@ async function runSearch(
 		sectionTitle: hit.document.sectionTitle as string,
 		pageTitle: hit.document.pageTitle as string,
 		content: hit.document.content as string,
+		url: (hit.document.url as string | undefined) || undefined,
 		score: hit.score,
 	}));
 }
@@ -299,13 +303,29 @@ export function extractSectionsFromContent(
 
 /** Minimal structural view of a docvia collection — what indexing needs. */
 interface IndexableCollection {
-	getPages(): ReadonlyArray<{ slugs: string[] }>;
+	getPages(): ReadonlyArray<{ slugs: string[]; url?: string }>;
 	getPage(
 		slugs: string[],
 	): Promise<{ data?: unknown; content?: unknown } | undefined>;
 }
 interface IndexableSource {
 	collections: Record<string, IndexableCollection>;
+}
+
+/** A non-markdown entry (component spec, API symbol) indexed alongside the docs. */
+export interface SearchRecord {
+	readonly id: string;
+	readonly title: string;
+	readonly url: string;
+	readonly body: string;
+	/** Section heading shown in results. Defaults to `title`. */
+	readonly section?: string;
+}
+
+export interface CreateFromSourceOptions {
+	readonly defaultLimit?: number;
+	/** Extra records searched in the same index as the pages. */
+	readonly records?: Iterable<SearchRecord>;
 }
 
 export interface SearchServer {
@@ -324,7 +344,7 @@ export interface SearchServer {
  */
 export async function createFromSource(
 	source: IndexableCollection | IndexableSource,
-	options?: { defaultLimit?: number },
+	options?: CreateFromSourceOptions,
 ): Promise<SearchServer> {
 	const collections =
 		"collections" in source ? Object.values(source.collections) : [source];
@@ -333,7 +353,7 @@ export async function createFromSource(
 	let size = 0;
 
 	for (const collection of collections) {
-		for (const { slugs } of collection.getPages()) {
+		for (const { slugs, url } of collection.getPages()) {
 			const page = await collection.getPage(slugs);
 			if (!page) continue;
 			const slug = slugs.join("/") || "index";
@@ -344,10 +364,34 @@ export async function createFromSource(
 				{ slug, pageTitle },
 			);
 			if (sections.length > 0) {
-				await insertMultiple(db, sections);
+				await insertMultiple(
+					db,
+					sections.map((s) => ({
+						...s,
+						url: url
+							? s.sectionId === "_top"
+								? url
+								: `${url}#${s.sectionId}`
+							: "",
+					})),
+				);
 				size += sections.length;
 			}
 		}
+	}
+
+	const records = [...(options?.records ?? [])].map((r) => ({
+		slug: r.id,
+		sectionId: "_top",
+		sectionTitle: r.section ?? r.title,
+		pageTitle: r.title,
+		content: r.body,
+		depth: 0,
+		url: r.url,
+	}));
+	if (records.length > 0) {
+		await insertMultiple(db, records);
+		size += records.length;
 	}
 
 	return {

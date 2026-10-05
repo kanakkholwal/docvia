@@ -7,7 +7,7 @@ order: 10
 
 `@docvia/ir` is the foundational package of docvia. It defines the framework-agnostic **Intermediate Representation (IR)** that every other package consumes or produces, the shared **error system** (`docviaError`), the **contract interfaces** that bind the compiler, renderers, and plugins together, the canonical `docviaConfig` shape, and the **AST to IR transform** that converts a parsed HAST tree into a normalized `IRDocument`.
 
-This package is intentionally dependency-light. It pulls in only [`github-slugger`](https://github.com/Flet/github-slugger) for stable heading IDs. Everything else in the docvia toolchain depends on `@docvia/ir`, so keeping it small keeps the whole graph fast to install and cheap to typecheck. It carries no runtime dependency on `zod`, `unified`, or any rendering framework.
+This package is intentionally dependency-light. It pulls in only [`github-slugger`](https://github.com/Flet/github-slugger) for stable heading IDs and the type-only [`@standard-schema/spec`](https://standardschema.dev). Everything else in the docvia toolchain depends on `@docvia/ir`, so keeping it small keeps the whole graph fast to install and cheap to typecheck. It carries no runtime dependency on `zod`, `unified`, or any rendering framework.
 
 ## Installation
 
@@ -23,8 +23,8 @@ Requires Node.js `>=20.0.0`. The package ships as ESM only (`"type": "module"`).
 
 | Subpath | Module | Contents |
 | --- | --- | --- |
-| `.` | `./dist/index.mjs` | All IR types, contract interfaces, the `docviaError` class, the `docviaConfig` shape, and a re-export of `transformToIR`. |
-| `./transform` | `./dist/transform.mjs` | `transformToIR` and `normalizeProps`. |
+| `.` | `./dist/index.js` | All IR types, contract interfaces, the `docviaError` class, the `docviaConfig` shape, and a re-export of `transformToIR`. |
+| `./transform` | `./dist/transform.js` | `transformToIR` and `normalizeProps`. |
 
 ```ts
 import { docviaError, transformToIR } from "@docvia/ir";
@@ -104,7 +104,8 @@ The closed set of node types a tree may contain.
 | `text` | A plain text leaf; `props.value` holds the string. |
 | `emphasis` | Emphasized (italic) inline content. |
 | `strong` | Strong (bold) inline content. |
-| `code-block` | A fenced code block; carries `lang`, `value`, `meta`. |
+| `code-block` | A fenced code block; carries `lang`, `value`, `meta`, and the parsed `title` / `tab` fence attributes. |
+| `code-group` | A tabbed group of `code-block` children; `props.tabs` holds the labels. |
 | `inline-code` | Inline code span; `props.value` holds the string. |
 | `link` | A hyperlink; carries `href` and optional `title`. |
 | `image` | An image; carries `src`, `alt`, optional `title`. |
@@ -316,6 +317,7 @@ The interface a rendering backend must implement.
 ```ts
 interface RendererAdapter {
   readonly name: string;
+  readonly runtimePackages?: readonly string[];
   renderPage(doc: IRDocument): Promise<RenderedPage>;
   renderManifest(pages: readonly PageMeta[]): Promise<string>;
 }
@@ -324,6 +326,7 @@ interface RendererAdapter {
 | Member | Signature | Description |
 | --- | --- | --- |
 | `name` | `string` | Adapter identifier, e.g. `"react"`. |
+| `runtimePackages` | `readonly string[]`, optional | Packages rendered pages import at runtime. The Vite plugin adds them to `optimizeDeps.include` and `ssr.noExternal`. |
 | `renderPage` | `(doc: IRDocument) => Promise<RenderedPage>` | Renders one document into a module. |
 | `renderManifest` | `(pages: readonly PageMeta[]) => Promise<string>` | Renders a manifest module covering all pages. |
 
@@ -370,7 +373,7 @@ interface CompilerOptions {
 | `renderer` | `RendererAdapter` | The rendering backend. |
 | `plugins` | `readonly docviaPlugin[]` | Plugins to run through the pipeline. |
 | `config` | `docviaConfig` | The resolved configuration object. |
-| `projectRoot` | `string \| undefined` | Root for resolving relative paths and emitting `docvia-env.d.ts`. Defaults to `process.cwd()`. |
+| `projectRoot` | `string \| undefined` | Root for resolving relative paths and component files. Defaults to `process.cwd()`. |
 | `incremental` | `boolean \| undefined` | When `true` (default), uses the on-disk cache; pass `false` to force a full rebuild. |
 
 ### `CompileResult`
@@ -451,7 +454,7 @@ interface ComponentConfig {
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `path` | `string` | Module path to the component. |
+| `path` | `string` | File path, relative to the project root. The extension may be omitted. |
 | `hydrate` | `boolean \| undefined` | Whether the component hydrates on the client. |
 | `defaultProps` | `Record<string, unknown> \| undefined` | Props merged into every instance. |
 
@@ -462,18 +465,27 @@ interface CollectionConfig {
   readonly name: string;
   readonly sourceDir: string;
   readonly baseUrl?: string;
+  readonly frontmatter?: FrontmatterSchema;
+  readonly optional?: boolean;
 }
 ```
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `name` | `string` | Collection identifier. |
+| `name` | `string` | Collection identifier. Must be a valid JS identifier. |
 | `sourceDir` | `string` | Source directory for the collection. |
 | `baseUrl` | `string \| undefined` | URL prefix for the collection's routes. |
+| `frontmatter` | `FrontmatterSchema \| undefined` | Schema for this collection. Defaults to the top-level `frontmatter`. |
+| `optional` | `boolean \| undefined` | Treat a missing `sourceDir` as an empty collection instead of an error. |
 
 ### `FrontmatterSchema`
 
-A duck-typed interface compatible with `z.ZodObject<any>`. It is defined here so `@docvia/ir` can describe the `frontmatter` config field without depending on `zod`. It exposes a `safeParse(data)` method returning a success/error result and a readonly `shape` record.
+```ts
+type FrontmatterSchema = StandardSchemaV1<Record<string, unknown>, Record<string, unknown>>;
+type InferFrontmatter<S> = S extends StandardSchemaV1 ? StandardSchemaV1.InferOutput<S> : Record<string, unknown>;
+```
+
+Any [Standard Schema](https://standardschema.dev) (Zod, Valibot, ArkType, ...). `@docvia/ir` depends only on the spec's types, so no validation library is baked in. `InferFrontmatter` reads a schema's output type.
 
 ### `docviaConfig`
 
@@ -485,9 +497,12 @@ interface docviaConfig {
   readonly outDir: string;
   readonly plugins: readonly docviaPlugin[];
   readonly renderer?: RendererAdapter;
-  readonly components?: Record<string, ComponentConfig>;
+  readonly components?:
+    | Record<string, ComponentConfig>
+    | ReadonlyArray<string | (ComponentConfig & { readonly name: string })>;
   readonly collections?: readonly CollectionConfig[];
   readonly frontmatter?: FrontmatterSchema;
+  readonly hashExclude?: readonly string[];
   readonly markdown: { readonly remarkPlugins: readonly unknown[] };
   readonly syntax: {
     readonly highlighter: "shiki" | "prism";
@@ -507,9 +522,10 @@ interface docviaConfig {
 | `outDir` | `string` | Output directory for the generated module graph. |
 | `plugins` | `readonly docviaPlugin[]` | Configured plugins. |
 | `renderer` | `RendererAdapter \| undefined` | Rendering backend. |
-| `components` | `Record<string, ComponentConfig> \| undefined` | Component registry, keyed by directive name. |
+| `components` | record or array, optional | Components keyed by directive name, or an array of glob strings and `{ name, ...ComponentConfig }` entries. |
 | `collections` | `readonly CollectionConfig[] \| undefined` | Named content collections. |
-| `frontmatter` | `FrontmatterSchema \| undefined` | Zod schema extending the base frontmatter validation. |
+| `frontmatter` | `FrontmatterSchema \| undefined` | Standard Schema extending the base frontmatter validation. |
+| `hashExclude` | `readonly string[] \| undefined` | Frontmatter keys left out of a page's `contentHash`. |
 | `markdown.remarkPlugins` | `readonly unknown[]` | User remark plugins inserted into the parse pipeline. |
 | `syntax.highlighter` | `"shiki" \| "prism"` | Syntax highlighter backend. |
 | `syntax.theme` | `string` | Highlighter theme name. |

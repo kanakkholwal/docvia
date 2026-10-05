@@ -23,7 +23,8 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Module | Contents |
 | --- | --- | --- |
-| `.` | `./dist/index.mjs` | `resolvePlugins`, the `PluginRunner` class, `defineConfig`, and `loadConfig`. |
+| `.` | `./dist/index.js` | `resolvePlugins`, the `PluginRunner` class, `defineConfig`, `loadConfig`, and the config discovery helpers `resolveProject`, `resolveConfigPath`, and `CONFIG_BASENAMES`. |
+| `./package.json` | `./package.json` | Package metadata. |
 
 ```ts
 import {
@@ -107,7 +108,7 @@ Returns one cache key per plugin, in resolved order. If a plugin implements `cac
 function defineConfig(config: Partial<docviaConfig>): docviaConfig
 ```
 
-Takes a partial config and returns a fully resolved `docviaConfig`, filling in every default. This is the function users call in their `docvia.config.ts`.
+Takes a partial config and returns a fully resolved `docviaConfig`, filling in every default. The concrete `frontmatter` and `collections` types are preserved, so generated types can infer each collection's schema output. Users import it from `@docvia/plugin-vite` or `@docvia/plugin-next`, which re-export it.
 
 | Field | Default |
 | --- | --- |
@@ -118,6 +119,7 @@ Takes a partial config and returns a fully resolved `docviaConfig`, filling in e
 | `components` | `undefined` (passed through) |
 | `collections` | `undefined` (passed through) |
 | `frontmatter` | `undefined` (passed through) |
+| `hashExclude` | `undefined` (passed through) |
 | `markdown.remarkPlugins` | `[]` |
 | `syntax.highlighter` | `"shiki"` |
 | `syntax.theme` | `"github-dark"` |

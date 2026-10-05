@@ -1,7 +1,7 @@
 <script lang="ts">
-import { inview } from "$lib/actions/inview";
-import { Button } from "$lib/components/ui/button";
-import { cn } from "$lib/utils";
+import { inview } from "#lib/actions/inview.ts";
+import { Button } from "#lib/components/ui/button/index.ts";
+import { cn } from "#lib/utils.ts";
 import { ArrowRight, Check, Copy } from "@lucide/svelte";
 
 const steps = [

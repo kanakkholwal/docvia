@@ -2,7 +2,6 @@ import type { FrontmatterData } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { parse as parseYaml } from "yaml";
-import { z } from "zod/v3";
 
 // Frontmatter Extraction
 
@@ -64,20 +63,71 @@ export function extractFrontmatter(raw: string): ExtractedFrontmatter {
 	return { data, content, bodyOffset };
 }
 
-// Base schema — the built-in frontmatter fields every page shares. Authored in
-// Zod because we own it and rely on its defaults; it is never exposed to users
-// as a Zod type, only as a Standard Schema contract at the boundary.
+/** The built-in fields every page has, after defaults. Unknown keys pass through. */
+export interface BaseFrontmatter {
+	readonly title: string;
+	readonly description: string;
+	readonly slug?: string;
+	readonly tags: readonly string[];
+	readonly draft: boolean;
+	readonly order?: number;
+	readonly [key: string]: unknown;
+}
 
-export const DocPageSchema = z
-	.object({
-		title: z.string().min(1, "Title is required"),
-		description: z.string().default(""),
-		slug: z.string().optional(),
-		tags: z.array(z.string()).default([]),
-		draft: z.boolean().default(false),
-		order: z.number().optional(),
-	})
-	.passthrough();
+function validateBase(
+	value: unknown,
+): StandardSchemaV1.Result<BaseFrontmatter> {
+	if (typeof value !== "object" || value === null || Array.isArray(value)) {
+		return { issues: [{ message: "Expected an object" }] };
+	}
+	const data = value as Record<string, unknown>;
+	const issues: StandardSchemaV1.Issue[] = [];
+	const check = (key: string, ok: boolean, message: string) => {
+		if (!ok) issues.push({ message, path: [key] });
+	};
+	const optional = (key: string, type: "string" | "number" | "boolean") =>
+		check(
+			key,
+			data[key] === undefined || typeof data[key] === type,
+			`Expected ${type}`,
+		);
+
+	check(
+		"title",
+		typeof data.title === "string" && data.title.length > 0,
+		data.title === undefined ? "Required" : "Expected a non-empty string",
+	);
+	optional("description", "string");
+	optional("slug", "string");
+	optional("draft", "boolean");
+	optional("order", "number");
+	check(
+		"tags",
+		data.tags === undefined ||
+			(Array.isArray(data.tags) &&
+				data.tags.every((t) => typeof t === "string")),
+		"Expected an array of strings",
+	);
+	if (issues.length > 0) return { issues };
+
+	return {
+		value: {
+			...data,
+			title: data.title as string,
+			description: (data.description as string | undefined) ?? "",
+			tags: (data.tags as string[] | undefined) ?? [],
+			draft: (data.draft as boolean | undefined) ?? false,
+		},
+	};
+}
+
+/** The built-in frontmatter validator, as a dependency-free Standard Schema. */
+export const DocPageSchema: StandardSchemaV1<
+	Record<string, unknown>,
+	BaseFrontmatter
+> = {
+	"~standard": { version: 1, vendor: "docvia", validate: validateBase },
+};
 
 /** Render a Standard Schema issue path as a dotted string (e.g. `author.name`). */
 function formatIssuePath(path: StandardSchemaV1.Issue["path"]): string {
@@ -132,10 +182,10 @@ export function validateFrontmatter(
 ): FrontmatterData {
 	const issues: string[] = [];
 
-	const baseResult = DocPageSchema.safeParse(raw);
-	if (!baseResult.success) {
-		for (const i of baseResult.error.issues) {
-			issues.push(`  - ${i.path.join(".") || "(root)"}: ${i.message}`);
+	const baseResult = validateBase(raw);
+	if (baseResult.issues) {
+		for (const i of baseResult.issues) {
+			issues.push(`  - ${formatIssuePath(i.path)}: ${i.message}`);
 		}
 	}
 
@@ -161,7 +211,7 @@ export function validateFrontmatter(
 	}
 
 	return {
-		...(baseResult.success ? baseResult.data : {}),
+		...(baseResult.issues ? {} : baseResult.value),
 		...extensionData,
 	} as FrontmatterData;
 }

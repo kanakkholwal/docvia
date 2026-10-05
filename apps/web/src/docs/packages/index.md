@@ -20,7 +20,7 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 - [`@docvia/core`](/docs/packages/core) is the Markdown parsing pipeline
   (`unified` + `remark` + `rehype`).
 - [`@docvia/schema`](/docs/packages/schema) handles frontmatter validation
-  (Zod), YAML extraction, and TypeScript codegen.
+  (any Standard Schema), YAML extraction, and TypeScript codegen.
 
 ## Compile core
 
@@ -51,9 +51,10 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 ## Integration
 
 - [`@docvia/cli`](/docs/packages/cli) is the `docvia` command (`init`, `build`,
-  `dev`, `preview`).
+  `dev`, `sync`, `preview`).
 - [`@docvia/plugin-vite`](/docs/packages/plugin-vite) is the in-process
-  `docvia()` Vite plugin, with virtual modules and incremental HMR.
+  `docvia()` Vite plugin, with virtual source and registry modules and
+  incremental HMR.
 - [`@docvia/plugin-next`](/docs/packages/plugin-next) is the Next.js `withDocvia`
   wrapper (webpack and Turbopack).
 - [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) does build-time syntax

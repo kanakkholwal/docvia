@@ -1,16 +1,9 @@
 import { defineConfig } from "tsdown";
+import { packageConfig } from "../../tsdown.base.ts";
 
-export default defineConfig({
-	entry: ["src/index.ts", "src/transform.ts"],
-	format: ["esm"],
-	dts: true,
-	sourcemap: true,
-	clean: true,
-	treeshake: true,
-	minify: false,
-	outDir: "dist",
-	target: false,
-	deps: {
-		onlyBundle: ["@types/hast", "@types/unist"],
-	},
-});
+export default defineConfig(
+	packageConfig({
+		entry: ["src/index.ts", "src/transform.ts"],
+		deps: { onlyBundle: ["@types/hast", "@types/unist"] },
+	}),
+);

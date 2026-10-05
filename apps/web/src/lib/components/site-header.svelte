@@ -1,9 +1,10 @@
 <script lang="ts">
-import Brand from "$lib/components/brand.svelte";
-import ThemeToggle from "$lib/components/theme-toggle.svelte";
-import { Button } from "$lib/components/ui/button";
-import { VERSION } from "$lib/version";
-import { Github, Menu, X } from "@lucide/svelte";
+import Brand from "#lib/components/brand.svelte";
+import ThemeToggle from "#lib/components/theme-toggle.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
+import { VERSION } from "#lib/version.ts";
+import { Menu, X } from "@lucide/svelte";
+import Github from "#lib/components/icons/github.svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 

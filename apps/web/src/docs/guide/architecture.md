@@ -58,11 +58,12 @@ place. This is the ahead-of-time path; see
 ### Dev
 
 The bundler plugins run `CompileService` **in-process**, so there is no separate
-`docvia build` step. The service watches `sourceDir` and recompiles
-incrementally through `invalidate()`: a content-only change hot-swaps the
-affected module, a route-map change triggers a reload. Under Vite,
-`virtual:docvia/source` is served as an in-memory **virtual module**, so nothing
-is written to disk during development.
+`docvia build` step. The service watches every collection's `sourceDir` (even
+outside the project root) and recompiles incrementally through `invalidate()`:
+a content-only change hot-swaps the affected module; adding, renaming, or
+deleting a page triggers a reload, with no dev-server restart. Under Vite,
+`virtual:docvia/source` is served as an in-memory **virtual module**, so only
+`.docvia/types.d.ts` and `.docvia/env.d.ts` are written during development.
 
 ```mermaid
 %% title: What happens when you save a Markdown file in dev
@@ -174,14 +175,17 @@ bundler's `?docvia` transform. The graph is just thin glue:
 |---|---|
 | `source.ts` | The typed collection helpers: `getPage`, `getPages`, `pageTree`, `generateParams`. **Eager** `?docvia` imports, for server/SSR. |
 | `browser.ts` | The **lazy**, client counterpart. One `() => import()` per page, so each page code-splits into its own chunk. |
-| `dynamic.ts` | The page module map the collections read from. |
-| `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
+| `registry.ts` | The component registry for `:::component` directives (empty when none are configured). |
 | `types.d.ts` | Generated frontmatter and route-key types per collection. |
+| `env.d.ts` | Ambient declarations so the source and registry modules type-check (`virtual:docvia/*` on Vite, `docvia/*` on Next.js). |
 | `.docvia.cache.json` | The incremental build cache. |
 
-A project-root `docvia-env.d.ts` is also emitted so the source import specifier
-type-checks (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
-with a `/browser` counterpart).
+Under Vite the source, browser, and registry modules are served virtually, so
+only the two `.d.ts` files matter; non-Vite hosts import `source.ts`,
+`browser.ts`, and `registry.ts`. Files are rewritten only when their content
+changes. The generated code imports only `@docvia/source`, so your app must
+depend on it directly. `docvia sync` writes the `.d.ts` files without a
+bundler, for CI type checks.
 
 Your app never imports the compiler or a Markdown parser. It imports the source
 module, which is plain generated TypeScript (under Vite, a virtual module served

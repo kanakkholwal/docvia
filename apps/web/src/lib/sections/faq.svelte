@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Accordion } from "$lib/components/ui/accordion";
+import { Accordion } from "#lib/components/ui/accordion/index.ts";
 
 // Every answer here is checked against the code. No claim goes in that a
 // reader could not verify by opening the repo.

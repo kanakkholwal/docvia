@@ -7,17 +7,18 @@
 // milestones) drive the same instance so all modes share one render path.
 
 import { existsSync } from "node:fs";
-import { relative, resolve as resolvePath } from "node:path";
+import { join, relative, resolve as resolvePath } from "node:path";
 import { performance } from "node:perf_hooks";
 import type {
 	CompileResult,
 	CompilerOptions,
 	docviaConfig,
 	FileEntry,
+	FrontmatterSchema,
 	IRDocument,
 	PageMeta,
 } from "@docvia/ir";
-import { toPageMeta } from "@docvia/ir";
+import { docviaError, toPageMeta } from "@docvia/ir";
 import { PluginRunner } from "@docvia/plugins";
 import { composeFrontmatterType, inferSchemaOutput } from "@docvia/schema";
 import {
@@ -31,23 +32,54 @@ import {
 import {
 	type CollectionData,
 	emitModuleGraphFiles,
+	generateVirtualRegistry,
 	generateVirtualSource,
 	type RouteFile,
+	resolveComponents,
 	warnInvalidShikiLangs,
 	emitTypeDeclarations as writeTypeDeclarations,
 } from "./emit";
 import { compileParallel, readFileEntry, readFileTree } from "./fs";
 import { computeContentHash, hashConfig, stableStringify } from "./hash";
+import { relativeInside, samePath } from "./paths";
 import { markdownToIR } from "./pipeline";
 
 // Tool version: keep in sync with package.json. Bumped when the generated
 // module shape changes — invalidates the on-disk cache automatically.
-export const TOOL_VERSION = "0.1.0";
+export const TOOL_VERSION = "0.2.0";
 
 interface ResolvedCollection {
 	readonly name: string;
-	readonly sourceDir: string;
+	/** Absolute source directory. */
+	readonly dir: string;
 	readonly baseUrl?: string;
+	readonly frontmatter?: FrontmatterSchema;
+	/** True when the collection declares its own schema (affects generated types). */
+	readonly ownSchema: boolean;
+	readonly optional: boolean;
+}
+
+// Component paths may omit the extension; the host bundler resolves it.
+const COMPONENT_EXTENSIONS = [".svelte", ".tsx", ".ts", ".jsx", ".js", ".vue"];
+
+function componentExists(absPath: string): boolean {
+	return (
+		existsSync(absPath) ||
+		COMPONENT_EXTENSIONS.some(
+			(ext) =>
+				existsSync(absPath + ext) || existsSync(join(absPath, `index${ext}`)),
+		)
+	);
+}
+
+function omitKeys(
+	data: Record<string, unknown>,
+	keys: readonly string[] | undefined,
+): Record<string, unknown> {
+	if (!keys?.length) return data;
+	const out = { ...data };
+	for (const k of keys) delete out[k];
+	return out;
 }
 
 /** In-memory record for one compiled document. */
@@ -86,6 +118,11 @@ export class CompileService {
 
 	private readonly projectRoot: string;
 	private readonly resolvedOutDir: string;
+
+	/** Absolute output directory for generated files. */
+	get outDir(): string {
+		return this.resolvedOutDir;
+	}
 	private readonly configPath?: string;
 	private readonly incremental: boolean;
 	private readonly pluginRunner: PluginRunner;
@@ -103,7 +140,7 @@ export class CompileService {
 	constructor(options: CompilerOptions) {
 		this.config = options.config;
 		this.projectRoot = resolvePath(options.projectRoot ?? process.cwd());
-		this.resolvedOutDir = resolvePath(options.outDir);
+		this.resolvedOutDir = resolvePath(this.projectRoot, options.outDir);
 		this.configPath = options.configPath
 			? resolvePath(options.configPath)
 			: undefined;
@@ -115,11 +152,51 @@ export class CompileService {
 			options.config.collections ?? [
 				{ name: "docs", sourceDir: options.sourceDir, baseUrl: "/" },
 			]
-		).map((c) => ({
-			name: c.name,
-			sourceDir: c.sourceDir,
-			baseUrl: c.baseUrl,
-		}));
+		).map((c) => {
+			if (!/^[A-Za-z_$][\w$]*$/.test(c.name)) {
+				throw new docviaError(
+					"CONFIG_ERROR",
+					`Collection name "${c.name}" must be a valid JS identifier: it becomes an export name.`,
+				);
+			}
+			return {
+				name: c.name,
+				dir: resolvePath(this.projectRoot, c.sourceDir),
+				baseUrl: c.baseUrl,
+				frontmatter: c.frontmatter ?? options.config.frontmatter,
+				ownSchema: c.frontmatter !== undefined,
+				optional: c.optional === true,
+			};
+		});
+	}
+
+	/** Absolute source directory of every collection, for file watchers. */
+	collectionDirs(): string[] {
+		return this.collections.map((c) => c.dir);
+	}
+
+	/** True when `filePath` is a markdown file inside one of the collections. */
+	owns(filePath: string): boolean {
+		return (
+			filePath.endsWith(".md") && this.collectionForPath(filePath) !== undefined
+		);
+	}
+
+	/** Number of registered components, after glob expansion. */
+	componentCount(): number {
+		return resolveComponents(this.config, this.projectRoot).length;
+	}
+
+	/** Throw a `CONFIG_ERROR` for any registered component whose file is missing. */
+	private assertComponentsExist(): void {
+		for (const c of resolveComponents(this.config, this.projectRoot)) {
+			if (!componentExists(c.absPath)) {
+				throw new docviaError(
+					"CONFIG_ERROR",
+					`Component "${c.name}" not found at ${c.absPath}. Component paths resolve from the project root (${this.projectRoot}).`,
+				);
+			}
+		}
 	}
 
 	/** Load the on-disk incremental cache. Idempotent. */
@@ -153,11 +230,14 @@ export class CompileService {
 		const { ir: irDoc } = await markdownToIR({
 			file,
 			config: this.config,
+			frontmatterSchema: collection.frontmatter,
 			runner: this.pluginRunner,
 			contentHash: (frontmatter) =>
 				computeContentHash({
 					fileContent: file.hash,
-					frontmatter: stableStringify(frontmatter),
+					frontmatter: stableStringify(
+						omitKeys(frontmatter, this.config.hashExclude),
+					),
 					configHash: this.configHash,
 					pluginCacheKeys: this.pluginCacheKeys,
 					dependencyHashes: [],
@@ -233,6 +313,7 @@ export class CompileService {
 		const startTime = performance.now();
 		await this.loadCache();
 		warnInvalidShikiLangs(this.config.syntax.langs);
+		this.assertComponentsExist();
 
 		const allPages: PageMeta[] = [];
 		let totalFiles = 0;
@@ -240,11 +321,14 @@ export class CompileService {
 		let totalCached = 0;
 
 		for (const collection of this.collections) {
-			const resolvedSourceDir = resolvePath(
-				this.projectRoot,
-				collection.sourceDir,
-			);
-			const files = await readFileTree(resolvedSourceDir);
+			if (!existsSync(collection.dir)) {
+				if (collection.optional) continue;
+				throw new docviaError(
+					"CONFIG_ERROR",
+					`Collection "${collection.name}": sourceDir not found at ${collection.dir}. Set \`optional: true\` if it may be absent.`,
+				);
+			}
+			const files = await readFileTree(collection.dir);
 			totalFiles += files.length;
 
 			await compileParallel(files, async (file) => {
@@ -286,8 +370,8 @@ export class CompileService {
 			}
 
 			let frontmatterTypeDef: string;
-			if (this.config.frontmatter) {
-				frontmatterTypeDef = this.frontmatterTypeExpression();
+			if (collection.frontmatter) {
+				frontmatterTypeDef = this.frontmatterTypeExpression(collection);
 			} else {
 				const unique = Array.from(new Set(frontmatterSamples));
 				frontmatterTypeDef =
@@ -314,7 +398,7 @@ export class CompileService {
 	 * (precise for any Standard Schema library, no runtime introspection). Falls
 	 * back to a permissive record when the config path is unknown (no config file).
 	 */
-	private frontmatterTypeExpression(): string {
+	private frontmatterTypeExpression(collection: ResolvedCollection): string {
 		if (!this.configPath) {
 			return composeFrontmatterType();
 		}
@@ -326,9 +410,10 @@ export class CompileService {
 			? relConfig
 			: `./${relConfig}`;
 
-		const schemaRef = `NonNullable<(typeof import(${JSON.stringify(
-			importSpecifier,
-		)}))["default"]["frontmatter"]>`;
+		const config = `(typeof import(${JSON.stringify(importSpecifier)}))["default"]`;
+		const schemaRef = collection.ownSchema
+			? `NonNullable<Extract<NonNullable<${config}["collections"]>[number], { name: ${JSON.stringify(collection.name)} }>["frontmatter"]>`
+			: `NonNullable<${config}["frontmatter"]>`;
 		return composeFrontmatterType(inferSchemaOutput(schemaRef));
 	}
 
@@ -337,11 +422,8 @@ export class CompileService {
 		absPath: string,
 	): { collection: ResolvedCollection; relativePath: string } | undefined {
 		for (const collection of this.collections) {
-			const sourceDirAbs = resolvePath(this.projectRoot, collection.sourceDir);
-			const rel = relative(sourceDirAbs, absPath).replace(/\\/g, "/");
-			if (rel && rel !== ".." && !rel.startsWith("../")) {
-				return { collection, relativePath: rel };
-			}
+			const rel = relativeInside(collection.dir, absPath);
+			if (rel) return { collection, relativePath: rel };
 		}
 		return undefined;
 	}
@@ -439,9 +521,8 @@ export class CompileService {
 	 * (same plugins, same highlighting).
 	 */
 	async getDocumentByPath(absPath: string): Promise<IRDocument | undefined> {
-		const target = resolvePath(absPath);
 		for (const entry of this.entries.values()) {
-			if (resolvePath(entry.filePath) !== target) continue;
+			if (!samePath(entry.filePath, absPath)) continue;
 			if (entry.ir) return entry.ir;
 
 			const collection = this.collections.find(
@@ -506,9 +587,13 @@ export class CompileService {
 		return generateVirtualSource(
 			this.collectionData,
 			this.buildRouteFiles(),
-			this.config,
 			this.projectRoot,
 		);
+	}
+
+	/** The `virtual:docvia/registry` module: every configured component, or an empty registry. */
+	getVirtualRegistryModule(): string {
+		return generateVirtualRegistry(this.config, this.projectRoot);
 	}
 
 	/**
@@ -520,13 +605,12 @@ export class CompileService {
 		return generateVirtualSource(
 			this.collectionData,
 			this.buildRouteFiles(),
-			this.config,
 			this.projectRoot,
 			true,
 		);
 	}
 
-	/** Write only the IDE type declarations (`types.d.ts` + `docvia-env.d.ts`). */
+	/** Write `.docvia/types.d.ts` and `.docvia/env.d.ts`. */
 	async emitTypeDeclarations(): Promise<void> {
 		await writeTypeDeclarations({
 			outDir: this.resolvedOutDir,

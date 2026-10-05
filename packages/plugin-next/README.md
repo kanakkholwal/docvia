@@ -15,12 +15,22 @@ pnpm add -D @docvia/plugin-next
 ## Usage
 
 ```ts
+// next.config.ts
 import { withDocvia } from "@docvia/plugin-next";
 
 export default withDocvia()({
   /* your next.config */
 });
 ```
+
+```ts
+// docvia.config.ts
+import { defineConfig } from "@docvia/plugin-next";
+```
+
+Import pages from `docvia/source` and the component registry from
+`docvia/registry`. Install `@docvia/source` in your app (the generated code
+imports it) and add `".docvia/*.d.ts"` to your `tsconfig.json` `include`.
 
 ## Documentation
 

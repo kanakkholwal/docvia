@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
-import type { Component } from "svelte";
+import { installCodeGroups } from "@docvia/renderer-core/client";
+import { type Component, onMount } from "svelte";
 import Renderer from "./Renderer.svelte";
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const { nodes, registry }: Props = $props();
+
+onMount(installCodeGroups);
 
 let nodeArray = $derived.by(() => (Array.isArray(nodes) ? nodes : [nodes]));
 

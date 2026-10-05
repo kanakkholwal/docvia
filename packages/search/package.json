@@ -3,19 +3,10 @@
 	"version": "0.4.1",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		},
-		"./node": {
-			"types": "./dist/node.d.mts",
-			"import": "./dist/node.mjs",
-			"default": "./dist/node.mjs"
-		}
+		".": "./dist/index.js",
+		"./node": "./dist/node.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -30,9 +21,9 @@
 		"@orama/orama": "^3.1.18"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"svelte": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Section-level Orama indexing and client search helper for docvia",
 	"license": "MIT",
@@ -49,11 +40,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

@@ -37,7 +37,6 @@ function makeCollection() {
 		routeKeys: ROUTE_KEYS,
 		getModule: async (slug) => MODULES[slug],
 		getEagerModules: async () => MODULES,
-		sourceModuleUrl: "test://source",
 	});
 }
 
@@ -50,7 +49,6 @@ function makeSyncCollection() {
 		routeKeys: ROUTE_KEYS,
 		getModule: async (slug) => MODULES[slug],
 		getEagerModules: () => MODULES,
-		sourceModuleUrl: "test://source",
 	});
 }
 
@@ -76,7 +74,9 @@ describe("createCollection", () => {
 			expect(page?.slugs).toEqual(["guide", "install"]);
 			expect(page?.url).toBe("/docs/guide/install");
 			expect(page?.content).toBe("install");
-			expect((page?.data as { title: string }).title).toBe("Install");
+			expect((page?.data as { title: string } | undefined)?.title).toBe(
+				"Install",
+			);
 		});
 
 		it("maps an empty slug array to the index route", async () => {
@@ -116,7 +116,9 @@ describe("createCollection", () => {
 			const install = docs
 				.getPages()
 				.find((p) => p.url === "/docs/guide/install");
-			expect((install?.data as { title: string }).title).toBe("Install");
+			expect((install?.data as { title: string } | undefined)?.title).toBe(
+				"Install",
+			);
 		});
 	});
 

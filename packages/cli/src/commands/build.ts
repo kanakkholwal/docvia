@@ -42,7 +42,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 		const dir = resolve(projectRoot, opts.docs ?? config.sourceDir);
 		const outDir = resolve(projectRoot, opts.out ?? config.outDir);
 
-		if (!existsSync(dir)) {
+		if (!config.collections && !existsSync(dir)) {
 			throw new docviaError(
 				"CONFIG_ERROR",
 				`Docs directory not found: ${dir}\n  Run \`docvia init\` first.`,

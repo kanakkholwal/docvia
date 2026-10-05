@@ -1,5 +1,5 @@
 <script lang="ts">
-import Brand from "$lib/components/brand.svelte";
+import Brand from "#lib/components/brand.svelte";
 
 const columns = [
 	{

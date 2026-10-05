@@ -39,6 +39,20 @@ const hits = await search("getting started", { limit: 8 });
 For full control, `createSearchIndexer()` and `loadIRDocuments()` expose the
 indexing and document-loading steps separately.
 
+Headless server search indexes the bundled source in memory instead. `records`
+adds non-Markdown entries to the same index, and each result carries a `url`
+(page URL plus `#heading`):
+
+```ts
+import { createFromSource, createSearchHandler } from "@docvia/search";
+import { docs } from "virtual:docvia/source";
+
+const server = await createFromSource(docs, {
+  records: [{ id: "api:docvia", title: "docvia()", url: "/docs/api#docvia", body: "The Vite plugin." }],
+});
+export const GET = createSearchHandler(server);
+```
+
 ## Documentation
 
 See the [main README](https://github.com/kanakkholwal/docvia#readme) for the

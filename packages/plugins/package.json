@@ -3,14 +3,9 @@
 	"version": "0.3.1",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -19,12 +14,12 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
-		"jiti": "^2.6.1"
+		"jiti": "^2.7.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"svelte": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Plugin runner, defineConfig, and config loader for docvia",
 	"license": "MIT",
@@ -41,11 +36,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

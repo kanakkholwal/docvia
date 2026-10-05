@@ -19,7 +19,13 @@ pnpm add @docvia/source
 import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
 
 const page = await docs.getPage(["getting-started"]);
+// page.content: RenderOutput; page.headings: always present, for a TOC
 ```
+
+The component registry is a separate module: `virtual:docvia/registry` (Vite) or
+`docvia/registry` (Next.js). Every docvia-generated module imports
+`@docvia/source`, so apps must depend on it directly. `RenderOutput`,
+`ComponentRegistry`, and `HydrationManifest` are re-exported from here.
 
 ## Documentation
 

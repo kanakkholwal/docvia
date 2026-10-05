@@ -107,6 +107,31 @@ describe("createFromSource", () => {
 		expect((await server.search("installer")).length).toBeGreaterThan(0);
 	});
 
+	it("links sections to the page URL", async () => {
+		const server = await createFromSource({
+			getPages: () => [{ slugs: ["guide"], url: "/docs/guide" }],
+			getPage: makeSource().getPage,
+		});
+		const urls = (await server.search("widgets installer")).map((h) => h.url);
+		expect(urls.every((u) => u?.startsWith("/docs/guide"))).toBe(true);
+	});
+
+	it("searches extra records in the same index", async () => {
+		const server = await createFromSource(makeSource(), {
+			records: [
+				{
+					id: "button",
+					title: "Button",
+					url: "/components/button",
+					body: "A pressable gizmo with variants.",
+				},
+			],
+		});
+		expect(server.size).toBe(3);
+		const [hit] = await server.search("gizmo");
+		expect(hit).toMatchObject({ slug: "button", url: "/components/button" });
+	});
+
 	it("respects the limit option", async () => {
 		const server = await createFromSource(makeSource());
 		const hits = await server.search("widgets installer intro", { limit: 1 });

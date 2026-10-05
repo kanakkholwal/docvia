@@ -17,11 +17,16 @@ export type { CollectionData, EmitModuleGraphArgs, RouteFile } from "./emit";
 export {
 	emitModuleGraphFiles,
 	emitTypeDeclarations,
+	generateVirtualRegistry,
 	generateVirtualSource,
 	warnInvalidShikiLangs,
+	writeIfChanged,
 } from "./emit";
 export { compileParallel, readFileEntry, readFileTree } from "./fs";
 export type { HashInputs } from "./hash";
 export { computeContentHash, hashConfig, stableStringify } from "./hash";
+export { relativeInside, samePath } from "./paths";
 export type { InvalidationResult, ServiceEntry } from "./service";
 export { CompileService, TOOL_VERSION } from "./service";
+export type { SyncOptions } from "./sync";
+export { syncTypes } from "./sync";

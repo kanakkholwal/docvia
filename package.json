@@ -3,9 +3,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "turbo run build && pnpm run cleanup:dts",
-		"build:packages": "turbo run build --filter=\"./packages/*\" && pnpm run cleanup:dts",
-		"build:apps": "turbo run build --filter=\"./apps/*\" && pnpm run cleanup:dts",
+		"build": "turbo run build",
+		"build:packages": "turbo run build --filter=\"./packages/*\"",
+		"build:apps": "turbo run build --filter=\"./apps/*\"",
 		"typecheck": "turbo run typecheck",
 		"lint": "biome check .",
 		"lint:fix": "biome check --fix .",
@@ -22,8 +22,7 @@
 		"dev:all": "turbo run dev --concurrency=25",
 		"prepare": "husky",
 		"setup": "pnpm install && pnpm build && pnpm test",
-		"clean": "node ./scripts/clean-builds.js && pnpm run cleanup:dts",
-		"cleanup:dts": "node ./scripts/clean-src-dts.js",
+		"clean": "node ./scripts/clean-builds.js",
 		"changeset": "changeset",
 		"changeset:status": "changeset status --since=origin/main",
 		"version-packages": "changeset version",
@@ -31,15 +30,15 @@
 		"ci": "pnpm lint && pnpm build && pnpm test"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.16",
-		"@changesets/changelog-github": "^0.7.0",
-		"@changesets/cli": "^2.31.0",
+		"@biomejs/biome": "^2.5.15",
+		"@changesets/changelog-github": "^1.0.1",
+		"@changesets/cli": "^3.0.3",
 		"husky": "^9.1.7",
-		"lint-staged": "^16.4.0",
-		"tsdown": "^0.21.10",
-		"turbo": "^2.9.16",
-		"typescript": "^5.9.3",
-		"vitest": "^2.1.9"
+		"lint-staged": "^17.6.0",
+		"tsdown": "catalog:",
+		"turbo": "^2.11.7",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	},
 	"lint-staged": {
 		"*.{ts,js,json}": [

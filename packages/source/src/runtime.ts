@@ -1,5 +1,11 @@
-// biome-ignore lint/suspicious/noExplicitAny: HydrationManifest shape is renderer-specific (e.g. island map for React, props bag for Svelte) — intentionally polymorphic at this layer.
-export type HydrationManifest = any;
+import type { HydrationManifest, RenderOutput } from "@docvia/renderer-core";
+
+export type {
+	ComponentRegistry,
+	HydrationEntry,
+	HydrationManifest,
+	RenderOutput,
+} from "@docvia/renderer-core";
 
 // PageTree types (Fumadocs-compatible)
 
@@ -33,10 +39,11 @@ export interface docviaPage<TFrontmatter = unknown> {
 	slugs: string[];
 	url: string;
 	data: TFrontmatter;
-	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters; JSX/Snippet for direct mounts) — intentionally polymorphic.
-	content: any;
+	/** The render tree; pass it to the renderer's `<Renderer nodes>` component. */
+	content: RenderOutput;
 	manifest: HydrationManifest;
-	headings?: Array<{ depth: number; text: string; id: string }>;
+	/** h2-h6 outline for a table of contents. */
+	headings: Array<{ depth: number; text: string; id: string }>;
 }
 
 export interface docviaCollection<

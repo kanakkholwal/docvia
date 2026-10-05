@@ -116,10 +116,19 @@ describe("CompileService.emitDiskModuleGraph", () => {
 		await service.compileAll();
 		await service.emitDiskModuleGraph();
 
-		expect(existsSync(join(outDir, "source.ts"))).toBe(true);
-		expect(existsSync(join(outDir, "dynamic.ts"))).toBe(true);
-		expect(existsSync(join(outDir, "types.d.ts"))).toBe(true);
-		expect(existsSync(join(projectRoot, "docvia-env.d.ts"))).toBe(true);
+		for (const file of [
+			"source.ts",
+			"browser.ts",
+			"registry.ts",
+			"types.d.ts",
+			"env.d.ts",
+		]) {
+			expect(existsSync(join(outDir, file))).toBe(true);
+		}
+		expect(existsSync(join(projectRoot, "docvia-env.d.ts"))).toBe(false);
+		const registry = await readFile(join(outDir, "registry.ts"), "utf-8");
+		expect(registry).toContain("from '@docvia/source'");
+		expect(registry).not.toContain("@docvia/renderer-core");
 	});
 });
 

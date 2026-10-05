@@ -72,7 +72,7 @@ components={{
 For interactive components embedded in Markdown via directives, pass a `registry`:
 
 ```tsx
-import { docs, registry } from "docvia/source";
+import { registry } from "docvia/registry";
 
 <DocviaContent
   nodes={page.content}
@@ -104,6 +104,8 @@ import { DocviaHydrator } from "./DocviaHydrator";
 
 {page.manifest.length > 0 && <DocviaHydrator manifest={page.manifest} />}
 ```
+
+`hydrate()` also makes tabbed code groups (`tab="..."` fences, `:::code-group`, `npm` fences) switch. On pages without islands, call `installCodeGroups()` from `@docvia/renderer-react/client` in a client component instead.
 
 See [Components](/docs/components) for hydration modes and directive syntax.
 

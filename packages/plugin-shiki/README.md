@@ -5,12 +5,13 @@ Build-time syntax highlighting for docvia, powered by [Shiki](https://shiki.styl
 It registers as a docvia plugin. During compilation its `beforeRender` hook
 walks the document IR, highlights every fenced code block, and embeds the
 resulting HTML on the node. Because highlighting happens at build time, no
-syntax highlighter ships to the runtime or edge bundle — the renderer just
-emits the pre-highlighted markup.
+syntax highlighter ships to the runtime or edge bundle; the renderer just
+emits the pre-highlighted markup. It is the recommended default: without a
+highlighter, docvia warns once that code blocks render unhighlighted.
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

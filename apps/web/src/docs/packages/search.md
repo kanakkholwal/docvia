@@ -22,6 +22,7 @@ pnpm add @docvia/search
 |---|---|---|
 | `.` | package entry | Edge-safe runtime search: `createFromSource`, `createSearchHandler`, `createFetchClient`, the static `createSearch`, and the indexer/extraction APIs. |
 | `./node` | Node entry | `buildSearchIndex` compiles the docs and emits a serialized static index (build time, Node only). |
+| `./package.json` | `package.json` | Package metadata. |
 
 This package ships no binary.
 
@@ -128,6 +129,7 @@ interface SearchResult {
   sectionTitle: string;
   pageTitle: string;
   content: string;
+  url?: string;
   score: number;
 }
 ```
@@ -139,6 +141,7 @@ interface SearchResult {
 | `sectionTitle` | Heading text of the matched section. |
 | `pageTitle` | Title of the containing page. |
 | `content` | Full section text, for rendering a highlighted match snippet. |
+| `url` | Link to the section (page URL plus `#heading`), when the page URL is known. Set by `createFromSource`. |
 | `score` | Relevance score from Orama. |
 
 ### `createSearch`
@@ -159,11 +162,30 @@ Deserializes the string produced by `exportIndex()` and returns a client-side se
 ```ts
 function createFromSource(
   source: docviaCollection | docviaSource,
-  options?: { defaultLimit?: number },
+  options?: {
+    defaultLimit?: number;
+    records?: Iterable<SearchRecord>;
+  },
 ): Promise<SearchServer>;
+
+interface SearchRecord {
+  id: string;
+  title: string;
+  url: string;
+  body: string;
+  section?: string; // heading shown in results; defaults to title
+}
 ```
 
 Headless server index. Walks every page's rendered `content` from a docvia source, either a single collection (say `docs` from `virtual:docvia/source`) or a whole `{ collections }` source, and builds an in-memory Orama index. Returns a `SearchServer` with `search(query, { limit })` and a `size` (indexed section count). Call once per server instance and cache the promise. Edge-safe: no filesystem, no compiler.
+
+`records` adds non-Markdown entries (component specs, API symbols) to the same index, so one query searches both:
+
+```ts
+const server = await createFromSource(docs, {
+  records: [{ id: "api:docvia", title: "docvia()", url: "/docs/packages/plugin-vite", body: "The Vite plugin." }],
+});
+```
 
 ### `createSearchHandler`
 

@@ -11,7 +11,7 @@ order: 13
 
 Two things make the compiler fast. First, it processes files **in parallel** across a worker pool. Second, it is **incremental**: it persists a `.docvia.cache.json` file in the output directory and skips any file whose content hash and pipeline cache key match the previous run.
 
-The package depends on `@docvia/core`, `@docvia/ir`, `@docvia/plugins`, `@docvia/schema`, and [`@node-rs/xxhash`](https://github.com/napi-rs/node-rs) for fast content hashing.
+The package depends on `@docvia/ir` and `@docvia/runtime`, which in turn uses [`@node-rs/xxhash`](https://github.com/napi-rs/node-rs) for fast content hashing.
 
 ## Installation
 
@@ -27,7 +27,7 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Module | Contents |
 | --- | --- | --- |
-| `.` | `./dist/index.mjs` | `compile`, `computeContentHash` (and its alias `hashContent`), the `HashInputs` type, plus the cache API: `readCache`, `writeCache`, `cacheIsCompatible`, `CACHE_FILE`, `CACHE_VERSION`, and the `CachedEntry` / `CacheFile` types. |
+| `.` | `./dist/index.js` | `compile`, `computeContentHash` (and its alias `hashContent`), and the `HashInputs` type. The cache API below (`readCache`, `writeCache`, `cacheIsCompatible`, `CACHE_FILE`, `CACHE_VERSION`, `CachedEntry`, `CacheFile`) is exported from `@docvia/runtime`. |
 
 ```ts
 import { compile, computeContentHash } from "@docvia/compiler";
@@ -53,7 +53,7 @@ interface HashInputs {
 | Field | Type | Description |
 | --- | --- | --- |
 | `fileContent` | `string` | The file's own content hash. |
-| `frontmatter` | `string` | A stable stringification of the validated frontmatter. |
+| `frontmatter` | `string` | A stable stringification of the validated frontmatter, minus any `hashExclude` keys. |
 | `configHash` | `string` | The deterministic hash of the resolved config. |
 | `pluginCacheKeys` | `string[]` | One cache key per active plugin. |
 | `dependencyHashes` | `string[]` | Content hashes of the document's dependencies. |
@@ -82,7 +82,7 @@ Defaults applied to `CompilerOptions`:
 
 | Option | Default | Notes |
 | --- | --- | --- |
-| `projectRoot` | `process.cwd()` | Root for resolving relative paths and emitting `docvia-env.d.ts`. |
+| `projectRoot` | `process.cwd()` | Root for resolving relative paths and component files. |
 | `incremental` | `true` | Pass `false` to force a full rebuild. |
 | `config.collections` | `[{ name: "docs", sourceDir, baseUrl: "/" }]` | A single default collection when none are configured. |
 
@@ -95,26 +95,27 @@ The build proceeds as follows:
 5. **Walk and compile each collection.** Reads the source tree with a parallelized BFS, then compiles files across a worker pool. The pool size is `cpus().length - 1` (at least one worker).
    - **Cache hit.** If the file hash matches a compatible cached entry, the cached `PageMeta` and route are reused and the file is counted as `cached`.
    - **Cache miss.** The file runs the full pipeline: `beforeParse` hook, frontmatter extraction and validation, `parseMarkdown`, `afterParse` hook, `beforeTransform` hook, `transformToIR`, composite content hashing, then the `afterTransform` and `beforeRender` hooks.
-6. **Build frontmatter types.** If `config.frontmatter` is set, the type is generated with `zodSchemaToFrontmatterTs`; otherwise the type is the union of the unique frontmatter samples seen during the build.
+6. **Build frontmatter types.** If the collection has a schema (its own `frontmatter`, or the top-level one), the type is inferred from the schema's Standard Schema output type via `@docvia/schema`; otherwise it is the union of the unique frontmatter samples seen during the build.
 7. **Emit the module graph.** Writes the generated files (see below).
 8. **Persist the cache.** When incremental, writes the new `.docvia.cache.json`.
 9. **Return a `CompileResult`.** With per-page metadata, build duration, and `total` / `compiled` / `cached` stats.
 
 ### The generated module graph
 
-`compile` writes the module graph below. Several files are always emitted into `outDir`, one is conditional, and one is emitted at the project root:
+`compile` writes the module graph below into `outDir`. A file is rewritten only when its content changes.
 
 No page content is emitted. The content stays in the `.md` and is compiled in
 place by the bundler's `?docvia` transform. The generated files are thin glue:
 
 | File | Location | Emitted | Purpose |
 | --- | --- | --- | --- |
-| `dynamic.ts` | `outDir` | always | The route map plus `loadModule` / `getEagerModules` loaders over the `?docvia` page modules. |
 | `source.ts` | `outDir` | always | Builds collections (eager `?docvia` imports, for server/SSR) and the `docviaSource` object via `@docvia/source`. |
 | `browser.ts` | `outDir` | always | The lazy, client counterpart: one `() => import()` per page, so each page code-splits. |
+| `registry.ts` | `outDir` | always | The component registry, importing each configured component (empty when none are configured). |
 | `types.d.ts` | `outDir` | always | Per-collection `_RouteKey`, `_Frontmatter`, and `_DocPage` type declarations. |
-| `registry.ts` | `outDir` | only when `config.components` is non-empty | The component registry, importing each configured component. |
-| `docvia-env.d.ts` | `projectRoot` | always | Ambient `declare module` declarations for the source modules: `virtual:docvia/source` (+ `/browser`) for Vite and the bare `docvia/source` (+ `/browser`, plus `docvia/registry`) for Next.js. |
+| `env.d.ts` | `outDir` | always | Ambient `declare module` declarations: `virtual:docvia/source` (+ `/browser`) and `virtual:docvia/registry` for Vite, the bare `docvia/source` (+ `/browser`) and `docvia/registry` for Next.js. |
+
+The generated code imports only `@docvia/source`, so the consuming app must depend on it directly.
 
 All generated files are marked auto-generated and should not be edited by hand.
 
@@ -203,7 +204,7 @@ Returns `true` only when the previous cache exists and its `toolVersion`, `confi
 ```ts
 import { compile } from "@docvia/compiler";
 import { defineConfig } from "@docvia/plugins";
-import { reactRenderer } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/renderer-react";
 import type { CompileResult } from "@docvia/ir";
 
 const config = defineConfig({
@@ -214,7 +215,7 @@ const config = defineConfig({
 const result: CompileResult = await compile({
   sourceDir: "docs",
   outDir: ".docvia",
-  renderer: reactRenderer(),
+  renderer: createReactRenderer(),
   plugins: config.plugins,
   config,
   projectRoot: process.cwd(),

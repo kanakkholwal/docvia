@@ -1,6 +1,6 @@
 <script lang="ts">
-import { browser } from "$app/environment";
-import { cn } from "$lib/utils";
+import { browser } from "$app/env";
+import { cn } from "#lib/utils.ts";
 
 // Draws the diagrams that @docvia/plugin-mermaid emits. `mermaid` is loaded
 // with a dynamic import so it stays out of the SSR bundle and the Cloudflare

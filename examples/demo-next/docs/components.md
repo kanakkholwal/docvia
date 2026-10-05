@@ -47,6 +47,21 @@ export default defineConfig({
 | `hydrate` | `boolean` | Enable client-side interactivity |
 | `defaultProps` | `object` | Default prop values, overridable in Markdown |
 
+Or use the array form, where globs register every match and names come from
+file names (`ButtonDemo.tsx` becomes `button-demo`):
+
+```typescript
+export default defineConfig({
+  components: [
+    "./components/docs/*.tsx",
+    { name: "counter", path: "./components/Counter", hydrate: true },
+  ],
+});
+```
+
+Paths resolve from the project root, the extension may be omitted, and a missing
+file fails the build with a `CONFIG_ERROR`.
+
 ## Hydration modes
 
 Docvia supports selective hydration — only interactive components ship JavaScript to the client:

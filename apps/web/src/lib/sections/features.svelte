@@ -1,5 +1,5 @@
 <script lang="ts">
-import CodeSample from "$lib/components/code-sample.svelte";
+import CodeSample from "#lib/components/code-sample.svelte";
 import { Check, Search } from "@lucide/svelte";
 
 // Renderers, not integrations: Vite and Next.js are how docvia runs, not

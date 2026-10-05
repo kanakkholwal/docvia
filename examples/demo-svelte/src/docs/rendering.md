@@ -29,7 +29,13 @@ For interactive components embedded via directives, pass a `registry`:
 <Renderer nodes={data.page.content} registry={registry} />
 ```
 
-The registry resolves directive names to Svelte components. It is generated from the `components` field in `docvia.config.ts` and exported from `virtual:docvia/source`.
+The registry resolves directive names to Svelte components. It is generated from the `components` field in `docvia.config.ts` and imported from `virtual:docvia/registry`:
+
+```ts
+import { registry } from "virtual:docvia/registry";
+```
+
+`Renderer` also switches tabbed code groups (fences with `tab="..."`, `:::code-group`, or an `npm` fence) without extra setup.
 
 ## Renderer props
 
@@ -52,4 +58,4 @@ The compiled output is a tree of typed nodes:
 
 ## Differences from React
 
-The Svelte renderer does not yet support the `components` prop for tag-level overrides (e.g., replacing `<a>` or `<img>` globally). This is a React-specific feature. In Svelte, customize element rendering by extending the Renderer or post-processing the output tree.
+The Svelte renderer does not yet support the `components` prop for tag-level overrides (e.g., replacing `<a>` or `<img>` globally). This is a React-specific feature. In Svelte, customize element rendering by extending the Renderer or by rewriting the output tree at build time with `createSvelteRenderer({ transform })`.

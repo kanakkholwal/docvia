@@ -9,7 +9,8 @@ The recommended way to use docvia is to run it **in-process** inside your
 bundler. The Vite plugin and the Next.js wrapper both drive the compile core
 directly, so there is no separate `docvia build` step, dev recompiles
 incrementally as you edit, and the compiled source module is resolved for you
-(`virtual:docvia/source` on Vite, `docvia/source` on Next.js).
+(`virtual:docvia/source` on Vite, `docvia/source` on Next.js). Apps need
+`@docvia/source` installed directly, since the generated code imports it.
 
 The pattern is the same everywhere:
 
@@ -37,7 +38,8 @@ This page covers SvelteKit, Next.js, plain Vite, and server-side rendering.
 ## SvelteKit
 
 SvelteKit runs on Vite, so the integration is the single `docvia()` plugin
-from [`@docvia/plugin-vite`](/docs/packages/plugin-vite).
+from [`@docvia/plugin-vite`](/docs/packages/plugin-vite). The snippets below
+target SvelteKit 3 and TypeScript 6.
 
 ### 1. Install
 
@@ -53,7 +55,7 @@ build-time entry point. Add `@docvia/plugin-shiki` for syntax highlighting.
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -68,20 +70,23 @@ export default defineConfig({
 
 ### 3. Add the Vite plugin
 
-`docvia()` runs the `CompileService` in-process. Following the Vite
-virtual-module convention it serves `virtual:docvia/source` (and
-`virtual:docvia/source/browser`) from its `load` hook, in dev with incremental
-recompilation (HMR) and for production builds alike.
+`docvia()` runs the `CompileService` in-process. Called with no arguments it
+loads `docvia.config.*` from the Vite root (`docvia(config)` also works).
+Following the Vite virtual-module convention it serves `virtual:docvia/source`,
+`virtual:docvia/source/browser`, and `virtual:docvia/registry` from its `load`
+hook, in dev with incremental recompilation (HMR) and for production builds
+alike. SvelteKit 3 has no `svelte.config.js`: its options go into
+`sveltekit({ ... })`.
 
 ```ts
 // vite.config.ts
 import { docvia } from "@docvia/plugin-vite";
+import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docvia(docviaConfig)],
+  plugins: [sveltekit({ adapter: adapter() }), docvia()],
 });
 ```
 
@@ -90,20 +95,21 @@ That is the whole setup. Your workflow stays `pnpm dev` and `pnpm build`;
 
 ### 4. Declare the module types
 
-docvia writes a `docvia-env.d.ts` at the project root for you so the virtual
-modules resolve in TypeScript. It looks like this:
+docvia writes `.docvia/env.d.ts` with ambient declarations for every docvia
+module id. Include it in `tsconfig.json`:
 
-```ts
-declare module "virtual:docvia/source" {
-  const source: typeof import("./.docvia/source");
-  export const docviaSource: typeof source.docviaSource;
-  export const docs: typeof source.docs;
-  export const registry: typeof source.registry;
+```json
+{
+  "extends": "$app/tsconfig",
+  "include": ["src", "*", ".docvia/*.d.ts"]
 }
-declare module "virtual:docvia/source/browser" {
-  const browser: typeof import("./.docvia/browser");
-  export const docs: typeof browser.docs;
-}
+```
+
+The file is written when Vite starts. In CI, run `docvia sync` before
+type-checking so it exists:
+
+```json
+"check": "docvia sync && svelte-kit sync && svelte-check"
 ```
 
 ### 5. Consume pages in a route
@@ -128,7 +134,7 @@ export const load: PageServerLoad = async ({ params }) => {
 <!-- src/routes/docs/[...slug]/+page.svelte -->
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/source";
+  import { registry } from "virtual:docvia/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -161,7 +167,7 @@ pnpm add @docvia/renderer-react @docvia/source react react-dom
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -175,8 +181,8 @@ export default defineConfig({
 
 ### 3. Wrap the Next config
 
-```js
-// next.config.mjs
+```ts
+// next.config.ts
 import { withDocvia } from "@docvia/plugin-next";
 
 export default withDocvia({ configPath: "./docvia.config.ts" })({
@@ -188,7 +194,8 @@ export default withDocvia({ configPath: "./docvia.config.ts" })({
 `docvia/source` and `docvia/registry` for webpack and Turbopack alike, and in
 dev starts an incremental watcher that recompiles changed files through
 `service.invalidate()`. A cross-process lock (`.docvia-build.lock`) keeps
-concurrent Next.js workers from compiling at once.
+concurrent Next.js workers from compiling at once. Add `".docvia/*.d.ts"` to
+`tsconfig.json` `include` so `docvia/source` and `docvia/registry` type-check.
 
 ### 4. Consume pages in a route
 
@@ -223,10 +230,9 @@ Without SvelteKit or Next.js, use the same `docvia()` plugin directly in
 
 ```ts
 import { docvia } from "@docvia/plugin-vite";
-import docviaConfig from "./docvia.config";
 
 export default {
-  plugins: [docvia(docviaConfig)],
+  plugins: [docvia()], // loads ./docvia.config.ts
 };
 ```
 
@@ -257,7 +263,8 @@ const page = await docs.getPage(["getting-started"]); // works on the edge
 > That is exactly what you want in a server bundle. In a **universal** module,
 > such as a SvelteKit `+page.ts` or a `"use client"` component, it means your
 > entire content set is shipped to the browser, silently undoing the bundle-size
-> benefit the compiler exists to provide.
+> benefit the compiler exists to provide. The Vite plugin logs a warning when
+> client code imports `virtual:docvia/source`.
 >
 > Load pages in `+page.server.ts` / `+layout.server.ts` / a React Server
 > Component, and pass the result down. If you truly need a collection on the

@@ -19,9 +19,12 @@ Next.js is a peer dependency: `next >= 14`.
 
 | Subpath | Contents |
 |---|---|
-| `.` | `withDocvia`, `DocviaNextOptions`. |
+| `.` | `withDocvia`, `defineConfig`, `DocviaNextOptions`. |
+| `./loader` | The `.md?docvia` loader `withDocvia` registers for webpack and Turbopack. |
+| `./package.json` | Package metadata. |
 
-There is no `bin` and no other subpath.
+Import `defineConfig` from here in `docvia.config.ts`. `@docvia/source` is a peer
+dependency: install it in your app, since the generated module graph imports it.
 
 ## API reference
 
@@ -68,13 +71,16 @@ In dev, `withDocvia` starts a **singleton** watcher over the source directory. O
 
 #### Returned config
 
-The returned `NextConfig` registers two resolve aliases for **both bundlers**, since Next.js may run on webpack or Turbopack and docvia resolves under either:
+The returned `NextConfig` registers three resolve aliases for **both bundlers**, since Next.js may run on webpack or Turbopack and docvia resolves under either:
 
 | Alias | Target |
 |---|---|
 | `docvia/source` | `<outDir>/source.ts` (eager, server/SSR) |
 | `docvia/source/browser` | `<outDir>/browser.ts` (lazy, client code-split) |
-| `docvia/registry` | `<outDir>/registry.ts` |
+| `docvia/registry` | `<outDir>/registry.ts` (always present, possibly empty) |
+
+Type declarations for all three live in `<outDir>/env.d.ts`; add `".docvia/*.d.ts"`
+to your `tsconfig.json` `include`.
 
 The aliases are added to a `webpack()` hook *and* to `turbopack.resolveAlias`. Any `webpack()` hook already present on your config is preserved and composed.
 
@@ -84,7 +90,7 @@ It also registers a `.md?docvia` loader for both bundlers (a `module.rules` entr
 
 ## Usage
 
-### Minimal `next.config.mjs`
+### Minimal `next.config.ts`
 
 ```js
 import { withDocvia } from "@docvia/plugin-next";

@@ -3,14 +3,9 @@
 	"version": "0.2.2",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -19,11 +14,11 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
-		"shiki": "^4.0.2"
+		"shiki": "^4.5.0"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Build-time Shiki syntax highlighting plugin for docvia",
 	"license": "MIT",
@@ -40,7 +35,8 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
@@ -48,5 +44,6 @@
 		"docvia",
 		"shiki",
 		"syntax-highlighting"
-	]
+	],
+	"sideEffects": false
 }

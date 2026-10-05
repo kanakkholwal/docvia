@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Check, Copy } from "@lucide/svelte";
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 
 // Package-manager install widget, the developer-tool signature (npm / pnpm /
 // bun / yarn tabs + a copy button), patterned on vite.dev's hero command.

@@ -39,6 +39,21 @@ export default defineConfig({
 });
 ```
 
+Or use the array form, where globs register every match and names come from
+file names (`ButtonDemo.svelte` becomes `button-demo`):
+
+```typescript
+export default defineConfig({
+  components: [
+    "./src/lib/docs/*.svelte",
+    { name: "counter", path: "./src/lib/components/Counter", hydrate: true },
+  ],
+});
+```
+
+Paths resolve from the project root, the extension may be omitted, and a missing
+file fails the build with a `CONFIG_ERROR`.
+
 ## Hydration modes
 
 | Mode | When | Use case |

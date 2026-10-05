@@ -2,7 +2,11 @@
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"rootDir": "src",
-		"outDir": "dist"
+		"outDir": "dist",
+		"lib": ["ES2022", "dom"],
+		// Resolve sibling packages through their dist, so neither svelte-check nor
+		// svelte-package walks into (or emits .d.ts beside) other packages' sources.
+		"paths": {}
 	},
 	"include": ["src"]
 }

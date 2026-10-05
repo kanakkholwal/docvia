@@ -11,7 +11,7 @@ All Docvia settings live in `docvia.config.ts` at your project root. The `define
 ## Minimal config
 
 ```typescript
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
@@ -26,14 +26,15 @@ export default defineConfig({
 | `sourceDir` | `string` | `"docs"` | Directory containing Markdown source files |
 | `outDir` | `string` | `".docvia"` | Output directory for compiled artifacts |
 | `renderer` | `RendererAdapter` | — | Framework renderer (required for builds) |
-| `components` | `Record<string, ComponentConfig>` | `{}` | Interactive component registry |
-| `frontmatter` | `ZodObject` | — | Extend built-in frontmatter fields |
+| `components` | record or array | none | Interactive component registry (globs allowed in the array form) |
+| `frontmatter` | Standard Schema | none | Extend built-in frontmatter fields (Zod, Valibot, ArkType, ...) |
+| `hashExclude` | `string[]` | none | Frontmatter keys left out of a page's `contentHash` |
 | `plugins` | `docviaPlugin[]` | `[]` | Transform plugins |
 | `collections` | `CollectionConfig[]` | Auto | Multi-collection setup |
 
 ## Custom frontmatter
 
-Extend the built-in schema with Zod:
+Extend the built-in schema with any Standard Schema library, such as Zod:
 
 ```typescript
 import { z } from "zod";
@@ -47,7 +48,7 @@ export default defineConfig({
 });
 ```
 
-Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are always available. Your extensions are merged and validated at build time. The compiler generates a typed `Frontmatter` interface in `.docvia/types.d.ts`.
+Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are always available. Your extensions are merged and validated at build time. The compiler generates a typed `Frontmatter` in `.docvia/types.d.ts` from the schema's output type.
 
 ## Syntax highlighting
 
@@ -79,11 +80,13 @@ import { createReactRenderer } from "@docvia/renderer-react";
 
 createReactRenderer({
   registry: optionalCustomRegistry,
+  transform: (output, doc) => output, // rewrite the RenderOutput tree
 })
 ```
 
 The renderer accepts an optional `registry` for resolving components at build
-time. If omitted, components pass through to runtime resolution.
+time. If omitted, components pass through to runtime resolution. `transform`
+rewrites each page's `RenderOutput` tree before it is serialized.
 
 ## Components
 
@@ -112,9 +115,14 @@ By default, Docvia treats your `sourceDir` as a single `docs` collection. For mu
 ```typescript
 collections: [
   { name: "docs", sourceDir: "./docs", baseUrl: "/" },
-  { name: "api", sourceDir: "./api-docs", baseUrl: "/api" },
+  { name: "api", sourceDir: "./api-docs", baseUrl: "/api", frontmatter: apiSchema },
+  { name: "internal", sourceDir: "./internal-docs", optional: true },
 ],
 ```
+
+Names must be valid JS identifiers. `frontmatter` gives a collection its own
+schema (default: the top-level one). `optional: true` turns a missing
+`sourceDir` into an empty collection instead of an error.
 
 Each collection gets its own source API:
 

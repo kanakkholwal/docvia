@@ -38,7 +38,7 @@ file's text. The inputs are:
 | Input | Why it matters |
 |---|---|
 | File content | The Markdown itself changed. |
-| Frontmatter | A metadata change can alter the output. |
+| Frontmatter | A metadata change can alter the output. Keys listed in the config's `hashExclude` are left out, for derived or volatile values. |
 | Config hash | A different config can produce different output. |
 | Plugin cache keys | A plugin's behavior or input changed. |
 | Dependency hashes | A file the page depends on changed. |

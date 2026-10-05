@@ -1,6 +1,6 @@
 ---
 title: "CLI reference"
-description: "Every docvia command and flag: init, build, dev, and preview."
+description: "Every docvia command and flag: init, build, dev, sync, and preview."
 eyebrow: "Guide"
 order: 3
 ---
@@ -16,10 +16,11 @@ npx docvia <command>
 Run `docvia --version` to print the installed version.
 
 ```mermaid
-%% title: The four commands
+%% title: The five commands
 flowchart LR
   I["docvia init<br/><i>scaffold docs/ + config</i>"] --> B["docvia build<br/><i>compile once</i>"]
   I --> D["docvia dev<br/><i>build, then watch</i>"]
+  I --> S["docvia sync<br/><i>write .docvia types</i>"]
   B --> P["docvia preview<br/><i>serve .docvia/</i>"]
   D --> P
 ```
@@ -94,6 +95,31 @@ initial-build failure does not stop the watcher; fix the error and save again.
 > compile core in-process and handles watching itself. See
 > [Framework integration](/docs/guide/frameworks).
 
+## docvia sync
+
+Write `.docvia/types.d.ts` and `.docvia/env.d.ts` without a bundler.
+
+```bash
+docvia sync [--config <path>]
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `--config <path>` | auto-detected | Path to the config file. |
+
+The Vite plugin and Next.js wrapper write these files when the dev server or
+build starts, so a fresh CI checkout has none. Without `.docvia`, imports of
+the source modules fail loudly instead of silently becoming `any`. Run `sync`
+before type-checking:
+
+```json
+{
+  "scripts": {
+    "check": "docvia sync && svelte-kit sync && svelte-check"
+  }
+}
+```
+
 ## docvia preview
 
 Serve the compiled `.docvia/` output.
@@ -113,7 +139,8 @@ module graph, not a runtime. Use a framework integration for a real site.
 ## Programmatic use
 
 The CLI is also importable. `runCli` is the entry point the `docvia` binary
-calls, and `defineConfig` is re-exported for authoring `docvia.config.ts`:
+calls. `defineConfig` is re-exported too, but import it from
+`@docvia/plugin-vite` or `@docvia/plugin-next` in `docvia.config.ts`:
 
 ```ts
 import { runCli } from "@docvia/cli";

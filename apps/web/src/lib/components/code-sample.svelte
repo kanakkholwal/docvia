@@ -1,7 +1,7 @@
 <script lang="ts">
-import { inview } from "$lib/actions/inview";
-import { type SnippetName, snippets } from "$lib/snippets";
-import { cn } from "$lib/utils";
+import { inview } from "#lib/actions/inview.ts";
+import { type SnippetName, snippets } from "#lib/snippets.ts";
+import { cn } from "#lib/utils.ts";
 import { Check, Copy } from "@lucide/svelte";
 import { highlighted } from "virtual:docvia-snippets";
 

@@ -113,7 +113,7 @@ export function upperTitles(): docviaPlugin {
 Register it in your config:
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { upperTitles } from "./plugins/upper-titles";
 
 export default defineConfig({

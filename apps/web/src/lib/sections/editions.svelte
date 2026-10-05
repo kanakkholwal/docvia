@@ -1,6 +1,8 @@
 <script lang="ts">
-import { ArrowRight, Building2, Check, Cloud, Github } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
+import { ArrowRight, Building2, Check, Cloud } from "@lucide/svelte";
+import Github from "#lib/components/icons/github.svelte";
+import type { Component } from "svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
 
 type Edition = {
 	id: string;
@@ -9,7 +11,7 @@ type Edition = {
 	priceSuffix?: string;
 	tagline: string;
 	featured: boolean;
-	icon: typeof Github;
+	icon: Component<{ class?: string }>;
 	cta: { label: string; href: string };
 	features: string[];
 	footnote?: string;

@@ -3,14 +3,9 @@
 	"version": "1.0.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -18,23 +13,21 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/core": "workspace:*",
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
-		"@docvia/runtime": "workspace:*",
-		"@docvia/schema": "workspace:*"
+		"@docvia/runtime": "workspace:*"
 	},
 	"peerDependencies": {
-		"@docvia/source": "workspace:*"
+		"@docvia/source": "workspace:*",
+		"vite": "^8.0.0"
 	},
 	"devDependencies": {
 		"@docvia/source": "workspace:*",
-		"@types/node": "^20.0.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.5.0",
-		"vite": "^6.0.0"
+		"@types/node": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
 	},
-	"description": "Vite plugin for docvia (?docvia virtual modules)",
+	"description": "Vite plugin for docvia: in-process compile, virtual source and registry modules, HMR",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"
@@ -49,11 +42,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

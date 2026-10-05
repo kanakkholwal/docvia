@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { snippets } from "./src/lib/snippets";
+import { snippets } from "./src/lib/snippets.ts";
 
 // Highlights the landing-page code samples with Shiki during the build and
 // serves the resulting HTML as a virtual module. The same argument docvia makes

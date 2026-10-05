@@ -2,7 +2,7 @@
 import { ChevronDown } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 
 type Props = {
 	question: string;

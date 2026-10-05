@@ -18,15 +18,15 @@ npm install @docvia/renderer-react @docvia/source
 ```
 
 The CLI, Next plugin, and Shiki plugin are dev-only. The renderer and
-`@docvia/source` are runtime dependencies — the generated module graph imports
-from them.
+`@docvia/source` are runtime dependencies: the generated module graph imports
+`@docvia/source`, and your routes render with the renderer.
 
 ## 2. Configure Docvia
 
 Create `docvia.config.ts` in your project root:
 
 ```typescript
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { shiki } from "@docvia/plugin-shiki";
 import { createReactRenderer } from "@docvia/renderer-react";
 
@@ -66,21 +66,16 @@ export default withDocs({});
 
 ## 4. Declare the module types
 
-So `docvia/source` resolves in TypeScript, add a `docvia-env.d.ts` at the
-project root:
+docvia writes `.docvia/env.d.ts`, declaring `docvia/source`,
+`docvia/source/browser`, and `docvia/registry`. Include it in `tsconfig.json`:
 
-```typescript
-declare module "docvia/source" {
-  const source: typeof import("./.docvia/source");
-  export const docviaSource: typeof source.docviaSource;
-  export const docs: typeof source.docs;
-  export const registry: typeof source.registry;
-}
-declare module "docvia/registry" {
-  const mod: typeof import("./.docvia/registry");
-  export const registry: typeof mod.registry;
+```json
+{
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".docvia/*.d.ts"]
 }
 ```
+
+In CI, run `docvia sync` before `tsc` so the file exists.
 
 ## 5. Create your first page
 
@@ -104,7 +99,8 @@ React Server Component, so it renders on the server with no client bundle:
 
 ```tsx
 import { DocviaContent } from "@docvia/renderer-react";
-import { docs, registry } from "docvia/source";
+import { docs } from "docvia/source";
+import { registry } from "docvia/registry";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -138,7 +134,7 @@ export default async function DocPage({ params }: PageProps) {
 
 > **Interactive components.** Pages that use `:::component` directives ship a
 > hydration `manifest` on `page.manifest`. Render the islands on the client by
-> passing it to a hydrator — see the `DocviaHydrator` component in this demo.
+> passing it to a hydrator, such as the `DocviaHydrator` component in this demo.
 
 ## 7. Run it
 
@@ -146,8 +142,8 @@ export default async function DocPage({ params }: PageProps) {
 npm run dev
 ```
 
-`withDocvia` compiles `docs/` on startup and watches it for changes — no
-separate build command needed. Visit `http://localhost:3000/docs` to see your
+`withDocvia` compiles `docs/` on startup and watches it for changes, so no
+separate build command is needed. Visit `http://localhost:3000/docs` to see your
 page. A production build runs the same compilation via `npm run build`.
 
 ## Project structure
@@ -155,9 +151,8 @@ page. A production build runs the same compilation via `npm run build`.
 | Path | Purpose |
 | --- | --- |
 | `docs/` | Markdown source files |
-| `.docvia/` | Generated module graph (gitignore this) |
+| `.docvia/` | Generated module graph and `env.d.ts` declarations (gitignore this) |
 | `docvia.config.ts` | Docvia configuration |
-| `docvia-env.d.ts` | TypeScript module declarations |
 | `app/docs/` | Next.js routes for documentation |
 
 ## Frontmatter fields
@@ -173,6 +168,5 @@ Every Markdown file starts with YAML frontmatter:
 | `slug` | `string` | No | Override the auto-generated slug |
 | `draft` | `boolean` | No | Exclude from production builds |
 
-You can extend these with custom fields via a Zod schema in your config. See
-[Configuration](/docs/configuration) for details.
-</content>
+You can extend these with custom fields via a Standard Schema (Zod, Valibot,
+...) in your config. See [Configuration](/docs/configuration) for details.

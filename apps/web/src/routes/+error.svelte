@@ -1,9 +1,9 @@
 <script lang="ts">
 import { page } from "$app/state";
 import { ArrowRight, Home, Search } from "@lucide/svelte";
-import SiteFooter from "$lib/components/site-footer.svelte";
-import SiteHeader from "$lib/components/site-header.svelte";
-import { Button } from "$lib/components/ui/button";
+import SiteFooter from "#lib/components/site-footer.svelte";
+import SiteHeader from "#lib/components/site-header.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
 
 const status = $derived(page.status);
 const isNotFound = $derived(status === 404);

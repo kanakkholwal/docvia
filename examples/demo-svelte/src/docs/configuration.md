@@ -12,7 +12,7 @@ All Docvia settings live in `docvia.config.ts` at your project root. The
 ## Minimal config
 
 ```typescript
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
@@ -28,16 +28,18 @@ export default defineConfig({
 | `sourceDir` | `string` | `"docs"` | Markdown source directory |
 | `outDir` | `string` | `".docvia"` | Output directory for the generated module graph |
 | `renderer` | `RendererAdapter` | — | Framework renderer (required for builds) |
-| `collections` | `CollectionConfig[]` | Auto | Multi-collection setup |
-| `components` | `Record<string, ComponentConfig>` | `{}` | Interactive component registry |
-| `frontmatter` | `ZodObject` | — | Extend built-in frontmatter fields |
+| `collections` | `CollectionConfig[]` | Auto | Multi-collection setup: `{ name, sourceDir, baseUrl?, frontmatter?, optional? }` |
+| `components` | record or array | none | Interactive component registry (globs allowed in the array form) |
+| `frontmatter` | Standard Schema | none | Extend built-in frontmatter fields (Zod, Valibot, ArkType, ...) |
+| `hashExclude` | `string[]` | none | Frontmatter keys left out of a page's `contentHash` |
 | `plugins` | `docviaPlugin[]` | `[]` | Build-time transform plugins |
 
 ## Custom frontmatter
 
-Extend the built-in schema with Zod. Built-in fields (`title`, `description`,
-`tags`, `order`, `slug`, `draft`) are always available; your extensions are
-merged and validated at build time.
+Extend the built-in schema with any Standard Schema library, such as Zod.
+Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are
+always available; your extensions are validated at build time and typed in the
+generated `.docvia/types.d.ts`. A collection can set its own `frontmatter`.
 
 ```typescript
 import { z } from "zod";
@@ -72,17 +74,16 @@ export default defineConfig({
 
 ## Vite integration
 
-`vite.config.ts` needs the single `docvia()` plugin. It runs the compiler
-in-process — compilation happens during dev and build, with no separate step.
+`vite.config.ts` needs the single `docvia()` plugin. It loads `docvia.config.ts`
+and runs the compiler in-process during dev and build, with no separate step.
 
 ```typescript
 import { docvia } from "@docvia/plugin-vite";
+import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docvia(docviaConfig)],
+  plugins: [sveltekit({ adapter: adapter() }), docvia()],
 });
 ```
-</content>

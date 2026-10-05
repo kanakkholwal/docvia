@@ -1,8 +1,6 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: webpack/Turbopack loader context is intentionally untyped.
-// Webpack + Turbopack loader for docvia markdown. Both bundlers call this for
-// `*.md?docvia` imports emitted into `.docvia/dynamic.ts`; it runs the shared
-// in-house transform (`compileMarkdownToModule`) and returns the rendered
-// module. This is the thin per-bundler shim — all real work is in core.
+// Webpack and Turbopack loader for the `*.md?docvia` imports in `.docvia/source.ts`:
+// a thin shim over `compileMarkdownToModule`.
 import { relative, resolve } from "node:path";
 import type { docviaConfig } from "@docvia/ir";
 import type { PluginRunner } from "@docvia/plugins";

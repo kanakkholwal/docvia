@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type {
+	CollectionConfig,
 	docviaConfig,
 	docviaPlugin,
 	FileEntry,
@@ -162,9 +163,13 @@ export class PluginRunner {
  */
 export function defineConfig<
 	const F extends FrontmatterSchema = FrontmatterSchema,
+	const C extends readonly CollectionConfig[] = readonly CollectionConfig[],
 >(
-	config: Partial<Omit<docviaConfig, "frontmatter">> & { frontmatter?: F },
-): docviaConfig & { readonly frontmatter?: F } {
+	config: Partial<Omit<docviaConfig, "frontmatter" | "collections">> & {
+		frontmatter?: F;
+		collections?: C;
+	},
+): docviaConfig & { readonly frontmatter?: F; readonly collections?: C } {
 	return {
 		sourceDir: config.sourceDir ?? "docs",
 		outDir: config.outDir ?? ".docvia",
@@ -173,6 +178,7 @@ export function defineConfig<
 		components: config.components,
 		collections: config.collections,
 		frontmatter: config.frontmatter,
+		hashExclude: config.hashExclude,
 		markdown: {
 			remarkPlugins: config.markdown?.remarkPlugins ?? [],
 		},

@@ -26,5 +26,6 @@
  *   hydrate(manifest, registry);
  */
 
+export { installCodeGroups } from "@docvia/renderer-core/client";
 export type { HydrateOptions } from "./hydrate";
 export { hydrate } from "./hydrate";

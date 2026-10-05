@@ -12,12 +12,14 @@ you the framework adapter.
 ## Install
 
 ```bash
-pnpm add -D @docvia/cli
-pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add -D @docvia/cli @docvia/plugin-vite   # or @docvia/plugin-next
+pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
 ```
 
-The CLI is the only required dev dependency. The renderer is a runtime
-dependency because its types and the generated module graph reference it.
+The CLI and the framework plugin (which exports `defineConfig`) are dev
+dependencies. `@docvia/source` is a runtime dependency
+because the generated module graph imports it; the renderer is a runtime
+dependency because your pages render with it.
 
 ## Scaffold
 
@@ -47,15 +49,16 @@ bundler's `?docvia` transform:
 |---|---|
 | `source.ts` | The typed collection helper: `getPage`, `getPages`, `pageTree`. Eager imports, so **server-only** (see below). |
 | `browser.ts` | The lazy, client counterpart. One `() => import()` per page, so each page code-splits into its own chunk. |
-| `dynamic.ts` | The page module map the collections read from. |
-| `registry.ts` | The component registry for `:::component` directives (only when components are configured). |
+| `registry.ts` | The component registry for `:::component` directives (empty when no components are configured). |
 | `types.d.ts` | Generated frontmatter and route-key types. |
+| `env.d.ts` | Ambient declarations so the source and registry modules resolve in TypeScript. |
 | `.docvia.cache.json` | The incremental build cache. |
 
-A project-root `docvia-env.d.ts` is also written so the source module resolves
-in TypeScript (`virtual:docvia/source` on Vite, `docvia/source` on Next.js, each
-with a `/browser` counterpart). Subsequent runs read `.docvia.cache.json` and
-skip files whose content hash is unchanged. See
+Files are only rewritten when their content changes. Add `".docvia/*.d.ts"` to
+your `tsconfig.json` `include` so `virtual:docvia/source` (Vite) or
+`docvia/source` (Next.js), their `/browser` counterparts, and the registry
+module type-check. Subsequent runs read `.docvia.cache.json` and skip files
+whose content hash is unchanged. See
 [Incremental builds](/docs/guide/incremental-builds).
 
 > [!WARNING]
@@ -102,7 +105,7 @@ Vite, and server-side rendering setups.
 ## A minimal config
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 

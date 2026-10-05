@@ -1,12 +1,13 @@
 <script lang="ts">
 import { afterNavigate } from "$app/navigation";
 import { page } from "$app/state";
-import Brand from "$lib/components/brand.svelte";
-import SearchDialog from "$lib/components/docs/search-dialog.svelte";
-import Sidebar from "$lib/components/docs/sidebar.svelte";
-import Toc from "$lib/components/docs/toc.svelte";
-import ThemeToggle from "$lib/components/theme-toggle.svelte";
-import { ArrowLeft, Github, Menu, X } from "@lucide/svelte";
+import Brand from "#lib/components/brand.svelte";
+import SearchDialog from "#lib/components/docs/search-dialog.svelte";
+import Sidebar from "#lib/components/docs/sidebar.svelte";
+import Toc from "#lib/components/docs/toc.svelte";
+import ThemeToggle from "#lib/components/theme-toggle.svelte";
+import { ArrowLeft, Menu, X } from "@lucide/svelte";
+import Github from "#lib/components/icons/github.svelte";
 import { cubicOut } from "svelte/easing";
 import { slide } from "svelte/transition";
 

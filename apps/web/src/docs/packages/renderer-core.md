@@ -29,17 +29,18 @@ npm install @docvia/renderer-core
 
 ## Exports
 
-This package exposes a single entry point.
-
 | Subpath | Purpose |
 | --- | --- |
-| `.` | The complete public API. Re-exports the default renderer map, the `RenderError` class, the generic `hydrate()` helper, the `renderDocument`/`renderNodes` functions, and all rendering types. |
+| `.` | The complete public API. Re-exports the default renderer map, `createModuleRenderer`, the `RenderError` class, the generic `hydrate()` helper, the `renderDocument`/`renderNodes` functions, and all rendering types. |
+| `./client` | Browser helpers: `installCodeGroups()`. |
+| `./package.json` | Package metadata. |
 
 ```ts
 import {
   createDefaultRendererMap,
   renderDocument,
   renderNodes,
+  createModuleRenderer,
   hydrate,
   RenderError,
   type RenderOutput,
@@ -217,18 +218,33 @@ function createDefaultRendererMap(): RendererMap;
 
 Builds a `RendererMap` covering every standard IR node type. The returned map handles:
 
-`paragraph`, `heading`, `text`, `emphasis`, `strong`, `code-block`, `inline-code`, `image`, `link`, `list`, `list-item`, `table`, `table-row`, `table-cell`, `blockquote`, `thematic-break`, `component`, `component-inline`, `element`, and `unknown` (the fallback).
+`paragraph`, `heading`, `text`, `emphasis`, `strong`, `code-block`, `code-group`, `inline-code`, `image`, `link`, `list`, `list-item`, `table`, `table-row`, `table-cell`, `blockquote`, `thematic-break`, `component`, `component-inline`, `element`, and `unknown` (the fallback).
 
 Notable behaviours:
 
 - **`heading`** emits `h1` to `h6` from `node.props.depth` and copies `node.props.id` so anchored links work.
-- **`code-block`** emits a node's pre-highlighted `props.html` directly when present (set by a build-time plugin such as `@docvia/plugin-shiki`). Otherwise, if `ctx.highlighter` is set, it calls `highlight()` and wraps the result in `<div class="docvia-code-block">`; if no highlighter is configured, it emits a plain `<pre><code>` block. A failing highlight call reports a `HIGHLIGHT_ERROR` and falls back to a plain `<pre>`.
+- **`code-block`** emits a node's pre-highlighted `props.html` directly when present (set by a build-time plugin such as `@docvia/plugin-shiki`). Otherwise, if `ctx.highlighter` is set, it calls `highlight()` and wraps the result in `<div class="docvia-code-block">`; if no highlighter is configured, it emits a plain `<pre><code>` block and warns once that code blocks render unhighlighted. A failing highlight call reports a `HIGHLIGHT_ERROR` and falls back to a plain `<pre>`. A block with a `title` is wrapped in `figure.docvia-code-figure` with a `figcaption.docvia-code-title`.
+- **`code-group`** emits a tabbed group. See [Code blocks](#code-blocks).
 - **`list`** emits `ol` (carrying `start`) or `ul` based on `node.props.ordered`.
 - **`table-cell`** emits `th` or `td` based on `node.props.tag`.
 - **`component`** and **`component-inline`** resolve the name through the registry, merge `defaultProps` under the directive attributes, read the `hydrate` mode (defaulting to `"none"`), and emit a `component` output. `component-inline` always has empty children.
 - **`unknown`** emits a `<div data-unknown-type="…">` placeholder rather than throwing.
 
 The map is self-referential: every renderer recurses through the same map, so a custom map can be built by spreading the default and overriding individual keys.
+
+### createModuleRenderer()
+
+```ts
+function createModuleRenderer(
+  identity: { name: string; runtimePackage: string },
+  options?: {
+    registry?: ComponentRegistry;
+    transform?: (output: RenderOutput, doc: IRDocument) => RenderOutput | Promise<RenderOutput>;
+  },
+): RendererAdapter;
+```
+
+The shared base of `createSvelteRenderer` and `createReactRenderer`. It emits each page as a module exporting `meta`, `content` (a `RenderOutput`), and `manifest`, and reports `runtimePackage` as the adapter's `runtimePackages` so bundler integrations can pre-bundle it. `transform` rewrites the render tree before serialization, so you can group nodes or add attributes without forking the renderer.
 
 ### renderDocument()
 
@@ -278,6 +294,40 @@ A **generic, Svelte-style island hydration** helper. It walks the manifest and m
 - Instantiates the resolved component with `new Component({ target, props, hydrate: true })`, the Svelte-component calling convention.
 
 > This helper assumes the Svelte component instantiation API. The React adapter ships its own DOM-aware `hydrate()` in `@docvia/renderer-react/client` that uses `hydrateRoot`/`createRoot` instead.
+
+### installCodeGroups()
+
+```ts
+import { installCodeGroups } from "@docvia/renderer-core/client";
+
+function installCodeGroups(): void;
+```
+
+Installs one delegated click listener that switches tabs in rendered code groups. Safe to call repeatedly. Svelte's `<Renderer>` and React's `hydrate()` already call it; use it directly in custom setups.
+
+## Code blocks
+
+Fence meta after the language adds a caption or a tab label:
+
+`````md
+```ts title="vite.config.ts"
+export default {};
+```
+
+```bash tab="React"
+pnpm add @docvia/renderer-react
+```
+```bash tab="Svelte"
+pnpm add @docvia/renderer-svelte
+```
+`````
+
+- `title="..."` renders a `figure.docvia-code-figure` with `figcaption.docvia-code-title`.
+- Adjacent fences with `tab="..."` become one tabbed `code-group`.
+- A `:::code-group` container directive groups the fences inside it. Tab labels fall back to `title`, then the language.
+- A fence with language `npm` (or `package-install`) expands into npm, pnpm, yarn, and bun tabs. `npm i -D x` becomes `pnpm add -D x`, `yarn add -D x`, `bun add -D x`; `npx` becomes `pnpm dlx`, `yarn dlx`, `bunx`; a bare package name means "install it".
+
+Groups render as accessible HTML: a `role="tablist"` of `role="tab"` buttons and one `role="tabpanel"` per block, inside `[data-docvia-code-group]`.
 
 ## Usage
 

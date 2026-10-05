@@ -1,6 +1,6 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 import { createFetchClient, type SearchResult } from "@docvia/search";
 import { CornerDownLeft, FileText, Search, X } from "@lucide/svelte";
 import { onMount, tick } from "svelte";

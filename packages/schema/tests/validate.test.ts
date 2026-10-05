@@ -171,19 +171,16 @@ describe("validateFrontmatter", () => {
 
 	it("validates using DocPageSchema directly", () => {
 		const data = { title: "Test", description: "Desc", tags: ["t1", "t2"] };
-		const result = DocPageSchema.safeParse(data);
+		const result = DocPageSchema["~standard"].validate(data);
 
-		expect(result.success).toBe(true);
-		if (result.success) {
-			expect(result.data.title).toBe("Test");
-		}
+		expect(result).toMatchObject({ value: { title: "Test", draft: false } });
 	});
 
 	it("DocPageSchema rejects invalid data", () => {
 		const data = { description: "No title" };
-		const result = DocPageSchema.safeParse(data);
+		const result = DocPageSchema["~standard"].validate(data);
 
-		expect(result.success).toBe(false);
+		expect(result).toMatchObject({ issues: [{ path: ["title"] }] });
 	});
 
 	it("handles title as non-string gracefully", () => {

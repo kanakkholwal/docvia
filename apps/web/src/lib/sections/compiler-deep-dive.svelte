@@ -1,7 +1,7 @@
 <script lang="ts">
-import CodeSample from "$lib/components/code-sample.svelte";
-import { type SnippetName, snippets } from "$lib/snippets";
-import { cn } from "$lib/utils";
+import CodeSample from "#lib/components/code-sample.svelte";
+import { type SnippetName, snippets } from "#lib/snippets.ts";
+import { cn } from "#lib/utils.ts";
 import { ArrowRight } from "@lucide/svelte";
 import { cubicOut } from "svelte/easing";
 import { fade } from "svelte/transition";

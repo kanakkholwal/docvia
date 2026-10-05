@@ -10,22 +10,32 @@ adapter.
 
 ```bash
 pnpm add -D @docvia/plugin-vite
+pnpm add @docvia/source
 ```
 
 ## Usage
 
 ```ts
+// vite.config.ts
 import { docvia } from "@docvia/plugin-vite";
-import docviaConfig from "./docvia.config";
 
 export default {
-  plugins: [docvia(docviaConfig)],
+  plugins: [docvia()], // loads docvia.config.* from the Vite root
 };
 ```
 
-`docvia()` runs the `CompileService` in-process. In dev it serves
-`docvia/source` as a virtual module and recompiles incrementally on every
-change (HMR); for production builds it emits the on-disk module graph.
+```ts
+// docvia.config.ts
+import { defineConfig } from "@docvia/plugin-vite";
+```
+
+`docvia()` runs the `CompileService` in-process and serves three virtual
+modules: `virtual:docvia/source` (eager, server only), `virtual:docvia/source/browser`
+(lazy, code-split), and `virtual:docvia/registry` (component registry). It
+recompiles incrementally on every change (HMR), including added, renamed, or
+deleted pages, and adds the renderer's runtime package to `ssr.noExternal` and
+`optimizeDeps.include`. Types are written to `.docvia/env.d.ts`; add
+`".docvia/*.d.ts"` to your `tsconfig.json` `include` and run `docvia sync` in CI.
 
 ## Documentation
 

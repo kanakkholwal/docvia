@@ -17,8 +17,9 @@ full breakdown.
 
 - **IR-based.** Markdown is parsed, sanitized, and transformed into an
   Intermediate Representation once; renderers turn that IR into framework output.
-- **Typed frontmatter.** Extend the built-in schema with a Zod object and docvia
-  generates a `Frontmatter` interface for every collection.
+- **Typed frontmatter.** Extend the built-in schema with any Standard Schema
+  (Zod, Valibot, ArkType, ...) and docvia generates a `Frontmatter` type for
+  every collection.
 - **Incremental.** A content-addressed cache skips unchanged files — across
   builds and, in dev, on every keystroke.
 - **Pluggable.** Five hook points across the pipeline, plus build-time syntax
@@ -29,8 +30,8 @@ full breakdown.
 ## Install
 
 ```bash
-pnpm add -D @docvia/cli
-pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add -D @docvia/cli @docvia/plugin-vite   # or @docvia/plugin-next
+pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
 ```
 
 ## Quick start
@@ -39,12 +40,13 @@ pnpm add @docvia/renderer-react   # or @docvia/renderer-svelte
 npx docvia init                  # scaffold docs/ + docvia.config.ts
 npx docvia build                 # compile to .docvia/
 npx docvia dev                   # watch & recompile incrementally
+npx docvia sync                  # write .docvia types only (for CI type checks)
 ```
 
 Minimal `docvia.config.ts`:
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -67,12 +69,16 @@ const all = docs.getPages();                          // metadata for every page
 const tree = docs.pageTree;                           // navigation tree
 ```
 
+Generated types live in `.docvia/`: add `".docvia/*.d.ts"` to your
+`tsconfig.json` `include`, and run `docvia sync` before `tsc` / `svelte-check`
+in CI. Generated code imports only `@docvia/source`, so install it directly.
+
 ## Framework integration
 
-The recommended setup runs docvia **in-process** inside your bundler — no
+The recommended setup runs docvia **in-process** inside your bundler: no
 separate `docvia build` step, incremental recompilation in dev, and a virtual
 source module (`virtual:docvia/source` on Vite, the aliased `docvia/source` on
-Next.js) so nothing is written to disk during development.
+Next.js), so only the `.docvia/*.d.ts` type files are written during development.
 
 ### SvelteKit (Vite)
 
@@ -82,20 +88,21 @@ pnpm add @docvia/renderer-svelte @docvia/source
 ```
 
 ```ts
-// vite.config.ts
+// vite.config.ts (SvelteKit 3: no svelte.config.js)
 import { docvia } from "@docvia/plugin-vite";
+import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docvia(docviaConfig)],
+  plugins: [sveltekit({ adapter: adapter() }), docvia()], // docvia() loads docvia.config.ts
 });
 ```
 
-`docvia()` runs the `CompileService` in-process: it serves `virtual:docvia/source`
-(and `virtual:docvia/source/browser`) as virtual modules in dev with incremental
-HMR, and serves them from the `load` hook for production builds too. The config must use the Svelte renderer
+`docvia()` runs the `CompileService` in-process: it serves `virtual:docvia/source`,
+`virtual:docvia/source/browser`, and `virtual:docvia/registry` from its `load`
+hook in dev (with incremental HMR) and in production builds. It configures
+`ssr.noExternal` and `optimizeDeps` for the renderer itself. The config must use the Svelte renderer
 (`createSvelteRenderer` from `@docvia/renderer-svelte/node`). Consume pages in a
 catch-all route via `docs.getPage(...)` and render them with the `Renderer`
 component from `@docvia/renderer-svelte`. See
@@ -109,8 +116,8 @@ pnpm add -D @docvia/plugin-next @docvia/cli
 pnpm add @docvia/renderer-react @docvia/source react react-dom
 ```
 
-```js
-// next.config.mjs
+```ts
+// next.config.ts
 import { withDocvia } from "@docvia/plugin-next";
 
 export default withDocvia({ configPath: "./docvia.config.ts" })({
@@ -119,7 +126,7 @@ export default withDocvia({ configPath: "./docvia.config.ts" })({
 ```
 
 `withDocvia` drives the `CompileService` when the Next config is evaluated,
-aliases `docvia/source` for **both webpack and Turbopack**, and runs an
+aliases `docvia/source` and `docvia/registry` for **both webpack and Turbopack**, and runs an
 incremental watcher in dev. See [`examples/demo-next`](./examples/demo-next).
 
 ### Server-side rendering
@@ -165,12 +172,12 @@ output only. It is not a runtime; use a framework integration for a real site.
 
 | Package | Version | Purpose |
 |---|---|---|
-| [`@docvia/cli`](https://www.npmjs.com/package/@docvia/cli) | [![npm](https://img.shields.io/npm/v/@docvia/cli.svg)](https://www.npmjs.com/package/@docvia/cli) | `init` / `build` / `dev` / `preview` commands. |
+| [`@docvia/cli`](https://www.npmjs.com/package/@docvia/cli) | [![npm](https://img.shields.io/npm/v/@docvia/cli.svg)](https://www.npmjs.com/package/@docvia/cli) | `init` / `build` / `dev` / `sync` / `preview` commands (dev dependency only). |
 | [`@docvia/runtime`](https://www.npmjs.com/package/@docvia/runtime) | [![npm](https://img.shields.io/npm/v/@docvia/runtime.svg)](https://www.npmjs.com/package/@docvia/runtime) | `CompileService` — the stateful compile core shared by build, dev, and SSR. |
 | [`@docvia/compiler`](https://www.npmjs.com/package/@docvia/compiler) | [![npm](https://img.shields.io/npm/v/@docvia/compiler.svg)](https://www.npmjs.com/package/@docvia/compiler) | Batch build entry (`compile()`), a thin wrapper over `CompileService`. |
 | [`@docvia/core`](https://www.npmjs.com/package/@docvia/core) | [![npm](https://img.shields.io/npm/v/@docvia/core.svg)](https://www.npmjs.com/package/@docvia/core) | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
 | [`@docvia/ir`](https://www.npmjs.com/package/@docvia/ir) | [![npm](https://img.shields.io/npm/v/@docvia/ir.svg)](https://www.npmjs.com/package/@docvia/ir) | Intermediate representation, error system, AST → IR transform. |
-| [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Zod), YAML extraction, TS codegen. |
+| [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Standard Schema), YAML extraction, TS codegen. |
 | [`@docvia/plugins`](https://www.npmjs.com/package/@docvia/plugins) | [![npm](https://img.shields.io/npm/v/@docvia/plugins.svg)](https://www.npmjs.com/package/@docvia/plugins) | `defineConfig`, `loadConfig`, `PluginRunner`. |
 | [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for non-framework Node servers. |
 | [`@docvia/renderer-core`](https://www.npmjs.com/package/@docvia/renderer-core) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-core.svg)](https://www.npmjs.com/package/@docvia/renderer-core) | Framework-agnostic rendering engine and default renderers. |
@@ -196,4 +203,6 @@ setup, watch modes, and release workflow.
 
 ## License
 
-MIT
+The published `@docvia/*` packages (`packages/*`) are MIT licensed; each ships
+its own `LICENSE`. The rest of the repository, including `apps/` and
+`examples/`, is GPL-3.0 (see [LICENSE](./LICENSE)).

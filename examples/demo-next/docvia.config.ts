@@ -1,4 +1,4 @@
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { shiki } from "@docvia/plugin-shiki";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { z } from "zod/v3";

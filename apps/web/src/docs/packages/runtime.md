@@ -67,10 +67,20 @@ Key methods:
 | `invalidate(filePaths)` | Incrementally recompile changed files; returns an `InvalidationResult` with `changed` and `routeMapChanged`. |
 | `getDocument(collection, slug)` | Resolve a compiled `IRDocument` by route. |
 | `getDocumentByPath(path)` | Resolve a compiled document by source path. |
-| `emitDiskModuleGraph()` | Write the on-disk module graph (thin `?docvia` glue; no IR chunks). |
+| `emitDiskModuleGraph()` | Write the on-disk module graph (`source.ts`, `browser.ts`, `registry.ts`, the type files) and persist the cache. Files are rewritten only when their content changes. |
 | `getVirtualSourceModule()` | Produce the eager source module as a string (for virtual-module bundler integrations, e.g. `virtual:docvia/source`). |
 | `getVirtualBrowserModule()` | Produce the lazy, client-code-split browser module as a string (`virtual:docvia/source/browser`). |
-| `emitTypeDeclarations()` | Write `types.d.ts` and `docvia-env.d.ts`. |
+| `getVirtualRegistryModule()` | Produce the component registry module as a string (`virtual:docvia/registry`). |
+| `collectionDirs()` | Every collection's resolved `sourceDir`, for watchers. |
+| `emitTypeDeclarations()` | Write `<outDir>/types.d.ts` and `<outDir>/env.d.ts`. |
+
+### `syncTypes`
+
+```ts
+function syncTypes(options?: { cwd?: string; configPath?: string }): Promise<{ outDir: string; pages: number }>;
+```
+
+Loads the config, compiles, and writes the two type files without a bundler. `docvia sync` calls it.
 
 ### `InvalidationResult`
 

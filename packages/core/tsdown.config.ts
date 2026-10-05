@@ -1,13 +1,8 @@
 import { defineConfig } from "tsdown";
+import { packageConfig } from "../../tsdown.base.ts";
 
-export default defineConfig({
-	entry: ["src/index.ts"],
-	format: ["esm"],
-	sourcemap: true,
-
-	clean: true,
-	dts: true,
-	treeshake: true,
-	outDir: "dist",
-	target: false,
-});
+export default defineConfig(
+	packageConfig({
+		entry: ["src/index.ts"],
+	}),
+);

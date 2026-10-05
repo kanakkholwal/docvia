@@ -1,11 +1,11 @@
 ---
 title: "@docvia/cli"
-description: "The docvia command-line interface: scaffold, build, watch, and preview documentation projects."
+description: "The docvia command-line interface: scaffold, build, watch, sync types, and preview documentation projects."
 eyebrow: "Packages"
 order: 1
 ---
 
-`@docvia/cli` is the command-line entry point for docvia. It ships the `docvia` binary, loads your `docvia.config.ts`, and drives `@docvia/compiler`'s `compile()` routine. Beyond the four commands, it re-exports `defineConfig` so config files can import everything they need from a single package.
+`@docvia/cli` is the command-line entry point for docvia. It ships the `docvia` binary, loads your `docvia.config.ts`, and drives `@docvia/compiler`'s `compile()` routine. It is a dev dependency only. It also re-exports `defineConfig`, but config files should import it from `@docvia/plugin-vite` or `@docvia/plugin-next`.
 
 ## Install
 
@@ -26,7 +26,8 @@ A typical `package.json` wires the commands into scripts:
   "scripts": {
     "docs:dev": "docvia dev",
     "docs:build": "docvia build",
-    "docs:preview": "docvia preview"
+    "docs:preview": "docvia preview",
+    "check": "docvia sync && tsc --noEmit"
   }
 }
 ```
@@ -37,7 +38,8 @@ A typical `package.json` wires the commands into scripts:
 
 | Subpath | Resolves to | Purpose |
 |---|---|---|
-| `.` | `./dist/index.mjs` | Programmatic API: `runCli`, `defineConfig`, and re-exported config types. |
+| `.` | `./dist/index.js` | Programmatic API: `runCli`, `defineConfig`, and re-exported config types. |
+| `./package.json` | `./package.json` | Package metadata. |
 
 ### `bin`
 
@@ -68,15 +70,11 @@ The `bin.mjs` shim calls `runCli()` explicitly; any downstream tooling that want
 
 ### `defineConfig`
 
-```ts
-import { defineConfig } from "@docvia/cli";
-```
-
-Re-exported from `@docvia/plugins`. It is the identity helper used in `docvia.config.ts` to get full type-checking and editor completion on the config object.
+Re-exported from `@docvia/plugins`. It is the helper used in `docvia.config.ts` to get full type-checking and editor completion on the config object. Since the CLI is a dev-only tool, import it from your framework plugin instead:
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
 
 export default defineConfig({
   sourceDir: "docs",
@@ -99,7 +97,7 @@ Prints the installed CLI version. The version is read from `process.env.npm_pack
 
 ## Commands
 
-The CLI exposes four commands: `init`, `build`, `dev`, and `preview`.
+The CLI exposes five commands: `init`, `build`, `dev`, `sync`, and `preview`.
 
 ### `docvia init`
 
@@ -178,6 +176,20 @@ Behavior:
 ```bash
 docvia dev --docs content
 ```
+
+### `docvia sync`
+
+Compiles the content and writes `.docvia/types.d.ts` and `.docvia/env.d.ts` without a bundler, like `svelte-kit sync`. Run it before `tsc` or `svelte-check` in CI, where no dev server has written them.
+
+| Flag | Default | Behavior |
+|---|---|---|
+| `--config <path>` | auto-detected | Path to the config file. |
+
+```bash
+docvia sync && svelte-kit sync && svelte-check
+```
+
+The same routine is available programmatically as `syncTypes({ cwd?, configPath? })` from `@docvia/runtime`.
 
 ### `docvia preview`
 

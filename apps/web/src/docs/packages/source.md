@@ -18,22 +18,19 @@ pnpm add @docvia/source
 | Subpath | Contents | Notes |
 |---|---|---|
 | `.` | Re-exports `./runtime` | The default entry: **types only**, no runtime values. **Does not** re-export the `./internal` factories. |
-| `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, `HydrationManifest`. |
-| `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated `.docvia/source.ts`. |
+| `./runtime` | Types only | `docviaPage`, `docviaCollection`, `docviaSource`, `PageTree`, plus `RenderOutput`, `ComponentRegistry`, `HydrationManifest`, and `HydrationEntry` re-exported from `@docvia/renderer-core`. |
+| `./internal` | `createCollection`, `createSource`, `ModuleExports` | Used by the generated source modules. |
+| `./package.json` | Package metadata | |
 
 > `createCollection` and `createSource` live in `./internal` and are intentionally **not** re-exported from `.`. Application code generally does not import them directly, because the compiler emits a `.docvia/source.ts` that calls them for you. Import from `@docvia/source/internal` only when you are building generated output by hand.
 
-This package ships no binary.
+This package ships no binary. Every docvia-generated module imports only `@docvia/source`, so apps must list it as a direct dependency.
 
 ## Runtime types (`@docvia/source/runtime`)
 
-### `HydrationManifest`
+### `RenderOutput`, `ComponentRegistry`, `HydrationManifest`
 
-```ts
-type HydrationManifest = any;
-```
-
-An opaque manifest describing the interactive islands embedded in a page. Its concrete shape is renderer-specific.
+Re-exported from [`@docvia/renderer-core`](/docs/packages/renderer-core), so app code can type pages without depending on a renderer. `HydrationManifest` is the list of interactive islands embedded in a page.
 
 ### `namespace PageTree`
 
@@ -94,9 +91,9 @@ interface docviaPage<TFrontmatter = unknown> {
   slugs: string[];
   url: string;
   data: TFrontmatter;
-  content: any;
+  content: RenderOutput;
   manifest: HydrationManifest;
-  headings?: Array<{ depth: number; text: string; id: string }>;
+  headings: Array<{ depth: number; text: string; id: string }>;
 }
 ```
 
@@ -105,9 +102,9 @@ interface docviaPage<TFrontmatter = unknown> {
 | `slugs` | `string[]` | Path segments identifying the page. |
 | `url` | `string` | Resolved URL. |
 | `data` | `TFrontmatter` | Validated frontmatter. |
-| `content` | `any` | Renderer-native compiled content (e.g. a component module). |
+| `content` | `RenderOutput` | The render tree; pass it to the renderer's `<Renderer nodes>` / `<DocviaContent nodes>`. |
 | `manifest` | `HydrationManifest` | Island hydration manifest. |
-| `headings` | array | Optional flat list of headings for building a table of contents. |
+| `headings` | array | Always present. The h2 to h6 outline, for building a table of contents. |
 
 ### `interface docviaCollection`
 
@@ -222,7 +219,7 @@ export { docs };
 export const docviaSource = createSource({ docs });
 ```
 
-Consuming it from a framework app. The import specifier is **bundler-specific**:
+Consuming it from a framework app. The import specifier is **bundler-specific**. The component registry is a separate module (`virtual:docvia/registry` / `docvia/registry`), not an export of the source module:
 
 ```ts
 // Vite (and SvelteKit): the Vite plugin serves a virtual module
@@ -248,7 +245,8 @@ const same = await docviaSource.collections.docs.getPage(["getting-started"]);
 > provide.
 >
 > Read it from server-only modules (`+page.server.ts`, `+layout.server.ts`, a
-> React Server Component, `getStaticProps`). If you genuinely need a collection
+> React Server Component, `getStaticProps`). The Vite plugin logs a warning when
+> client code imports `virtual:docvia/source`. If you genuinely need a collection
 > on the client, import the lazy counterpart instead:
 > `virtual:docvia/source/browser` (Vite) / `docvia/source/browser` (Next). Its
 > `getModule` uses `() => import("…md?docvia")`, so each page is its own chunk

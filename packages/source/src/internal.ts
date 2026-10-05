@@ -3,6 +3,7 @@ import type {
 	docviaPage,
 	docviaSource,
 	PageTree,
+	RenderOutput,
 } from "./runtime";
 
 /**
@@ -19,8 +20,7 @@ export interface ModuleMeta {
 
 export interface ModuleExports {
 	meta: ModuleMeta;
-	// biome-ignore lint/suspicious/noExplicitAny: content shape varies by renderer (RenderOutput[] for React/Svelte adapters) — intentionally polymorphic.
-	content: any;
+	content: RenderOutput;
 	manifest: unknown;
 }
 
@@ -44,7 +44,6 @@ export function createCollection<
 		| Promise<Record<string, ModuleExports> | null>
 		| Record<string, ModuleExports>
 		| null;
-	sourceModuleUrl: string;
 }): docviaCollection<TFrontmatter, TRouteKey> {
 	const { baseUrl, routeKeys, getModule } = opts;
 
@@ -271,7 +270,7 @@ export function createCollection<
 				data: mod.meta as TFrontmatter,
 				content: mod.content,
 				manifest: mod.manifest,
-				headings: mod.meta?.headings,
+				headings: mod.meta?.headings ?? [],
 			} as docviaPage<TFrontmatter>;
 		},
 

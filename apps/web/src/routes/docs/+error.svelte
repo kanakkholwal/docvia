@@ -1,7 +1,7 @@
 <script lang="ts">
-import { dev } from "$app/environment";
+import { dev } from "$app/env";
 import { page } from "$app/state";
-import { Button } from "$lib/components/ui/button";
+import { Button } from "#lib/components/ui/button/index.ts";
 import { ArrowLeft, Home, Search } from "@lucide/svelte";
 
 const status = $derived(page.status);

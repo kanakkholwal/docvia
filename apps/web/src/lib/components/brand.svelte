@@ -1,6 +1,6 @@
 <script lang="ts">
-import LogoMark from "$lib/components/logo-mark.svelte";
-import { cn } from "$lib/utils";
+import LogoMark from "#lib/components/logo-mark.svelte";
+import { cn } from "#lib/utils.ts";
 
 type Size = "sm" | "md" | "lg";
 

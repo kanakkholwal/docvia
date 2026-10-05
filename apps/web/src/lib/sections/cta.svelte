@@ -1,6 +1,7 @@
 <script lang="ts">
-import { ArrowRight, Github } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
+import { ArrowRight } from "@lucide/svelte";
+import Github from "#lib/components/icons/github.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
 </script>
 
 <!-- Quiet, centered close. The full-bleed colour band this replaced fought the

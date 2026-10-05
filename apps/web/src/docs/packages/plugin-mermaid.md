@@ -30,7 +30,7 @@ Register it in the `plugins` array of your `docvia.config.ts`. Put it before
 any highlighter so diagram fences are claimed first:
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
@@ -87,7 +87,7 @@ renderer:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import Mermaid from "$lib/components/mermaid.svelte";
+  import Mermaid from "#lib/components/mermaid.svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -106,7 +106,7 @@ of the server bundle and off the initial page payload:
 
 ```svelte
 <script lang="ts">
-  import { browser } from "$app/environment";
+  import { browser } from "$app/env";
 
   let { code, title }: { code: string; title?: string } = $props();
   let svg = $state("");
@@ -158,9 +158,8 @@ graph LR
 ```
 ````
 
-The fence meta string (` ```mermaid My caption `) cannot be used for this:
-[`@docvia/ir`](/docs/packages/ir) drops it when converting the HAST tree, so it
-never reaches a plugin.
+The plugin reads the caption only from the `%% title:` line; a fence
+`title="..."` attribute is ignored for diagrams.
 
 ## See also
 

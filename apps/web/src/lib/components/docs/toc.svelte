@@ -1,5 +1,5 @@
 <script lang="ts">
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 import { ArrowUp, List } from "@lucide/svelte";
 
 type Heading = { depth: number; text: string; id: string };

@@ -1,14 +1,14 @@
 <script lang="ts">
-import CompilerDeepDive from "$lib/sections/compiler-deep-dive.svelte";
-import Cta from "$lib/sections/cta.svelte";
-import Faq from "$lib/sections/faq.svelte";
-import Features from "$lib/sections/features.svelte";
-import Frameworks from "$lib/sections/frameworks.svelte";
-import Hero from "$lib/sections/hero.svelte";
-import OpenSource from "$lib/sections/open-source.svelte";
-import Quickstart from "$lib/sections/quickstart.svelte";
-import Stats from "$lib/sections/stats.svelte";
-import UseCases from "$lib/sections/use-cases.svelte";
+import CompilerDeepDive from "#lib/sections/compiler-deep-dive.svelte";
+import Cta from "#lib/sections/cta.svelte";
+import Faq from "#lib/sections/faq.svelte";
+import Features from "#lib/sections/features.svelte";
+import Frameworks from "#lib/sections/frameworks.svelte";
+import Hero from "#lib/sections/hero.svelte";
+import OpenSource from "#lib/sections/open-source.svelte";
+import Quickstart from "#lib/sections/quickstart.svelte";
+import Stats from "#lib/sections/stats.svelte";
+import UseCases from "#lib/sections/use-cases.svelte";
 
 // Note: Comparison (vs hosted platforms) and Editions (managed/hosting tiers)
 // are intentionally NOT on the landing page, docvia markets as a developer
