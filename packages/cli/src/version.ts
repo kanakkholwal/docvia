@@ -2,14 +2,7 @@ import { readFileSync } from "node:fs";
 
 let cached: string | undefined;
 
-/**
- * The CLI's own version, read from its `package.json` at runtime.
- *
- * `import.meta.url` resolves to the bundled `dist/index.mjs` (and `bin.mjs`
- * imports that), so `../package.json` lands on the package root in both a
- * workspace checkout and a published install — where `dist/` and
- * `package.json` sit side by side. Falls back to "0.0.0" if anything moves.
- */
+/** The CLI's version from `../package.json` (beside `dist/`), or "0.0.0" if it moved. */
 export function getVersion(): string {
 	if (cached !== undefined) return cached;
 	try {

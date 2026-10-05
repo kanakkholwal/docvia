@@ -27,13 +27,11 @@ Add `openapi()` to the `plugins` array of your `docvia.config.ts`:
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { openapi } from "@docvia/plugin-openapi";
 import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [
     openapi({ spec: "./openapi.yaml" }),

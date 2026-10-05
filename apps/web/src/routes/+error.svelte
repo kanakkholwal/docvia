@@ -1,106 +1,60 @@
 <script lang="ts">
 import { page } from "$app/state";
-import { ArrowRight, Home, Search } from "@lucide/svelte";
-import SiteFooter from "$lib/components/site-footer.svelte";
-import SiteHeader from "$lib/components/site-header.svelte";
-import { Button } from "$lib/components/ui/button";
+import RequestLog from "#lib/components/site/request-log.svelte";
+import Wordmark from "#lib/components/site/wordmark.svelte";
+import SiteFooter from "#lib/components/site-footer.svelte";
+import SiteHeader from "#lib/components/site-header.svelte";
+import { Button } from "#lib/components/ui/button/index.ts";
+import { ArrowRight } from "@lucide/svelte";
 
 const status = $derived(page.status);
-const isNotFound = $derived(status === 404);
-const headline = $derived(
-	isNotFound ? "This page didn't compile." : "Something tripped the build.",
-);
-const tagline = $derived(
-	isNotFound
-		? "There's no source file at this path. The page you were after may have moved, been renamed, or never existed."
-		: "An unexpected error reached the page renderer. The team has been notified.",
-);
-const errorMessage = $derived(page.error?.message ?? "Unknown error");
+const notFound = $derived(status === 404);
+// SvelteKit replaces unexpected error messages with "Internal Error" in production.
+const message = $derived(page.error?.message ?? "Unknown error");
 </script>
 
 <svelte:head>
-	<title>{isNotFound ? "404 · Not found" : `${status} · Error`} · docvia</title>
+	<title>{notFound ? "404 · Not found" : `${status} · Error`} · docvia</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <SiteHeader />
 
-<section id="main" class="relative overflow-hidden bg-canvas">
-	<div
-		class="mx-auto grid min-h-[calc(100vh-8rem)] max-w-page items-center gap-12 px-5 py-14 sm:px-10 md:py-24 lg:grid-cols-12 lg:gap-10"
-	>
-		<!-- Left: editorial copy -->
-		<div class="flex flex-col justify-center lg:col-span-7">
-			<span
-				class="mb-6 inline-flex w-fit items-center gap-2 rounded-full bg-surface-card px-3 py-1.5 text-[13px] font-medium text-body-strong"
-			>
-				<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
-				{isNotFound ? "404 · not found" : `${status} · build error`}
-			</span>
-
-			<h1
-				class="font-display text-[40px] leading-[1.12] tracking-tighter text-ink sm:text-5xl md:text-[60px]"
-			>
-				{headline}
+<main id="main" tabindex="-1" class="mx-auto max-w-page px-5 pt-14 outline-none sm:px-10 sm:pt-20 lg:px-16">
+	<div class="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
+		<div class="flex flex-col max-lg:items-center max-lg:text-center">
+			<span class="rise font-mono text-xs text-brand-ink">{notFound ? "404 · not found" : `${status} · error`}</span>
+			<h1 class="rise mt-5 font-display text-5xl leading-[1.05] tracking-tighter text-ink sm:text-6xl" style="--i: 1">
+				{notFound ? "Nothing compiled" : "This page broke"}
+				<span class="block font-pixel tracking-normal text-brand-ink">{notFound ? "at this path." : "while rendering."}</span>
 			</h1>
-
-			<p class="mt-8 max-w-xl text-[18px] leading-7 text-body">
-				{tagline}
+			<p class="rise mt-6 max-w-md text-lg text-body" style="--i: 2">
+				{notFound
+					? "There is no page here. It may have moved, or the link has a typo."
+					: "Something went wrong on our side. Reloading may help; if it keeps happening, an issue on GitHub helps us fix it."}
 			</p>
-
-			<div class="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-				<Button href="/">
-					<Home />
+			<div class="rise mt-8 flex flex-wrap gap-3 max-lg:justify-center" style="--i: 3">
+				<Button href="/" size="lg" class="group/roll">
 					Back to home
+					<ArrowRight class="transition-transform duration-(--duration-fast) group-hover/roll:translate-x-0.5" />
 				</Button>
-				<Button variant="outline" href="/docs">
-					Get started
-					<ArrowRight />
+				<Button
+					href={notFound ? "/docs/getting-started" : "https://github.com/kanakkholwal/docvia/issues"}
+					variant="secondary"
+					size="lg"
+				>
+					{notFound ? "Read the docs" : "Report an issue"}
 				</Button>
 			</div>
-
-			{#if !isNotFound && page.error}
-				<div
-					class="mt-8 max-w-xl rounded-md border border-hairline bg-surface-card p-4 font-mono text-[12px] text-body"
-				>
-					<div class="label-meta mb-1">Error · {status}</div>
-					<div class="wrap-break-word text-body-strong">{errorMessage}</div>
-				</div>
-			{/if}
 		</div>
-
-		<!-- Right: stylised status illustration card -->
-		<div class="relative lg:col-span-5">
-			<div class="relative rounded-lg border border-hairline bg-surface-soft p-8 md:p-10">
-				<div
-					class="font-display text-[128px] leading-[0.95] text-brand-ink md:text-[160px]"
-					style="letter-spacing: -0.06em;"
-				>
-					{status}
-				</div>
-
-				<!-- Mini console showing the failed resolve -->
-				<div class="mt-6 overflow-hidden rounded-md border border-hairline bg-canvas">
-					<div
-						class="flex items-center gap-2 border-b border-hairline bg-surface-card px-4 py-2.5"
-					>
-						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
-						<span class="h-2.5 w-2.5 rounded-full bg-hairline-strong"></span>
-						<span class="h-2.5 w-2.5 rounded-full bg-brand"></span>
-						<span class="ml-3 font-mono text-[11px] text-muted">
-							docvia · resolve
-						</span>
-					</div>
-					<div class="space-y-2 p-4 font-mono text-[12.5px]">
-						<div class="text-muted">$ docvia resolve {page.url.pathname}</div>
-						<div class="flex items-center gap-2 text-body-strong">
-							<Search class="h-3.5 w-3.5 text-brand-ink" />
-							<span class="text-ink">No matching source file</span>
-						</div>
-						<div class="text-muted">Try a different path or report it.</div>
-					</div>
-				</div>
-			</div>
+		<div class="rise min-w-0" style="--i: 2">
+			<RequestLog path={page.url.pathname} {status} {message} />
 		</div>
 	</div>
-</section>
+
+	<div class="mt-20 overflow-hidden border-t border-dashed border-hairline-strong pt-10">
+		<Wordmark text={String(status)} />
+	</div>
+</main>
+
+<SiteFooter />

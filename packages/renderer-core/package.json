@@ -3,14 +3,10 @@
 	"version": "0.2.3",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./client": "./dist/client.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -21,10 +17,10 @@
 		"@docvia/ir": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.9.3",
-		"vitest": "^4.1.2"
+		"@types/node": "catalog:",
+		"svelte": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	},
 	"description": "Framework-agnostic rendering engine and default renderers for docvia",
 	"license": "MIT",
@@ -41,11 +37,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

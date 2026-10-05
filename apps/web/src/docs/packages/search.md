@@ -7,7 +7,7 @@ order: 31
 
 `@docvia/search` provides section-level full-text search over compiled docvia documentation, powered by [Orama](https://github.com/oramasearch/orama). It supports two modes:
 
-- **Headless server search (recommended).** Build the index in memory on the server from the bundled docvia source and answer queries through a search endpoint. SSR/edge compatible: no static index is shipped to the browser, and the index is derived from the already-bundled `virtual:docvia/source` content, so there is no filesystem access or compiler at request time. This mirrors [Fumadocs' server search](https://www.fumadocs.dev/docs/headless/search).
+- **Headless server search (recommended).** Build the index in memory on the server from a `loader()` source and answer queries through a search endpoint. Each page's `structuredData` is extracted at compile time, so there is no filesystem access or compiler at request time and nothing is shipped to the browser. This mirrors [Fumadocs' server search](https://www.fumadocs.dev/docs/headless/search).
 - **Static index.** Serialize the index to a string at build time and search it in the browser. For fully static sites with no server.
 
 ## Install
@@ -22,6 +22,7 @@ pnpm add @docvia/search
 |---|---|---|
 | `.` | package entry | Edge-safe runtime search: `createFromSource`, `createSearchHandler`, `createFetchClient`, the static `createSearch`, and the indexer/extraction APIs. |
 | `./node` | Node entry | `buildSearchIndex` compiles the docs and emits a serialized static index (build time, Node only). |
+| `./package.json` | `package.json` | Package metadata. |
 
 This package ships no binary.
 
@@ -31,12 +32,12 @@ The index is **section-level**, not page-level. A page is split at each heading:
 
 ## Headless server search (recommended)
 
-Build the index once per server instance from the docvia source, expose it as an endpoint, and query it from the client. The index lives in server memory and is built from content that is already bundled into the SSR output, so it runs anywhere the server runs, on Node or the edge (Cloudflare Workers, and so on).
+Build the index once per server instance from your `loader()` source, expose it as an endpoint, and query it from the client. It runs anywhere the server runs, on Node or the edge (Cloudflare Workers, and so on).
 
 ```ts
 // src/routes/api/search/+server.ts  (SvelteKit)
 import { createFromSource, createSearchHandler } from "@docvia/search";
-import { docs } from "virtual:docvia/source";
+import { source } from "$lib/source";
 import type { RequestHandler } from "./$types";
 
 // Dynamic: runs in the worker, not prerendered.
@@ -45,7 +46,7 @@ export const prerender = false;
 // Build the index lazily on first request, then reuse it.
 let handler: Promise<(request: Request) => Promise<Response>> | null = null;
 const getHandler = () =>
-  (handler ??= createFromSource(docs).then(createSearchHandler));
+  (handler ??= createFromSource(source).then(createSearchHandler));
 
 export const GET: RequestHandler = async ({ request }) =>
   (await getHandler())(request);
@@ -128,6 +129,7 @@ interface SearchResult {
   sectionTitle: string;
   pageTitle: string;
   content: string;
+  url?: string;
   score: number;
 }
 ```
@@ -139,6 +141,7 @@ interface SearchResult {
 | `sectionTitle` | Heading text of the matched section. |
 | `pageTitle` | Title of the containing page. |
 | `content` | Full section text, for rendering a highlighted match snippet. |
+| `url` | Link to the section (page URL plus `#heading`), when the page URL is known. Set by `createFromSource`. |
 | `score` | Relevance score from Orama. |
 
 ### `createSearch`
@@ -158,12 +161,31 @@ Deserializes the string produced by `exportIndex()` and returns a client-side se
 
 ```ts
 function createFromSource(
-  source: docviaCollection | docviaSource,
-  options?: { defaultLimit?: number },
+  source: LoaderOutput | docviaCollection | docviaSource,
+  options?: {
+    defaultLimit?: number;
+    records?: Iterable<SearchRecord>;
+  },
 ): Promise<SearchServer>;
+
+interface SearchRecord {
+  id: string;
+  title: string;
+  url: string;
+  body: string;
+  section?: string; // heading shown in results; defaults to title
+}
 ```
 
-Headless server index. Walks every page's rendered `content` from a docvia source, either a single collection (say `docs` from `virtual:docvia/source`) or a whole `{ collections }` source, and builds an in-memory Orama index. Returns a `SearchServer` with `search(query, { limit })` and a `size` (indexed section count). Call once per server instance and cache the promise. Edge-safe: no filesystem, no compiler.
+Headless server index. Walks every page of a `loader()` source, calls `page.data.load()` and indexes its compile-time `structuredData` into an in-memory Orama index. Legacy config collections (one collection or a whole `{ collections }` source) also work; pages without `structuredData` fall back to their rendered `content`. Returns a `SearchServer` with `search(query, { limit })` and a `size` (indexed section count). Call once per server instance and cache the promise. Edge-safe: no filesystem, no compiler.
+
+`records` adds non-Markdown entries (component specs, API symbols) to the same index, so one query searches both:
+
+```ts
+const server = await createFromSource(source, {
+  records: [{ id: "api:docvia", title: "docvia()", url: "/docs/packages/plugin-vite", body: "The Vite plugin." }],
+});
+```
 
 ### `createSearchHandler`
 
@@ -194,7 +216,7 @@ function extractSectionsFromContent(
 ): SearchDocument[];
 ```
 
-The runtime counterpart to `extractSections`: splits a page's **rendered** `content` (a `RenderOutput` tree, as exported by a `?docvia` module) into section-level documents. Heading anchors come from `props.id`; highlighted code (`html` nodes) is stripped to text. Used internally by `createFromSource`.
+The runtime counterpart to `extractSections`: splits a page's **rendered** `content` (a `RenderOutput` tree) into section-level documents. Heading anchors come from `props.id`; highlighted code (`html` nodes) is stripped to text. `createFromSource` uses it only for pages without `structuredData`.
 
 ### `SearchDocument`
 

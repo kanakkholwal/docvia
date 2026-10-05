@@ -21,7 +21,7 @@ pnpm add -D @docvia/plugin-mermaid
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -39,7 +39,7 @@ Register a component under that name and pass the registry to the renderer:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import Mermaid from "$lib/components/mermaid.svelte";
+  import Mermaid from "#lib/components/mermaid.svelte";
 
   const registry = {
     resolve: (name: string) => (name === "Mermaid" ? { component: Mermaid } : null),
@@ -78,8 +78,8 @@ graph LR
 ```
 ````
 
-The fence meta string cannot carry the caption: `@docvia/ir` drops it when
-converting the HAST tree, so it never reaches a plugin.
+The plugin reads the caption only from the `%% title:` line; a fence
+`title="..."` attribute is ignored for diagrams.
 
 ## Options
 

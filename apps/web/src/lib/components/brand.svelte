@@ -1,6 +1,6 @@
 <script lang="ts">
-import LogoMark from "$lib/components/logo-mark.svelte";
-import { cn } from "$lib/utils";
+import LogoMark from "#lib/components/logo-mark.svelte";
+import { cn } from "#lib/utils.ts";
 
 type Size = "sm" | "md" | "lg";
 
@@ -29,7 +29,7 @@ const d = $derived(dims[size]);
 	href="/"
 	aria-label="docvia home"
 	class={cn(
-		"inline-flex w-fit items-center text-ink transition-opacity duration-(--motion-fast) ease-out hover:opacity-80",
+		"inline-flex w-fit items-center text-ink transition-opacity duration-(--duration-fast) ease-out hover:opacity-80",
 		d.gap,
 		className,
 	)}

@@ -1,7 +1,92 @@
 import type { HydrationMode } from "@docvia/ir";
 import { RenderError } from "./errors";
 import { renderNodes } from "./render";
-import type { RendererMap } from "./types";
+import type { NodeRenderer, RendererMap, RenderOutput } from "./types";
+
+let warnedUnhighlighted = false;
+
+/** Appended to every code block; `installCopyButtons()` from `@docvia/renderer-core/client` wires it. */
+export const COPY_BUTTON_HTML =
+	'<button type="button" class="docvia-copy" data-docvia-copy aria-label="Copy code">Copy</button>';
+
+const copyButton: RenderOutput = { kind: "html", value: COPY_BUTTON_HTML };
+
+/** Wrap a titled block: ```ts title="a.ts" -> figure > figcaption + block. */
+function withTitle(block: RenderOutput, title: unknown): RenderOutput {
+	if (typeof title !== "string" || title === "") return block;
+	return {
+		kind: "element",
+		tag: "figure",
+		props: { class: "docvia-code-figure" },
+		children: [
+			{
+				kind: "element",
+				tag: "figcaption",
+				props: { class: "docvia-code-title" },
+				children: [{ kind: "text", value: title }],
+			},
+			block,
+		],
+	};
+}
+
+const renderCodeBlock: NodeRenderer = async (n, ctx) => {
+	// Highlighted at build time (e.g. @docvia/plugin-shiki): emit the stored HTML.
+	const prehighlighted = n.props.html;
+	if (typeof prehighlighted === "string") {
+		return {
+			kind: "element",
+			tag: "div",
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
+			children: [{ kind: "html", value: prehighlighted + COPY_BUTTON_HTML }],
+			id: n.id,
+		};
+	}
+	if (!ctx.highlighter && !warnedUnhighlighted) {
+		warnedUnhighlighted = true;
+		console.warn(
+			"[docvia] Code blocks are rendering without syntax highlighting. Add `shiki()` from @docvia/plugin-shiki to `plugins`.",
+		);
+	}
+	if (!ctx.highlighter) {
+		return {
+			kind: "element",
+			tag: "pre",
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
+			children: [
+				{
+					kind: "element",
+					tag: "code",
+					props: n.props.lang ? { "data-lang": n.props.lang as string } : {},
+					children: [{ kind: "text", value: n.props.value as string }],
+				},
+				copyButton,
+			],
+			id: n.id,
+		};
+	}
+	try {
+		const res = await ctx.highlighter.highlight(
+			n.props.value as string,
+			(n.props.lang as string) || "",
+		);
+		return {
+			kind: "element",
+			tag: "div",
+			props: { class: "docvia-code-block", "data-docvia-code": "" },
+			children: [{ kind: "html", value: res.html + COPY_BUTTON_HTML }],
+			id: n.id,
+		};
+	} catch (e) {
+		ctx.onError?.(new RenderError("HIGHLIGHT_ERROR", String(e), n));
+		return {
+			kind: "element",
+			tag: "pre",
+			children: [{ kind: "text", value: n.props.value as string }],
+			id: n.id,
+		};
+	}
+};
 
 export function createDefaultRendererMap(): RendererMap {
 	const defaultMap = {} as RendererMap;
@@ -34,61 +119,50 @@ export function createDefaultRendererMap(): RendererMap {
 			children: await renderNodes(n.children, defaultMap, ctx),
 		}),
 
-		"code-block": async (n, ctx) => {
-			// Build-time highlighted (e.g. by @docvia/plugin-shiki) — emit the
-			// stored HTML directly so no syntax highlighter runs at render time.
-			const prehighlighted = n.props.html;
-			if (typeof prehighlighted === "string") {
-				return {
-					kind: "element",
-					tag: "div",
-					props: { class: "docvia-code-block" },
-					children: [{ kind: "html", value: prehighlighted }],
-					id: n.id,
-				};
-			}
-			// Not pre-highlighted and no render-time highlighter configured —
-			// emit a plain, un-highlighted code block. Highlighting is opt-in
-			// via a build-time plugin such as @docvia/plugin-shiki.
-			if (!ctx.highlighter) {
-				return {
-					kind: "element",
-					tag: "pre",
-					props: { class: "docvia-code-block" },
-					children: [
-						{
+		"code-block": async (n, ctx) =>
+			withTitle(await renderCodeBlock(n, ctx), n.props.title),
+
+		// Tabs as plain markup; `@docvia/renderer-core/client` switches them in the browser.
+		"code-group": async (n, ctx) => {
+			const tabs = (n.props.tabs as string[] | undefined) ?? [];
+			const panels = await renderNodes(n.children, defaultMap, ctx);
+			return {
+				kind: "element",
+				tag: "div",
+				props: { class: "docvia-code-group", "data-docvia-code-group": "" },
+				id: n.id,
+				children: [
+					{
+						kind: "element",
+						tag: "div",
+						props: { class: "docvia-code-tabs", role: "tablist" },
+						children: tabs.map((label, i) => ({
 							kind: "element",
-							tag: "code",
-							props: n.props.lang
-								? { "data-lang": n.props.lang as string }
-								: {},
-							children: [{ kind: "text", value: n.props.value as string }],
-						},
-					],
-					id: n.id,
-				};
-			}
-			try {
-				const res = await ctx.highlighter.highlight(
-					n.props.value as string,
-					(n.props.lang as string) || "",
-				);
-				return {
-					kind: "element",
-					tag: "div",
-					props: { class: "docvia-code-block" },
-					children: [{ kind: "html", value: res.html }], // Raw HTML injection
-					id: n.id,
-				};
-			} catch (e) {
-				ctx.onError?.(new RenderError("HIGHLIGHT_ERROR", String(e), n));
-				return {
-					kind: "element",
-					tag: "pre",
-					children: [{ kind: "text", value: n.props.value as string }],
-					id: n.id,
-				};
-			}
+							tag: "button",
+							props: {
+								type: "button",
+								role: "tab",
+								"aria-selected": i === 0 ? "true" : "false",
+								"data-tab": String(i),
+							},
+							children: [{ kind: "text", value: label }],
+						})),
+					},
+					...panels.map(
+						(panel, i): RenderOutput => ({
+							kind: "element",
+							tag: "div",
+							props: {
+								class: "docvia-code-panel",
+								role: "tabpanel",
+								"data-tab": String(i),
+								...(i > 0 ? { hidden: true } : {}),
+							},
+							children: [panel],
+						}),
+					),
+				],
+			};
 		},
 
 		"inline-code": async (n) => ({

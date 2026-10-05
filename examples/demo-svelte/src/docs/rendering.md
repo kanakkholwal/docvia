@@ -6,7 +6,7 @@ order: 3
 
 # Rendering
 
-Docvia compiles Markdown into a `RenderOutput` tree at build time. The `Renderer` component renders this tree in your Svelte application.
+Docvia compiles Markdown into a `RenderOutput` tree. `page.data.load()` returns it as `content`, and the `Renderer` component renders it in your Svelte application.
 
 ## Basic usage
 
@@ -29,7 +29,13 @@ For interactive components embedded via directives, pass a `registry`:
 <Renderer nodes={data.page.content} registry={registry} />
 ```
 
-The registry resolves directive names to Svelte components. It is generated from the `components` field in `docvia.config.ts` and exported from `virtual:docvia/source`.
+The registry resolves directive names to Svelte components. `defineRegistry()` in `src/lib/registry.ts` builds it from the `components` field in `docvia.config.ts`:
+
+```ts
+import { registry } from "#lib/registry.ts";
+```
+
+`Renderer` also switches tabbed code groups (fences with `tab="..."`, `:::code-group`, or an `npm` fence) without extra setup.
 
 ## Renderer props
 
@@ -52,4 +58,4 @@ The compiled output is a tree of typed nodes:
 
 ## Differences from React
 
-The Svelte renderer does not yet support the `components` prop for tag-level overrides (e.g., replacing `<a>` or `<img>` globally). This is a React-specific feature. In Svelte, customize element rendering by extending the Renderer or post-processing the output tree.
+The Svelte renderer does not yet support the `components` prop for tag-level overrides (e.g., replacing `<a>` or `<img>` globally). This is a React-specific feature. In Svelte, customize element rendering by extending the Renderer or by rewriting the output tree at build time with `createSvelteRenderer({ transform })`.

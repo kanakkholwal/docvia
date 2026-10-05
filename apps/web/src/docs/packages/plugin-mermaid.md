@@ -30,14 +30,12 @@ Register it in the `plugins` array of your `docvia.config.ts`. Put it before
 any highlighter so diagram fences are claimed first:
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-  sourceDir: "src/docs",
-  outDir: ".docvia",
   renderer: createSvelteRenderer(),
   plugins: [mermaid(), shiki({ theme: "github-dark" })],
 });
@@ -76,8 +74,8 @@ flowchart LR
 | `component` | `string` | `"Mermaid"` | Component name emitted into the IR. |
 | `props` | `Record<string, unknown>` | `{}` | Extra props merged into every diagram component. |
 
-`cacheKey()` is derived from all three, so changing any of them invalidates the
-incremental cache.
+`cacheKey()` is derived from all three, so changing any of them recompiles
+every page.
 
 ## Drawing the diagrams
 
@@ -87,7 +85,7 @@ renderer:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import Mermaid from "$lib/components/mermaid.svelte";
+  import Mermaid from "#lib/components/mermaid.svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -105,8 +103,13 @@ Inside that component, load `mermaid` with a **dynamic import** so it stays out
 of the server bundle and off the initial page payload:
 
 ```svelte
+<script lang="ts" module>
+  // One counter for the page: mermaid styles each SVG by id, so ids must not repeat.
+  let seq = 0;
+</script>
+
 <script lang="ts">
-  import { browser } from "$app/environment";
+  import { browser } from "$app/env";
 
   let { code, title }: { code: string; title?: string } = $props();
   let svg = $state("");
@@ -117,7 +120,7 @@ of the server bundle and off the initial page payload:
     (async () => {
       const { default: mermaid } = await import("mermaid");
       mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
-      const { svg: out } = await mermaid.render("d", code);
+      const { svg: out } = await mermaid.render(`mermaid-${++seq}`, code);
       if (current) svg = out;
     })();
     return () => { current = false; };
@@ -130,6 +133,11 @@ of the server bundle and off the initial page payload:
 Rendering the raw source when `svg` is empty gives you a readable fallback for
 SSR, prerendered HTML, browsers with JavaScript disabled, and diagrams Mermaid
 cannot parse.
+
+For dark mode, pass `theme: "base"` with `themeVariables` read from your CSS
+variables, and render again when the theme changes. Mermaid only parses hex,
+`rgb()` and `hsl()`: resolve `oklch()` tokens to hex first (painting the colour
+on a 1px canvas and reading the pixel back works everywhere).
 
 The site you are reading uses exactly this setup; see
 [`apps/web/src/lib/components/docs/mermaid.svelte`](https://github.com/kanakkholwal/docvia/blob/main/apps/web/src/lib/components/docs/mermaid.svelte)
@@ -158,9 +166,8 @@ graph LR
 ```
 ````
 
-The fence meta string (` ```mermaid My caption `) cannot be used for this:
-[`@docvia/ir`](/docs/packages/ir) drops it when converting the HAST tree, so it
-never reaches a plugin.
+The plugin reads the caption only from the `%% title:` line; a fence
+`title="..."` attribute is ignored for diagrams.
 
 ## See also
 

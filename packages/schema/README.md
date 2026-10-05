@@ -1,6 +1,7 @@
 # @docvia/schema
 
-Frontmatter validation (Zod), YAML parsing, and TS codegen for docvia
+Frontmatter validation (any Standard Schema, no Zod runtime dependency), YAML
+parsing, and TS codegen for docvia
 
 Part of [docvia](https://github.com/kanakkholwal/docvia) — a Markdown
 documentation compiler for React, Svelte, and any framework with a renderer

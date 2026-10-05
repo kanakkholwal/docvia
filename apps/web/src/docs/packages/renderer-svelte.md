@@ -7,7 +7,7 @@ order: 22
 
 `@docvia/renderer-svelte` is the Svelte 5 adapter for docvia. It pairs a **build-time `RendererAdapter`** that compiles IR documents into JS modules with a **recursive `Renderer.svelte` component** that renders the resulting `RenderOutput` tree at runtime.
 
-It is built on `@docvia/renderer-core` and uses Svelte 5 runes throughout. Dependencies: `svelte ^5`, `@docvia/ir`, and `@docvia/renderer-core`.
+It is built on `createModuleRenderer` from `@docvia/renderer-core` and uses Svelte 5 runes throughout. Dependencies: `@docvia/ir` and `@docvia/renderer-core`; `svelte ^5` is a peer dependency.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ The package ships two entry points so the build pipeline never has to compile a 
 npm install @docvia/renderer-svelte
 ```
 
-`svelte ^5` must be present in your project, because the `Renderer` component relies on runes (`$props`, `$derived`).
+`svelte ^5` is a peer dependency and must be present in your project, because the `Renderer` component relies on runes (`$props`, `$derived`).
 
 ## Exports
 
@@ -32,17 +32,13 @@ There are two entry points. Choosing the right one matters because one ships a `
 
 | Subpath | Environment | Purpose |
 | --- | --- | --- |
-| `.` | App routes / browser | Exports the `Renderer` component **and** everything from the adapter module. Uses package export *conditions*: the `svelte` condition resolves to the raw `./src/index.ts` source so a Svelte-aware bundler compiles the `.svelte` component itself; `import`/`default` resolve to the prebuilt `./dist/index.js`. |
-| `./node` | Build / SSR (`docvia.config.ts`) | The build/SSR entry. Exports the adapter and the Vite plugin helpers, with **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
+| `.` | App routes / browser | Exports the `Renderer` component and the `RenderOutput`, `ComponentRegistry`, and `HydrationManifest` types. The `svelte` and `default` conditions both point at `./dist/index.js`; the packaged `.svelte` component is compiled by your Svelte toolchain. |
+| `./node` | Build / SSR (`docvia.config.ts`) | The build-time entry. Exports `createSvelteRenderer` and its option types, with **no `.svelte` component**. This is the entry `docvia.config.ts` imports. |
+| `./package.json` | Tooling | Package metadata. |
 
 ```ts
 // docvia.config.ts: build-time
-import {
-  createSvelteRenderer,
-  createInMemoryStore,
-  docviaVitePlugin,
-  invalidateModules,
-} from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 ```
 
 ```svelte
@@ -93,6 +89,8 @@ The component renders each node by its `kind`:
 
 Because the component recurses into itself for `element`, `component`, and `fragment` children, a single `<Renderer>` at the route level renders the whole document.
 
+On mount it calls `installCodeGroups()` and `installCopyButtons()` from `@docvia/renderer-core/client`, so code-group tabs switch and code-block copy buttons work with no extra setup.
+
 ## API reference
 
 ### createSvelteRenderer()
@@ -100,58 +98,24 @@ Because the component recurses into itself for `element`, `component`, and `frag
 ```ts
 function createSvelteRenderer(options?: {
   registry?: ComponentRegistry;
+  transform?: (output: RenderOutput, doc: IRDocument) => RenderOutput | Promise<RenderOutput>;
 }): RendererAdapter;
 ```
 
-Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`). Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
+Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`) via `createModuleRenderer` from `@docvia/renderer-core`. Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
 
-If no `registry` is supplied, an empty one is used.
+If no `registry` is supplied, an empty one is used. `transform` rewrites each page's `RenderOutput` tree before it is serialized:
+
+```ts
+createSvelteRenderer({
+  transform: (output, doc) => output, // return a rewritten tree
+});
+```
 
 Syntax highlighting is **not** a renderer option. It is a build-time plugin:
 add [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` in your
 docvia config, and the highlighted HTML is baked into the IR before the
 renderer ever runs.
-
-### createInMemoryStore()
-
-```ts
-function createInMemoryStore(): InMemoryStore;
-```
-
-Creates a `Map`-backed store of compiled pages, keyed by slug.
-
-```ts
-interface InMemoryStore {
-  get(slug: string): RenderedPage | undefined;
-  set(slug: string, page: RenderedPage): void;
-  entries(): IterableIterator<[string, RenderedPage]>;
-}
-```
-
-### docviaVitePlugin()
-
-```ts
-function docviaVitePlugin(store: InMemoryStore): Plugin;
-```
-
-A Vite plugin (`name: "docvia"`) that resolves `virtual:docvia/<slug>` imports to the compiled page module held in `store`.
-
-> [!IMPORTANT]
-> This is a **standalone, low-level plugin**, and it is *not* the one `docvia()`
-> from `@docvia/plugin-vite` installs. It only resolves per-page modules for
-> slugs you have put into an `InMemoryStore` yourself; if you have not built and
-> populated that store, `virtual:docvia/<slug>` will not resolve.
->
-> In a normal app you do not use this. Load pages through the collection instead
-> as shown under [Usage](#usage) below.
-
-### invalidateModules()
-
-```ts
-function invalidateModules(slugs: string[], server: any): void;
-```
-
-Tells the Vite dev server to invalidate the virtual modules for the given slugs and pushes a `js-update` HMR event for each. Call it after recompiling changed documents so the browser hot-reloads them.
 
 ## Hydration
 
@@ -159,12 +123,14 @@ Tells the Vite dev server to invalidate the virtual modules for the given slugs 
 
 ```ts
 import { hydrate } from "@docvia/renderer-core";
-import { registry } from "virtual:docvia/source";
+import { registry } from "$lib/registry";
 
-// `page` came from `docs.getPage(slugs)` in a server load; see Usage below.
+// `manifest` comes from `page.data.load()` in a server load; see Usage below.
 // no-ops on the server; honours client:load / client:idle / client:visible
-hydrate(page.manifest, registry);
+hydrate(manifest, registry);
 ```
+
+`Renderer` also makes tabbed code groups (`role="tablist"`) switch on click; no extra setup is needed.
 
 `data-hid` is the universal hydration anchor. The `Renderer` component sets it on every `element` and `component` wrapper, and `hydrate()` looks each island up by `[data-hid="<id>"]`.
 
@@ -173,7 +139,7 @@ hydrate(page.manifest, registry);
 ### Wiring the adapter in `docvia.config.ts`
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -185,20 +151,20 @@ export default defineConfig({
 
 ### Rendering a page in a SvelteKit route
 
-Pages are loaded through the collection, in a **server** load, because `virtual:docvia/source`
-eagerly imports every compiled page, so importing it from a universal `+page.ts`
-would ship your whole content set to the browser.
+Declare the collection once with `defineDocs()` (see
+[`@docvia/source`](/docs/packages/source)), then load pages in a **server** load:
 
 ```ts
 // src/routes/docs/[...slug]/+page.server.ts
-import { docs } from "virtual:docvia/source";
 import { error } from "@sveltejs/kit";
+import { source } from "$lib/source";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
-  const page = await docs.getPage(params.slug?.split("/") ?? []);
-  if (!page) throw error(404, "Page not found");
-  return { page };
+  const page = source.getPage(params.slug?.split("/").filter(Boolean));
+  if (!page) error(404, "Page not found");
+  const { content, headings, manifest } = await page.data.load();
+  return { page: { title: page.data.title, content, headings, manifest } };
 };
 ```
 
@@ -215,23 +181,31 @@ load and into the component:
 </script>
 
 <article>
-  <h1>{data.page.data.title}</h1>
+  <h1>{data.page.title}</h1>
   <Renderer nodes={data.page.content} />
 </article>
 ```
 
-`data.page.data` is the page's frontmatter, including any custom fields your
-`frontmatter` schema defines.
+`page.data` is the page's frontmatter, including any fields your `defineDocs()`
+schema adds. `content` is typed `RenderOutput`, and `headings` is always present,
+ready for a table of contents.
 
 ### Rendering with a component registry
 
-When you declare `components` in `docvia.config.ts`, docvia generates the registry
-for you, so import it from the source module rather than hand-rolling one:
+When you declare `components` in `docvia.config.ts`, `defineRegistry()` builds the
+registry for you:
+
+```ts
+// src/lib/registry.ts
+import { defineRegistry } from "@docvia/source/macro";
+
+export const registry = defineRegistry();
+```
 
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/source";
+  import { registry } from "$lib/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -245,8 +219,8 @@ To resolve components yourself instead, pass any `ComponentRegistry`:
 ```svelte
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import type { ComponentRegistry } from "@docvia/renderer-core";
-  import Callout from "$lib/Callout.svelte";
+  import type { ComponentRegistry } from "@docvia/renderer-svelte";
+  import Callout from "#lib/Callout.svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -269,7 +243,7 @@ To resolve components yourself instead, pass any `ComponentRegistry`:
   import { onMount } from "svelte";
   import { Renderer } from "@docvia/renderer-svelte";
   import { hydrate } from "@docvia/renderer-core";
-  import { registry } from "virtual:docvia/source";
+  import { registry } from "$lib/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -279,5 +253,5 @@ To resolve components yourself instead, pass any `ComponentRegistry`:
   });
 </script>
 
-<Renderer nodes={content} {registry} />
+<Renderer nodes={data.page.content} {registry} />
 ```

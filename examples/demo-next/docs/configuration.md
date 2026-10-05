@@ -1,17 +1,17 @@
 ---
 title: Configuration
-description: Full reference for docvia.config.ts — frontmatter schemas, syntax highlighting, plugins, and collections.
+description: Reference for docvia.config.ts (renderer, plugins, components, markdown) and defineDocs() options.
 order: 5
 ---
 
 # Configuration
 
-All Docvia settings live in `docvia.config.ts` at your project root. The `defineConfig` helper provides type safety and defaults.
+Build settings live in `docvia.config.ts` at your project root; `defineConfig` adds types and defaults. Collections and frontmatter schemas are declared in code with `defineDocs()` (see [Collections](#collections)).
 
 ## Minimal config
 
 ```typescript
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
@@ -23,31 +23,35 @@ export default defineConfig({
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `sourceDir` | `string` | `"docs"` | Directory containing Markdown source files |
-| `outDir` | `string` | `".docvia"` | Output directory for compiled artifacts |
-| `renderer` | `RendererAdapter` | — | Framework renderer (required for builds) |
-| `components` | `Record<string, ComponentConfig>` | `{}` | Interactive component registry |
-| `frontmatter` | `ZodObject` | — | Extend built-in frontmatter fields |
+| `renderer` | `RendererAdapter` | none | Framework renderer (required) |
+| `components` | record or array | none | Interactive component registry (globs allowed in the array form) |
 | `plugins` | `docviaPlugin[]` | `[]` | Transform plugins |
-| `collections` | `CollectionConfig[]` | Auto | Multi-collection setup |
+| `markdown` | `{ remarkPlugins }` | `{ remarkPlugins: [] }` | Markdown processing options |
+| `hashExclude` | `string[]` | none | Frontmatter keys left out of a page's `contentHash` |
 
 ## Custom frontmatter
 
-Extend the built-in schema with Zod:
+Extend the built-in schema in `defineDocs()` with any Standard Schema library, such as Zod:
 
-```typescript
-import { z } from "zod";
+```typescript title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+import { z } from "zod/v3";
 
-export default defineConfig({
-  frontmatter: z.object({
-    author: z.string().optional(),
-    category: z.enum(["guide", "reference", "tutorial"]).optional(),
-    featured: z.boolean().optional(),
-  }),
+const docs = defineDocs({
+  dir: "docs",
+  docs: {
+    schema: z.object({
+      author: z.string().optional(),
+      category: z.enum(["guide", "reference", "tutorial"]).optional(),
+    }),
+  },
 });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
 
-Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are always available. Your extensions are merged and validated at build time. The compiler generates a typed `Frontmatter` interface in `.docvia/types.d.ts`.
+Built-in fields (`title`, `description`, `tags`, `order`, `slug`, `draft`) are always available. Your fields are merged and validated at build time, and `page.data` is typed from the schema's output.
 
 ## Syntax highlighting
 
@@ -79,11 +83,13 @@ import { createReactRenderer } from "@docvia/renderer-react";
 
 createReactRenderer({
   registry: optionalCustomRegistry,
+  transform: (output, doc) => output, // rewrite the RenderOutput tree
 })
 ```
 
 The renderer accepts an optional `registry` for resolving components at build
-time. If omitted, components pass through to runtime resolution.
+time. If omitted, components resolve at runtime through `defineRegistry()`. `transform`
+rewrites each page's `RenderOutput` tree before it is serialized.
 
 ## Components
 
@@ -107,20 +113,21 @@ See [Components](/docs/components) for usage details.
 
 ## Collections
 
-By default, Docvia treats your `sourceDir` as a single `docs` collection. For multiple collections:
+Each `defineDocs()` call is one collection. For several, call it once per
+directory and give each its own `loader()`:
 
-```typescript
-collections: [
-  { name: "docs", sourceDir: "./docs", baseUrl: "/" },
-  { name: "api", sourceDir: "./api-docs", baseUrl: "/api" },
-],
+```typescript title="lib/source.ts"
+const docs = defineDocs({ dir: "docs" });
+const api = defineDocs({ dir: "api-docs" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
+export const apiSource = loader({ baseUrl: "/api", source: api.toDocviaSource() });
 ```
 
-Each collection gets its own source API:
+`dir` is relative to the project root and must be a string literal.
 
-```typescript
-import { docs, api } from "docvia/source";
-```
+> **Legacy:** `collections`, `frontmatter`, `sourceDir`, and `outDir` in
+> `docvia.config.ts` still work but are superseded by `defineDocs()`.
 
 ## Remark plugins
 

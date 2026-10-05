@@ -1,24 +1,21 @@
 {
 	"name": "@docvia/cli",
 	"version": "1.0.0",
-	"description": "Build-time documentation compiler — CLI entry point",
+	"description": "docvia CLI: add docs to a Next.js, SvelteKit or TanStack Start app",
 	"type": "module",
 	"bin": {
 		"docvia": "./bin.mjs"
 	},
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"files": [
 		"bin.mjs",
 		"dist",
-		"README.md"
+		"templates",
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
@@ -40,7 +37,7 @@
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
 		"typecheck": "tsc --noEmit",
-		"test": "echo \"no tests yet\""
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@docvia/compiler": "workspace:*",
@@ -48,16 +45,18 @@
 		"@docvia/plugins": "workspace:*",
 		"@docvia/runtime": "workspace:*",
 		"chokidar": "^5.0.0",
-		"commander": "^14.0.3",
-		"sirv": "^3.0.2"
+		"commander": "^15.0.0",
+		"sirv": "^3.0.2",
+		"magic-string": "^1.4.3",
+		"oxc-parser": "^0.152.0"
 	},
 	"peerDependencies": {
 		"@docvia/source": "workspace:*"
 	},
 	"devDependencies": {
 		"@docvia/source": "workspace:*",
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"publishConfig": {
 		"access": "public"

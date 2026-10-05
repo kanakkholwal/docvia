@@ -5,7 +5,7 @@ running locally, the watch modes, and how releases work.
 
 ## Getting started
 
-docvia is a pnpm + Turborepo monorepo. You need Node 18+ and pnpm.
+docvia is a pnpm + Turborepo monorepo. You need Node 20+ and pnpm.
 
 ```bash
 pnpm install
@@ -26,6 +26,10 @@ output of others, so tests and the dev servers expect it to exist.
 | `apps/docs` | Redirect-only Worker keeping `docs.docvia.dev` pointed at `docvia.dev/docs`. |
 | `examples/demo-next` | End-to-end React/Next.js example. |
 | `examples/demo-svelte` | End-to-end Svelte/SvelteKit example. |
+
+The `packages/*` are MIT licensed (each ships its own `LICENSE`); `apps/` and
+`examples/` fall under the repository's GPL-3.0 license. The apps and examples
+load docvia through the bundler plugins, so build the packages first.
 
 ## Watch modes
 

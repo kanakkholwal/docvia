@@ -1,9 +1,12 @@
 <script lang="ts">
 import { goto } from "$app/navigation";
-import { cn } from "$lib/utils";
+import IconRoll from "#lib/components/site/icon-roll.svelte";
+import { RollText } from "#lib/components/text/roll-text/index.ts";
+import { Shortcut } from "#lib/components/ui/shortcut/index.ts";
+import { cn } from "#lib/utils.ts";
 import { createFetchClient, type SearchResult } from "@docvia/search";
 import { CornerDownLeft, FileText, Search, X } from "@lucide/svelte";
-import { onMount, tick } from "svelte";
+import { tick } from "svelte";
 import { cubicOut } from "svelte/easing";
 import { fade, scale } from "svelte/transition";
 
@@ -11,13 +14,8 @@ import { fade, scale } from "svelte/transition";
 // the Orama index in memory. No index payload is downloaded to the browser.
 const searcher = createFetchClient("/api/search");
 
-/**
- * Move a node to `document.body`. The trigger lives inside the header's
- * `backdrop-blur` pill — and `backdrop-filter` establishes a containing block
- * for `position: fixed` descendants, which would trap the overlay inside the
- * nav bar. Portalling to `<body>` escapes that stacking context so the
- * backdrop and dialog cover the full viewport.
- */
+// The header's backdrop-filter makes it the containing block for `position: fixed`,
+// so the overlay is portalled to <body> to cover the viewport.
 function portal(node: HTMLElement) {
 	document.body.appendChild(node);
 	return {
@@ -36,7 +34,6 @@ let inputEl = $state<HTMLInputElement>();
 let listEl = $state<HTMLUListElement>();
 let dialogEl = $state<HTMLElement>();
 let triggerEl: HTMLElement | null = null;
-let isMac = $state(true);
 
 const LISTBOX_ID = "docvia-search-listbox";
 const optionId = (i: number) => `docvia-search-opt-${i}`;
@@ -104,12 +101,7 @@ function escapeRegExp(s: string): string {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * Build a short excerpt of a section's text centred on the first matching
- * query term, split into segments so matches can be wrapped in `<mark>`.
- * A segment is a "hit" when its text equals one of the query terms — which
- * holds because `split()` breaks the slice on exactly those terms.
- */
+// Excerpt centred on the first match; `split()` on the terms makes every hit its own segment.
 function snippetSegments(
 	content: string,
 	rawQuery: string,
@@ -193,18 +185,9 @@ function scrollActiveIntoView() {
 	});
 }
 
-onMount(() => {
-	isMac = /mac|iphone|ipad/i.test(navigator.platform);
-
-	function onGlobalKeydown(e: KeyboardEvent) {
-		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-			e.preventDefault();
-			open ? closeDialog() : openDialog();
-		}
-	}
-	window.addEventListener("keydown", onGlobalKeydown);
-	return () => window.removeEventListener("keydown", onGlobalKeydown);
-});
+function toggleDialog() {
+	open ? closeDialog() : openDialog();
+}
 </script>
 
 <!-- Trigger: search-field shape on md+, icon button on mobile -->
@@ -212,23 +195,19 @@ onMount(() => {
 	type="button"
 	onclick={openDialog}
 	aria-label="Search documentation"
-	class="inline-flex h-9 w-9 items-center justify-center rounded-full text-body transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink md:hidden"
+	class="group/roll inline-flex size-9 items-center justify-center rounded-lg text-muted transition-[color,background-color,scale] duration-(--duration-fast) hover:bg-ink/[0.06] hover:text-ink active:scale-(--press-scale-icon) md:hidden"
 >
-	<Search class="h-4 w-4" />
+	<IconRoll icon={Search} class="size-4" />
 </button>
 
 <button
 	type="button"
 	onclick={openDialog}
-	class="hidden h-9 items-center gap-2 rounded-full border border-hairline bg-surface-card/60 pl-3 pr-1.5 text-[13px] text-muted transition-colors duration-(--motion-fast) hover:border-hairline-strong hover:text-body md:inline-flex"
+	class="group/roll hidden h-8 items-center gap-2 rounded-lg px-2 text-sm text-muted transition-[color,background-color,scale] duration-(--duration-fast) hover:bg-ink/[0.06] hover:text-ink active:scale-(--press-scale-sm) md:inline-flex"
 >
-	<Search class="h-3.5 w-3.5" />
-	<span>Search docs</span>
-	<kbd
-		class="ml-2 inline-flex items-center gap-0.5 rounded-md border border-hairline bg-canvas px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted"
-	>
-		{isMac ? "⌘" : "Ctrl"}K
-	</kbd>
+	<IconRoll icon={Search} class="size-4" />
+	<RollText text="Search" groupHover size="sm" class="cursor-[inherit]" />
+	<Shortcut shortcut="mod+k" ontrigger={toggleDialog} />
 </button>
 
 {#if open}
@@ -279,7 +258,7 @@ onMount(() => {
 					type="button"
 					onclick={closeDialog}
 					aria-label="Close search"
-					class="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-(--motion-fast) hover:bg-surface-card hover:text-ink"
+					class="inline-flex h-6 w-6 items-center justify-center rounded-md text-muted transition-colors duration-(--duration-fast) hover:bg-surface-card hover:text-ink"
 				>
 					<X class="h-3.5 w-3.5" />
 				</button>
@@ -322,7 +301,7 @@ onMount(() => {
 									}}
 									onmouseenter={() => (activeIndex = i)}
 									class={cn(
-										"flex items-start gap-3 rounded-md px-3 py-2.5 transition-colors duration-(--motion-fast)",
+										"flex items-start gap-3 rounded-md px-3 py-2.5 transition-colors duration-(--duration-fast)",
 										i === activeIndex
 											? "bg-surface-card"
 											: "hover:bg-surface-card/60",

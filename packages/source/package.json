@@ -3,24 +3,13 @@
 	"version": "0.4.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		},
-		"./runtime": {
-			"types": "./dist/runtime.d.mts",
-			"import": "./dist/runtime.mjs",
-			"default": "./dist/runtime.mjs"
-		},
-		"./internal": {
-			"types": "./dist/internal.d.mts",
-			"import": "./dist/internal.mjs",
-			"default": "./dist/internal.mjs"
-		}
+		".": "./dist/index.js",
+		"./internal": "./dist/internal.js",
+		"./macro": "./dist/macro.js",
+		"./macro-runtime": "./dist/macro-runtime.js",
+		"./runtime": "./dist/runtime.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -28,16 +17,12 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/core": "workspace:*",
-		"@docvia/ir": "workspace:*",
 		"@docvia/renderer-core": "workspace:*",
-		"@docvia/schema": "workspace:*"
+		"@standard-schema/spec": "^1.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^20.0.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.9.3",
-		"shiki": "^4.0.2"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Runtime collection model for consuming compiled docvia output",
 	"license": "MIT",
@@ -54,11 +39,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

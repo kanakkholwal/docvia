@@ -22,10 +22,9 @@ pnpm add @docvia/ssr
 Requires Node.js `>=20.0.0`. The package is edge-safe and contains no
 `node:fs`. ESM only.
 
-> **Most apps don't need this package.** Under the in-place architecture the
-> generated `source.ts` uses static `?docvia` imports, so a framework app (Vite,
-> Next.js), including on the edge, renders pages directly through
-> `docs.getPage(...)` with the content already bundled. Reach for `@docvia/ssr`
+> **Most apps don't need this package.** A framework app (Vite, Next.js),
+> including on the edge, renders pages directly through
+> `source.getPage(slugs)` and `page.data.load()`. Reach for `@docvia/ssr`
 > only for a **non-framework Node server** that renders per request.
 
 ## Package exports

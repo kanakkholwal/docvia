@@ -1,0 +1,194 @@
+/* Starter styles for the docvia pages. Replace freely. */
+.docs-layout {
+	display: grid;
+	grid-template-columns: 220px minmax(0, 1fr) 200px;
+	gap: 2.5rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem 1rem 4rem;
+}
+
+.docs-sidebar,
+.docs-toc {
+	position: sticky;
+	top: 1.5rem;
+	align-self: start;
+	font-size: 0.875rem;
+}
+
+.docs-sidebar ul,
+.docs-toc ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.docs-sidebar ul ul {
+	padding-left: 0.75rem;
+}
+
+.docs-sidebar a,
+.docs-toc a {
+	display: block;
+	padding: 0.25rem 0;
+	color: inherit;
+	opacity: 0.65;
+	text-decoration: none;
+}
+
+.docs-sidebar a:hover,
+.docs-toc a:hover,
+.docs-sidebar a[aria-current="page"] {
+	opacity: 1;
+}
+
+.docs-folder {
+	margin-top: 1rem;
+	font-weight: 600;
+}
+
+.docs-toc p {
+	margin: 0 0 0.5rem;
+	font-weight: 600;
+}
+
+.docs-content {
+	min-width: 0;
+	line-height: 1.7;
+}
+
+.docs-content h1 {
+	margin: 0 0 0.5rem;
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.docs-content h2 {
+	margin: 2.5rem 0 0.75rem;
+	font-size: 1.375rem;
+	font-weight: 600;
+}
+
+.docs-content h3 {
+	margin: 2rem 0 0.5rem;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.docs-content p,
+.docs-content ul,
+.docs-content ol,
+.docs-content table,
+.docs-content blockquote {
+	margin: 1rem 0;
+}
+
+.docs-content ul {
+	padding-left: 1.5rem;
+	list-style: disc;
+}
+
+.docs-content ol {
+	padding-left: 1.5rem;
+	list-style: decimal;
+}
+
+.docs-content a {
+	text-decoration: underline;
+}
+
+.docs-content blockquote {
+	padding-left: 1rem;
+	border-left: 3px solid currentColor;
+	opacity: 0.8;
+}
+
+.docs-content code {
+	font-size: 0.875em;
+}
+
+.docs-content pre {
+	margin: 0;
+	padding: 1rem;
+	overflow-x: auto;
+	border-radius: 0.5rem;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.docs-content [data-docvia-code] {
+	position: relative;
+}
+
+.docs-content .docvia-copy {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	padding: 0.15rem 0.5rem;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+	border-radius: 0.375rem;
+	background: none;
+	color: inherit;
+	font-size: 0.75rem;
+	cursor: pointer;
+	opacity: 0.6;
+}
+
+.docs-content .docvia-copy:hover,
+.docs-content .docvia-copy[data-copied] {
+	opacity: 1;
+}
+
+.docs-content figure,
+.docs-content .docvia-code-group {
+	margin: 1.25rem 0;
+}
+
+.docs-content .docvia-code-title,
+.docs-content .docvia-code-tabs {
+	padding: 0.5rem 0.75rem;
+	font-size: 0.8125rem;
+	opacity: 0.8;
+}
+
+.docs-content .docvia-code-tabs button {
+	margin-right: 0.75rem;
+	background: none;
+	border: 0;
+	color: inherit;
+	cursor: pointer;
+	opacity: 0.6;
+}
+
+.docs-content .docvia-code-tabs button[aria-selected="true"] {
+	opacity: 1;
+	text-decoration: underline;
+}
+
+.docs-content th,
+.docs-content td {
+	padding: 0.4rem 0.75rem;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+	text-align: left;
+}
+
+.docs-description {
+	margin-top: 0;
+	opacity: 0.7;
+	font-size: 1.125rem;
+}
+
+@media (max-width: 960px) {
+	.docs-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.docs-sidebar {
+		position: static;
+	}
+
+	.docs-toc {
+		display: none;
+	}
+}

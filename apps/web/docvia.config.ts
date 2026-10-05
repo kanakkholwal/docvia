@@ -1,19 +1,9 @@
-import { defineConfig } from "@docvia/cli";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-	sourceDir: "src/docs",
-	outDir: ".docvia",
-	collections: [
-		{
-			name: "docs",
-			sourceDir: "src/docs",
-			baseUrl: "/docs",
-		},
-	],
-
 	renderer: createSvelteRenderer(),
 
 	// Both plugins run at compile time. `mermaid()` claims ```mermaid fences
@@ -23,7 +13,8 @@ export default defineConfig({
 	plugins: [
 		mermaid(),
 		shiki({
-			theme: "github-dark",
+			themes: { light: "github-light", dark: "github-dark" },
+			defaultColor: false,
 			langs: [
 				"javascript",
 				"typescript",

@@ -1,0 +1,232 @@
+/* baby-ui components on docvia's palette. Colours here are aliases onto app.css tokens;
+   baby-ui's own colour values are never used (see components.json and baby-ui.registry.css). */
+
+/* --- shadcn colour roles, mapped onto the docvia palette --- */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+	--background: var(--canvas);
+	--foreground: var(--ink);
+	--card: var(--surface-card);
+	--card-foreground: var(--ink);
+	--popover: var(--surface-card);
+	--popover-foreground: var(--ink);
+	/* The primary CTA is white-on-canvas (vite.dev); violet stays the accent. */
+	--primary: var(--action);
+	--primary-foreground: var(--on-action);
+	--primary-hover: var(--action-hover);
+	/* baby-ui's secondary is its muted step: 27% L on dark, about 95% on light. */
+	--secondary: var(--surface-strong);
+	--secondary-foreground: var(--ink);
+	--muted-foreground: var(--muted);
+	--input: var(--control-border);
+	--ring: var(--focus);
+	--destructive: var(--error);
+	--info: var(--brand-ink);
+	/* Status fills pair with --on-brand: dark text on dark-mode fills, white on light. */
+	--destructive-foreground: var(--on-brand);
+	--success-foreground: var(--on-brand);
+	--warning-foreground: var(--on-brand);
+	--info-foreground: var(--on-brand);
+	/* Light-mode status colours were already darkened to carry text. */
+	--destructive-strong: var(--error);
+	--success-strong: var(--success);
+	--warning-strong: var(--warning);
+	--info-strong: var(--brand-ink);
+	--surface: var(--surface-card);
+	--overlay: var(--surface-card);
+	/* Charts and canvas backgrounds read these; all violet so nothing adds a hue. */
+	--chart-1: var(--brand-strong);
+	--chart-2: var(--brand-deep);
+	--chart-3: var(--brand-hover);
+	--chart-4: var(--brand);
+	--chart-5: var(--brand-soft);
+	--chart-scale-4: var(--brand-deep);
+	--default: color-mix(in oklab, var(--foreground) 6%, transparent);
+	--default-hover: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+[data-theme="light"] {
+	--secondary: var(--surface-card);
+}
+
+/* --- baby-ui motion and depth tokens (non-colour, taken as-is) --- */
+:root {
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+	--ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	--ease-smooth: ease;
+	--ease-spring-snappy: linear(
+		0,
+		0.049,
+		0.158,
+		0.285,
+		0.412,
+		0.526,
+		0.624,
+		0.706,
+		0.772,
+		0.825,
+		0.867,
+		0.899,
+		0.924,
+		0.943,
+		0.957,
+		0.968,
+		0.976,
+		0.983,
+		0.987,
+		0.991,
+		0.993,
+		0.995,
+		0.996,
+		0.997,
+		1
+	);
+	--ease-spring-bouncy: linear(
+		0,
+		0.044,
+		0.149,
+		0.283,
+		0.424,
+		0.558,
+		0.676,
+		0.776,
+		0.856,
+		0.916,
+		0.961,
+		0.992,
+		1.011,
+		1.022,
+		1.027,
+		1.028,
+		1.027,
+		1.023,
+		1.019,
+		1.015,
+		1.012,
+		1.008,
+		1.006,
+		1.004,
+		1
+	);
+	--duration-spring-snappy: 400ms;
+	--duration-spring-bouncy: 600ms;
+	--duration-instant: 100ms;
+	--duration-fast: 150ms;
+	--duration-base: 200ms;
+	--duration-slow: 250ms;
+	--duration-press: var(--duration-fast);
+	--duration-tooltip: var(--duration-fast);
+	--duration-dropdown: var(--duration-fast);
+	--duration-backdrop: var(--duration-fast);
+	--duration-collapse: var(--duration-base);
+	--duration-overlay: var(--duration-slow);
+	--duration-drawer: 500ms;
+	--duration-exit: var(--duration-instant);
+	--duration-panel-exit: var(--duration-base);
+	--stagger-step: 45ms;
+	--press-scale: 0.97;
+	--press-scale-sm: 0.98;
+	--press-scale-lg: 0.96;
+	--press-scale-icon: 0.93;
+	--press-scale-row: 0.98;
+	--hover-scale: 1.02;
+	--enter-scale: 0.95;
+	--enter-lift: 8px;
+	--popover-enter-scale: 0.9;
+	--popover-exit-scale: 0.95;
+	--modal-enter-scale: 1.05;
+	--field-shadow: none;
+}
+
+/* Dark is canonical here, as in app.css. */
+:root,
+[data-theme="dark"] {
+	--surface-shadow: none;
+	--overlay-shadow:
+		inset 0 0 0 1px rgb(255 255 255 / 0.08), 0 14px 28px 0 rgb(0 0 0 / 0.4);
+	--thumb-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+}
+
+[data-theme="light"] {
+	--surface-shadow:
+		0 2px 4px 0 rgb(0 0 0 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.06),
+		0 0 1px 0 rgb(0 0 0 / 0.06);
+	--overlay-shadow:
+		0 0 0 1px oklch(16% 0.002 265 / 0.06), 0 2px 8px 0 rgb(0 0 0 / 0.06),
+		0 -6px 12px 0 rgb(0 0 0 / 0.03), 0 14px 28px 0 rgb(0 0 0 / 0.08);
+	--thumb-shadow:
+		0 0 5px 0 rgb(0 0 0 / 0.02), 0 2px 10px 0 rgb(0 0 0 / 0.06),
+		0 0 1px 0 rgb(0 0 0 / 0.3);
+}
+
+/* Not taken: --ease-out, --ease-in-out, --ease-spring (app.css owns them), and baby-ui's
+   overrides of Tailwind's type scale and default transition, which would restyle the site. */
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-hover: var(--primary-hover);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-destructive-strong: var(--destructive-strong);
+	--color-success-foreground: var(--success-foreground);
+	--color-success-strong: var(--success-strong);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-warning-strong: var(--warning-strong);
+	--color-info-foreground: var(--info-foreground);
+	--color-info-strong: var(--info-strong);
+	--color-surface: var(--surface);
+	--color-overlay: var(--overlay);
+	--color-default: var(--default);
+	--color-default-hover: var(--default-hover);
+	--shadow-surface: var(--surface-shadow);
+	--shadow-overlay: var(--overlay-shadow);
+	--shadow-field: var(--field-shadow);
+	--shadow-thumb: var(--thumb-shadow);
+	--ease-drawer: var(--ease-drawer);
+}
+
+/* Every interactive control reads as clickable without repeating the utility. */
+@layer base {
+	button:not(:disabled),
+	[role="button"]:not([aria-disabled="true"]),
+	summary,
+	label:has(input[type="checkbox"], input[type="radio"]),
+	input[type="checkbox"],
+	input[type="radio"],
+	input[type="range"],
+	select {
+		cursor: pointer;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--duration-press: 0ms;
+		--duration-drawer: 160ms;
+		--stagger-step: 0ms;
+		--press-scale: 1;
+		--press-scale-sm: 1;
+		--press-scale-lg: 1;
+		--press-scale-icon: 1;
+		--press-scale-row: 1;
+		--hover-scale: 1;
+		--enter-scale: 1;
+		--enter-lift: 0px;
+		--popover-enter-scale: 1;
+		--popover-exit-scale: 1;
+		--modal-enter-scale: 1;
+	}
+}

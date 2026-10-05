@@ -13,10 +13,25 @@ import type { docviaConfig } from "@docvia/ir";
 import type { CompileService } from "@docvia/runtime";
 import type { NextConfig } from "next";
 
+export { defineConfig } from "@docvia/plugins";
+
 export interface DocviaNextOptions {
 	/** Path to docvia.config.ts relative to project root (default: './docvia.config.ts') */
 	configPath?: string;
+	/** File names that may call `defineDocs()` / `defineRegistry()` (default: `source.*`, `registry.*`). */
+	macroFiles?: string[];
 }
+
+const DEFAULT_MACRO_FILES = [
+	"source.ts",
+	"source.tsx",
+	"source.js",
+	"source.mjs",
+	"registry.ts",
+	"registry.tsx",
+	"registry.js",
+];
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const logger = {
 	info(msg: string) {
@@ -235,6 +250,15 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 				sourceDir: docviaConfigInfo
 					? resolve(docviaConfigInfo.sourceDir ?? "docs")
 					: resolve("docs"),
+				root: process.cwd(),
+			};
+			const macroFiles = options.macroFiles ?? DEFAULT_MACRO_FILES;
+			const macroLoader = {
+				loader: "@docvia/plugin-next/macro-loader",
+				options: {
+					configPath: loaderOptions.configPath,
+					root: loaderOptions.root,
+				},
 			};
 
 			const turbopackRoot = process.cwd();
@@ -250,7 +274,7 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 					config.resolve.alias["docvia/registry"] = registryAlias;
 
 					// In-place markdown loader: transform `*.md?docvia` imports
-					// (emitted into .docvia/dynamic.ts) through docvia's compiler.
+					// (emitted into .docvia/source.ts and browser.ts) through docvia's compiler.
 					config.module = config.module || {};
 					config.module.rules = config.module.rules || [];
 					config.module.rules.push({
@@ -262,6 +286,15 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 								options: loaderOptions,
 							},
 						],
+					});
+					// `defineDocs()` files, before SWC: the transform reads TypeScript directly.
+					config.module.rules.push({
+						test: new RegExp(
+							`[\\\\/](${macroFiles.map(escapeRegExp).join("|")})$`,
+						),
+						exclude: /node_modules/,
+						enforce: "pre",
+						use: [macroLoader],
 					});
 
 					return resolvedConfig.webpack?.(config, webpackOptions) ?? config;
@@ -294,6 +327,9 @@ export function withDocvia(options: DocviaNextOptions = {}) {
 							],
 							as: "*.js",
 						},
+						...Object.fromEntries(
+							macroFiles.map((name) => [name, { loaders: [macroLoader] }]),
+						),
 					},
 				},
 			};
@@ -305,7 +341,7 @@ async function init(
 	dev: boolean,
 	options: DocviaNextOptions,
 ): Promise<docviaConfig | null> {
-	const { CompileService } = await import("@docvia/runtime");
+	const { CompileService, findMacroModules } = await import("@docvia/runtime");
 	const { resolveProject } = await import("@docvia/plugins");
 	const { docviaError } = await import("@docvia/ir");
 
@@ -315,6 +351,15 @@ async function init(
 		configPath: options.configPath,
 	});
 
+	// `defineDocs()` apps compile lazily through the loaders; no `.docvia` output needed.
+	const macroFiles = options.macroFiles ?? DEFAULT_MACRO_FILES;
+	if (
+		!config.collections &&
+		findMacroModules(process.cwd(), macroFiles).length > 0
+	) {
+		return config;
+	}
+
 	const sourceDir = resolve(config.sourceDir ?? "docs");
 	const outDir = resolve(config.outDir ?? ".docvia");
 	const renderer = config.renderer;
@@ -323,11 +368,6 @@ async function init(
 		logger.warn(
 			"No renderer configured in docvia.config.ts — skipping compilation.",
 		);
-		return config;
-	}
-
-	if (!existsSync(sourceDir)) {
-		logger.warn(`Source directory not found: ${sourceDir}`);
 		return config;
 	}
 
@@ -390,16 +430,13 @@ async function init(
 	}
 
 	if (dev && service) {
-		await startDevWatcher(service, sourceDir);
+		await startDevWatcher(service);
 	}
 
 	return config;
 }
 
-async function startDevWatcher(
-	service: CompileService,
-	sourceDir: string,
-): Promise<void> {
+async function startDevWatcher(service: CompileService): Promise<void> {
 	if (_watcherCleanup) return; // singleton
 
 	const { docviaError } = await import("@docvia/ir");
@@ -410,7 +447,9 @@ async function startDevWatcher(
 	let isRebuilding = false;
 	let rebuildQueued = false;
 
-	const watcher = watch(sourceDir, {
+	// Every collection, including ones outside the project root.
+	const dirs = service.collectionDirs();
+	const watcher = watch(dirs, {
 		ignoreInitial: true,
 		awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
 	});
@@ -470,6 +509,7 @@ async function startDevWatcher(
 	}
 
 	function schedule(filePath: string) {
+		if (!service.owns(filePath)) return;
 		pending.add(filePath);
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(flush, 20);
@@ -479,5 +519,5 @@ async function startDevWatcher(
 	watcher.on("add", schedule);
 	watcher.on("unlink", schedule);
 
-	logger.info(`Watching ${sourceDir} for changes...`);
+	logger.info(`Watching ${dirs.join(", ")} for changes...`);
 }

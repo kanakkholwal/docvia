@@ -1,22 +1,9 @@
 import { defineConfig } from "tsdown";
+import { packageConfig } from "../../tsdown.base.ts";
 
-export default defineConfig({
-	entry: {
-		index: "src/index.ts",
-		// client entry imports react-dom/client — must stay in a separate chunk
-		// so SSR / RSC paths never accidentally pull in browser-only APIs.
-		client: "src/client.ts",
-	},
-	format: ["esm"],
-	dts: true,
-	sourcemap: true,
-	clean: true,
-	minify: false,
-	outDir: "dist",
-	treeshake: true,
-	target: false,
-	// React and react-dom are peer deps — never bundle them.
-	deps: {
-		onlyBundle: ["react", "react-dom", "react-dom/client", "react/jsx-runtime"],
-	},
-});
+export default defineConfig(
+	packageConfig({
+		// `client` imports react-dom/client, so it stays out of the SSR entry.
+		entry: { index: "src/index.ts", client: "src/client.ts" },
+	}),
+);

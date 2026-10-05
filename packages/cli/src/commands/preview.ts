@@ -12,7 +12,7 @@ export async function runPreview(opts: PreviewOptions): Promise<void> {
 
 	if (!existsSync(outDir)) {
 		log.error(`${c.red("[ERROR]")} Output directory not found: ${outDir}`);
-		log.plain(`  Run ${c.cyan("docvia build")} first.`);
+		log.plain(`  Run ${c.brand("docvia build")} first.`);
 		process.exit(1);
 	}
 
@@ -33,7 +33,7 @@ export async function runPreview(opts: PreviewOptions): Promise<void> {
 
 		server.listen(port, () => {
 			log.success(
-				`Preview server running at ${c.cyan(`http://localhost:${port}`)}`,
+				`Preview server running at ${c.brand(`http://localhost:${port}`)}`,
 			);
 		});
 

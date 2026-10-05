@@ -1,5 +1,5 @@
 import { createFromSource, createSearchHandler } from "@docvia/search";
-import { docs } from "docvia/source";
+import { source } from "@/lib/source";
 
 // Headless, server-side search (Fumadocs-style). The Orama index is built once
 // per server instance from the already-bundled docvia source — no filesystem,
@@ -13,7 +13,7 @@ let handler: Promise<(request: Request) => Promise<Response>> | null = null;
 const getHandler = () =>
 	// Clear the cache on failure so a transient build error doesn't wedge the
 	// route into permanently rejecting — the next request retries.
-	(handler ??= createFromSource(docs)
+	(handler ??= createFromSource(source)
 		.then(createSearchHandler)
 		.catch((err) => {
 			handler = null;

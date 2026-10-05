@@ -1,12 +1,8 @@
-import { defineConfig } from "@docvia/cli";
 import { shiki } from "@docvia/plugin-shiki";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 
 export default defineConfig({
-	sourceDir: "src/docs",
-	outDir: ".docvia",
-	collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" }],
-
 	// Register your components here — once. docvia will generate the runtime
 	// registry automatically so you don't need to repeat this in +page.svelte.
 	components: {

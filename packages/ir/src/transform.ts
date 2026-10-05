@@ -2,6 +2,15 @@
 import { dirname, normalize, resolve, sep } from "node:path";
 import GithubSlugger from "github-slugger";
 import type { Element, Root as HastRoot, Text } from "hast";
+import {
+	codeGroup,
+	convertNpmCommand,
+	groupCodeTabs,
+	normalizeInstallCommand,
+	PACKAGE_MANAGER_LANGS,
+	PACKAGE_MANAGERS,
+	parseFenceMeta,
+} from "./code";
 import type {
 	Dependency,
 	FrontmatterData,
@@ -138,7 +147,7 @@ function transformChildren(nodes: any[], ctx: TransformContext): IRNode[] {
 		const ir = transformNode(node, ctx);
 		if (ir !== null) result.push(ir);
 	}
-	return result;
+	return groupCodeTabs(result, () => nextId(ctx));
 }
 
 // Node transform (HAST)
@@ -200,6 +209,16 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 	const directiveType = (props["data-directive-type"] ||
 		props.dataDirectiveType) as string | undefined;
 
+	if (directiveName === "code-group") {
+		const blocks = transformChildren(node.children, ctx).flatMap((n) =>
+			n.type === "code-group" ? n.children : [n],
+		);
+		return codeGroup(
+			blocks.filter((n) => n.type === "code-block"),
+			nodeId,
+		);
+	}
+
 	if (directiveName) {
 		const name = directiveName;
 		const isInline = directiveType !== "block";
@@ -258,10 +277,27 @@ function transformElement(node: Element, ctx: TransformContext): IRNode | null {
 			);
 			const lang = extractLang(codeProps.class as string | undefined);
 			const value = extractPlainText(codeChild);
+			// rehype-sanitize may camelCase data-* attributes.
+			const meta = (codeProps["data-meta"] ?? codeProps.dataMeta) as
+				| string
+				| undefined;
+			const { title, tab } = parseFenceMeta(meta);
+			if (PACKAGE_MANAGER_LANGS.has(lang)) {
+				const npm = normalizeInstallCommand(value.replace(/\n$/, ""));
+				return codeGroup(
+					PACKAGE_MANAGERS.map((pm) => ({
+						type: "code-block",
+						id: nextId(ctx),
+						props: { lang: "bash", value: convertNpmCommand(npm, pm), tab: pm },
+						children: [],
+					})),
+					nodeId,
+				);
+			}
 			return {
 				type: "code-block",
 				id: nodeId,
-				props: { lang, value, meta: null },
+				props: { lang, value, meta: meta ?? null, title, tab },
 				children: [],
 			};
 		}
@@ -396,7 +432,8 @@ function addDependency(ctx: TransformContext, dep: Dependency): void {
 	}
 }
 
-function computeSlug(filePath: string, explicitSlug?: string): string {
+/** Route slug for a source-relative path: `guide/index.md` -> `guide`, `index.md` -> `index`. */
+export function computeSlug(filePath: string, explicitSlug?: string): string {
 	if (explicitSlug) return explicitSlug;
 	return (
 		filePath

@@ -3,21 +3,14 @@
 	"version": "0.2.3",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		},
-		"./client": {
-			"types": "./dist/client.d.mts",
-			"import": "./dist/client.mjs",
-			"default": "./dist/client.mjs"
-		}
+		".": "./dist/index.js",
+		"./client": "./dist/client.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"files": [
-		"dist"
+		"dist",
+		"README.md",
+		"LICENSE"
 	],
 	"scripts": {
 		"build": "tsdown",
@@ -33,10 +26,10 @@
 		"@docvia/renderer-core": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"@types/react": "^19",
-		"@types/react-dom": "^19",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"typescript": "catalog:"
 	},
 	"description": "React renderer adapter for docvia",
 	"license": "MIT",
@@ -55,5 +48,6 @@
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

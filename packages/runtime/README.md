@@ -1,20 +1,14 @@
 # @docvia/runtime
 
-The stateful compile service that backs every docvia mode.
+The page pipeline shared by every docvia integration.
 
-`CompileService` holds the resolved config, plugin runner, incremental cache, and
-in-memory module graph for the lifetime of a process. Every docvia mode drives
-this one service, so build, dev, and request-time output stay identical:
+- `PagePipeline` reads frontmatter and compiles page bodies, cached in memory
+  by content hash. Nothing is written to disk.
+- `transformMacroModule()` rewrites `defineDocs()` / `defineRegistry()` calls
+  from `@docvia/source/macro` into a frontmatter index plus lazy per-page
+  imports. `@docvia/plugin-vite` and `@docvia/plugin-next` drive it.
+- `CompileService` holds the resolved config and compiled pages for a process.
+  It backs `@docvia/compiler`'s `compile()` and `@docvia/ssr`: a live
+  `CompileService` is a valid `ContentSource` for `createDocviaSSR`.
 
-- `@docvia/compiler`'s `compile()` — batch build (a thin wrapper over it).
-- `@docvia/plugin-vite` / `@docvia/plugin-next` — in-process dev compilation
-  with incremental `invalidate()`.
-- `@docvia/ssr` — request-time rendering; a live `CompileService` is itself a
-  valid `ContentSource`, so it can be passed straight to `createDocviaSSR`.
-
-Key surface: `compileAll()`, `compileFile()`, `getDocument()`,
-`invalidate(filePaths)`, `emitDiskModuleGraph()`, and the virtual-source /
-type-declaration emitters.
-
-Not a public-facing API surface; consume `@docvia/compiler` or a framework
-plugin instead.
+Not a public-facing API surface; use a framework plugin instead.

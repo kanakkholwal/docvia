@@ -1,6 +1,9 @@
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import type {
+	CollectionConfig,
 	docviaConfig,
 	docviaPlugin,
 	FileEntry,
@@ -162,9 +165,13 @@ export class PluginRunner {
  */
 export function defineConfig<
 	const F extends FrontmatterSchema = FrontmatterSchema,
+	const C extends readonly CollectionConfig[] = readonly CollectionConfig[],
 >(
-	config: Partial<Omit<docviaConfig, "frontmatter">> & { frontmatter?: F },
-): docviaConfig & { readonly frontmatter?: F } {
+	config: Partial<Omit<docviaConfig, "frontmatter" | "collections">> & {
+		frontmatter?: F;
+		collections?: C;
+	},
+): docviaConfig & { readonly frontmatter?: F; readonly collections?: C } {
 	return {
 		sourceDir: config.sourceDir ?? "docs",
 		outDir: config.outDir ?? ".docvia",
@@ -173,6 +180,7 @@ export function defineConfig<
 		components: config.components,
 		collections: config.collections,
 		frontmatter: config.frontmatter,
+		hashExclude: config.hashExclude,
 		markdown: {
 			remarkPlugins: config.markdown?.remarkPlugins ?? [],
 		},
@@ -303,9 +311,70 @@ export async function resolveProject(
 				configPath,
 			);
 		}
-		return { config: defineConfig({}), projectRoot: cwd };
+		const config = await withDetectedDefaults(defineConfig({}), cwd, false);
+		return { config, projectRoot: cwd };
 	}
 
-	const config = await loadConfig(configPath);
-	return { config, configPath, projectRoot: dirname(configPath) };
+	const projectRoot = dirname(configPath);
+	const config = await withDetectedDefaults(
+		await loadConfig(configPath),
+		projectRoot,
+		true,
+	);
+	return { config, configPath, projectRoot };
+}
+
+/** Imports `specifier` as the project at `root` would, or `undefined` when it is not installed. */
+async function importFromProject(
+	root: string,
+	specifier: string,
+): Promise<Record<string, unknown> | undefined> {
+	let path: string;
+	try {
+		path = createRequire(join(root, "package.json")).resolve(specifier);
+	} catch {
+		return undefined;
+	}
+	return import(pathToFileURL(path).href);
+}
+
+function projectDependencies(root: string): Set<string> {
+	try {
+		const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+		return new Set(
+			Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }),
+		);
+	} catch {
+		return new Set();
+	}
+}
+
+/**
+ * Zero-config defaults: the renderer matching the app's framework and, without a config
+ * file, Shiki when `@docvia/plugin-shiki` is installed.
+ */
+async function withDetectedDefaults(
+	config: docviaConfig,
+	root: string,
+	hasConfigFile: boolean,
+): Promise<docviaConfig> {
+	let renderer = config.renderer;
+	if (!renderer) {
+		const deps = projectDependencies(root);
+		const svelte = deps.has("svelte") || deps.has("@sveltejs/kit");
+		const mod = svelte
+			? await importFromProject(root, "@docvia/renderer-svelte/node")
+			: await importFromProject(root, "@docvia/renderer-react");
+		const create = (
+			svelte ? mod?.createSvelteRenderer : mod?.createReactRenderer
+		) as (() => docviaConfig["renderer"]) | undefined;
+		renderer = create?.();
+	}
+	let plugins = config.plugins;
+	if (!hasConfigFile && plugins.length === 0) {
+		const shiki = await importFromProject(root, "@docvia/plugin-shiki");
+		const create = shiki?.shiki as (() => docviaPlugin) | undefined;
+		if (create) plugins = [create()];
+	}
+	return { ...config, renderer, plugins };
 }

@@ -1,9 +1,7 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"outDir": "dist",
-		"lib": ["ES2022", "dom"],
-		"noEmit": false
+		"lib": ["ES2022", "dom"]
 	},
-	"include": ["src/**/*", "tests/default-renderers.test.ts"]
+	"include": ["src/**/*", "tests/**/*.test.ts"]
 }

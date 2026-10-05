@@ -10,18 +10,16 @@ docvia follows a **Compiler-Grade Architecture** designed for scalability and ex
 1. **Core Parser (`@docvia/core`):** Micromark-based parser converts markdown strings into a standard `mdast` (Markdown Abstract Syntax Tree).
 2. **Plugins (`@docvia/plugins`):** `unified` plugins can intercept and modify the `mdast` before transformation.
 3. **IR Transform (`@docvia/ir`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
-4. **Compile core (`@docvia/runtime`):** A stateful, long-lived `CompileService` owns the resolved config, plugin runner, incremental cache, and module graph. It exposes `compileAll()`, incremental `invalidate()`, `getDocument()`, and module-graph / IR-chunk emitters.
-5. **Renderer (`@docvia/renderer-core` + adapters):** Takes IR nodes and produces framework output. Syntax highlighting is a build-time plugin (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR — no highlighter ships at runtime.
+4. **Page pipeline (`@docvia/runtime`):** `PagePipeline` reads frontmatter and compiles page bodies; the macro transform rewrites `defineDocs()` / `defineRegistry()` calls (`@docvia/source/macro`) into a frontmatter index plus lazy per-page imports. Bodies compile in memory, keyed by content hash; nothing is written to disk.
+5. **Renderer (`@docvia/renderer-core` + adapters):** Takes IR nodes and produces framework output. Syntax highlighting is a build-time plugin (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR, so no highlighter ships at runtime.
 
 ### 2. Run modes
 
-One `CompileService` backs three modes — see [MODES.md](./MODES.md) for the full breakdown:
+- **Bundler (recommended):** `@docvia/plugin-vite` and `@docvia/plugin-next` (webpack + Turbopack) run the macro transform in-process. Apps read pages through `loader()` from `@docvia/source`: `source.getPage(slugs)` returns frontmatter synchronously and `page.data.load()` compiles the body on first call. Dev recompiles changed pages on HMR.
+- **SSR:** framework apps call `page.data.load()` on the server (Node or edge); bodies stay lazy, so cold start stays small. `@docvia/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
+- **Legacy config collections:** `collections` in `docvia.config.ts` with `virtual:docvia/source` / `docvia/source` imports, and the standalone `@docvia/compiler` / CLI build. See [MODES.md](./MODES.md).
 
-- **Build** — `@docvia/compiler`'s `compile()` (a thin wrapper over `CompileService`) emits the thin on-disk glue that statically imports each markdown module as `./x.md?docvia`; the host bundler's `?docvia` loader compiles them in place (no IR JSON).
-- **Dev** — the bundler plugins (`@docvia/plugin-vite`, `@docvia/plugin-next`) run `CompileService` in-process and recompile incrementally via `service.invalidate()` on every file change.
-- **SSR** — framework apps render the in-place module directly through the bundler-specific source specifier (`virtual:docvia/source` on Vite, `docvia/source` on Next.js — eager for Node/edge, with a `/browser` counterpart lazy for the client); `@docvia/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
-
-Because every mode shares one render path, build, dev, and request-time output are identical.
+Every mode shares one render path, so output is identical.
 
 ### 3. Intermediate Representation (IR)
 docvia operates on IR rather than raw HTML. This allows different renderers (Svelte, React, Vue) to generate framework-optimized output from the same parsed source.
@@ -36,13 +34,14 @@ docvia operates on IR rather than raw HTML. This allows different renderers (Sve
 ```
 
 ### 4. Incremental Builds
-We use a **DAG (Directed Acyclic Graph)** based approach for incremental builds. Every file's output hash is a composite of:
-- Source content hash
+Compiled pages are cached in memory, keyed by a hash of:
+- Source content
 - Frontmatter data
 - Config hash
 - Plugin cache keys
+- Dependency hashes
 
-This ensures that only changed files (and their dependents) are recomputed.
+Only changed pages recompile. There is no on-disk cache.
 
 ## Development Setup
 

@@ -1,27 +1,31 @@
 ---
 title: "@docvia/plugin-next"
-description: "Next.js integration that compiles docvia docs and aliases the compiled artifacts for webpack and Turbopack."
+description: "Next.js integration: compiles defineDocs() collections and Markdown pages for webpack and Turbopack."
 eyebrow: "Packages"
 order: 41
 ---
 
-`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config`: when the config is evaluated it compiles your docs by driving a [`CompileService`](/docs/packages/runtime), aliases `docvia/source` and `docvia/registry` to the compiled `.docvia/` artifacts for **both webpack and Turbopack**, and, in development, starts an incremental watcher. A cross-process file lock keeps concurrent Next.js processes from compiling at the same time.
+`@docvia/plugin-next` integrates docvia with Next.js. `withDocvia()` wraps your `next.config` and registers two loaders for **both webpack and Turbopack**: one rewrites `defineDocs()` / `defineRegistry()` calls into an index of your pages, the other compiles each Markdown page lazily when `page.data.load()` first imports it. No `.docvia/` folder is written.
 
 ## Install
 
 ```bash
 pnpm add -D @docvia/plugin-next
+pnpm add @docvia/source
 ```
 
-Next.js is a peer dependency: `next >= 14`.
+Next.js is a peer dependency: `next >= 14`. The generated code imports `@docvia/source`, so install it in your app.
 
 ## Package exports
 
 | Subpath | Contents |
 |---|---|
-| `.` | `withDocvia`, `DocviaNextOptions`. |
+| `.` | `withDocvia`, `defineConfig`, `DocviaNextOptions`. |
+| `./loader` | The `.md?docvia` loader. |
+| `./macro-loader` | The `defineDocs()` / `defineRegistry()` loader. |
+| `./package.json` | Package metadata. |
 
-There is no `bin` and no other subpath.
+Import `defineConfig` from here in `docvia.config.ts`.
 
 ## API reference
 
@@ -30,12 +34,16 @@ There is no `bin` and no other subpath.
 ```ts
 interface DocviaNextOptions {
   configPath?: string;
+  macroFiles?: string[];
 }
 ```
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `configPath` | `string` | `"./docvia.config.ts"` | Path to the docvia config file. |
+| `macroFiles` | `string[]` | `source.{ts,tsx,js,mjs}`, `registry.{ts,tsx,js}` | File names that may call `defineDocs()` / `defineRegistry()`. |
+
+Only files with these names are transformed (Turbopack matches rules by file name). A macro call in any other file throws at runtime.
 
 ### `withDocvia`
 
@@ -45,82 +53,67 @@ function withDocvia(
 ): (nextConfig?: NextConfig) => (phase: string, context: unknown) => Promise<NextConfig>;
 ```
 
-A curried wrapper for `next.config`. Calling `withDocvia()` returns a function that takes your existing `NextConfig`; that in turn returns the async `(phase, context)` function Next.js expects.
+A curried wrapper for `next.config`. Calling `withDocvia()` returns a function that takes your existing `NextConfig` (or a config function); that returns the async `(phase, context)` function Next.js expects.
 
-#### Initialization (`init`, memoized)
+The returned config adds:
 
-On the first invocation, `withDocvia` runs an `init()` step exactly once (the result is memoized):
+- **Macro loader.** A `pre` webpack rule (before SWC) and a `turbopack.rules` entry per name in `macroFiles`.
+- **Markdown loader.** A `.md?docvia` webpack rule and a `*.md` Turbopack rule. Each page compiles in memory on first import, keyed by content hash.
 
-1. Loads `docvia.config.ts` (or falls back to `defineConfig({})` when no config file is found).
-2. Resolves `sourceDir` (default `docs`) and `outDir` (default `.docvia`).
-3. **Skips** compilation entirely when there is no renderer configured or the source directory is missing.
-4. Acquires the `.docvia-build.lock` cross-process file lock. If another process already holds the lock, it waits up to **60 seconds** for that process to produce `outDir/source.ts`.
-5. Constructs a `CompileService` and runs `compileAll()` followed by `emitDiskModuleGraph()`.
-
-Failure handling depends on `phase`:
-
-- In a **production build**, a compile failure is rethrown, so the Next.js build fails loudly.
-- In **development**, a compile failure is tolerated so the dev server can still start.
-
-#### Development watcher
-
-In dev, `withDocvia` starts a **singleton** watcher over the source directory. Only one watcher is created regardless of how many times the config function runs. Each change recompiles only the affected files through `service.invalidate()` and re-emits the module graph incrementally rather than rebuilding everything.
-
-#### Returned config
-
-The returned `NextConfig` registers two resolve aliases for **both bundlers**, since Next.js may run on webpack or Turbopack and docvia resolves under either:
-
-| Alias | Target |
-|---|---|
-| `docvia/source` | `<outDir>/source.ts` (eager, server/SSR) |
-| `docvia/source/browser` | `<outDir>/browser.ts` (lazy, client code-split) |
-| `docvia/registry` | `<outDir>/registry.ts` |
-
-The aliases are added to a `webpack()` hook *and* to `turbopack.resolveAlias`. Any `webpack()` hook already present on your config is preserved and composed.
-
-It also registers a `.md?docvia` loader for both bundlers (a `module.rules` entry on webpack, a `turbopack.rules` entry on Turbopack) so each Markdown file is compiled as a module **in place**: content lives once in the `.md`, with no emitted JSON.
-
-> The on-disk module graph is used for both webpack and Turbopack. Turbopack has no plugin API, so there is a single resolution path.
+An existing `webpack()` hook or `turbopack` block on your config is preserved and composed.
 
 ## Usage
 
-### Minimal `next.config.mjs`
+### `next.config.ts`
 
-```js
+```ts title="next.config.ts"
 import { withDocvia } from "@docvia/plugin-next";
 
-export default withDocvia()();
+export default withDocvia()({ reactStrictMode: true });
 ```
 
-### With an existing Next.js config
+### Declare the collection
 
-```js
-import { withDocvia } from "@docvia/plugin-next";
+```ts title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
 
-/** @type {import("next").NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-};
+const docs = defineDocs({ dir: "content/docs" });
 
-export default withDocvia()(nextConfig);
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
 
-### Custom config path
+```ts title="lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
 
-```js
-import { withDocvia } from "@docvia/plugin-next";
-
-export default withDocvia({ configPath: "./config/docvia.config.ts" })({
-  reactStrictMode: true,
-});
+export const registry = defineRegistry();
 ```
 
-### Consuming the compiled source
+### Render a page
 
-Because `withDocvia` aliases `docvia/source`, application code can import the generated source directly:
+```tsx title="app/docs/[[...slug]]/page.tsx"
+import { DocviaContent } from "@docvia/renderer-react";
+import { notFound } from "next/navigation";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
+
+export function generateStaticParams() {
+  return source.generateParams();
+}
+
+export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
+  const { slug } = await params;
+  const page = source.getPage(slug);
+  if (!page) notFound();
+  const { content } = await page.data.load();
+  return <DocviaContent nodes={content} registry={registry} />;
+}
+```
+
+### Custom file names
 
 ```ts
-import { docviaSource } from "docvia/source";
-
-const page = await docviaSource.collections.docs.getPage(["getting-started"]);
+export default withDocvia({ macroFiles: ["docs-source.ts", "registry.ts"] })();
 ```
+
+> **Legacy config collections.** When `docvia.config.ts` declares `collections` (or no macro file exists), `withDocvia()` instead compiles everything up front into `.docvia/` under a cross-process lock, watches it in dev, and aliases `docvia/source`, `docvia/source/browser` and `docvia/registry` to it.

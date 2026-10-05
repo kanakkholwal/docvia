@@ -19,9 +19,7 @@
 			}
 		],
 		"paths": {
-			"@/*": ["./*"],
-			"docvia/source": ["./.docvia/source.ts"],
-			"docvia/registry": ["./.docvia/registry.ts"]
+			"@/*": ["./*"]
 		}
 	},
 	"include": [
@@ -29,10 +27,7 @@
 		"**/*.ts",
 		"**/*.tsx",
 		".next/types/**/*.ts",
-		".docvia/**/*.ts",
-		".docvia/**/*.json",
-		"docvia-env.d.ts",
 		".next/dev/types/**/*.ts"
 	],
-	"exclude": ["node_modules", ".docvia/server.ts", ".docvia/browser.ts"]
+	"exclude": ["node_modules"]
 }

@@ -36,6 +36,7 @@ export type IRNodeType =
 	| "emphasis"
 	| "strong"
 	| "code-block"
+	| "code-group"
 	| "inline-code"
 	| "link"
 	| "image"
@@ -154,6 +155,8 @@ export interface AssetReference {
 
 export interface RendererAdapter {
 	readonly name: string;
+	/** Packages rendered pages import at runtime. Bundler integrations pre-bundle them and keep them out of SSR externals. */
+	readonly runtimePackages?: readonly string[];
 	renderPage(doc: IRDocument): Promise<RenderedPage>;
 	renderManifest(pages: readonly PageMeta[]): Promise<string>;
 }
@@ -173,10 +176,7 @@ export interface CompilerOptions {
 	readonly renderer: RendererAdapter;
 	readonly plugins: readonly docviaPlugin[];
 	readonly config: docviaConfig;
-	/**
-	 * Project root used for resolving relative paths and emitting the ambient
-	 * `docvia-env.d.ts`. Defaults to `process.cwd()` for backwards compatibility.
-	 */
+	/** Root that `sourceDir`, `outDir` and component paths resolve from. Default: `process.cwd()`. */
 	readonly projectRoot?: string;
 	/**
 	 * Absolute path to the user's `docvia.config.*` file. When set, the generated
@@ -186,12 +186,6 @@ export interface CompilerOptions {
 	 * permissive type.
 	 */
 	readonly configPath?: string;
-	/**
-	 * When true (default), the compiler reads/writes `.docvia.cache.json` and
-	 * skips files whose content hash and pipeline cache key match the previous
-	 * build. Pass `false` to force a full rebuild.
-	 */
-	readonly incremental?: boolean;
 }
 
 export interface CompileResult {
@@ -247,15 +241,21 @@ export interface docviaPlugin {
 // Config Types
 
 export interface ComponentConfig {
+	/** File path, relative to the project root. */
 	readonly path: string;
 	readonly hydrate?: boolean;
 	readonly defaultProps?: Record<string, unknown>;
 }
 
 export interface CollectionConfig {
+	/** A valid JS identifier: it becomes a named export of `virtual:docvia/source`. */
 	readonly name: string;
 	readonly sourceDir: string;
 	readonly baseUrl?: string;
+	/** Frontmatter schema for this collection. Defaults to the top-level `frontmatter`. */
+	readonly frontmatter?: FrontmatterSchema;
+	/** Treat a missing `sourceDir` as an empty collection (e.g. a private submodule). */
+	readonly optional?: boolean;
 }
 
 /**
@@ -286,7 +286,13 @@ export interface docviaConfig {
 	readonly outDir: string;
 	readonly plugins: readonly docviaPlugin[];
 	readonly renderer?: RendererAdapter;
-	readonly components?: Record<string, ComponentConfig>;
+	/**
+	 * Components markdown can use, by name. The array form also takes glob strings
+	 * (`"./src/lib/docs/*.svelte"`); names come from file names (`ButtonDemo` -> `button-demo`).
+	 */
+	readonly components?:
+		| Record<string, ComponentConfig>
+		| ReadonlyArray<string | (ComponentConfig & { readonly name: string })>;
 	readonly collections?: readonly CollectionConfig[];
 	/**
 	 * A [Standard Schema](https://standardschema.dev) to extend and validate
@@ -317,6 +323,8 @@ export interface docviaConfig {
 	 * ```
 	 */
 	readonly frontmatter?: FrontmatterSchema;
+	/** Frontmatter keys left out of a page's `contentHash`, for derived or volatile values. */
+	readonly hashExclude?: readonly string[];
 	readonly markdown: {
 		readonly remarkPlugins: readonly unknown[];
 	};
@@ -370,4 +378,63 @@ export function toPageMeta(ir: IRDocument): PageMeta {
 	};
 }
 
-export { transformToIR } from "./transform";
+/** Search data per page, same shape as fumadocs' `structuredData`. */
+export interface StructuredData {
+	readonly headings: ReadonlyArray<{
+		readonly id: string;
+		readonly content: string;
+	}>;
+	/** One entry per block; `heading` is the id of the section it sits in. */
+	readonly contents: ReadonlyArray<{
+		readonly heading: string | undefined;
+		readonly content: string;
+	}>;
+}
+
+const SEARCH_BLOCKS = new Set<IRNodeType>([
+	"paragraph",
+	"code-block",
+	"table-cell",
+]);
+
+function irText(node: IRNode): string {
+	if (node.type === "text" || node.type === "inline-code") {
+		return String(node.props.value ?? "");
+	}
+	if (node.type === "code-block") return String(node.props.value ?? "");
+	return node.children.map(irText).join("");
+}
+
+export function toStructuredData(ir: IRDocument): StructuredData {
+	const headings: Array<{ id: string; content: string }> = [];
+	const contents: Array<{ heading: string | undefined; content: string }> = [];
+	let heading: string | undefined;
+	const push = (text: string) => {
+		const content = text.replace(/\s+/g, " ").trim();
+		if (content) contents.push({ heading, content });
+	};
+	const walk = (nodes: readonly IRNode[]) => {
+		for (const node of nodes) {
+			if (node.type === "heading") {
+				heading = String(node.props.id ?? "");
+				headings.push({ id: heading, content: irText(node).trim() });
+			} else if (SEARCH_BLOCKS.has(node.type)) {
+				push(irText(node));
+			} else if (node.type === "text") {
+				push(String(node.props.value ?? ""));
+			} else {
+				walk(node.children);
+			}
+		}
+	};
+	walk(ir.children);
+	return { headings, contents };
+}
+
+export type { FenceMeta, PackageManager } from "./code";
+export {
+	convertNpmCommand,
+	PACKAGE_MANAGERS,
+	parseFenceMeta,
+} from "./code";
+export { computeSlug, transformToIR } from "./transform";

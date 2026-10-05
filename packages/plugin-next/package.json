@@ -3,19 +3,11 @@
 	"version": "1.0.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		},
-		"./loader": {
-			"types": "./dist/loader.d.mts",
-			"import": "./dist/loader.mjs",
-			"default": "./dist/loader.mjs"
-		}
+		".": "./dist/index.js",
+		"./loader": "./dist/loader.js",
+		"./macro-loader": "./dist/macro-loader.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -26,14 +18,15 @@
 		"@docvia/ir": "workspace:*",
 		"@docvia/plugins": "workspace:*",
 		"@docvia/runtime": "workspace:*",
-		"chokidar": "^4.0.0"
+		"chokidar": "^5.0.0",
+		"jiti": "^2.7.0"
 	},
 	"devDependencies": {
 		"@docvia/source": "workspace:*",
-		"@types/node": "^25.5.0",
-		"next": "^16",
-		"typescript": "^5.9.3",
-		"webpack": "^5"
+		"@types/node": "catalog:",
+		"next": "^16.3.8",
+		"typescript": "catalog:",
+		"webpack": "^5.111.1"
 	},
 	"peerDependencies": {
 		"@docvia/source": "workspace:*",
@@ -54,11 +47,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

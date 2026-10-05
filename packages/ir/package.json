@@ -3,19 +3,10 @@
 	"version": "0.4.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		},
-		"./transform": {
-			"types": "./dist/transform.d.mts",
-			"import": "./dist/transform.mjs",
-			"default": "./dist/transform.mjs"
-		}
+		".": "./dist/index.js",
+		"./transform": "./dist/transform.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -26,9 +17,9 @@
 		"github-slugger": "^2.0.0"
 	},
 	"devDependencies": {
-		"@types/hast": "^3.0.4",
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3"
+		"@types/hast": "^3.0.5",
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Intermediate representation, error system, and AST → IR transform for docvia",
 	"license": "MIT",
@@ -45,11 +36,17 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"inlinedDependencies": {
+		"@types/hast": "3.0.5",
+		"@types/unist": "3.0.3"
+	},
+	"sideEffects": false
 }

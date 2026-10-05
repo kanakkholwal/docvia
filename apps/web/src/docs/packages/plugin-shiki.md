@@ -24,16 +24,16 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 ## Usage
 
-Register it in the `plugins` array of your `docvia.config.ts`:
+`shiki()` is the recommended default. Without a highlighter, docvia warns once
+that code blocks render unhighlighted. Register it in the `plugins` array of
+your `docvia.config.ts`:
 
 ```ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [
     shiki({
@@ -43,6 +43,32 @@ export default defineConfig({
   ],
 });
 ```
+
+## Light and dark themes
+
+Pass `themes` instead of `theme` to highlight with two themes at once. Each
+token then carries both palettes as CSS variables (`--shiki-light`,
+`--shiki-dark`), and each block gets `--shiki-light-bg` and `--shiki-dark-bg`.
+
+```ts
+shiki({
+  themes: { light: "github-light", dark: "github-dark" },
+  defaultColor: false,
+});
+```
+
+`defaultColor` is passed to Shiki. `"light"` (Shiki's default) or `"dark"`
+also writes that theme's colors inline; `false` emits only the variables, so
+your CSS picks the palette:
+
+```css
+pre.shiki { background-color: var(--shiki-light-bg); }
+pre.shiki span { color: var(--shiki-light); }
+[data-theme="dark"] pre.shiki { background-color: var(--shiki-dark-bg); }
+[data-theme="dark"] pre.shiki span { color: var(--shiki-dark); }
+```
+
+Switching the site theme then needs no re-highlight.
 
 ## How it works
 
@@ -55,8 +81,10 @@ export default defineConfig({
 5. The renderer's `code-block` renderer prefers that pre-highlighted `props.html`
    over any render-time highlighter.
 
-The plugin's `cacheKey()` is keyed on the theme and language list, so the
-incremental cache correctly re-highlights when either changes.
+The plugin's `cacheKey()` is keyed on the theme (or `themes` and
+`defaultColor`) and the regex engine, so pages re-highlight when either
+changes. Fence titles, tabs, and package-manager tabs work with or without Shiki; see
+[Code blocks](/docs/packages/renderer-core#code-blocks).
 
 ## Pluggable highlighting
 

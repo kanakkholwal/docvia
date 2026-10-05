@@ -4,7 +4,7 @@ import { performance } from "node:perf_hooks";
 import type { docviaConfig } from "@docvia/ir";
 import { docviaError } from "@docvia/ir";
 import { loadConfig, resolveProject } from "@docvia/plugins";
-import { CompileService } from "@docvia/runtime";
+import { CompileService, samePath } from "@docvia/runtime";
 import { c, formatError, header, log, step, symbols } from "../logger";
 
 export interface DevOptions {
@@ -48,7 +48,8 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	);
 	const outDir = resolve(projectRoot, opts.out ?? config.outDir ?? ".docvia");
 
-	if (!existsSync(sourceDir)) {
+	// With `collections`, the service reports each missing directory itself.
+	if (!config.collections && !existsSync(sourceDir)) {
 		log.error(`${c.red("[ERROR]")} Source directory not found: ${sourceDir}`);
 		process.exit(1);
 	}
@@ -72,7 +73,6 @@ export async function runDev(opts: DevOptions): Promise<void> {
 			config: cfg,
 			projectRoot,
 			configPath,
-			incremental: true,
 		});
 	}
 
@@ -103,7 +103,7 @@ export async function runDev(opts: DevOptions): Promise<void> {
 
 	const { watch } = await import("chokidar");
 
-	const watchTargets = [sourceDir];
+	const watchTargets = service.collectionDirs();
 	if (configPath) watchTargets.push(configPath);
 
 	const watcher = watch(watchTargets, {
@@ -170,7 +170,9 @@ export async function runDev(opts: DevOptions): Promise<void> {
 		timer = null;
 
 		const reason =
-			configPath && files.includes(configPath) ? "config" : "files";
+			configPath && files.some((f) => samePath(f, configPath as string))
+				? "config"
+				: "files";
 		if (verbose && reason === "files") {
 			const names = files.map((f) => basename(f)).join(", ");
 			log.plain(c.gray(`  ${symbols.arrow} changed: ${names}`));
@@ -186,6 +188,8 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	}
 
 	function schedule(filePath: string): void {
+		const isConfig = configPath !== undefined && samePath(filePath, configPath);
+		if (!isConfig && !service.owns(filePath)) return;
 		pending.add(filePath);
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(flush, 20);
@@ -196,8 +200,8 @@ export async function runDev(opts: DevOptions): Promise<void> {
 	watcher.on("unlink", schedule);
 
 	const watching = configPath
-		? `${c.cyan(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.cyan(rel(configPath))}`
-		: c.cyan(rel(sourceDir));
+		? `${c.brand(rel(sourceDir))} ${c.gray(symbols.dot)} ${c.brand(rel(configPath))}`
+		: c.brand(rel(sourceDir));
 	console.log("");
 	console.log(`  ${c.gray("watching")} ${watching}`);
 	console.log(`  ${c.gray("press Ctrl+C to stop")}`);

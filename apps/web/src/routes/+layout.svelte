@@ -1,10 +1,24 @@
 <script lang="ts">
 import "@fontsource-variable/inter";
-import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/geist-pixel";
+import { onNavigate } from "$app/navigation";
+import NavProgress from "#lib/components/site/nav-progress.svelte";
 import type { Snippet } from "svelte";
 import "../app.css";
 
 let { children }: { children: Snippet } = $props();
+
+onNavigate((navigation) => {
+	const samePage = navigation.from?.url.pathname === navigation.to?.url.pathname;
+	if (samePage || !document.startViewTransition) return;
+	return new Promise((resolve) => {
+		document.startViewTransition(async () => {
+			resolve();
+			await navigation.complete;
+		});
+	});
+});
 </script>
 
 <a
@@ -13,5 +27,7 @@ let { children }: { children: Snippet } = $props();
 >
 	Skip to content
 </a>
+
+<NavProgress />
 
 {@render children()}

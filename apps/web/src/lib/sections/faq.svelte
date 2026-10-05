@@ -1,63 +1,47 @@
 <script lang="ts">
-import { Accordion } from "$lib/components/ui/accordion";
+import Section from "#lib/components/site/section.svelte";
+import * as Accordion from "#lib/components/ui/accordion/index.ts";
 
-// Every answer here is checked against the code. No claim goes in that a
-// reader could not verify by opening the repo.
+// Each answer was checked against packages/* on 2026-10-06; see .local/redesign-audit.md.
 const faqs = [
 	{
-		q: "Does it ship a Markdown parser to the browser?",
-		a: "No. Parsing, sanitizing, and the IR transform all run at build time. The browser gets pre-rendered output. Syntax highlighting is a build-time plugin too, so no highlighter ships either.",
+		q: "Does a Markdown parser ship to the browser?",
+		a: "No. Your bundler compiles Markdown ahead of time, and Shiki highlighting is baked into the output, so neither a parser nor a highlighter reaches the browser or the server bundle.",
 	},
 	{
-		q: "How is this different from a Markdown library?",
-		a: "Libraries like react-markdown parse on every render. docvia parses once at build time, caches on a content hash, and emits a typed module graph your bundler can tree-shake.",
+		q: "How is this different from react-markdown?",
+		a: "Libraries like react-markdown parse on every render. docvia compiles each page once in your build and loads page bodies lazily, one module per page.",
 	},
 	{
-		q: "Am I locked into a framework?",
-		a: "No. Markdown compiles to a framework-agnostic IR. React and Svelte renderers ship first-party, and any framework works by implementing a RendererAdapter against that IR.",
+		q: "Which frameworks does it support?",
+		a: "Next.js, SvelteKit and TanStack Start, rendered with React or Svelte. The compiled tree is framework-agnostic, so a new renderer only has to implement the adapter contract in renderer-core.",
 	},
 	{
-		q: "Can I use React components inside Markdown?",
-		a: "Yes, through directives. Register a component in your config, then write :::counter in Markdown. That is the supported mechanism; docvia does not compile MDX.",
+		q: "Can I use components inside Markdown?",
+		a: "Yes, through directives such as :::counter, mapped to components in your config, with optional hydration. docvia does not compile MDX.",
 	},
 	{
-		q: "Can non-engineers contribute safely?",
-		a: "Frontmatter is validated against your Zod schema at compile time, and the matching TypeScript types are generated. A missing or misspelled field fails the build rather than shipping.",
+		q: "Which schema libraries work for frontmatter?",
+		a: "Any Standard Schema library: Zod, Valibot, ArkType and others. A missing or wrong field fails the build, and page.data is typed from the schema.",
 	},
 	{
-		q: "Can I self-host?",
-		a: "That is the only mode. docvia is a build tool that outputs a module graph you deploy anywhere: static hosts, Cloudflare, a VPC, on-prem. No required service, no telemetry.",
+		q: "Does it run on Cloudflare Workers?",
+		a: "Yes. Page bodies load lazily, so at 1,500 pages the server bundle imports in under 100 ms with about 10 MB of heap. This site builds for Workers with adapter-cloudflare.",
 	},
 	{
 		q: "Is it free?",
-		a: "Yes, MIT licensed. You run the build yourself, so there is nothing to meter and no paid tier.",
-	},
-	{
-		q: "Is it production ready?",
-		a: "v1.0.0 is published and this site's documentation is compiled by it. Breaking changes follow semver, and every release ships a changeset describing what moved.",
+		a: "Yes. Every package is MIT licensed, there is no hosted service and nothing phones home.",
 	},
 ];
 </script>
 
-<section id="faq" class="border-b border-hairline bg-surface-soft scroll-mt-20">
-	<div class="mx-auto max-w-page px-5 py-14 sm:px-10 sm:py-28">
-		<div class="mb-12 text-center">
-			<span class="label-meta">FAQ</span>
-			<h2
-				class="mx-auto mt-4 max-w-2xl text-balance font-display text-[32px] leading-[1.05] tracking-[-0.025em] text-ink sm:text-[48px] sm:leading-none"
-			>
-				Frequently asked questions.
-			</h2>
-		</div>
-
-		<div
-			class="mx-auto max-w-3xl rounded-md border border-hairline bg-canvas px-6"
-		>
-			{#each faqs as faq, i}
-				<Accordion question={faq.q} open={i === 0}>
-					<p>{faq.a}</p>
-				</Accordion>
+<Section id="faq" number={7} title="questions." description="If yours is missing, open a discussion on GitHub.">
+	<Accordion.Root type="single" class="w-full max-w-3xl divide-y-0 rounded-none border-0 border-t border-dashed border-hairline-strong">
+			{#each faqs as item, i}
+				<Accordion.Item value="faq-{i}" class="border-b border-dashed border-hairline-strong">
+					<Accordion.Trigger class="py-4 text-left text-base font-medium text-ink">{item.q}</Accordion.Trigger>
+					<Accordion.Content class="pb-4 text-sm leading-relaxed text-body">{item.a}</Accordion.Content>
+				</Accordion.Item>
 			{/each}
-		</div>
-	</div>
-</section>
+	</Accordion.Root>
+</Section>

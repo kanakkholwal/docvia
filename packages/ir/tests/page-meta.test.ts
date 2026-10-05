@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { IRDocument } from "../src/index";
-import { toPageMeta } from "../src/index";
+import type { IRDocument, IRNode } from "../src/index";
+import { toPageMeta, toStructuredData } from "../src/index";
 
 function makeIR(overrides: Partial<IRDocument> = {}): IRDocument {
 	return {
@@ -90,5 +90,40 @@ describe("toPageMeta", () => {
 		expect(meta.slug).toBe("guide/intro");
 		expect(meta.contentHash).toBe("real-hash");
 		expect(meta.headings).toHaveLength(1);
+	});
+});
+
+describe("toStructuredData", () => {
+	const node = (
+		type: IRNode["type"],
+		props: Record<string, unknown> = {},
+		children: IRNode[] = [],
+	): IRNode => ({ type, props, children });
+	const text = (value: string) => node("text", { value });
+
+	it("groups block text under the heading it follows", () => {
+		const data = toStructuredData(
+			makeIR({
+				children: [
+					node("paragraph", {}, [
+						text("Lead "),
+						node("strong", {}, [text("text")]),
+					]),
+					node("heading", { depth: 2, id: "setup" }, [text("Setup")]),
+					node("list", {}, [
+						node("list-item", {}, [
+							node("paragraph", {}, [text("Pass  its\nsettings")]),
+						]),
+					]),
+					node("code-block", { lang: "bash", value: "npm i docvia\n" }),
+				],
+			}),
+		);
+		expect(data.headings).toEqual([{ id: "setup", content: "Setup" }]);
+		expect(data.contents).toEqual([
+			{ heading: undefined, content: "Lead text" },
+			{ heading: "setup", content: "Pass its settings" },
+			{ heading: "setup", content: "npm i docvia" },
+		]);
 	});
 });

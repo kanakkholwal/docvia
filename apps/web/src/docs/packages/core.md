@@ -23,7 +23,7 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Module | Contents |
 | --- | --- | --- |
-| `.` | `./dist/index.mjs` | `parseMarkdown`, plus the `ParseOptions` and `ParseResult` types. |
+| `.` | `./dist/index.js` | `parseMarkdown`, plus the `ParseOptions` and `ParseResult` types. |
 
 ```ts
 import { parseMarkdown } from "@docvia/core";

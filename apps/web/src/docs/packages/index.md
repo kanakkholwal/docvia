@@ -20,15 +20,14 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 - [`@docvia/core`](/docs/packages/core) is the Markdown parsing pipeline
   (`unified` + `remark` + `rehype`).
 - [`@docvia/schema`](/docs/packages/schema) handles frontmatter validation
-  (Zod), YAML extraction, and TypeScript codegen.
+  (any Standard Schema), YAML extraction, and TypeScript codegen.
 
 ## Compile core
 
-- [`@docvia/runtime`](/docs/packages/runtime) holds `CompileService`, the
-  stateful compile core shared by build, dev, and SSR.
+- [`@docvia/runtime`](/docs/packages/runtime) holds the page pipeline and the
+  `defineDocs()` transform shared by the plugins and the CLI.
 - [`@docvia/compiler`](/docs/packages/compiler) is the batch build entry
-  (`compile()`), content hashing, the incremental cache, and module-graph
-  generation.
+  (`compile()`), content hashing, and module-graph generation.
 - [`@docvia/plugins`](/docs/packages/plugins) provides `defineConfig`,
   `loadConfig`, and the `PluginRunner`.
 
@@ -41,8 +40,8 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 
 ## Runtime
 
-- [`@docvia/source`](/docs/packages/source) is the runtime collection model
-  (`createCollection` / `createSource`) the generated `source.ts` is built on.
+- [`@docvia/source`](/docs/packages/source) declares collections
+  (`defineDocs()`) and queries them (`loader()`).
 - [`@docvia/ssr`](/docs/packages/ssr) does request-time rendering for Node and
   edge runtimes.
 - [`@docvia/search`](/docs/packages/search) provides section-level Orama indexing
@@ -51,9 +50,10 @@ task-oriented walkthroughs, see the [Guides](/docs/guide).
 ## Integration
 
 - [`@docvia/cli`](/docs/packages/cli) is the `docvia` command (`init`, `build`,
-  `dev`, `preview`).
+  `dev`, `sync`, `preview`).
 - [`@docvia/plugin-vite`](/docs/packages/plugin-vite) is the in-process
-  `docvia()` Vite plugin, with virtual modules and incremental HMR.
+  `docvia()` Vite plugin, with virtual source and registry modules and
+  incremental HMR.
 - [`@docvia/plugin-next`](/docs/packages/plugin-next) is the Next.js `withDocvia`
   wrapper (webpack and Turbopack).
 - [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) does build-time syntax

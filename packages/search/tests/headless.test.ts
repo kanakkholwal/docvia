@@ -107,6 +107,31 @@ describe("createFromSource", () => {
 		expect((await server.search("installer")).length).toBeGreaterThan(0);
 	});
 
+	it("links sections to the page URL", async () => {
+		const server = await createFromSource({
+			getPages: () => [{ slugs: ["guide"], url: "/docs/guide" }],
+			getPage: makeSource().getPage,
+		});
+		const urls = (await server.search("widgets installer")).map((h) => h.url);
+		expect(urls.every((u) => u?.startsWith("/docs/guide"))).toBe(true);
+	});
+
+	it("searches extra records in the same index", async () => {
+		const server = await createFromSource(makeSource(), {
+			records: [
+				{
+					id: "button",
+					title: "Button",
+					url: "/components/button",
+					body: "A pressable gizmo with variants.",
+				},
+			],
+		});
+		expect(server.size).toBe(3);
+		const [hit] = await server.search("gizmo");
+		expect(hit).toMatchObject({ slug: "button", url: "/components/button" });
+	});
+
 	it("respects the limit option", async () => {
 		const server = await createFromSource(makeSource());
 		const hits = await server.search("widgets installer intro", { limit: 1 });
@@ -169,5 +194,55 @@ describe("createFetchClient", () => {
 		const client = createFetchClient();
 		expect(await client.search("  ")).toEqual([]);
 		expect(fetchMock).not.toHaveBeenCalled();
+	});
+});
+
+describe("createFromSource with a loader() source", () => {
+	it("loads bodies through page.data.load()", async () => {
+		const page = {
+			slugs: ["guide"],
+			url: "/docs/guide",
+			data: {
+				title: "Guide",
+				load: async () => ({ content }),
+			},
+		};
+		const server = await createFromSource({
+			getPages: () => [page],
+			getPage: () => page,
+		});
+		expect(server.size).toBeGreaterThan(0);
+		expect((await server.search("widgets"))[0]?.url).toContain("/docs/guide");
+	});
+});
+
+describe("createFromSource with compile-time structuredData", () => {
+	it("indexes sections without walking the render tree", async () => {
+		const page = {
+			slugs: ["setup"],
+			url: "/docs/setup",
+			data: {
+				title: "Setup",
+				load: async () => ({
+					content: [],
+					headings: [{ id: "install", depth: 3, text: "Install" }],
+					structuredData: {
+						headings: [{ id: "install", content: "Install" }],
+						contents: [
+							{ heading: undefined, content: "Overview of gizmos" },
+							{ heading: "install", content: "Run the gizmo installer" },
+						],
+					},
+				}),
+			},
+		};
+		const server = await createFromSource({
+			getPages: () => [page],
+			getPage: () => page,
+		});
+		expect(server.size).toBe(2);
+		const [hit] = await server.search("installer");
+		expect(hit?.url).toBe("/docs/setup#install");
+		expect(hit?.sectionTitle).toBe("Install");
 	});
 });

@@ -34,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
@@ -46,6 +46,9 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Pack and install outside the workspace
+        run: node scripts/pack-smoke.mjs
 
       - name: Create Release Pull Request or Publish
         id: changesets

@@ -3,14 +3,9 @@
 	"version": "0.3.2",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -24,8 +19,8 @@
 	},
 	"devDependencies": {
 		"@docvia/plugins": "workspace:*",
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "Request-time SSR rendering for docvia — Node and edge content providers with an LRU render cache",
 	"license": "MIT",
@@ -42,12 +37,14 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia",
 		"ssr"
-	]
+	],
+	"sideEffects": false
 }

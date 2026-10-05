@@ -14,7 +14,7 @@ pnpm add -D @docvia/plugin-openapi
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { openapi } from "@docvia/plugin-openapi";
 import { createReactRenderer } from "@docvia/renderer-react";
 

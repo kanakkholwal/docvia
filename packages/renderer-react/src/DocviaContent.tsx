@@ -1,5 +1,9 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: React.ElementType bridge for components stored in the registry — typed components would couple the registry to React internals.
-import type { ComponentRegistry, RenderOutput } from "@docvia/renderer-core";
+import {
+	COPY_BUTTON_HTML,
+	type ComponentRegistry,
+	type RenderOutput,
+} from "@docvia/renderer-core";
 import React from "react";
 
 // Component override types
@@ -149,7 +153,14 @@ function DocviaNode({
 					tag === "div" &&
 					reactProps.className === "docvia-code-block"
 				) {
-					return <CodeBlock html={raw} id={id} className="docvia-code-block" />;
+					// The override draws its own controls, so it gets the block without the built-in copy button.
+					return (
+						<CodeBlock
+							html={raw.replace(COPY_BUTTON_HTML, "")}
+							id={id}
+							className="docvia-code-block"
+						/>
+					);
 				}
 
 				return React.createElement(tag, {
@@ -268,12 +279,13 @@ function renderChildren(
 function getNodeKey(node: RenderOutput, index: number): string {
 	switch (node.kind) {
 		case "component":
+			return node.id;
 		case "element":
-			return node.id ?? `${node.kind}:${node.tag}:${index}`;
+			return node.id ?? `element:${node.tag}:${index}`;
 		case "text":
 			return `text:${index}:${node.value}`;
 		case "html":
-			return `html:${index}:${node.value}`;
+			return `html:${index}:${node.value.length}`;
 		case "fragment":
 			return `fragment:${index}:${node.children.length}`;
 	}

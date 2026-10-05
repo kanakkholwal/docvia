@@ -14,7 +14,7 @@ const packagesDir = join(__dirname, "..", "packages");
 const usage = {
 	"@docvia/cli": {
 		install: "pnpm add -D @docvia/cli",
-		example: "$ docvia init\n$ docvia build\n$ docvia dev",
+		example: "$ pnpm dlx @docvia/cli init\n$ pnpm dev",
 	},
 	"@docvia/compiler": {
 		install: "pnpm add @docvia/compiler",

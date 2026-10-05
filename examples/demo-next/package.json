@@ -5,15 +5,16 @@
 	"type": "module",
 	"scripts": {
 		"build": "next build",
-		"dev": "next dev --turbopack",
+		"dev": "cross-env PORTLESS_HTTPS=0 portless",
+		"dev:app": "next dev --turbopack",
 		"start": "next start"
 	},
 	"dependencies": {
 		"@docvia/search": "workspace:*",
-		"@fontsource-variable/geist": "^5.2.8",
-		"next": "^16",
-		"react": "^19",
-		"react-dom": "^19"
+		"@fontsource-variable/geist": "^5.3.0",
+		"next": "^16.3.8",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0"
 	},
 	"devDependencies": {
 		"@docvia/cli": "workspace:*",
@@ -22,10 +23,14 @@
 		"@docvia/renderer-core": "workspace:*",
 		"@docvia/renderer-react": "workspace:*",
 		"@docvia/source": "workspace:*",
-		"@types/node": "^25.5.0",
-		"@types/react": "^19",
-		"@types/react-dom": "^19",
-		"typescript": "^5.9.3",
-		"zod": "^4.3.6"
+		"@types/node": "catalog:",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"typescript": "catalog:",
+		"zod": "^4.6.5"
+	},
+	"portless": {
+		"name": "next.demo.docvia",
+		"script": "dev:app"
 	}
 }

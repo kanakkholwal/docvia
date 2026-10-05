@@ -3,37 +3,44 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
+	"imports": {
+		"#lib/*": "./src/lib/*"
+	},
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "cross-env PORTLESS_HTTPS=0 portless",
+		"dev:app": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"deploy": "wrangler deploy",
-		"cf:typegen": "wrangler types"
+		"cf:typegen": "wrangler types",
+		"baby-ui:css": "node scripts/baby-ui-css.mjs"
 	},
 	"devDependencies": {
 		"@docvia/cli": "workspace:*",
 		"@docvia/plugin-mermaid": "workspace:*",
 		"@docvia/plugin-shiki": "workspace:*",
 		"@docvia/plugin-vite": "workspace:*",
-		"@lucide/svelte": "^0.479.0",
-		"@sveltejs/adapter-cloudflare": "^5.0.0",
-		"@sveltejs/kit": "^2.55.0",
-		"@sveltejs/vite-plugin-svelte": "^7.0.0",
-		"@tailwindcss/vite": "^4.0.0",
-		"bits-ui": "^2.0.0",
+		"@lucide/svelte": "^1.52.0",
+		"@sveltejs/adapter-cloudflare": "^8.0.0",
+		"@sveltejs/kit": "catalog:",
+		"@sveltejs/vite-plugin-svelte": "catalog:",
+		"@tailwindcss/vite": "^4.3.3",
+		"@types/d3-array": "^3.2.2",
+		"@types/d3-scale": "^4.0.9",
+		"@types/d3-shape": "^3.2.0",
 		"clsx": "^2.1.1",
-		"shiki": "^4.0.2",
-		"svelte": "^5.55.0",
-		"svelte-check": "^4.4.5",
-		"tailwind-merge": "^2.5.0",
-		"tailwind-variants": "^0.3.0",
-		"tailwindcss": "^4.0.0",
-		"typescript": "^5.9.3",
-		"vite": "^8.0.3",
-		"wrangler": "^4.0.0"
+		"shiki": "^4.5.0",
+		"svelte": "catalog:",
+		"svelte-check": "^4.7.6",
+		"tailwind-merge": "^3.7.0",
+		"tailwind-variants": "^3.3.1",
+		"tailwindcss": "^4.3.3",
+		"typescript": "catalog:",
+		"vite": "catalog:",
+		"wrangler": "^4.147.0"
 	},
 	"dependencies": {
 		"@docvia/compiler": "workspace:*",
@@ -41,10 +48,18 @@
 		"@docvia/renderer-svelte": "workspace:*",
 		"@docvia/search": "workspace:*",
 		"@docvia/source": "workspace:*",
-		"@fontsource-variable/geist": "^5.2.5",
-		"@fontsource-variable/geist-mono": "^5.2.5",
+		"@fontsource-variable/geist-pixel": "^5.3.1",
 		"@fontsource-variable/inter": "^5.3.0",
-		"mermaid": "^11.4.1",
-		"simple-icons": "^16.25.0"
+		"@fontsource-variable/jetbrains-mono": "^5.3.0",
+		"bits-ui": "^2.19.5",
+		"d3-array": "^3.2.4",
+		"d3-scale": "^4.0.2",
+		"d3-shape": "^3.2.0",
+		"mermaid": "^12.1.0",
+		"simple-icons": "^16.34.0"
+	},
+	"portless": {
+		"name": "docvia",
+		"script": "dev:app"
 	}
 }

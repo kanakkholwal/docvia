@@ -1,29 +1,30 @@
 ---
 title: "Framework integration"
-description: "Wire docvia into SvelteKit, Next.js, a plain Vite app, or a server, with in-process compilation and a production build."
+description: "Wire docvia into SvelteKit, Next.js, React with Vite, TanStack Start, or a server, with in-process compilation and a production build."
 eyebrow: "Guide"
 order: 2
 ---
 
-The recommended way to use docvia is to run it **in-process** inside your
-bundler. The Vite plugin and the Next.js wrapper both drive the compile core
-directly, so there is no separate `docvia build` step, dev recompiles
-incrementally as you edit, and the compiled source module is resolved for you
-(`virtual:docvia/source` on Vite, `docvia/source` on Next.js).
+docvia runs **in-process** inside your bundler. The Vite plugin and the Next.js
+wrapper rewrite `defineDocs()` calls at build time and compile page bodies on
+demand, so there is no separate build step, no `.docvia/` folder, and dev
+recompiles only the page you edit. Imports are plain package subpaths
+(`@docvia/source`, `@docvia/source/macro`), identical on Vite and Next.js.
 
 The pattern is the same everywhere:
 
 1. Author a `docvia.config.ts` with the renderer that matches your framework.
-2. Add the framework's docvia plugin / wrapper.
-3. Import compiled pages from the source module and render them with the
-   framework renderer.
+2. Add the framework's docvia plugin or wrapper.
+3. Declare a collection with `defineDocs()` and wrap it in `loader()`.
+4. Load pages with `source.getPage()` and render them with the framework
+   renderer.
 
 ```mermaid
 %% title: Picking an integration
 flowchart TD
   Q{"What are you building?"}
   Q -- "SvelteKit" --> V["@docvia/plugin-vite"]
-  Q -- "Plain Vite" --> V
+  Q -- "React + Vite / TanStack Start" --> V
   Q -- "Next.js" --> N["@docvia/plugin-next"]
   Q -- "Node server, no bundler" --> S["@docvia/ssr"]
   Q -- "Something else" --> C["docvia build<br/>+ a RendererAdapter"]
@@ -32,17 +33,43 @@ flowchart TD
   S --> RC["renderer-core"]
 ```
 
-This page covers SvelteKit, Next.js, plain Vite, and server-side rendering.
+Every setup shares the same two macro files:
+
+```ts title="lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+import { z } from "zod";
+
+const docs = defineDocs({
+  dir: "content/docs",
+  // Optional: extra frontmatter fields, any Standard Schema library.
+  docs: { schema: z.object({ author: z.string().optional() }) },
+});
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
+```
+
+```ts title="lib/registry.ts"
+import { defineRegistry } from "@docvia/source/macro";
+
+// Components from `components` in docvia.config.ts.
+export const registry = defineRegistry();
+```
+
+`dir` is relative to the project root and must be a string literal. The
+[`@docvia/source`](/docs/packages/source) page documents every `loader()`
+method.
 
 ## SvelteKit
 
 SvelteKit runs on Vite, so the integration is the single `docvia()` plugin
-from [`@docvia/plugin-vite`](/docs/packages/plugin-vite).
+from [`@docvia/plugin-vite`](/docs/packages/plugin-vite). The snippets below
+target SvelteKit 3 and TypeScript 6.
 
 ### 1. Install
 
 ```bash
-pnpm add -D @docvia/plugin-vite @docvia/cli
+pnpm add -D @docvia/plugin-vite
 pnpm add @docvia/renderer-svelte @docvia/source
 ```
 
@@ -53,14 +80,11 @@ build-time entry point. Add `@docvia/plugin-shiki` for syntax highlighting.
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "src/docs",
-  outDir: ".docvia",
-  collections: [{ name: "docs", sourceDir: "src/docs", baseUrl: "/docs" }],
   renderer: createSvelteRenderer(),
   plugins: [shiki({ theme: "github-dark" })],
 });
@@ -68,59 +92,47 @@ export default defineConfig({
 
 ### 3. Add the Vite plugin
 
-`docvia()` runs the `CompileService` in-process. Following the Vite
-virtual-module convention it serves `virtual:docvia/source` (and
-`virtual:docvia/source/browser`) from its `load` hook, in dev with incremental
-recompilation (HMR) and for production builds alike.
+Called with no arguments, `docvia()` loads `docvia.config.*` from the Vite root
+(`docvia(config)` also works). SvelteKit 3 has no `svelte.config.js`: its
+options go into `sveltekit({ ... })`.
 
 ```ts
 // vite.config.ts
 import { docvia } from "@docvia/plugin-vite";
+import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [sveltekit(), docvia(docviaConfig)],
+  plugins: [sveltekit({ adapter: adapter() }), docvia()],
 });
 ```
 
-That is the whole setup. Your workflow stays `pnpm dev` and `pnpm build`;
-`docvia()` compiles your Markdown as part of each.
+Your workflow stays `pnpm dev` and `pnpm build`. Nothing is generated on disk,
+so `svelte-check` needs no extra sync step.
 
-### 4. Declare the module types
+### 4. Declare the collection
 
-docvia writes a `docvia-env.d.ts` at the project root for you so the virtual
-modules resolve in TypeScript. It looks like this:
-
-```ts
-declare module "virtual:docvia/source" {
-  const source: typeof import("./.docvia/source");
-  export const docviaSource: typeof source.docviaSource;
-  export const docs: typeof source.docs;
-  export const registry: typeof source.registry;
-}
-declare module "virtual:docvia/source/browser" {
-  const browser: typeof import("./.docvia/browser");
-  export const docs: typeof browser.docs;
-}
-```
+Put the two macro files from above in `src/lib/source.ts` and
+`src/lib/registry.ts`, with `dir` pointing at your Markdown (for example
+`"src/docs"`).
 
 ### 5. Consume pages in a route
 
-A catch-all route loads the page on the server and renders it with the
-`Renderer` component from `@docvia/renderer-svelte`.
+Load the page on the server and render it with the `Renderer` component from
+`@docvia/renderer-svelte`.
 
 ```ts
 // src/routes/docs/[...slug]/+page.server.ts
 import { error } from "@sveltejs/kit";
-import { docs } from "virtual:docvia/source";
+import { source } from "$lib/source";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {
-  const page = await docs.getPage(params.slug ? params.slug.split("/") : []);
-  if (!page) throw error(404, "Page not found");
-  return { page };
+  const page = source.getPage(params.slug?.split("/").filter(Boolean));
+  if (!page) error(404, "Page not found");
+  const { content, headings } = await page.data.load();
+  return { page: { title: page.data.title, content, headings } };
 };
 ```
 
@@ -128,7 +140,7 @@ export const load: PageServerLoad = async ({ params }) => {
 <!-- src/routes/docs/[...slug]/+page.svelte -->
 <script lang="ts">
   import { Renderer } from "@docvia/renderer-svelte";
-  import { registry } from "virtual:docvia/source";
+  import { registry } from "$lib/registry";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();
@@ -139,21 +151,20 @@ export const load: PageServerLoad = async ({ params }) => {
 </article>
 ```
 
-Build the sidebar from `docs.pageTree` and you have a fully docvia-driven docs
-section. The [`apps/web`](https://github.com/kanakkholwal/docvia/tree/main/apps/web)
-app in this repository is a complete working example: the site you are reading
-is compiled by docvia.
+Return `source.pageTree` from `+layout.server.ts` for the sidebar. The
+[`apps/web`](https://github.com/kanakkholwal/docvia/tree/main/apps/web) app in
+this repository is a complete working example: the site you are reading is
+compiled by docvia.
 
 ## Next.js
 
-For Next.js, [`@docvia/plugin-next`](/docs/packages/plugin-next) does the wiring. It
-drives the compile core when the Next config is evaluated and aliases
-`docvia/source` for **both webpack and Turbopack**.
+For Next.js, [`@docvia/plugin-next`](/docs/packages/plugin-next) does the
+wiring for **both webpack and Turbopack**.
 
 ### 1. Install
 
 ```bash
-pnpm add -D @docvia/plugin-next @docvia/cli
+pnpm add -D @docvia/plugin-next
 pnpm add @docvia/renderer-react @docvia/source react react-dom
 ```
 
@@ -161,13 +172,11 @@ pnpm add @docvia/renderer-react @docvia/source react react-dom
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-next";
 import { createReactRenderer } from "@docvia/renderer-react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
   renderer: createReactRenderer(),
   plugins: [shiki({ theme: "github-dark" })],
 });
@@ -175,100 +184,124 @@ export default defineConfig({
 
 ### 3. Wrap the Next config
 
-```js
-// next.config.mjs
+```ts
+// next.config.ts
 import { withDocvia } from "@docvia/plugin-next";
 
-export default withDocvia({ configPath: "./docvia.config.ts" })({
-  reactStrictMode: true,
-});
+const withDocs = withDocvia();
+
+export default withDocs({ reactStrictMode: true });
 ```
 
-`withDocvia` runs `CompileService` on config evaluation, aliases
-`docvia/source` and `docvia/registry` for webpack and Turbopack alike, and in
-dev starts an incremental watcher that recompiles changed files through
-`service.invalidate()`. A cross-process lock (`.docvia-build.lock`) keeps
-concurrent Next.js workers from compiling at once.
+`withDocvia` rewrites macro files named `source.{ts,tsx,js,mjs}` or
+`registry.{ts,tsx,js}`. Override the list with
+`withDocvia({ macroFiles: ["docs-source.ts"] })`, and the config location with
+`configPath`.
 
 ### 4. Consume pages in a route
 
 ```tsx
 // app/docs/[[...slug]]/page.tsx
-import { docviaSource } from "docvia/source";
 import { DocviaContent } from "@docvia/renderer-react";
+import { notFound } from "next/navigation";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
 
 export function generateStaticParams() {
-  return docviaSource.collections.docs.generateParams("slug");
+  return source.generateParams();
 }
 
 export default async function DocPage({
   params,
 }: {
-  params: { slug?: string[] };
+  params: Promise<{ slug?: string[] }>;
 }) {
-  const page = await docviaSource.collections.docs.getPage(params.slug);
-  if (!page) return null;
-  return <DocviaContent nodes={page.content} />;
+  const { slug } = await params;
+  const page = source.getPage(slug);
+  if (!page) notFound();
+  const { content } = await page.data.load();
+  return <DocviaContent nodes={content} registry={registry} />;
 }
 ```
 
 `DocviaContent` carries no `"use client"` directive, so it renders as a React
-Server Component. For interactive component islands, hydrate them on the client
-with `hydrate` from `@docvia/renderer-react/client`.
+Server Component. For deferred islands, pass `manifest` from `load()` to
+`hydrate` from `@docvia/renderer-react/client` in a client component.
 
-## Plain Vite (React or Svelte)
+## React with Vite
 
-Without SvelteKit or Next.js, use the same `docvia()` plugin directly in
-`vite.config.ts`:
+Add the same `docvia()` plugin next to `@vitejs/plugin-react`:
 
 ```ts
+// vite.config.ts
 import { docvia } from "@docvia/plugin-vite";
-import docviaConfig from "./docvia.config";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
-export default {
-  plugins: [docvia(docviaConfig)],
-};
+export default defineConfig({
+  plugins: [react(), docvia()], // loads ./docvia.config.ts
+});
 ```
 
-You can also import a single page directly through the `?docvia` transform:
+`source` is safe to import from client code: the frontmatter index is inlined,
+and each page body is its own lazy chunk fetched by `page.data.load()`.
 
-```ts
-import page from "./docs/index.md?docvia";
+```tsx
+import { DocviaContent } from "@docvia/renderer-react";
+import { use } from "react";
+import { registry } from "./lib/registry";
+import { source } from "./lib/source";
+
+export function DocPage({ slugs }: { slugs: string[] }) {
+  const page = source.getPage(slugs);
+  if (!page) return <p>Not found</p>;
+  const { content } = use(page.data.load());
+  return <DocviaContent nodes={content} registry={registry} />;
+}
+```
+
+## TanStack Start
+
+TanStack Start runs on Vite, so add `docvia()` to its Vite config and load the
+page in a route loader:
+
+```tsx
+// src/routes/docs/$.tsx
+import { DocviaContent } from "@docvia/renderer-react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
+
+export const Route = createFileRoute("/docs/$")({
+  loader: async ({ params }) => {
+    const page = source.getPage(params._splat?.split("/").filter(Boolean));
+    if (!page) throw notFound();
+    const { content, toc } = await page.data.load();
+    return { title: page.data.title, content, toc };
+  },
+  component: DocPage,
+});
+
+function DocPage() {
+  const { content } = Route.useLoaderData();
+  return <DocviaContent nodes={content} registry={registry} />;
+}
 ```
 
 ## Server-side rendering
 
-**On the edge or inside a framework app, you usually need nothing extra.** The
-generated `source.ts` uses **static** `?docvia` imports, so the page content is
-bundled directly into your server output. Importing `virtual:docvia/source`
-(Vite) or `docvia/source` (Next.js) and calling `docs.getPage(...)` works at
-request time on Cloudflare Workers and other edge runtimes. There is no
-`node:fs` and no Markdown parsing on the request path:
-
-```ts
-import { docs } from "virtual:docvia/source"; // Next.js: "docvia/source"
-
-const page = await docs.getPage(["getting-started"]); // works on the edge
-```
-
-> [!WARNING]
-> **Import the collection from server-only modules.** The flip side of those
-> static imports is that `virtual:docvia/source` pulls in *every* compiled page.
-> That is exactly what you want in a server bundle. In a **universal** module,
-> such as a SvelteKit `+page.ts` or a `"use client"` component, it means your
-> entire content set is shipped to the browser, silently undoing the bundle-size
-> benefit the compiler exists to provide.
->
-> Load pages in `+page.server.ts` / `+layout.server.ts` / a React Server
-> Component, and pass the result down. If you truly need a collection on the
-> client, import `virtual:docvia/source/browser` (Next.js: `docvia/source/browser`)
-> instead. It code-splits one chunk per page and fetches only what you ask for.
+**Inside a framework app you need nothing extra.** `page.data.load()` runs at
+request time on Node, Cloudflare Workers, and other edge runtimes: there is no
+`node:fs` and no Markdown parsing on the request path. Page bodies stay lazy
+chunks, so a Worker's cold start loads only the frontmatter index, not every
+page.
 
 For a **non-framework Node server** that renders per request, use
-[`@docvia/ssr`](/docs/packages/ssr). It renders one document per request and caches
-rendered pages in an in-memory LRU keyed by content hash. `createDocviaSSR`
-takes a generic content source. A live `CompileService` already satisfies the
-shape, so pass it directly, or pass a `(collection, slug) => IR` function:
+[`@docvia/ssr`](/docs/packages/ssr). It renders one document per request and
+caches rendered pages in an in-memory LRU keyed by content hash.
+`createDocviaSSR` takes a generic content source. A live `CompileService`
+already satisfies the shape, so pass it directly, or pass a
+`(collection, slug) => IR` function:
 
 ```ts
 import { createDocviaSSR } from "@docvia/ssr";
@@ -279,22 +312,28 @@ const page = await ssr.render("docs", "getting-started");
 
 ## Standalone preview
 
-`docvia preview` serves the raw `.docvia/` output over `sirv`:
+Without a bundler, `docvia build` writes a module graph to `outDir`, and
+`docvia preview` serves it over `sirv`:
 
 ```bash
 docvia preview --out .docvia --port 4173
 ```
 
-This is a sanity check for the compiled module graph, **not** a runtime.
-For an actual site, use one of the integrations above.
+This is a sanity check for the standalone output, **not** a runtime. For an
+actual site, use one of the integrations above.
+
+> Legacy config collections (`collections`, `sourceDir`, `outDir` in
+> `docvia.config.ts`, imported through `virtual:docvia/source` or
+> `docvia/source`) still work, but new apps should use `defineDocs()`.
 
 ## Choosing an approach
 
 | Your app | Integration | Renderer |
 |---|---|---|
 | SvelteKit | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-svelte` |
-| Next.js (webpack or Turbopack) | `@docvia/plugin-next` | `@docvia/renderer-react` |
+| Next.js (webpack or Turbopack) | `@docvia/plugin-next` (`withDocvia()`) | `@docvia/renderer-react` |
+| React with Vite | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-react` |
+| TanStack Start | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-react` |
 | Plain Vite (Svelte) | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-svelte` |
-| Plain Vite (React) | `@docvia/plugin-vite` (`docvia()`) | `@docvia/renderer-react` |
-| Request-time / edge SSR | `@docvia/ssr` | `@docvia/renderer-core` |
+| Request-time SSR without a bundler | `@docvia/ssr` | `@docvia/renderer-core` |
 | Any other framework | `docvia build` + `@docvia/source` | write a `RendererAdapter` |

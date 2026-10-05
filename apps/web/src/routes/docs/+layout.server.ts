@@ -1,15 +1,12 @@
-import { docs } from "virtual:docvia/source";
+import { source } from "#lib/source.ts";
 import type { LayoutServerLoad } from "./$types";
 
-// Prerender the docs subtree to static HTML at build time. @docvia/source reads
-// markdown from the filesystem — fine in Node at build time, impossible in the
-// Cloudflare Worker runtime. The marketing routes stay dynamic.
+// Docs are static: prerender them so the Worker only serves marketing routes and search.
 export const prerender = true;
 
-// The sidebar is generated from the docvia source itself — the site dogfoods
-// the compiler. `pageTree` is derived from the compiled collection.
+// The sidebar is the docvia page tree: the site dogfoods its own source.
 export const load: LayoutServerLoad = async () => {
 	return {
-		tree: docs.pageTree,
+		tree: source.pageTree,
 	};
 };

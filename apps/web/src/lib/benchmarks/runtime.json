@@ -1,0 +1,65 @@
+{
+	"date": "2026-10-05",
+	"runs": 2,
+	"machine": {
+		"cpu": "AMD Ryzen 7 7435HS",
+		"cores": 16,
+		"ramGB": 16,
+		"os": "win32",
+		"node": "v22.20.0"
+	},
+	"rows": [
+		{
+			"pages": 300,
+			"renderer": "Svelte",
+			"ready": 713,
+			"firstPage": 1534,
+			"edit": 49,
+			"add": 104,
+			"build": 4031,
+			"ssrImport": 15,
+			"heapMB": 5,
+			"renderWarm": 6,
+			"htmlKB": 873
+		},
+		{
+			"pages": 300,
+			"renderer": "React",
+			"ready": 93,
+			"firstPage": 929,
+			"edit": 53,
+			"add": 95,
+			"build": 4003,
+			"ssrImport": 63,
+			"heapMB": 7,
+			"renderWarm": 17,
+			"htmlKB": 843
+		},
+		{
+			"pages": 1500,
+			"renderer": "Svelte",
+			"ready": 718,
+			"firstPage": 3320,
+			"edit": 284,
+			"add": 671,
+			"build": 16479,
+			"ssrImport": 31,
+			"heapMB": 9,
+			"renderWarm": 26,
+			"htmlKB": 4372
+		},
+		{
+			"pages": 1500,
+			"renderer": "React",
+			"ready": 103,
+			"firstPage": 3343,
+			"edit": 266,
+			"add": 605,
+			"build": 16895,
+			"ssrImport": 93,
+			"heapMB": 11,
+			"renderWarm": 50,
+			"htmlKB": 4222
+		}
+	]
+}

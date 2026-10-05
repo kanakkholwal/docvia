@@ -5,18 +5,15 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"svelte": "./src/index.ts",
-			"import": "./dist/index.js",
+			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
 		"./node": {
 			"types": "./dist/node.d.ts",
-			"import": "./dist/node.js",
 			"default": "./dist/node.js"
-		}
+		},
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"scripts": {
 		"build": "svelte-package --input src --output dist",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
@@ -24,15 +21,15 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
-		"@docvia/renderer-core": "workspace:*",
-		"svelte": "^5.49.2"
+		"@docvia/renderer-core": "workspace:*"
 	},
 	"devDependencies": {
-		"@sveltejs/package": "^2.5.7",
-		"@sveltejs/vite-plugin-svelte": "^7.0.0",
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3",
-		"vite": "^8.0.3"
+		"@sveltejs/package": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "catalog:",
+		"@types/node": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:",
+		"svelte": "catalog:"
 	},
 	"description": "Svelte renderer adapter for docvia",
 	"license": "MIT",
@@ -49,11 +46,17 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false,
+	"svelte": "./dist/index.js",
+	"peerDependencies": {
+		"svelte": "^5.0.0"
+	}
 }

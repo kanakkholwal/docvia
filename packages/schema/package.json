@@ -3,14 +3,9 @@
 	"version": "0.4.0",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -20,15 +15,14 @@
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
 		"@standard-schema/spec": "^1.1.0",
-		"yaml": "^2.8.3",
-		"zod": "^4.3.6"
+		"yaml": "^2.9.1"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"svelte": "^5.49.2",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:",
+		"zod": "^4.3.6"
 	},
-	"description": "Standard Schema frontmatter validation, YAML parsing, and TS codegen for docvia",
+	"description": "Standard Schema frontmatter validation, YAML parsing, and type codegen for docvia",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"
@@ -43,11 +37,13 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
 		"documentation",
 		"docvia"
-	]
+	],
+	"sideEffects": false
 }

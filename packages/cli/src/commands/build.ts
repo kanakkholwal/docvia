@@ -10,7 +10,6 @@ export interface BuildOptions {
 	docs?: string;
 	out?: string;
 	config?: string;
-	noCache?: boolean;
 	verbose?: boolean;
 }
 
@@ -33,7 +32,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 		});
 		if (!configPath) {
 			log.warn(
-				`No ${c.cyan("docvia.config.ts")} found; using defaults (no renderer).`,
+				`No ${c.brand("docvia.config.ts")} found; using defaults (no renderer).`,
 			);
 		} else if (verbose) {
 			step("config", rel(configPath), performance.now() - tConfig);
@@ -42,7 +41,7 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 		const dir = resolve(projectRoot, opts.docs ?? config.sourceDir);
 		const outDir = resolve(projectRoot, opts.out ?? config.outDir);
 
-		if (!existsSync(dir)) {
+		if (!config.collections && !existsSync(dir)) {
 			throw new docviaError(
 				"CONFIG_ERROR",
 				`Docs directory not found: ${dir}\n  Run \`docvia init\` first.`,
@@ -67,7 +66,6 @@ export async function runBuild(opts: BuildOptions): Promise<void> {
 			config,
 			projectRoot,
 			configPath,
-			incremental: !opts.noCache,
 		});
 
 		// 2 — compile

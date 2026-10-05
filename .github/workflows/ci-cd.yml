@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
@@ -44,6 +44,14 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Type-check apps from a cold .docvia
+        # `docvia sync` writes the types without Vite, as on a fresh checkout.
+        run: pnpm --filter demo-svelte --filter @docvia/web check
+
+      - name: Pack and install outside the workspace
+        # Strict pnpm (hoist=false), SvelteKit 3, Workers build, from the packed tarballs.
+        run: node scripts/pack-smoke.mjs
 
       - name: Verify changeset on PRs
         # Surface a comment if a PR ships code without a changeset. Doesn't fail

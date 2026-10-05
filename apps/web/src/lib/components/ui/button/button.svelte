@@ -1,71 +1,118 @@
 <script lang="ts" module>
-import { tv, type VariantProps } from "tailwind-variants";
+import type { Snippet } from "svelte";
+import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
+import type { ButtonSize, ButtonVariant } from "./variants";
 
-export const buttonVariants = tv({
-	base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-[color,background-color,border-color,transform] duration-(--motion-fast) ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-	variants: {
-		variant: {
-			// vite.dev's "Get Started" is white-on-canvas, not the violet. Violet
-			// stays an accent (prompts, active states, links).
-			primary: "bg-action text-on-action hover:bg-action-hover",
-			secondary: "bg-surface-soft text-ink hover:bg-surface-card",
-			ghost: "text-body hover:bg-surface-soft hover:text-ink",
-			outline:
-				"border border-control-border bg-transparent text-ink hover:bg-surface-soft",
-			brand: "bg-brand text-on-brand hover:bg-brand-hover",
-			link: "text-brand-ink underline-offset-4 hover:underline",
-		},
-		size: {
-			// 38px / 8px radius / 8-16px padding / 16px-500 label, measured.
-			sm: "h-8 px-3 text-[14px]",
-			default: "h-9.5 px-4 text-[16px]",
-			lg: "h-11 px-5 text-[16px]",
-			icon: "h-9.5 w-9.5",
-		},
-	},
-	defaultVariants: {
-		variant: "primary",
-		size: "default",
-	},
-});
+export type { ButtonSize, ButtonVariant };
 
-export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
-export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
+export type ButtonProps = {
+	variant?: ButtonVariant;
+	size?: ButtonSize;
+	href?: string;
+	loading?: boolean;
+	loadingLabel?: string;
+	children?: Snippet;
+	class?: string;
+	/** Bindable: the rendered `<button>` or `<a>`. */
+	ref?: HTMLElement | null;
+} & Omit<HTMLButtonAttributes & HTMLAnchorAttributes, "class" | "children">;
 </script>
 
 <script lang="ts">
-	import { cn } from "$lib/utils";
-	import type { Snippet } from "svelte";
-	import type {
-		HTMLAnchorAttributes,
-		HTMLButtonAttributes,
-	} from "svelte/elements";
+import { cn } from "#lib/cn.js";
+import { button, isIconSize } from "./variants";
 
-	type Props = {
-		variant?: ButtonVariant;
-		size?: ButtonSize;
-		class?: string;
-		children?: Snippet;
-		href?: string;
-	} & Omit<HTMLButtonAttributes, "class"> &
-		Omit<HTMLAnchorAttributes, "class">;
+let {
+	ref = $bindable(null),
+	variant,
+	size,
+	href,
+	loading = false,
+	loadingLabel = "Loading…",
+	children,
+	class: classProp,
+	onclick,
+	...rest
+}: ButtonProps = $props();
 
-	let {
-		variant = "primary",
-		size = "default",
-		class: className,
-		href,
-		children,
-		...rest
-	}: Props = $props();
+// The hidden face leaves the flow, so the button is sized by what it shows, not by "Loading…".
+const FACE =
+	"col-start-1 row-start-1 flex items-center justify-center gap-2 whitespace-nowrap transition-[opacity,transform,scale,translate,filter] duration-(--duration-base) ease-[var(--ease-out)] motion-reduce:transition-none data-[on=false]:pointer-events-none data-[on=false]:absolute data-[on=false]:inset-0 data-[on=false]:translate-y-[3px] data-[on=false]:opacity-0 data-[on=false]:blur-[3px]";
+
+const classes = $derived(cn(button({ variant, size }), classProp));
+const iconOnly = $derived(isIconSize(size));
+
+function activate(event: MouseEvent) {
+	if (loading) {
+		event.preventDefault();
+		return;
+	}
+	(onclick as ((e: MouseEvent) => void) | undefined)?.(event);
+}
 </script>
 
-{#if href}
-	<a {href} class={cn(buttonVariants({ variant, size }), className)} {...rest}>
-		{@render children?.()}
+{#snippet faces()}
+	<span class="relative grid place-items-center">
+		<span class={FACE} data-on={!loading} aria-hidden={loading}>
+			{@render children?.()}
+		</span>
+		<span class={FACE} data-on={loading} aria-hidden={!loading}>
+			<svg
+				viewBox="0 0 12 12"
+				fill="none"
+				aria-hidden="true"
+				class="size-3.5 [animation:spin_850ms_linear_infinite] motion-reduce:animate-none"
+				style:animation-play-state={loading ? "running" : "paused"}
+			>
+				<circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5" opacity="0.22" />
+				<path
+					d="M10.5 6A4.5 4.5 0 0 0 6 1.5"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+				/>
+			</svg>
+			{#if iconOnly}<span class="sr-only">{loadingLabel}</span>{:else}{loadingLabel}{/if}
+		</span>
+	</span>
+{/snippet}
+
+{#if href !== undefined}
+	<a
+		bind:this={ref}
+		data-slot="button"
+		{...rest as HTMLAnchorAttributes}
+		href={loading ? undefined : href}
+		role={loading ? "link" : undefined}
+		class={classes}
+		aria-busy={loading || undefined}
+		aria-disabled={loading || undefined}
+		data-variant={variant}
+		data-size={size}
+		onclick={activate}
+		onkeydown={(e) => {
+			// Anchors don't activate on Space natively; the spec requires that they do.
+			if (e.key === " ") {
+				e.preventDefault();
+				e.currentTarget.click();
+			}
+		}}
+	>
+		{@render faces()}
 	</a>
 {:else}
-	<button class={cn(buttonVariants({ variant, size }), className)} {...rest}>
-		{@render children?.()}
+	<button
+		bind:this={ref}
+		data-slot="button"
+		{...rest as HTMLButtonAttributes}
+		type={(rest as HTMLButtonAttributes).type ?? "button"}
+		class={classes}
+		aria-busy={loading || undefined}
+		aria-disabled={loading || undefined}
+		data-variant={variant}
+		data-size={size}
+		onclick={activate}
+	>
+		{@render faces()}
 	</button>
 {/if}

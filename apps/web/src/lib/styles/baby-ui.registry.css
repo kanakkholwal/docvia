@@ -1,0 +1,287 @@
+/* shadcn-svelte CLI target, never imported: the CLI writes registry tokens (baby-ui's
+   colour values included) here. Copy anything wanted into baby-ui.css, minus colours. */
+@import "tailwindcss";
+@import "shadcn-svelte/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+	--segment: oklch(100% 0 0);
+	--border-strong: oklch(16% 0.002 265 / 0.14);
+	--accent-fg: oklch(99% 0 0);
+	--neon: oklch(80% 0.22 145);
+	--violet: oklch(68% 0.22 295);
+	--danger: oklch(65.32% 0.2328 25.74);
+	--destructive-strong: color-mix(in oklab, var(--danger) 64%, var(--foreground));
+	--success: oklch(73.29% 0.1935 150.81);
+	--success-strong: color-mix(in oklab, var(--success) 57%, var(--foreground));
+	--success-foreground: oklch(21.03% 0.0059 285.89);
+	--warning: oklch(78.19% 0.1585 72.33);
+	--warning-strong: color-mix(in oklab, var(--warning) 53%, var(--foreground));
+	--warning-foreground: oklch(21.03% 0.0059 285.89);
+	--info: oklch(62.04% 0.195 253.83);
+	--info-strong: color-mix(in oklab, var(--info) 70%, var(--foreground));
+	--info-foreground: oklch(99.11% 0 0);
+	--glass-bg: oklch(100% 0 0 / 0.55);
+	--glass-border: oklch(15% 0 0 / 0.08);
+	--gradient-bg: linear-gradient(135deg, oklch(100% 0 0) 0%, oklch(96% 0.008 210) 100%);
+	--gradient-accent: linear-gradient( to right, oklch(72% 0.18 195) 0%, oklch(68% 0.22 295) 100% );
+	--surface-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 0 1px 0 rgb(0 0 0 / 0.06);
+	--overlay-shadow: 0 0 0 1px oklch(16% 0.002 265 / 0.06), 0 2px 8px 0 rgb(0 0 0 / 0.06), 0 -6px 12px 0 rgb(0 0 0 / 0.03), 0 14px 28px 0 rgb(0 0 0 / 0.08);
+	--field-shadow: none;
+	--thumb-shadow: 0 0 5px 0 rgb(0 0 0 / 0.02), 0 2px 10px 0 rgb(0 0 0 / 0.06), 0 0 1px 0 rgb(0 0 0 / 0.3);
+	--chart-scale-1: #b7d3f6;
+	--chart-scale-2: #6da7ec;
+	--chart-scale-3: #2a78d6;
+	--chart-scale-4: #1c5cab;
+	--chart-scale-5: #104281;
+	--chart-positive: #2a78d6;
+	--chart-negative: #e34948;
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+	--ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	--ease-smooth: ease;
+	--ease-spring-snappy: linear( 0, 0.049, 0.158, 0.285, 0.412, 0.526, 0.624, 0.706, 0.772, 0.825, 0.867, 0.899, 0.924, 0.943, 0.957, 0.968, 0.976, 0.983, 0.987, 0.991, 0.993, 0.995, 0.996, 0.997, 1 );
+	--ease-spring-bouncy: linear( 0, 0.044, 0.149, 0.283, 0.424, 0.558, 0.676, 0.776, 0.856, 0.916, 0.961, 0.992, 1.011, 1.022, 1.027, 1.028, 1.027, 1.023, 1.019, 1.015, 1.012, 1.008, 1.006, 1.004, 1 );
+	--duration-spring-snappy: 400ms;
+	--duration-spring-bouncy: 600ms;
+	--duration-instant: 100ms;
+	--duration-fast: 150ms;
+	--duration-base: 200ms;
+	--duration-slow: 250ms;
+	--duration-press: var(--duration-fast);
+	--duration-tooltip: var(--duration-fast);
+	--duration-dropdown: var(--duration-fast);
+	--duration-backdrop: var(--duration-fast);
+	--duration-collapse: var(--duration-base);
+	--duration-overlay: var(--duration-slow);
+	--duration-drawer: 500ms;
+	--duration-exit: var(--duration-instant);
+	--duration-panel-exit: var(--duration-base);
+	--stagger-step: 45ms;
+	--press-scale: 0.97;
+	--press-scale-sm: 0.98;
+	--press-scale-lg: 0.96;
+	--press-scale-icon: 0.93;
+	--press-scale-row: 0.98;
+	--hover-scale: 1.02;
+	--enter-scale: 0.95;
+	--enter-lift: 8px;
+	--popover-enter-scale: 0.9;
+	--popover-exit-scale: 0.95;
+	--modal-enter-scale: 1.05;
+}
+
+.dark {
+	--segment: oklch(30% 0.004 265);
+	--border-strong: oklch(100% 0 0 / 0.12);
+	--accent-fg: #151515;
+	--danger: oklch(59.4% 0.1967 24.63);
+	--destructive-strong: color-mix(in oklab, var(--danger) 73%, var(--foreground));
+	--success: oklch(73.29% 0.1935 150.81);
+	--success-strong: color-mix(in oklab, var(--success) 73%, var(--foreground));
+	--success-foreground: oklch(21.03% 0.0059 285.89);
+	--warning: oklch(82.03% 0.1388 76.34);
+	--warning-strong: color-mix(in oklab, var(--warning) 73%, var(--foreground));
+	--warning-foreground: oklch(21.03% 0.0059 285.89);
+	--info: oklch(62.04% 0.195 253.83);
+	--info-strong: color-mix(in oklab, var(--info) 73%, var(--foreground));
+	--info-foreground: oklch(99.11% 0 0);
+	--glass-bg: oklch(17% 0.002 265 / 0.55);
+	--glass-border: rgb(255 255 255 / 0.08);
+	--gradient-bg: linear-gradient(135deg, oklch(17% 0.002 265) 0%, oklch(21% 0.008 210) 100%);
+	--surface-shadow: none;
+	--overlay-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), 0 14px 28px 0 rgb(0 0 0 / 0.4);
+	--thumb-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+	--chart-scale-1: #184f95;
+	--chart-scale-2: #256abf;
+	--chart-scale-3: #3987e5;
+	--chart-scale-4: #6da7ec;
+	--chart-scale-5: #b7d3f6;
+	--chart-positive: #3987e5;
+	--chart-negative: #e66767;
+	--gradient-accent: linear-gradient( to right, oklch(80% 0.18 195) 0%, oklch(72% 0.18 295) 100% );
+}
+
+@theme inline {
+	--color-destructive-strong: var(--destructive-strong);
+	--color-border-strong: var(--border-strong);
+	--color-neon: var(--neon);
+	--color-violet: var(--violet);
+	--color-success: var(--success);
+	--color-success-strong: var(--success-strong);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-strong: var(--warning-strong);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-info-strong: var(--info-strong);
+	--color-chart-positive: var(--chart-positive);
+	--color-chart-negative: var(--chart-negative);
+	--color-surface: var(--surface);
+	--color-overlay: var(--overlay);
+	--color-default: var(--default);
+	--color-default-hover: var(--default-hover);
+	--color-segment: var(--segment);
+	--color-accent-ink: var(--accent-ink);
+	--color-primary-hover: var(--primary-hover);
+	--shadow-surface: var(--surface-shadow);
+	--shadow-overlay: var(--overlay-shadow);
+	--shadow-field: var(--field-shadow);
+	--shadow-thumb: var(--thumb-shadow);
+	--radius-2xl: calc(var(--radius) + 6px);
+	--radius-3xl: calc(var(--radius) + 10px);
+	--ease-out: var(--ease-out);
+	--ease-in-out: var(--ease-in-out);
+	--ease-drawer: var(--ease-drawer);
+	--default-transition-duration: var(--duration-fast);
+	--default-transition-timing-function: var(--ease-out);
+	--text-xs: 0.75rem;
+	--text-xs--line-height: 1rem;
+	--text-sm: 0.875rem;
+	--text-sm--line-height: 1.25rem;
+	--text-base: 1rem;
+	--text-base--line-height: 1.5rem;
+	--text-lg: 1.125rem;
+	--text-lg--line-height: 1.75rem;
+	--text-2xl: 1.5rem;
+	--text-2xl--line-height: 2rem;
+	--text-2xl--letter-spacing: -0.015em;
+	--text-4xl: 2.25rem;
+	--text-4xl--line-height: 2.5rem;
+	--text-4xl--letter-spacing: -0.025em;
+	--text-6xl: 3.75rem;
+	--text-6xl--line-height: 1;
+	--text-6xl--letter-spacing: -0.035em;
+	--background-image-brand-bg: var(--gradient-bg);
+	--background-image-brand-accent: var(--gradient-accent);
+	--modal-enter-scale: var(--modal-enter-scale);
+	--popover-exit-scale: var(--popover-exit-scale);
+	--popover-enter-scale: var(--popover-enter-scale);
+	--enter-lift: var(--enter-lift);
+	--enter-scale: var(--enter-scale);
+	--hover-scale: var(--hover-scale);
+	--press-scale-row: var(--press-scale-row);
+	--press-scale-icon: var(--press-scale-icon);
+	--press-scale-lg: var(--press-scale-lg);
+	--press-scale-sm: var(--press-scale-sm);
+	--press-scale: var(--press-scale);
+	--stagger-step: var(--stagger-step);
+	--duration-panel-exit: var(--duration-panel-exit);
+	--duration-exit: var(--duration-exit);
+	--duration-drawer: var(--duration-drawer);
+	--duration-overlay: var(--duration-overlay);
+	--duration-collapse: var(--duration-collapse);
+	--duration-backdrop: var(--duration-backdrop);
+	--duration-dropdown: var(--duration-dropdown);
+	--duration-tooltip: var(--duration-tooltip);
+	--duration-press: var(--duration-press);
+	--duration-slow: var(--duration-slow);
+	--duration-base: var(--duration-base);
+	--duration-fast: var(--duration-fast);
+	--duration-instant: var(--duration-instant);
+	--duration-spring-bouncy: var(--duration-spring-bouncy);
+	--duration-spring-snappy: var(--duration-spring-snappy);
+	--ease-spring-bouncy: var(--ease-spring-bouncy);
+	--ease-spring-snappy: var(--ease-spring-snappy);
+	--ease-smooth: var(--ease-smooth);
+	--ease-out-quad: var(--ease-out-quad);
+	--ease-out-quart: var(--ease-out-quart);
+	--ease-spring: var(--ease-spring);
+	--color-chart-scale-5: var(--chart-scale-5);
+	--color-chart-scale-4: var(--chart-scale-4);
+	--color-chart-scale-3: var(--chart-scale-3);
+	--color-chart-scale-2: var(--chart-scale-2);
+	--color-chart-scale-1: var(--chart-scale-1);
+	--thumb-shadow: var(--thumb-shadow);
+	--field-shadow: var(--field-shadow);
+	--overlay-shadow: var(--overlay-shadow);
+	--surface-shadow: var(--surface-shadow);
+	--gradient-accent: var(--gradient-accent);
+	--gradient-bg: var(--gradient-bg);
+	--color-glass-border: var(--glass-border);
+	--color-glass-bg: var(--glass-bg);
+	--info-strong: var(--info-strong);
+	--warning-strong: var(--warning-strong);
+	--success-strong: var(--success-strong);
+	--destructive-strong: var(--destructive-strong);
+	--color-danger: var(--danger);
+	--color-accent-fg: var(--accent-fg);
+	@keyframes spinner {
+		to {
+			rotate: 360deg;
+		}
+	}
+	@keyframes badge-shine {
+		from {
+			background-position: 150% 0;
+		}
+		45%,
+	to {
+			background-position: -50% 0;
+		}
+	}
+}
+	.spinner {
+		animation: spinner 850ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.spinner {
+		animation-duration: 2s;
+	}
+	:root {
+		--duration-press: 0ms;
+		--duration-drawer: 160ms;
+		--stagger-step: 0ms;
+		--press-scale: 1;
+		--press-scale-sm: 1;
+		--press-scale-lg: 1;
+		--press-scale-icon: 1;
+		--press-scale-row: 1;
+		--hover-scale: 1;
+		--enter-scale: 1;
+		--enter-lift: 0px;
+		--popover-enter-scale: 1;
+		--popover-exit-scale: 1;
+		--modal-enter-scale: 1;
+	}
+	.badge-shine {
+		animation: none;
+		background-image: none;
+	}
+}
+	:root, .dark {
+		--card-foreground: var(--foreground);
+		--popover-foreground: var(--foreground);
+		--primary: var(--accent);
+		--primary-foreground: var(--accent-fg);
+		--secondary: var(--muted);
+		--secondary-foreground: var(--foreground);
+		--accent-foreground: var(--accent-fg);
+		--destructive: var(--danger);
+		--input: var(--border);
+		--accent-ink: var(--accent);
+		--ring: var(--accent-ink);
+		--surface: var(--card);
+		--overlay: var(--popover);
+		--default: color-mix(in oklab, var(--foreground) 6%, transparent);
+		--default-hover: color-mix(in oklab, var(--foreground) 10%, transparent);
+		--primary-hover: color-mix(in oklab, var(--primary) 90%, var(--foreground));
+}
+
+@layer base {
+	button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary, label:has(input[type="checkbox"], input[type="radio"]), input[type="checkbox"], input[type="radio"], input[type="range"], select {
+		cursor: pointer;
+	}
+}
+	.badge-shine {
+		background-image: linear-gradient( 110deg, transparent 35%, color-mix(in oklch, white 60%, transparent) 50%, transparent 65% );
+		background-size: 250% 100%;
+		background-repeat: no-repeat;
+		animation: badge-shine 3.2s var(--ease-in-out) infinite;
+}

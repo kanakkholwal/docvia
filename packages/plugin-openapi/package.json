@@ -3,14 +3,9 @@
 	"version": "0.2.2",
 	"type": "module",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.mts",
-			"import": "./dist/index.mjs",
-			"default": "./dist/index.mjs"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch --no-clean",
@@ -19,12 +14,12 @@
 	},
 	"dependencies": {
 		"@docvia/ir": "workspace:*",
-		"js-yaml": "^4.1.1"
+		"js-yaml": "^5.4.2"
 	},
 	"devDependencies": {
 		"@types/js-yaml": "^4.0.9",
-		"@types/node": "^25.5.0",
-		"typescript": "^5.9.3"
+		"@types/node": "catalog:",
+		"typescript": "catalog:"
 	},
 	"description": "OpenAPI 3.x renderer for docvia. Transforms `openapi METHOD /path` fenced blocks into rich endpoint cards.",
 	"license": "MIT",
@@ -41,7 +36,8 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"keywords": [
 		"docs",
@@ -50,5 +46,6 @@
 		"openapi",
 		"swagger",
 		"api"
-	]
+	],
+	"sideEffects": false
 }

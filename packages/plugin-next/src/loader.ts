@@ -1,8 +1,6 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: webpack/Turbopack loader context is intentionally untyped.
-// Webpack + Turbopack loader for docvia markdown. Both bundlers call this for
-// `*.md?docvia` imports emitted into `.docvia/dynamic.ts`; it runs the shared
-// in-house transform (`compileMarkdownToModule`) and returns the rendered
-// module. This is the thin per-bundler shim — all real work is in core.
+// Webpack and Turbopack loader for the `*.md?docvia` imports in `.docvia/source.ts`:
+// a thin shim over `compileMarkdownToModule`.
 import { relative, resolve } from "node:path";
 import type { docviaConfig } from "@docvia/ir";
 import type { PluginRunner } from "@docvia/plugins";
@@ -10,6 +8,7 @@ import type { PluginRunner } from "@docvia/plugins";
 interface LoaderOptions {
 	readonly configPath?: string;
 	readonly sourceDir?: string;
+	readonly root?: string;
 }
 
 interface CompileContext {
@@ -21,12 +20,12 @@ interface CompileContext {
 // every file the loader compiles in this process.
 const _contexts = new Map<string, Promise<CompileContext>>();
 
-function getContext(configPath: string): Promise<CompileContext> {
+function getContext(configPath: string, root: string): Promise<CompileContext> {
 	let ctx = _contexts.get(configPath);
 	if (!ctx) {
 		ctx = (async () => {
-			const { loadConfig, PluginRunner } = await import("@docvia/plugins");
-			const config = await loadConfig(configPath);
+			const { resolveProject, PluginRunner } = await import("@docvia/plugins");
+			const { config } = await resolveProject({ cwd: root, configPath });
 			const runner = new PluginRunner([...(config.plugins ?? [])]);
 			return { config, runner };
 		})();
@@ -48,12 +47,24 @@ export default function docviaLoader(this: any, source: string): void {
 	const options: LoaderOptions =
 		typeof this.getOptions === "function" ? this.getOptions() : {};
 	const configPath = resolve(options.configPath ?? "./docvia.config.ts");
-	const sourceDir = resolve(options.sourceDir ?? "docs");
 	const filePath = this.resourcePath as string;
+	const collection = new URLSearchParams(
+		String(this.resourceQuery ?? "").replace(/^\?/, ""),
+	).get("collection");
 
 	(async () => {
-		const { compileMarkdownToModule } = await import("@docvia/runtime");
-		const { config, runner } = await getContext(configPath);
+		const { compileMarkdownToModule, macroCollectionDir } = await import(
+			"@docvia/runtime"
+		);
+		const { config, runner } = await getContext(
+			configPath,
+			resolve(options.root ?? process.cwd()),
+		);
+		// `defineDocs()` pages carry their collection; slugs are relative to its directory.
+		const macroDir = collection
+			? macroCollectionDir(resolve(options.root ?? process.cwd()), collection)
+			: undefined;
+		const sourceDir = macroDir ?? resolve(options.sourceDir ?? "docs");
 		const relativePath = relative(sourceDir, filePath).replace(/\\/g, "/");
 		return compileMarkdownToModule({
 			code: source,

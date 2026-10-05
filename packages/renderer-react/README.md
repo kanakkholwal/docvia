@@ -17,10 +17,17 @@ pnpm add @docvia/renderer-react react react-dom
 ```ts
 import { createReactRenderer } from "@docvia/renderer-react";
 
-const renderer = createReactRenderer();
+const renderer = createReactRenderer({
+  transform: (output, doc) => output, // optional: rewrite the RenderOutput tree
+});
 ```
 
-Syntax highlighting is a build-time plugin, not a renderer option — add
+Render pages with `<DocviaContent nodes={content} registry={registry} />`, where
+`content` comes from `await page.data.load()` and `registry` from
+`defineRegistry()` (`@docvia/source/macro`). `hydrate()` from
+`@docvia/renderer-react/client` mounts islands and switches tabbed code groups.
+
+Syntax highlighting is a build-time plugin, not a renderer option. Add
 [`@docvia/plugin-shiki`](https://github.com/kanakkholwal/docvia/tree/main/packages/plugin-shiki)
 to `plugins` in your docvia config.
 

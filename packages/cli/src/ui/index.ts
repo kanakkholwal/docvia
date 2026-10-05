@@ -25,6 +25,7 @@ export {
 	type Spinner,
 	select,
 	spinner,
+	streamNote,
 	type TextOptions,
 	text,
 } from "./prompts";

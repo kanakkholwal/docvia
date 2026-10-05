@@ -1,7 +1,6 @@
 <script lang="ts">
-import { inview } from "$lib/actions/inview";
-import { type SnippetName, snippets } from "$lib/snippets";
-import { cn } from "$lib/utils";
+import { type SnippetName, snippets } from "#lib/snippets.ts";
+import { cn } from "#lib/utils.ts";
 import { Check, Copy } from "@lucide/svelte";
 import { highlighted } from "virtual:docvia-snippets";
 
@@ -14,7 +13,6 @@ type Props = {
 let { name, filename, class: className }: Props = $props();
 
 let copied = $state(false);
-let shown = $state(false);
 
 const html = $derived(highlighted[name]);
 const meta = $derived(snippets[name]);
@@ -31,18 +29,10 @@ async function copy() {
 }
 </script>
 
-<div
-	use:inview
-	onenter={() => (shown = true)}
-	class={cn(
-		"reveal overflow-hidden rounded-md border border-hairline bg-canvas",
-		shown && "reveal-in",
-		className,
-	)}
->
+<div class={cn("overflow-hidden rounded-xl border border-hairline bg-canvas", className)}>
 	{#if filename}
 		<div
-			class="flex items-center justify-between gap-2 border-b border-hairline bg-surface-card px-4 py-2 font-mono text-[12px]"
+			class="flex items-center justify-between gap-2 border-b border-hairline bg-surface-card px-4 py-2 font-mono text-xs"
 		>
 			<span class="flex items-center gap-1.5 text-ink">
 				<span class="h-1.5 w-1.5 rounded-full bg-brand"></span>
@@ -51,7 +41,7 @@ async function copy() {
 			<button
 				onclick={copy}
 				aria-label={copied ? "Copied" : "Copy code"}
-				class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.9] hover:bg-surface-soft hover:text-ink"
+				class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-[color,background-color,transform] duration-(--duration-fast) ease-out active:scale-[0.9] hover:bg-surface-soft hover:text-ink"
 			>
 				{#if copied}
 					<Check class="h-3.5 w-3.5 text-check" />

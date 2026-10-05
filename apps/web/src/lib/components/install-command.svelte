@@ -1,24 +1,23 @@
 <script lang="ts">
 import { Check, Copy } from "@lucide/svelte";
-import { cn } from "$lib/utils";
+import { cn } from "#lib/utils.ts";
 
-// Package-manager install widget, the developer-tool signature (npm / pnpm /
-// bun / yarn tabs + a copy button), patterned on vite.dev's hero command.
-type Props = { pkg?: string; dev?: boolean; class?: string };
-let { pkg = "docvia", dev = true, class: className }: Props = $props();
+// `args` runs a package without installing it; init installs what the app needs itself.
+type Props = { pkg?: string; args?: string; class?: string };
+let { pkg = "@docvia/cli", args = "init", class: className }: Props = $props();
 
 const managers = [
-	{ id: "npm", cmd: (p: string, d: boolean) => `npm i ${d ? "-D " : ""}${p}` },
-	{ id: "pnpm", cmd: (p: string, d: boolean) => `pnpm add ${d ? "-D " : ""}${p}` },
-	{ id: "bun", cmd: (p: string, d: boolean) => `bun add ${d ? "-d " : ""}${p}` },
-	{ id: "yarn", cmd: (p: string, d: boolean) => `yarn add ${d ? "-D " : ""}${p}` },
+	{ id: "npm", cmd: (p: string, a: string) => `npx ${p} ${a}` },
+	{ id: "pnpm", cmd: (p: string, a: string) => `pnpm dlx ${p} ${a}` },
+	{ id: "bun", cmd: (p: string, a: string) => `bunx ${p} ${a}` },
+	{ id: "yarn", cmd: (p: string, a: string) => `yarn dlx ${p} ${a}` },
 ] as const;
 
 let active = $state<(typeof managers)[number]["id"]>("npm");
 let copied = $state(false);
 
 const command = $derived(
-	managers.find((m) => m.id === active)!.cmd(pkg, dev),
+	managers.find((m) => m.id === active)!.cmd(pkg, args),
 );
 
 async function copy() {
@@ -34,7 +33,7 @@ async function copy() {
 
 <div
 	class={cn(
-		"inline-flex w-full max-w-md flex-col overflow-hidden rounded-md border border-hairline bg-surface-soft text-left",
+		"install inline-flex w-full max-w-md flex-col overflow-hidden rounded-xl border border-hairline bg-surface-soft text-left",
 		className,
 	)}
 >
@@ -50,7 +49,7 @@ async function copy() {
 				aria-selected={active === m.id}
 				onclick={() => (active = m.id)}
 				class={cn(
-					"relative px-3 py-2.5 text-[13px] font-medium transition-colors duration-(--motion-fast) ease-out after:absolute after:inset-x-2 after:-bottom-px after:h-px after:transition-colors after:duration-(--motion-fast)",
+					"relative px-3 py-2.5 text-sm font-medium transition-colors duration-(--duration-fast) ease-out after:absolute after:inset-x-2 after:-bottom-px after:h-px after:transition-colors after:duration-(--duration-fast)",
 					active === m.id
 						? "text-ink after:bg-brand"
 						: "text-muted after:bg-transparent hover:text-body",
@@ -62,19 +61,33 @@ async function copy() {
 	</div>
 
 	<!-- Command + copy -->
-	<div class="flex items-center gap-3 px-4 py-3 font-mono text-[13.5px]">
+	<div class="flex items-center gap-3 px-4 py-3 font-mono text-sm">
 		<span class="select-none text-brand-ink">$</span>
 		<code class="flex-1 truncate text-ink">{command}</code>
 		<button
 			onclick={copy}
 			aria-label={copied ? "Copied" : "Copy install command"}
-			class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-[color,background-color,transform] duration-(--motion-fast) ease-out active:scale-[0.9] hover:bg-surface-card hover:text-ink"
+			class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted transition-[color,background-color,scale] duration-(--duration-fast) ease-out active:scale-(--press-scale-icon) hover:bg-surface-card hover:text-ink"
 		>
-			{#if copied}
-				<Check class="h-3.5 w-3.5 text-check" />
-			{:else}
-				<Copy class="h-3.5 w-3.5" />
-			{/if}
+			<span class="relative size-3.5">
+				<Copy class="swap absolute inset-0 size-3.5" data-on={!copied} />
+				<Check class="swap absolute inset-0 size-3.5 text-success" data-on={copied} />
+			</span>
 		</button>
 	</div>
 </div>
+
+<style>
+	/* Icon swap: both stay mounted and crossfade through a slight blur and scale. */
+	.install :global(.swap) {
+		transition:
+			opacity var(--duration-base) var(--ease-out),
+			scale var(--duration-base) var(--ease-out),
+			filter var(--duration-base) var(--ease-out);
+	}
+	.install :global(.swap[data-on="false"]) {
+		opacity: 0;
+		scale: 0.6;
+		filter: blur(2px);
+	}
+</style>

@@ -81,6 +81,20 @@ function remarkDirectiveToHast() {
 	};
 }
 
+// Fence meta (```ts title="x") lives on `node.meta`, which remark-rehype and
+// rehype-raw drop. Carry it as a data attribute, which the sanitizer allows.
+function remarkCodeMeta() {
+	return (tree: any) => {
+		visit(tree, "code", (node: any) => {
+			if (!node.meta) return;
+			node.data = {
+				...node.data,
+				hProperties: { ...node.data?.hProperties, "data-meta": node.meta },
+			};
+		});
+	};
+}
+
 export interface ParseOptions {
 	readonly remarkPlugins?: readonly any[];
 }
@@ -100,7 +114,8 @@ function buildProcessor(remarkPlugins: readonly any[]): any {
 		.use(remarkParse)
 		.use(remarkGfm)
 		.use(remarkDirective)
-		.use(remarkDirectiveToHast);
+		.use(remarkDirectiveToHast)
+		.use(remarkCodeMeta);
 
 	for (const plugin of remarkPlugins) {
 		processor = processor.use(plugin);

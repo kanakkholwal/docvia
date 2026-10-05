@@ -1,18 +1,24 @@
 ---
 title: "@docvia/plugin-vite"
-description: "The in-process docvia() Vite plugin: virtual modules, incremental HMR, and a production module graph."
+description: "The docvia() Vite plugin: compiles defineDocs() collections and Markdown pages on demand, with HMR."
 eyebrow: "Packages"
 order: 40
 ---
 
-`@docvia/plugin-vite` integrates docvia into any Vite-based app (plain Vite or
-SvelteKit). The recommended export is **`docvia()`**, a single plugin that
-runs the [`CompileService`](/docs/packages/runtime) in-process, so there is no
-separate `docvia build` step.
+`@docvia/plugin-vite` integrates docvia into any Vite-based app (SvelteKit,
+React + Vite, TanStack Start). **`docvia()`** is its only plugin. It rewrites
+`defineDocs()` / `defineRegistry()` calls at build time and compiles each page in
+memory when it is first loaded, so there is no separate `docvia build` step and no
+`.docvia/` folder.
 
 ```bash
 pnpm add -D @docvia/plugin-vite
+pnpm add @docvia/source
 ```
+
+`vite` (`^8`) and `@docvia/source` are peer dependencies. The generated code
+imports `@docvia/source`, so the plugin fails at startup with a `CONFIG_ERROR`
+when your app cannot resolve it.
 
 Requires Node.js `>=20.0.0`. ESM only.
 
@@ -20,47 +26,66 @@ Requires Node.js `>=20.0.0`. ESM only.
 
 | Subpath | Contents |
 |---|---|
-| `.` | `docvia`, the in-process Vite plugin. |
+| `.` | `docvia`, the Vite plugin; `defineConfig`; the `DocviaVitePluginOptions` type. |
+| `./package.json` | Package metadata. |
 
-## `docvia()`, the in-process plugin
+## `docvia()`
 
 ```ts
-function docvia(config: docviaConfig, options?: DocviaVitePluginOptions): Plugin;
+function docvia(config?: docviaConfig, options?: DocviaVitePluginOptions): Plugin;
+
+interface DocviaVitePluginOptions {
+  configPath?: string | false; // relative to the Vite root; auto-detected
+}
 ```
 
-A single Vite plugin that owns the whole docvia integration:
+Called with no config, `docvia()` loads `docvia.config.*` from the Vite root and
+restarts the dev server when it changes. Passing a config object also works.
 
-- **Virtual modules.** Following the Vite virtual-module convention, the plugin
-  serves `virtual:docvia/source` (eager, server/SSR) and
-  `virtual:docvia/source/browser` (lazy, client code-split) from its `load` hook
-  in **dev and build alike**, so nothing is written to disk for Vite to
-  resolve. `handleHotUpdate` hot-swaps a `.md?docvia` module on a content change
-  and triggers a reload on a route-map change; a `configureServer` watcher picks
-  up added and removed files. Compile errors surface in Vite's error overlay.
-- **`.md?docvia` transform.** Compiles each Markdown file as a module in place
-  (through the shared core transform), so content lives once in the `.md` and the
-  virtual source modules just import it.
-
-```ts
-// vite.config.ts
+```ts title="vite.config.ts"
 import { docvia } from "@docvia/plugin-vite";
 import { defineConfig } from "vite";
-import docviaConfig from "./docvia.config";
 
 export default defineConfig({
-  plugins: [docvia(docviaConfig)],
+  plugins: [docvia()], // loads ./docvia.config.ts
 });
 ```
 
-That is the complete setup. See
-[Framework integration](/docs/guide/frameworks) for the full SvelteKit walkthrough.
+In SvelteKit, add it alongside `sveltekit()`. Then declare the collection in any
+module (every non-`node_modules` file that imports `@docvia/source/macro` is
+transformed):
 
-```ts
-// A single page can also be imported directly through the ?docvia transform.
-import page from "./docs/index.md?docvia";
+```ts title="src/lib/source.ts"
+import { loader } from "@docvia/source";
+import { defineDocs } from "@docvia/source/macro";
+
+const docs = defineDocs({ dir: "content/docs" });
+
+export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
 ```
+
+What the plugin does:
+
+- **Macro transform.** `defineDocs()` becomes an index of the folder's
+  frontmatter plus a lazy import per page body. `defineRegistry()` becomes real
+  imports of the `components` in your config.
+- **On-demand compile.** A page body compiles when `page.data.load()` first
+  imports it, in memory, keyed by content hash.
+- **HMR.** A body edit hot-swaps that page. Frontmatter edits, adds and deletes
+  re-index the collection and reload, with no dev-server restart. Collection
+  directories outside the Vite root are watched too. Compile errors surface in
+  Vite's error overlay.
+- **Dependency config.** The renderer's runtime package is added to
+  `ssr.noExternal` and `optimizeDeps.include` for you.
+
+See [Framework integration](/docs/guide/frameworks) for SvelteKit, React + Vite
+and TanStack Start walkthroughs.
+
+> **Legacy config collections.** Collections declared in `docvia.config.ts` are
+> still served as `virtual:docvia/source` and `virtual:docvia/registry`, with types
+> written to `.docvia/*.d.ts` in dev.
 
 ## See also
 
-- [Framework integration](/docs/guide/frameworks): SvelteKit and plain Vite setups.
-- [`@docvia/runtime`](/docs/packages/runtime): the `CompileService` the plugin runs.
+- [`@docvia/source`](/docs/packages/source): `defineDocs()` and `loader()`.
+- [`@docvia/runtime`](/docs/packages/runtime): the page pipeline the plugin runs.

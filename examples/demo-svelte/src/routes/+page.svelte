@@ -19,7 +19,7 @@ const features = [
 ];
 
 const codeSnippet = `// docvia.config.ts
-import { defineConfig } from "@docvia/cli";
+import { defineConfig } from "@docvia/plugin-vite";
 import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 

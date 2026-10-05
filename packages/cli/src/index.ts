@@ -7,7 +7,7 @@ import { runBuild } from "./commands/build";
 import { runDev } from "./commands/dev";
 import { runInit } from "./commands/init";
 import { runPreview } from "./commands/preview";
-import type { RendererTemplate } from "./templates";
+import { runSync } from "./commands/sync";
 import { getVersion } from "./version";
 
 export type { docviaConfig, docviaPlugin } from "@docvia/ir";
@@ -26,30 +26,31 @@ function buildProgram(): Command {
 
 	program
 		.command("init")
-		.description("Scaffold a new docvia project")
-		.option("-d, --dir <dir>", "Project directory", ".")
+		.description("Add docs to a Next.js, SvelteKit or TanStack Start app")
+		.argument("[dir]", "App directory", ".")
 		.option(
-			"-r, --renderer <renderer>",
-			"Renderer template: react | svelte | none (default: autodetect)",
+			"--framework <name>",
+			"next | sveltekit | tanstack-start | standalone (default: detected)",
 		)
+		.option("--pm <manager>", "npm | pnpm | yarn | bun (default: detected)")
 		.option(
-			"--pm <manager>",
-			"Package manager: npm | pnpm | yarn | bun (default: prompt)",
+			"--no-install",
+			"Print the install commands instead of running them",
 		)
-		.option("-f, --force", "Overwrite existing docvia.config.ts", false)
+		.option("-y, --yes", "Accept detected defaults without prompting", false)
+		.option("-f, --force", "Overwrite files that already exist", false)
 		.action(
-			async (opts: {
-				dir: string;
-				renderer?: string;
-				pm?: string;
-				force?: boolean;
-			}) => {
-				await runInit({
-					dir: opts.dir,
-					renderer: opts.renderer as RendererTemplate | undefined,
-					pm: opts.pm,
-					force: opts.force,
-				});
+			async (
+				dir: string,
+				opts: {
+					framework?: string;
+					pm?: string;
+					install: boolean;
+					yes: boolean;
+					force: boolean;
+				},
+			) => {
+				await runInit({ dir, ...opts });
 			},
 		);
 
@@ -58,23 +59,19 @@ function buildProgram(): Command {
 		.description("Compile documentation")
 		.option("--docs <dir>", "Docs directory (overrides config)")
 		.option("--out <dir>", "Output directory (overrides config)")
-		.option("--config <path>", "Config file path", "./docvia.config.ts")
-		.option("--no-cache", "Disable incremental cache; force full rebuild")
+		.option("--config <path>", "Config file path (default: auto-detect)")
 		.option("-v, --verbose", "Show intermediate build steps in detail", false)
 		.action(
 			async (opts: {
 				docs?: string;
 				out?: string;
 				config?: string;
-				cache?: boolean;
 				verbose?: boolean;
 			}) => {
-				// commander maps --no-cache to opts.cache === false
 				await runBuild({
 					docs: opts.docs,
 					out: opts.out,
 					config: opts.config,
-					noCache: opts.cache === false,
 					verbose: opts.verbose,
 				});
 			},
@@ -85,7 +82,7 @@ function buildProgram(): Command {
 		.description("Watch for changes and rebuild incrementally")
 		.option("--docs <dir>", "Docs directory (overrides config)")
 		.option("--out <dir>", "Output directory (overrides config)")
-		.option("--config <path>", "Config file path", "./docvia.config.ts")
+		.option("--config <path>", "Config file path (default: auto-detect)")
 		.option("-v, --verbose", "Show each changed file as it rebuilds", false)
 		.action(
 			async (opts: {
@@ -97,6 +94,16 @@ function buildProgram(): Command {
 				await runDev(opts);
 			},
 		);
+
+	program
+		.command("sync")
+		.description(
+			"Generate .docvia types without a bundler (run before tsc / svelte-check)",
+		)
+		.option("--config <path>", "Config file path (default: auto-detect)")
+		.action(async (opts: { config?: string }) => {
+			await runSync(opts);
+		});
 
 	program
 		.command("preview")
@@ -123,13 +130,8 @@ export async function runCli(
 }
 
 /**
- * Detect direct invocation as `node ./dist/index.mjs` (vs being imported as a
- * library from a `docvia.config.ts` or from `bin.mjs`).
- *
- * We compare the resolved real path of the entry script (`process.argv[1]`)
- * with the resolved real path of this module. The bin shim sets argv[1] to
- * `bin.mjs`, so this check stays false in that path — `bin.mjs` calls
- * `runCli()` explicitly.
+ * True for `node ./dist/index.js`; false when imported, including from `bin.mjs`,
+ * which calls `runCli()` itself.
  */
 function isDirectInvocation(): boolean {
 	const argv1 = process.argv[1];
