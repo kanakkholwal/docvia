@@ -1,3 +1,8 @@
+<script lang="ts" module>
+// Shared by every diagram on the page: mermaid styles each SVG by id, so a per-instance counter made two diagrams clash.
+let seq = 0;
+</script>
+
 <script lang="ts">
 import { browser } from "$app/env";
 import { cn } from "#lib/utils.ts";
@@ -12,28 +17,40 @@ let { code, title, class: className }: Props = $props();
 let svg = $state("");
 let failed = $state(false);
 
-// Diagram ids must be unique per render; mermaid uses them for internal defs.
-let seq = 0;
 
-// Design tokens read off the live document, so the diagram matches whichever
-// theme is active instead of shipping a second hard-coded palette.
+// Tokens are oklch(), which mermaid's colour parser rejects; a 1px canvas resolves each to sRGB hex.
+let probe: CanvasRenderingContext2D | null = null;
+function hex(color: string): string {
+	probe ??= document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+	if (!probe || !color) return color;
+	probe.clearRect(0, 0, 1, 1);
+	probe.fillStyle = getComputedStyle(document.body).backgroundColor;
+	probe.fillRect(0, 0, 1, 1);
+	probe.fillStyle = color;
+	probe.fillRect(0, 0, 1, 1);
+	const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+	return `#${[r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+}
+
+// Design tokens read off the live document, so the diagram matches whichever theme is active.
 function themeVariables() {
 	const s = getComputedStyle(document.documentElement);
-	const v = (name: string) => s.getPropertyValue(name).trim();
+	const v = (name: string) => hex(s.getPropertyValue(name).trim());
 	return {
-		background: v("--surface-soft"),
-		primaryColor: v("--surface-card"),
+		background: v("--well-body"),
+		primaryColor: v("--well-rim"),
 		primaryTextColor: v("--ink"),
 		primaryBorderColor: v("--hairline-strong"),
 		secondaryColor: v("--brand-soft"),
 		tertiaryColor: v("--surface-soft"),
 		lineColor: v("--muted"),
 		textColor: v("--body"),
-		mainBkg: v("--surface-card"),
+		mainBkg: v("--well-rim"),
 		nodeBorder: v("--hairline-strong"),
-		clusterBkg: v("--surface-soft"),
+		clusterBkg: v("--well-body"),
 		clusterBorder: v("--hairline"),
-		fontFamily: v("--font-sans") || "Inter, sans-serif",
+		// `--font-sans` lives in @theme inline, which emits no variable; measure with the face the page uses.
+		fontFamily: getComputedStyle(document.body).fontFamily,
 		fontSize: "14px",
 	};
 }
@@ -50,7 +67,7 @@ async function render() {
 		securityLevel: "strict",
 		theme: "base",
 		themeVariables: themeVariables(),
-		flowchart: { htmlLabels: true, useMaxWidth: true, padding: 12 },
+		flowchart: { htmlLabels: true, useMaxWidth: true, padding: 12, wrappingWidth: 240 },
 		sequence: { useMaxWidth: true },
 	});
 	seq += 1;
@@ -92,7 +109,7 @@ $effect(() => {
 
 <figure class={cn("my-8", className)}>
 	<div
-		class="overflow-x-auto rounded-lg border border-hairline bg-surface-soft p-6 text-center"
+		class="overflow-x-auto rounded-2xl border-4 border-well-rim bg-well-body p-6 text-center"
 	>
 		{#if svg}
 			<!-- mermaid output; securityLevel "strict" strips scripts and inline handlers -->
@@ -100,16 +117,16 @@ $effect(() => {
 		{:else}
 			<!-- Fallback for SSR, no-JS, and diagrams mermaid could not parse. -->
 			<pre
-				class="overflow-x-auto text-left font-mono text-[12.5px] leading-relaxed text-body">{code}</pre>
+				class="overflow-x-auto text-left font-mono text-xs leading-relaxed text-body">{code}</pre>
 			{#if failed}
-				<p class="mt-3 text-[12px] text-muted">
+				<p class="mt-3 text-xs text-muted">
 					This diagram could not be rendered; the source is shown instead.
 				</p>
 			{/if}
 		{/if}
 	</div>
 	{#if title}
-		<figcaption class="mt-3 text-center text-[13px] text-muted">
+		<figcaption class="mt-3 text-center font-mono text-xs text-muted">
 			{title}
 		</figcaption>
 	{/if}
@@ -126,6 +143,8 @@ $effect(() => {
 		padding: 0;
 		line-height: 1.35;
 		text-align: center;
+		/* Mermaid sizes boxes for wrapped labels; an inherited nowrap overflowed them. */
+		white-space: break-spaces;
 	}
 
 	.diagram :global(svg) {

@@ -1,6 +1,9 @@
 import type { IRNode } from "@docvia/ir";
 import { describe, expect, it, vi } from "vitest";
-import { COPY_BUTTON_HTML, createDefaultRendererMap } from "../src/default-renderers";
+import {
+	COPY_BUTTON_HTML,
+	createDefaultRendererMap,
+} from "../src/default-renderers";
 import type { RenderContext } from "../src/types";
 
 describe("default-renderers", () => {
@@ -99,13 +102,21 @@ describe("default-renderers", () => {
 	it("gives every code block a copy button and a data-docvia-code hook", async () => {
 		const renderers = createDefaultRendererMap();
 		const plain = await renderers?.["code-block"]?.(
-			{ type: "code-block", id: "n", props: { lang: "ts", value: "x" }, children: [] },
+			{
+				type: "code-block",
+				id: "n",
+				props: { lang: "ts", value: "x" },
+				children: [],
+			},
 			{ ...ctx, highlighter: undefined },
 		);
 		expect(plain?.kind).toBe("element");
 		if (plain?.kind === "element") {
 			expect(plain.props?.["data-docvia-code"]).toBe("");
-			expect(plain.children?.at(-1)).toEqual({ kind: "html", value: COPY_BUTTON_HTML });
+			expect(plain.children?.at(-1)).toEqual({
+				kind: "html",
+				value: COPY_BUTTON_HTML,
+			});
 		}
 		expect(COPY_BUTTON_HTML).toContain("data-docvia-copy");
 	});

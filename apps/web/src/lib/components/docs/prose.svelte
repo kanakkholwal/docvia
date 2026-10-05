@@ -41,6 +41,51 @@ let { class: className, children }: Props = $props();
 		border-radius: var(--radius-xl);
 	}
 
+	.prose-docvia :global([data-docvia-code]) {
+		position: relative;
+	}
+
+	/* renderer-core's copy button: quiet until the block is hovered, always shown on touch. */
+	.prose-docvia :global(.docvia-copy) {
+		position: absolute;
+		top: 0.625rem;
+		right: 0.625rem;
+		padding: 0.125rem 0.5rem;
+		border-radius: var(--radius-md);
+		background: var(--well-rim);
+		color: var(--muted);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		transition:
+			opacity var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out),
+			scale var(--duration-fast) var(--ease-out);
+	}
+
+	.prose-docvia :global(.docvia-copy:hover) {
+		color: var(--ink);
+	}
+
+	.prose-docvia :global(.docvia-copy:active) {
+		scale: var(--press-scale-sm);
+	}
+
+	.prose-docvia :global(.docvia-copy[data-copied]) {
+		color: var(--success);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.prose-docvia :global(.docvia-copy) {
+			opacity: 0;
+		}
+
+		.prose-docvia :global([data-docvia-code]:hover .docvia-copy),
+		.prose-docvia :global(.docvia-copy:focus-visible),
+		.prose-docvia :global(.docvia-copy[data-copied]) {
+			opacity: 1;
+		}
+	}
+
 	.prose-docvia :global(pre.shiki span) {
 		color: var(--shiki-light);
 	}

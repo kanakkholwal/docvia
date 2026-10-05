@@ -35,7 +35,9 @@ export function installCopyButtons(): void {
 	if (copyInstalled || typeof document === "undefined") return;
 	copyInstalled = true;
 	document.addEventListener("click", async (event) => {
-		const button = (event.target as Element | null)?.closest?.<HTMLElement>("[data-docvia-copy]");
+		const button = (event.target as Element | null)?.closest?.<HTMLElement>(
+			"[data-docvia-copy]",
+		);
 		const code = button?.closest("[data-docvia-code]")?.querySelector("code");
 		if (!button || !code) return;
 		try {

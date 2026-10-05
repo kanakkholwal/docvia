@@ -89,6 +89,8 @@ The component renders each node by its `kind`:
 
 Because the component recurses into itself for `element`, `component`, and `fragment` children, a single `<Renderer>` at the route level renders the whole document.
 
+On mount it calls `installCodeGroups()` and `installCopyButtons()` from `@docvia/renderer-core/client`, so code-group tabs switch and code-block copy buttons work with no extra setup.
+
 ## API reference
 
 ### createSvelteRenderer()

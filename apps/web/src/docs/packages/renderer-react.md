@@ -39,7 +39,7 @@ The package has two entry points with a strict server/browser boundary.
 | Subpath | Environment | Purpose |
 | --- | --- | --- |
 | `.` | RSC, SSR, and browser (**server-safe**) | The build-time adapter (`createReactRenderer`), the `DocviaContent` component, and the `RenderOutput`, `ComponentRegistry`, and `HydrationManifest` types. Safe everywhere except hydration. Does **not** import `react-dom/client`. |
-| `./client` | **Browser only** | The island hydrator. Imports `react-dom/client` (`hydrateRoot`, `createRoot`). Exports `hydrate`, `HydrateOptions`, and `installCodeGroups`. Must never be imported in an RSC or a Node SSR path. |
+| `./client` | **Browser only** | The island hydrator. Imports `react-dom/client` (`hydrateRoot`, `createRoot`). Exports `hydrate`, `HydrateOptions`, `installCodeGroups`, and `installCopyButtons`. Must never be imported in an RSC or a Node SSR path. |
 | `./package.json` | Tooling | Package metadata. |
 
 ```ts
@@ -127,7 +127,7 @@ A fumadocs-inspired override map.
 
 | Slot | Purpose |
 | --- | --- |
-| `codeBlock` | Overrides the entire code-block render. Receives the pre-rendered shiki HTML, which suits copy buttons or language tabs. Falls back to a `docvia-code-block` div. |
+| `codeBlock` | Overrides the entire code-block render. Receives the pre-rendered shiki HTML without the built-in copy button, which suits your own controls or language tabs. Falls back to a `docvia-code-block` div with the copy button. |
 | `a` | Overrides all anchor tags, typically swapped for `next/link`. |
 | `img` | Overrides all images, typically swapped for `next/image`. |
 | `[tag]` | Overrides any other HTML tag by name. |
@@ -180,7 +180,7 @@ Hydrates interactive component islands listed in the manifest. Each entry's `hyd
 - `client:idle` mounts on `requestIdleCallback`, falling back to `setTimeout(…, 200)`.
 - `client:visible` mounts when the `[data-hid]` anchor enters the viewport via `IntersectionObserver`.
 
-`hydrate()` also makes tabbed code groups switch on click (via `installCodeGroups()`, which is exported for pages with no islands). Each island is mounted at its `[data-hid]` element. The function is **idempotent**: every hydrated id is tracked, so repeated calls never double-mount. Missing anchors and unresolved components log a warning/error and are skipped.
+`hydrate()` also makes tabbed code groups switch on click and code-block copy buttons work (via `installCodeGroups()` and `installCopyButtons()`, both exported for pages with no islands). Each island is mounted at its `[data-hid]` element. The function is **idempotent**: every hydrated id is tracked, so repeated calls never double-mount. Missing anchors and unresolved components log a warning/error and are skipped.
 
 ### HydrateOptions
 

@@ -32,7 +32,10 @@ import type {
 	HydrationEntry,
 	HydrationManifest,
 } from "@docvia/renderer-core";
-import { installCodeGroups, installCopyButtons } from "@docvia/renderer-core/client";
+import {
+	installCodeGroups,
+	installCopyButtons,
+} from "@docvia/renderer-core/client";
 import React from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 

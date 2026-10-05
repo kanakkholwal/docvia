@@ -32,7 +32,7 @@ npm install @docvia/renderer-core
 | Subpath | Purpose |
 | --- | --- |
 | `.` | The complete public API. Re-exports the default renderer map, `createModuleRenderer`, the `RenderError` class, the generic `hydrate()` helper, the `renderDocument`/`renderNodes` functions, and all rendering types. |
-| `./client` | Browser helpers: `installCodeGroups()`. |
+| `./client` | Browser helpers: `installCodeGroups()` and `installCopyButtons()`. |
 | `./package.json` | Package metadata. |
 
 ```ts
@@ -305,6 +305,16 @@ function installCodeGroups(): void;
 
 Installs one delegated click listener that switches tabs in rendered code groups. Safe to call repeatedly. Svelte's `<Renderer>` and React's `hydrate()` already call it; use it directly in custom setups.
 
+### installCopyButtons()
+
+```ts
+import { installCopyButtons } from "@docvia/renderer-core/client";
+
+function installCopyButtons(): void;
+```
+
+Makes the copy button on every code block work: one delegated click listener copies the block's `<code>` text and sets `data-copied` on the button for 1.6 seconds. Safe to call repeatedly. Svelte's `<Renderer>` and React's `hydrate()` already call it.
+
 ## Code blocks
 
 Fence meta after the language adds a caption or a tab label:
@@ -328,6 +338,8 @@ pnpm add @docvia/renderer-svelte
 - A fence with language `npm` (or `package-install`) expands into npm, pnpm, yarn, and bun tabs. `npm i -D x` becomes `pnpm add -D x`, `yarn add -D x`, `bun add -D x`; `npx` becomes `pnpm dlx`, `yarn dlx`, `bunx`; a bare package name means "install it".
 
 Groups render as accessible HTML: a `role="tablist"` of `role="tab"` buttons and one `role="tabpanel"` per block, inside `[data-docvia-code-group]`.
+
+Every code block carries `data-docvia-code` and ends with a copy button, `<button class="docvia-copy" data-docvia-copy>`, exported as `COPY_BUTTON_HTML`. It has no styles of its own: position it with `[data-docvia-code] { position: relative }` and `.docvia-copy`, and use `.docvia-copy[data-copied]` for the copied state. Hide it with `display: none` if you draw your own.
 
 ## Usage
 

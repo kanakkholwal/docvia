@@ -103,6 +103,11 @@ Inside that component, load `mermaid` with a **dynamic import** so it stays out
 of the server bundle and off the initial page payload:
 
 ```svelte
+<script lang="ts" module>
+  // One counter for the page: mermaid styles each SVG by id, so ids must not repeat.
+  let seq = 0;
+</script>
+
 <script lang="ts">
   import { browser } from "$app/env";
 
@@ -115,7 +120,7 @@ of the server bundle and off the initial page payload:
     (async () => {
       const { default: mermaid } = await import("mermaid");
       mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
-      const { svg: out } = await mermaid.render("d", code);
+      const { svg: out } = await mermaid.render(`mermaid-${++seq}`, code);
       if (current) svg = out;
     })();
     return () => { current = false; };
@@ -128,6 +133,11 @@ of the server bundle and off the initial page payload:
 Rendering the raw source when `svg` is empty gives you a readable fallback for
 SSR, prerendered HTML, browsers with JavaScript disabled, and diagrams Mermaid
 cannot parse.
+
+For dark mode, pass `theme: "base"` with `themeVariables` read from your CSS
+variables, and render again when the theme changes. Mermaid only parses hex,
+`rgb()` and `hsl()`: resolve `oklch()` tokens to hex first (painting the colour
+on a 1px canvas and reading the pixel back works everywhere).
 
 The site you are reading uses exactly this setup; see
 [`apps/web/src/lib/components/docs/mermaid.svelte`](https://github.com/kanakkholwal/docvia/blob/main/apps/web/src/lib/components/docs/mermaid.svelte)
