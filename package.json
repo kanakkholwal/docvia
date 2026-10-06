@@ -29,7 +29,8 @@
 		"changeset:status": "changeset status --since=origin/main",
 		"version-packages": "changeset version",
 		"release": "pnpm build:packages && changeset publish",
-		"ci": "pnpm lint && pnpm build && pnpm test"
+		"ci": "pnpm lint && pnpm build && pnpm test",
+		"bench": "node benchmarks/run.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",

@@ -7,11 +7,14 @@ onlyBuiltDependencies:
   - workerd
 # TypeScript stays on 6.x: Kit 3, svelte-check and @sveltejs/package peer on ^6.
 catalog:
+  '@sveltejs/adapter-cloudflare': ^8.0.0
   '@sveltejs/kit': ^3.0.0
   '@sveltejs/vite-plugin-svelte': ^7.3.1
   '@types/node': ^26.6.4
   svelte: ^5.57.1
+  svelte-check: ^4.7.6
   tsdown: ^0.23.0
   typescript: ^6.0.3
   vite: ^8.3.2
   vitest: ^5.0.3
+  wrangler: ^4.147.0

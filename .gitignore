@@ -19,3 +19,5 @@ memory
 .local
 # Cloudflare Wrangler local state
 .wrangler/
+# Benchmark results: written per run, never committed
+benchmarks/results/
