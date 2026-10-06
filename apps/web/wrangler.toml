@@ -20,10 +20,10 @@ directory = ".svelte-kit/cloudflare"
 binding = "ASSETS"
 
 # When you connect a custom domain, uncomment and set zone_name:
-# [[routes]]
-# pattern = "docvia.dev"
-# custom_domain = true
-#
-# [[routes]]
-# pattern = "www.docvia.dev"
-# custom_domain = true
+[[routes]]
+pattern = "docvia.dev"
+custom_domain = true
+
+[[routes]]
+pattern = "www.docvia.dev"
+custom_domain = true
