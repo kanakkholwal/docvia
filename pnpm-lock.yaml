@@ -528,6 +528,12 @@ importers:
         specifier: ^2.7.0
         version: 2.7.0
     devDependencies:
+      '@docvia/plugin-shiki':
+        specifier: workspace:*
+        version: link:../plugin-shiki
+      '@docvia/renderer-react':
+        specifier: workspace:*
+        version: link:../renderer-react
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.4

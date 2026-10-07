@@ -1,10 +1,10 @@
 import { DocviaContent } from "@docvia/renderer-react";
-import { registry } from "@/lib/registry";
-import { source } from "@/lib/source";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DocviaHydrator } from "@/components/DocviaHydrator";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
 
 interface PageProps {
 	params: Promise<{ slug?: string[] }>;

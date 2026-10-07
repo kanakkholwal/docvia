@@ -11,6 +11,7 @@ import { dirname, join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { browserSees, closeBrowser, newPage } from "./lib/browser.mjs";
 import {
 	addedPage,
 	EDIT_ANCHOR,
@@ -18,7 +19,6 @@ import {
 	pageFile,
 	writeCorpus,
 } from "./lib/corpus.mjs";
-import { browserSees, closeBrowser, newPage } from "./lib/browser.mjs";
 import { packDocvia } from "./lib/docvia.mjs";
 import { environment, installedVersions } from "./lib/env.mjs";
 import { clientOutput, pageWeight } from "./lib/output.mjs";

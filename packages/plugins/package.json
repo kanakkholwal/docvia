@@ -17,6 +17,8 @@
 		"jiti": "^2.7.0"
 	},
 	"devDependencies": {
+		"@docvia/plugin-shiki": "workspace:*",
+		"@docvia/renderer-react": "workspace:*",
 		"@types/node": "catalog:",
 		"svelte": "catalog:",
 		"typescript": "catalog:"
