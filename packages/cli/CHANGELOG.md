@@ -1,5 +1,65 @@
 # @docvia/cli
 
+## 2.0.0
+
+### Major Changes
+
+- c2f9544: fumadocs-style macro API and a lazy, cache-free pipeline.
+  
+  - `defineDocs()` and `defineRegistry()` from `@docvia/source/macro`, plus `loader()` from `@docvia/source` with fumadocs method names (`getPage`, `getPages`, `getPageTree`, `generateParams`, `getPageByHref`, `serializePageTree`). The same `lib/source.ts` works in Vite (SvelteKit, React, TanStack Start) and Next.js (webpack and Turbopack).
+  - `page.data.load()` returns `{ content, toc, headings, manifest, structuredData }`; bodies compile on first request and stay lazy in SSR bundles (small Workers cold start).
+  - `meta.json` page tree: `title`, `pages` (`...`, `---Separator---`, `!exclude`, `[Text](url)`), `defaultOpen`, `root`.
+  - Breaking: no disk cache. `.docvia/cache.json`, `incremental` and the CLI `--no-cache` flag are gone; `.docvia/` is only written for legacy config collections.
+  - Pages emit compile-time `structuredData`; `createFromSource` indexes it and accepts `loader()` sources.
+  - Static subtrees render to HTML strings (`staticHtml` renderer option), roughly halving Svelte page payloads.
+  - Shiki uses the WASM engine and loads languages on demand (`engine: "javascript"` opts out).
+- c3350bb: Production hardening from the baby-ui field report. Breaking:
+  
+  - `docvia()` is the only Vite plugin; `docviaSourcePlugin` and `docviaMarkdownPlugin` are removed. `docvia()` with no arguments loads `docvia.config.*`.
+  - `registry` moved from `virtual:docvia/source` to `virtual:docvia/registry` (`docvia/registry` on Next.js), which always exists.
+  - Generated files live in `.docvia/`: `docvia-env.d.ts` is now `.docvia/env.d.ts` and `dynamic.ts` is gone. Add `".docvia/*.d.ts"` to tsconfig `include`. Apps must depend on `@docvia/source` directly.
+  - `outDir` and component paths resolve from the project root, not `process.cwd()`. Missing component files fail the build.
+  - Packages ship ESM `.js` with an `exports` map (incl. `./package.json`). `@docvia/renderer-svelte` takes `svelte` as a peer.
+  - Renderers lose `docviaVitePlugin`, `createInMemoryStore` and `invalidateModules`.
+  - `@docvia/schema` drops Zod; `DocPageSchema` is a Standard Schema.
+  
+  New: `docvia sync`, per-collection `frontmatter`, `optional` collections, `hashExclude`, component globs, fence `title`/`tab`, code groups, npm tabs, renderer `transform` hook, search `records` and result `url`, `defineConfig` from `@docvia/plugin-vite` and `@docvia/plugin-next`.
+  
+  Fixed: HMR for collections outside the Vite root, renames and deletes in every Vite environment, Windows path casing, and dev pages missing plugin output (e.g. highlighting). Packages are MIT with a LICENSE file each.
+- c2f9544: `docvia init` adds docs to an existing app, and `docvia.config.ts` is optional.
+  
+  - `docvia init [dir]` detects Next.js, SvelteKit or TanStack Start, the package manager (lockfile, `packageManager`, user agent) and the app's import aliases. It writes `content/docs`, `lib/source.ts`, docs routes with sidebar and table of contents, a `/api/search` route and starter CSS, adds `docvia()` or `withDocvia()` to the bundler config, excludes `content/` from Tailwind v4 scanning, and installs the packages. New flags: `--yes`, `--no-install`, `--framework`. Breaking: `--renderer` and `--dir` are gone (pass the directory as an argument).
+  - Without a config file, the renderer is picked from the app's dependencies (Svelte or React) and Shiki is enabled when `@docvia/plugin-shiki` is installed. A config file that omits `renderer` gets the same detection.
+  - `docvia()` (Vite) and `withDocvia()` (Next.js) no longer require `docvia.config.ts`.
+  - `DOCVIA_TARBALLS=<dir>` makes `docvia init` install packed tarballs, for trying unreleased builds.
+  - `@docvia/plugin-mermaid`: fix a type error under `noUncheckedIndexedAccess`.
+
+### Patch Changes
+
+- 1097517: The terminal UI now matches docvia.dev: violet accent instead of cyan (truecolor when the terminal supports it, magenta otherwise), a quarter-circle spinner, and `init` streams its file list line by line on interactive terminals.
+- d805bf3: The sidebar `docvia init` writes keeps folders closed unless they hold the current page, and a closed folder renders nothing.
+  
+  The old sidebar rendered every link on every page: at 1500 pages that was 432 KB of HTML per page and about 450 ms of render time per request in Next.js dev, against 55 ms for docvia itself. Next.js gets a small client wrapper (`components/docs-sidebar.tsx`) for the current path; SvelteKit gets `DocsTree.svelte` and `DocsFolder.svelte` beside the docs layout.
+- ee4878c: Code blocks get a copy button.
+  
+  - Every code block now carries `data-docvia-code` and ends with a `<button class="docvia-copy" data-docvia-copy>` (exported as `COPY_BUTTON_HTML`). Style or hide it with CSS.
+  - `installCopyButtons()` from `@docvia/renderer-core/client` wires every button with one delegated listener: it copies the block's code and sets `data-copied` for 1.6 s. Svelte's `<Renderer>` and React's `hydrate()` call it for you; `@docvia/renderer-react/client` re-exports it.
+  - React's `codeBlock` override still receives the highlighted HTML without the built-in button, so custom blocks keep their own controls.
+  - The CLI's React template calls `installCopyButtons()` and its `docs.css` styles the button.
+- d805bf3: `docvia init` for TanStack Start loads the page tree and page bodies through server functions.
+  
+  Route loaders run in the browser too, so importing `lib/source.ts` in them shipped every page's frontmatter and a lazy chunk per page body to the client. Measured on a fresh app: page JS stays at 111 KB from 300 to 1500 pages (was 119 to 148 KB), and the browser build drops from 2.2 MB to 113 KB at 1500 pages.
+- Updated dependencies [d805bf3]
+- Updated dependencies [c2f9544]
+- Updated dependencies [d805bf3]
+- Updated dependencies [c3350bb]
+- Updated dependencies [c2f9544]
+  - @docvia/source@2.0.0
+  - @docvia/compiler@2.0.0
+  - @docvia/ir@2.0.0
+  - @docvia/runtime@2.0.0
+  - @docvia/plugins@2.0.0
+
 ## 1.0.0
 
 ### Major Changes
