@@ -72,6 +72,7 @@ export function planFiles(project: Project): PlannedFile[] {
 	}
 	if (framework === "next") {
 		copyTree("next/app", routesDir);
+		copyTree("next/components", join(srcDir, "components"));
 		entries.push([
 			join(TEMPLATES, "docs.css"),
 			join(root, routesDir, "docs", "docs.css"),

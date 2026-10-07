@@ -9,7 +9,7 @@
 
 name = "docvia-web"
 main = ".svelte-kit/cloudflare/_worker.js"
-compatibility_date = "2026-01-01"
+compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Tail logs on production for the first weeks of public preview.
@@ -20,10 +20,10 @@ directory = ".svelte-kit/cloudflare"
 binding = "ASSETS"
 
 # When you connect a custom domain, uncomment and set zone_name:
-# [[routes]]
-# pattern = "docvia.dev"
-# custom_domain = true
-#
-# [[routes]]
-# pattern = "www.docvia.dev"
-# custom_domain = true
+[[routes]]
+pattern = "docvia.dev"
+custom_domain = true
+
+[[routes]]
+pattern = "www.docvia.dev"
+custom_domain = true

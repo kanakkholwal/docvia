@@ -29,7 +29,8 @@
 		"@types/node": "catalog:",
 		"typescript": "catalog:",
 		"vite": "catalog:",
-		"svelte": "catalog:"
+		"svelte": "catalog:",
+		"svelte-check": "catalog:"
 	},
 	"description": "Svelte renderer adapter for docvia",
 	"license": "MIT",

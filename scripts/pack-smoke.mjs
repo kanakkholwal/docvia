@@ -47,10 +47,14 @@ try {
 		overrides[name] = `file:${posix(join(tarballs, file))}`;
 	}
 	const catalog = readFileSync(join(repo, "pnpm-workspace.yaml"), "utf8");
-	const version = (name) =>
-		catalog.match(
+	// The catalog is the only version source, shared with apps/web and the demos.
+	const version = (name) => {
+		const range = catalog.match(
 			new RegExp(`^\\s+'?${name.replace("/", "\\/")}'?: (\\S+)`, "m"),
-		)?.[1] ?? "latest";
+		)?.[1];
+		if (!range) throw new Error(`pack-smoke: ${name} is not in the catalog`);
+		return range;
+	};
 
 	write(
 		"package.json",
@@ -73,15 +77,19 @@ try {
 					"@docvia/cli": overrides["@docvia/cli"],
 					"@docvia/plugin-shiki": overrides["@docvia/plugin-shiki"],
 					"@docvia/plugin-vite": overrides["@docvia/plugin-vite"],
-					"@sveltejs/adapter-cloudflare": "latest",
+					"@sveltejs/adapter-cloudflare": version(
+						"@sveltejs/adapter-cloudflare",
+					),
 					"@sveltejs/kit": version("@sveltejs/kit"),
 					"@sveltejs/vite-plugin-svelte": version(
 						"@sveltejs/vite-plugin-svelte",
 					),
 					svelte: version("svelte"),
-					"svelte-check": "latest",
+					"svelte-check": version("svelte-check"),
 					typescript: version("typescript"),
 					vite: version("vite"),
+					// Peer of adapter-cloudflare 8; a strict install does not add it.
+					wrangler: version("wrangler"),
 				},
 			},
 			null,
@@ -95,7 +103,10 @@ try {
 	write(
 		"pnpm-workspace.yaml",
 		[
-			// pnpm 10 reads onlyBuiltDependencies; pnpm 11 reads allowBuilds.
+			// pnpm 10 reads .npmrc and onlyBuiltDependencies; pnpm 11 reads only this file.
+			"hoist: false",
+			"publicHoistPattern: []",
+			"autoInstallPeers: false",
 			"onlyBuiltDependencies: [esbuild, workerd]",
 			"allowBuilds:",
 			"  esbuild: true",

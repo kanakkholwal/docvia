@@ -1,12 +1,13 @@
 import { DocviaContent } from "@docvia/renderer-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { source } from "~lib/source";
 
-export const Route = createFileRoute("/docs/$")({
-	loader: async ({ params }) => {
-		const page = source.getPage(
-			(params._splat ?? "").split("/").filter(Boolean),
-		);
+// Runs on the server only, so page bodies load there and the browser receives just this page.
+const getPage = createServerFn({ method: "GET" })
+	.inputValidator((slugs: string[]) => slugs)
+	.handler(async ({ data: slugs }) => {
+		const page = source.getPage(slugs);
 		if (!page) throw notFound();
 		const { content, toc } = await page.data.load();
 		return {
@@ -15,7 +16,11 @@ export const Route = createFileRoute("/docs/$")({
 			content,
 			toc,
 		};
-	},
+	});
+
+export const Route = createFileRoute("/docs/$")({
+	loader: ({ params }) =>
+		getPage({ data: (params._splat ?? "").split("/").filter(Boolean) }),
 	head: ({ loaderData }) => ({
 		meta: loaderData
 			? [

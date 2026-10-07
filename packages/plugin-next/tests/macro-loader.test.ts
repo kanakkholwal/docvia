@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { withDocvia } from "../src/index";
@@ -71,7 +71,25 @@ describe("macro loader", () => {
 		expect(code).toMatch(/import \w+ from "[^"]*guide\/meta\.json"/);
 		expect(code).not.toContain("defineDocs(");
 		expect(contextDeps).toEqual([docsDir()]);
-		expect(deps).toHaveLength(2);
+		expect(deps).toEqual(
+			expect.arrayContaining([join(base, "docvia.config.ts")]),
+		);
+		expect(deps).toHaveLength(3);
+	});
+
+	it("reloads the config after it changes", async () => {
+		const config = join(base, "docvia.config.ts");
+		const file = join(base, "lib", "source.ts");
+		await runLoader(SOURCE, file);
+		const touch = (s: number) => utimes(config, s, s);
+
+		await writeFile(config, 'throw new Error("broken config");\n');
+		await touch(Date.now() / 1000 + 10);
+		await expect(runLoader(SOURCE, file)).rejects.toThrow("broken config");
+
+		await writeFile(config, "export default {};\n");
+		await touch(Date.now() / 1000 + 20);
+		await expect(runLoader(SOURCE, file)).resolves.toBeDefined();
 	});
 
 	it("passes modules without the macro import through untouched", async () => {

@@ -338,7 +338,12 @@ export function docvia(
 					map: null,
 				};
 			}
-			return { code: await p.module(filePath, code, collection), map: null };
+			const body = await p.module(filePath, code, collection);
+			// Self-accepting in dev: a body edit swaps this module alone, with no SSR program reload.
+			const hot = isDev
+				? "\nif (import.meta.hot) import.meta.hot.accept();\n"
+				: "";
+			return { code: body + hot, map: null };
 		},
 
 		async hotUpdate({ file, type, modules, server, read, timestamp }) {
@@ -365,8 +370,13 @@ export function docvia(
 				return [];
 			}
 			if (this.environment.name === "client") writeTypes(server);
-			// Body-only edits hot-swap the page module; frontmatter, adds and deletes rebuild the index.
-			if (!routesChanged && type === "update") return modules;
+			// Body-only edits swap the self-accepting page module on the server; the browser reloads
+			// to fetch the re-rendered page. Frontmatter, adds and deletes rebuild the index.
+			if (!routesChanged && type === "update") {
+				if (this.environment.name !== "client") return modules;
+				this.environment.hot.send({ type: "full-reload" });
+				return [];
+			}
 			invalidateVirtualModules(this.environment.moduleGraph);
 			const graph = this.environment.moduleGraph;
 			const stale = [...(macroModules.get(owner.collection.name) ?? [])];

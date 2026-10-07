@@ -29,7 +29,8 @@
 		"changeset:status": "changeset status --since=origin/main",
 		"version-packages": "changeset version",
 		"release": "pnpm build:packages && changeset publish",
-		"ci": "pnpm lint && pnpm build && pnpm test"
+		"ci": "pnpm lint && pnpm build && pnpm test",
+		"bench": "node benchmarks/run.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",
@@ -38,6 +39,7 @@
 		"cross-env": "^10.1.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.6.0",
+		"playwright": "1.63.0",
 		"portless": "^0.15.7",
 		"tsdown": "catalog:",
 		"turbo": "^2.11.7",
