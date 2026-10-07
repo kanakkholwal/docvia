@@ -60,7 +60,7 @@ function markdown(results) {
 	const measured = results.stacks.filter((s) => s.cloudflare);
 	if (measured.length > 0) {
 		lines.push(
-			`## Cloudflare Workers (${Math.max(...results.options.pages)} pages)`,
+			`## Cloudflare Workers (${results.options.pages.at(-1)} pages)`,
 			"",
 			"Bundle is the Worker script wrangler uploads; prerendered pages ship as static assets and are",
 			"not counted. Timings run in workerd via `wrangler dev`: the first request pays module evaluation.",

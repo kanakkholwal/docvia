@@ -54,7 +54,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "3.90.0"
+          wranglerVersion: "4.147.0"
           workingDirectory: examples/demo-svelte
           command: >-
             deploy

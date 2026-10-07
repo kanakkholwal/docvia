@@ -16,6 +16,7 @@ import {
 	addedPage,
 	EDIT_ANCHOR,
 	EDIT_SLUG,
+	MIN_PAGES,
 	pageFile,
 	writeCorpus,
 } from "./lib/corpus.mjs";
@@ -60,7 +61,7 @@ if (args.help) {
 	console.log(`Usage: node benchmarks/run.mjs [options]
 
   --stacks <ids>    Comma-separated stack ids (default: all; see --list)
-  --pages <sizes>   Corpus sizes, e.g. 300,1500 (default: 300)
+  --pages <sizes>   Corpus sizes, at least 6, e.g. 300,1500 (default: 300)
   --runs <n>        Measured runs per metric, after one warm-up (default: 3)
   --out <dir>       Results root (default: benchmarks/results)
   --keep            Keep the temporary apps for inspection
@@ -93,9 +94,13 @@ const runs = Number(args.runs);
 const sizes = args.pages.split(",").map(Number);
 const wanted = args.stacks?.split(",") ?? STACKS.map((s) => s.id);
 const unknown = wanted.filter((id) => !STACKS.some((s) => s.id === id));
-if (unknown.length > 0 || !(runs >= 1) || sizes.some((n) => !(n > 0))) {
+if (
+	unknown.length > 0 ||
+	!(runs >= 1) ||
+	sizes.some((n) => !(n >= MIN_PAGES))
+) {
 	console.error(
-		`Invalid options${unknown.length ? `: unknown stack ${unknown.join(", ")}` : ""}`,
+		`Invalid options${unknown.length ? `: unknown stack ${unknown.join(", ")}` : `: --runs >= 1, --pages >= ${MIN_PAGES}`}`,
 	);
 	process.exit(2);
 }
@@ -327,6 +332,7 @@ try {
 						capture,
 						pins,
 						log: log(stack.id),
+						pages: sizes.at(-1),
 					});
 				} catch (err) {
 					entry.cloudflare = {

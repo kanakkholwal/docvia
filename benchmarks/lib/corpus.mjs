@@ -3,6 +3,8 @@ import { dirname, join } from "node:path";
 
 /** Slug of the page each run edits; it exists at every corpus size. */
 export const EDIT_SLUG = "section-5/page-5";
+/** Smallest corpus that holds `EDIT_SLUG`. */
+export const MIN_PAGES = 6;
 /** Text present in the edited page before the edit, used to place the marker. */
 export const EDIT_ANCHOR = "## Usage";
 

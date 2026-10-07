@@ -39,14 +39,24 @@ async function bundle({ cwd, wrangler, log, args }) {
  * Runs the Worker in workerd (`wrangler dev`) and times the first docs request, which pays for
  * module evaluation in a fresh isolate, then `requests` warm requests across different pages.
  */
-async function timings({ cwd, wrangler, log, args, docsPath, requests }) {
+async function timings({
+	cwd,
+	wrangler,
+	log,
+	args,
+	docsPath,
+	pages,
+	requests,
+}) {
 	const port = await freePort();
 	const server = start(`${wrangler} dev --port ${port} --ip localhost${args}`, {
 		cwd,
 		log,
 	});
-	const url = (i) =>
-		`http://localhost:${port}${docsPath}/section-${i % 10}/page-${i}`;
+	const url = (n) => {
+		const i = n % pages;
+		return `http://localhost:${port}${docsPath}/section-${i % 10}/page-${i}`;
+	};
 	try {
 		await waitFor(() => portOpen(port), { label: "wrangler dev" });
 		const t0 = performance.now();
@@ -71,7 +81,11 @@ async function timings({ cwd, wrangler, log, args, docsPath, requests }) {
 }
 
 /** Switches the app to its Cloudflare target with the stack's CLI steps, then measures it. */
-export async function measureWorkers(stack, app, { sh, capture, pins, log }) {
+export async function measureWorkers(
+	stack,
+	app,
+	{ sh, capture, pins, log, pages },
+) {
 	const target = stack.workersTarget;
 	if (!target) return { mode: stack.workers, skipped: "static assets only" };
 	const platformIssue = target.platformIssues?.[process.platform];
@@ -97,6 +111,7 @@ export async function measureWorkers(stack, app, { sh, capture, pins, log }) {
 	const run = await timings({
 		...options,
 		docsPath: stack.docsPath,
+		pages,
 		requests: 30,
 	});
 	return {

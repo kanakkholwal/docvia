@@ -6,7 +6,8 @@
 </script>
 
 <ul>
-	{#each nodes as node (node.type === 'page' ? node.url : node.name)}
+	<!-- Separators and folders have no id, and siblings may share a name. -->
+	{#each nodes as node, i (node.type === 'page' ? node.url : `${node.type}-${i}`)}
 		<li>
 			{#if node.type === 'page'}
 				<a href={node.url} aria-current={activePath === node.url ? 'page' : undefined}>

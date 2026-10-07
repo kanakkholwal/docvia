@@ -18,7 +18,12 @@
 <details {open} ontoggle={(e) => (open = e.currentTarget.open)}>
 	<summary class="docs-folder">
 		{#if folder.index}
-			<a href={folder.index.url}>{folder.name}</a>
+			<a
+				href={folder.index.url}
+				aria-current={activePath === folder.index.url ? 'page' : undefined}
+			>
+				{folder.name}
+			</a>
 		{:else}
 			{folder.name}
 		{/if}

@@ -20,8 +20,9 @@ const contains = (folder: PageTree.Folder, path: string): boolean =>
 export function DocsTree({ nodes, activePath }: Props) {
 	return (
 		<ul>
-			{nodes.map((node) => (
-				<li key={node.type === "page" ? node.url : node.name}>
+			{nodes.map((node, i) => (
+				// Separators and folders have no id, and siblings may share a name.
+				<li key={node.type === "page" ? node.url : `${node.type}-${i}`}>
 					{node.type === "page" ? (
 						<a
 							href={node.url}
@@ -53,13 +54,18 @@ function Folder({
 	);
 	// Client navigation keeps the sidebar mounted; open the folder the reader moved into.
 	useEffect(() => {
-		if (holdsActive) setOpen(true);
-	}, [holdsActive]);
+		if (contains(folder, activePath)) setOpen(true);
+	}, [folder, activePath]);
 	return (
 		<details open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
 			<summary className="docs-folder">
 				{folder.index ? (
-					<a href={folder.index.url}>{folder.name}</a>
+					<a
+						href={folder.index.url}
+						aria-current={folder.index.url === activePath ? "page" : undefined}
+					>
+						{folder.name}
+					</a>
 				) : (
 					folder.name
 				)}
