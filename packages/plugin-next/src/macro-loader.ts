@@ -1,21 +1,50 @@
 // biome-ignore-all lint/suspicious/noExplicitAny: webpack/Turbopack loader context is intentionally untyped.
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
-import type { docviaConfig } from "@docvia/ir";
+import type { PagePipeline } from "@docvia/runtime";
 
 interface LoaderOptions {
 	readonly configPath?: string;
 	readonly root?: string;
 }
 
-const configs = new Map<string, Promise<docviaConfig>>();
+// Next re-runs this loader on every page edit, so state lives for the process: the pipeline's
+// frontmatter cache makes a rescan parse only changed files.
+const pipelines = new Map<string, Promise<PagePipeline>>();
+const evaluations = new Map<string, Promise<unknown>>();
 
-function loadConfig(configPath: string, root: string): Promise<docviaConfig> {
-	let pending = configs.get(configPath);
+function pipelineFor(configPath: string, root: string): Promise<PagePipeline> {
+	const key = `${configPath}\0${root}`;
+	let pending = pipelines.get(key);
 	if (!pending) {
-		pending = import("@docvia/plugins")
-			.then((m) => m.resolveProject({ cwd: root, configPath }))
-			.then((p) => p.config);
-		configs.set(configPath, pending);
+		pending = (async () => {
+			const [{ resolveProject }, { PagePipeline }] = await Promise.all([
+				import("@docvia/plugins"),
+				import("@docvia/runtime"),
+			]);
+			const { config } = await resolveProject({ cwd: root, configPath });
+			return new PagePipeline(config, root);
+		})();
+		pending.catch(() => pipelines.delete(key));
+		pipelines.set(key, pending);
+	}
+	return pending;
+}
+
+/** Evaluates the module once per distinct source text; a page edit does not change it. */
+function evaluateOnce<T>(
+	file: string,
+	source: string,
+	run: () => Promise<T>,
+): Promise<T> {
+	const key = `${file}\0${createHash("sha1").update(source).digest("hex")}`;
+	let pending = evaluations.get(key) as Promise<T> | undefined;
+	if (!pending) {
+		for (const k of evaluations.keys())
+			if (k.startsWith(`${file}\0`)) evaluations.delete(k);
+		pending = run();
+		pending.catch(() => evaluations.delete(key));
+		evaluations.set(key, pending);
 	}
 	return pending;
 }
@@ -35,19 +64,21 @@ export default function docviaMacroLoader(this: any, source: string): void {
 
 	(async () => {
 		const runtime = await import("@docvia/runtime");
-		const config = await loadConfig(configPath, root);
-		const pipeline = new runtime.PagePipeline(config, root);
+		const pipeline = await pipelineFor(configPath, root);
 		return runtime.transformMacroModule(source, file, {
 			root,
-			config,
+			config: pipeline.config,
 			emit: { kind: "explicit" },
 			evaluate: () =>
-				runtime.collectMacroOptions(root, async () => {
-					const { createJiti } = await import("jiti");
-					await createJiti(file, { moduleCache: false, fsCache: false }).import(
-						file,
-					);
-				}),
+				evaluateOnce(file, source, () =>
+					runtime.collectMacroOptions(root, async () => {
+						const { createJiti } = await import("jiti");
+						await createJiti(file, {
+							moduleCache: false,
+							fsCache: false,
+						}).import(file);
+					}),
+				),
 			index: async (def) => {
 				const collection = pipeline.registerCollection(def);
 				const pages = await runtime.scanCollection(pipeline, collection);

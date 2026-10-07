@@ -262,23 +262,31 @@ export function DocPage({ slugs }: { slugs: string[] }) {
 
 ## TanStack Start
 
-TanStack Start runs on Vite, so add `docvia()` to its Vite config and load the
-page in a route loader:
+TanStack Start runs on Vite, so add `docvia()` to its Vite config. Route loaders
+run in the browser too, so load the page in a server function: that keeps
+`lib/source.ts`, and the index of every page, out of the browser bundle, and the
+page JS stays the same size however many pages you have.
 
 ```tsx
 // src/routes/docs/$.tsx
 import { DocviaContent } from "@docvia/renderer-react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { registry } from "@/lib/registry";
 import { source } from "@/lib/source";
 
-export const Route = createFileRoute("/docs/$")({
-  loader: async ({ params }) => {
-    const page = source.getPage(params._splat?.split("/").filter(Boolean));
+const getPage = createServerFn({ method: "GET" })
+  .inputValidator((slugs: string[]) => slugs)
+  .handler(async ({ data: slugs }) => {
+    const page = source.getPage(slugs);
     if (!page) throw notFound();
     const { content, toc } = await page.data.load();
     return { title: page.data.title, content, toc };
-  },
+  });
+
+export const Route = createFileRoute("/docs/$")({
+  loader: ({ params }) =>
+    getPage({ data: (params._splat ?? "").split("/").filter(Boolean) }),
   component: DocPage,
 });
 

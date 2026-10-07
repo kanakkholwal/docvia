@@ -15,6 +15,17 @@ export function createResultsDir(root, date = new Date()) {
 	return { dir, name };
 }
 
+/** Anything beyond the starter's own CLI that a stack needed, so no workaround stays hidden. */
+function extraSteps(stack) {
+	const steps = [...(stack.adjustments ?? [])];
+	if (stack.setup?.approveBuildsMs !== undefined) {
+		steps.unshift(
+			`pnpm approve-builds (${formatMs(stack.setup.approveBuildsMs)})`,
+		);
+	}
+	return steps.length > 0 ? steps.join("; ") : "none";
+}
+
 function markdown(results) {
 	const { environment: env } = results;
 	const lines = [
@@ -29,19 +40,45 @@ function markdown(results) {
 		lines.push(
 			`## ${pages} pages`,
 			"",
-			"| Stack | Build | Dev ready | First page | Edit visible | New page | Client JS (gzip) | CSS (gzip) |",
-			"|---|---|---|---|---|---|---|---|",
+			"| Stack | Build | Dev ready | First page | Edit visible | New page | Page HTML (gzip) | Page JS (gzip) | Page CSS (gzip) | Build JS total (gzip) |",
+			"|---|---|---|---|---|---|---|---|---|---|",
 		);
 		for (const stack of results.stacks) {
 			const r = stack.sizes?.[pages];
 			if (!r) {
 				lines.push(
-					`| ${stack.label} | failed: ${stack.error ?? "no result"} |||||||`,
+					`| ${stack.label} | ${stack.skipped ? `skipped: ${stack.skipped}` : `failed: ${stack.error ?? "no result"}`} |||||||||`,
 				);
 				continue;
 			}
 			lines.push(
-				`| ${stack.label} | ${formatMs(r.build.median)} | ${formatMs(r.dev.ready.median)} | ${formatMs(r.dev.firstPage.median)} | ${formatMs(r.dev.edit.median)} | ${formatMs(r.dev.add.median)} | ${formatKB(r.output.jsGzip)} | ${formatKB(r.output.cssGzip)} |`,
+				`| ${stack.label} | ${formatMs(r.build.median)} | ${formatMs(r.dev.ready.median)} | ${formatMs(r.dev.firstPage.median)} | ${formatMs(r.dev.edit.median)} | ${formatMs(r.dev.add.median)} | ${formatKB(r.page.htmlGzip)} | ${formatKB(r.page.jsGzip)} | ${formatKB(r.page.cssGzip)} | ${formatKB(r.output.jsGzip)} |`,
+			);
+		}
+		lines.push("");
+	}
+	const measured = results.stacks.filter((s) => s.cloudflare);
+	if (measured.length > 0) {
+		lines.push(
+			`## Cloudflare Workers (${Math.max(...results.options.pages)} pages)`,
+			"",
+			"Bundle is the Worker script wrangler uploads; prerendered pages ship as static assets and are",
+			"not counted. Timings run in workerd via `wrangler dev`: the first request pays module evaluation.",
+			"",
+			"| Stack | Bundle (gzip) | Fits free 3 MB / paid 10 MB | Cold first request | Warm p50 | Warm p95 |",
+			"|---|---|---|---|---|---|",
+		);
+		for (const stack of measured) {
+			const w = stack.cloudflare;
+			if (w.skipped || w.error) {
+				lines.push(
+					`| ${stack.label} | ${w.skipped ? `not measured: ${w.skipped}` : `failed: ${w.error}`} |||||`,
+				);
+				continue;
+			}
+			const fits = `${w.fitsFree ? "yes" : "no"} / ${w.fitsPaid ? "yes" : "no"}`;
+			lines.push(
+				`| ${stack.label} | ${w.gzipKiB} KiB | ${fits} | ${formatMs(w.coldMs)} | ${formatMs(w.warm.median)} | ${formatMs(w.warm.p95)} |`,
 			);
 		}
 		lines.push("");
@@ -49,8 +86,8 @@ function markdown(results) {
 	lines.push(
 		"## Setup",
 		"",
-		"| Stack | Create | Install | Add docs | Versions |",
-		"|---|---|---|---|---|",
+		"| Stack | Create | Install | docvia init (its install) | Files | Extra steps | Versions |",
+		"|---|---|---|---|---|---|---|",
 	);
 	for (const stack of results.stacks) {
 		const s = stack.setup ?? {};
@@ -58,16 +95,21 @@ function markdown(results) {
 			.map(([k, v]) => `${k}@${v}`)
 			.join(", ");
 		lines.push(
-			`| ${stack.label} | ${formatMs(s.createMs)} | ${formatMs(s.installMs)} | ${formatMs(s.docsMs)} | ${versions} |`,
+			`| ${stack.label} | ${formatMs(s.createMs)} | ${formatMs(s.installMs)} | ${s.initMs === undefined ? "n/a" : `${formatMs(s.initMs)} (${formatMs(s.initInstallMs)})`} | ${s.initFiles ?? "n/a"} | ${extraSteps(stack)} | ${versions} |`,
 		);
 	}
 	return `${lines.join("\n")}\n`;
 }
 
+/** JSON first, so a bug in the Markdown summary can never cost a run its data. */
 export function writeResults(dir, results) {
 	writeFileSync(
 		join(dir, "results.json"),
 		`${JSON.stringify(results, null, "\t")}\n`,
 	);
-	writeFileSync(join(dir, "results.md"), markdown(results));
+	try {
+		writeFileSync(join(dir, "results.md"), markdown(results));
+	} catch (err) {
+		console.error(`results.md not written: ${err.message}`);
+	}
 }

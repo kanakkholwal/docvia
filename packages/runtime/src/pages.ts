@@ -49,6 +49,15 @@ export class PagePipeline {
 	private readonly configHash: string;
 	private readonly pluginCacheKeys: string[];
 	private readonly cache = new Map<string, CacheEntry>();
+	private readonly metaCache = new Map<
+		string,
+		{
+			hash: string;
+			schema: FrontmatterSchema | undefined;
+			relativePath: string;
+			meta: PageMetaRecord;
+		}
+	>();
 
 	constructor(config: docviaConfig, projectRoot: string) {
 		this.config = config;
@@ -120,19 +129,27 @@ export class PagePipeline {
 		collectionName?: string,
 	): Promise<PageMetaRecord> {
 		const { collection, relativePath } = this.locate(absPath, collectionName);
-		const file = await this.runner.runBeforeParse(
-			this.file(absPath, code, relativePath),
-		);
-		const { data } = extractFrontmatter(file.content);
-		const frontmatter = validateFrontmatter(
-			data,
-			absPath,
-			collection?.frontmatter ?? this.config.frontmatter,
-		);
-		return {
+		const schema = collection?.frontmatter ?? this.config.frontmatter;
+		const file = this.file(absPath, code, relativePath);
+		const key = `${collectionName ?? ""}\0${absPath}`;
+		const hit = this.metaCache.get(key);
+		// A re-evaluated `defineDocs()` brings a new schema object, which misses the cache.
+		if (
+			hit?.hash === file.hash &&
+			hit.schema === schema &&
+			hit.relativePath === relativePath
+		) {
+			return hit.meta;
+		}
+		const parsed = await this.runner.runBeforeParse(file);
+		const { data } = extractFrontmatter(parsed.content);
+		const frontmatter = validateFrontmatter(data, absPath, schema);
+		const meta = {
 			...frontmatter,
 			slug: computeSlug(relativePath, frontmatter.slug),
 		};
+		this.metaCache.set(key, { hash: file.hash, schema, relativePath, meta });
+		return meta;
 	}
 
 	private entry(

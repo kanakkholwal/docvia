@@ -39,6 +39,7 @@
 		"cross-env": "^10.1.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^17.6.0",
+		"playwright": "1.63.0",
 		"portless": "^0.15.7",
 		"tsdown": "catalog:",
 		"turbo": "^2.11.7",

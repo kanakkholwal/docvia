@@ -39,7 +39,7 @@ type Page = {
 	url: string;
 	data: {
 		title: string;
-		load(): Promise<{ content: unknown; toc: unknown[] }>;
+		load(): Promise<{ content: unknown; toc: Array<{ title: string }> }>;
 	};
 };
 type Loaded = {
@@ -135,6 +135,31 @@ describe("defineDocs() + loader()", () => {
 		);
 		await writeFile(join(docsDir(), "faq.md"), page("FAQ"));
 		await eventually((m) => m.source.getPage(["faq"])?.data.title === "FAQ");
+	});
+
+	// A full SSR program reload re-runs every module and broke SvelteKit layouts after each edit.
+	it("swaps an edited body on the server without a program reload", async () => {
+		await writeFile(
+			join(base, "lib", "unrelated.ts"),
+			"export const id = {};\n",
+		);
+		const unrelated = await ssr.runner.import("/lib/unrelated.ts");
+		const first = await load();
+		const config = () => first.source.getPage(["guide", "config"]);
+		expect((await config()?.data.load())?.toc[0]?.title).toBe("Setup");
+
+		await writeFile(
+			join(docsDir(), "guide", "config.md"),
+			"---\ntitle: Config\n---\n\n## Configure\n\nText.\n",
+		);
+		const deadline = Date.now() + 8000;
+		while ((await config()?.data.load())?.toc[0]?.title !== "Configure") {
+			if (Date.now() > deadline)
+				throw new Error("edit never reached the server");
+			await new Promise((r) => setTimeout(r, 100));
+		}
+		// Importers of the page re-run; a program reload would have re-run this module too.
+		expect(await ssr.runner.import("/lib/unrelated.ts")).toBe(unrelated);
 	});
 });
 

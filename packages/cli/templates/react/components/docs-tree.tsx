@@ -1,29 +1,70 @@
-import type { PageTree } from "@docvia/source";
+"use client";
 
-/** The sidebar: pages, folders and separators from `source.pageTree`. */
-export function DocsTree({ nodes }: { nodes: PageTree.Node[] }) {
+import type { PageTree } from "@docvia/source";
+import { useEffect, useState } from "react";
+
+type Props = { nodes: PageTree.Node[]; activePath: string };
+
+const contains = (folder: PageTree.Folder, path: string): boolean =>
+	folder.index?.url === path ||
+	folder.children.some((child) =>
+		child.type === "page"
+			? child.url === path
+			: child.type === "folder" && contains(child, path),
+	);
+
+/**
+ * The sidebar. Folders start closed unless they hold the current page, and a closed folder renders
+ * nothing, so a large docs site does not render every link on every page.
+ */
+export function DocsTree({ nodes, activePath }: Props) {
 	return (
 		<ul>
 			{nodes.map((node) => (
 				<li key={node.type === "page" ? node.url : node.name}>
 					{node.type === "page" ? (
-						<a href={node.url}>{node.name}</a>
+						<a
+							href={node.url}
+							aria-current={node.url === activePath ? "page" : undefined}
+						>
+							{node.name}
+						</a>
 					) : node.type === "folder" ? (
-						<>
-							<div className="docs-folder">
-								{node.index ? (
-									<a href={node.index.url}>{node.name}</a>
-								) : (
-									node.name
-								)}
-							</div>
-							<DocsTree nodes={node.children} />
-						</>
+						<Folder folder={node} activePath={activePath} />
 					) : (
 						<div className="docs-folder">{node.name}</div>
 					)}
 				</li>
 			))}
 		</ul>
+	);
+}
+
+function Folder({
+	folder,
+	activePath,
+}: {
+	folder: PageTree.Folder;
+	activePath: string;
+}) {
+	const holdsActive = contains(folder, activePath);
+	const [open, setOpen] = useState(
+		() => holdsActive || folder.defaultOpen === true,
+	);
+	// Client navigation keeps the sidebar mounted; open the folder the reader moved into.
+	useEffect(() => {
+		if (holdsActive) setOpen(true);
+	}, [holdsActive]);
+	return (
+		<details open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+			<summary className="docs-folder">
+				{folder.index ? (
+					<a href={folder.index.url}>{folder.name}</a>
+				) : (
+					folder.name
+				)}
+			</summary>
+			{open && <DocsTree nodes={folder.children} activePath={activePath} />}
+		</details>
 	);
 }

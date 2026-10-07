@@ -1,6 +1,6 @@
 import { execSync, spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
-import { createServer } from "node:net";
+import { connect, createServer } from "node:net";
 import { performance } from "node:perf_hooks";
 
 const live = new Set();
@@ -11,8 +11,11 @@ function spawnShell(cmd, { cwd, env, log }) {
 	out.write(`\n$ ${cmd}  (${cwd})\n`);
 	const child = spawn(cmd, {
 		cwd,
-		env: { ...process.env, ...env },
+		// pnpm freezes lockfiles when CI is set; the throwaway starters must be free to write theirs.
+		env: { ...process.env, npm_config_frozen_lockfile: "false", ...env },
 		shell: true,
+		// No stdin: an open pipe makes some CLIs wait for input forever.
+		stdio: ["ignore", "pipe", "pipe"],
 		// Own process group on POSIX, so the whole tree can be killed at once.
 		detached: !isWindows,
 	});
@@ -23,20 +26,40 @@ function spawnShell(cmd, { cwd, env, log }) {
 	return child;
 }
 
-/** Runs `cmd` to completion with output appended to `log`. Resolves with the duration in ms. */
-export function run(cmd, { cwd, env = {}, log, timeoutMs = 20 * 60_000 }) {
+/** Runs `cmd` to completion with output appended to `log`. Resolves with its duration and output. */
+export function runCapture(
+	cmd,
+	{ cwd, env = {}, log, timeoutMs = 20 * 60_000 },
+) {
 	return new Promise((resolve, reject) => {
 		const t0 = performance.now();
 		const child = spawnShell(cmd, { cwd, env, log });
+		let output = "";
+		child.stdout.on("data", (chunk) => {
+			output += chunk;
+		});
+		child.stderr.on("data", (chunk) => {
+			output += chunk;
+		});
 		const timer = setTimeout(() => killTree(child), timeoutMs);
 		child.on("error", reject);
 		child.on("close", (code) => {
 			clearTimeout(timer);
 			live.delete(child);
-			if (code === 0) resolve(performance.now() - t0);
-			else reject(new Error(`\`${cmd}\` exited with ${code} (log: ${log})`));
+			if (code === 0) {
+				resolve({ ms: performance.now() - t0, output });
+				return;
+			}
+			const error = new Error(`\`${cmd}\` exited with ${code} (log: ${log})`);
+			error.output = output;
+			reject(error);
 		});
 	});
+}
+
+/** Runs `cmd` to completion with output appended to `log`. Resolves with the duration in ms. */
+export async function run(cmd, opts) {
+	return (await runCapture(cmd, opts)).ms;
 }
 
 /** Starts a long-running command such as a dev server. Stop it with `killTree`. */
@@ -73,6 +96,18 @@ export function freePort() {
 			const { port } = server.address();
 			server.close(() => resolve(port));
 		});
+	});
+}
+
+/** True once something accepts TCP connections on `port`. */
+export function portOpen(port) {
+	return new Promise((resolve) => {
+		const socket = connect({ port, host: "localhost" });
+		socket.once("connect", () => {
+			socket.destroy();
+			resolve(true);
+		});
+		socket.once("error", () => resolve(false));
 	});
 }
 

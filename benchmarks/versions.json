@@ -1,3 +1,15 @@
 {
-	"sv": "1.1.0"
+	"sv": "1.1.1",
+	"create-next-app": "16.3.8",
+	"@tanstack/create-start": "0.59.44",
+	"create-fumadocs-app": "16.2.16",
+	"@sveltepress/create": "1.4.0",
+	"create-astro": "5.2.5",
+	"create-docusaurus": "3.10.2",
+	"create-rspress": "2.0.23",
+	"vitepress": "1.6.4",
+	"wrangler": "4.147.0",
+	"@opennextjs/cloudflare": "1.20.9",
+	"nuxi": "4.0.0",
+	"workerdCompatibilityDate": "2026-10-01"
 }

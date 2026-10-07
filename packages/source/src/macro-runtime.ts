@@ -27,30 +27,31 @@ export function docs<F>(
 		// Index and glob paths can differ only in case on case-insensitive file systems.
 		bodies.set(strip(key).toLowerCase(), load);
 	}
-	const loaded = new Map<string, Promise<LoadedPage>>();
-	const load = (path: string): Promise<LoadedPage> => {
-		let pending = loaded.get(path);
-		if (!pending) {
-			const body = bodies.get(path) ?? bodies.get(path.toLowerCase());
-			if (!body)
-				return Promise.reject(new Error(`[docvia] No body for ${path}`));
-			pending = body().then((mod) => {
-				const headings = mod.meta?.headings ?? [];
-				return {
-					content: mod.content,
-					manifest: mod.manifest as LoadedPage["manifest"],
-					structuredData: mod.structuredData ?? { headings: [], contents: [] },
-					headings,
-					toc: headings.map((h) => ({
-						title: h.text,
-						url: `#${h.id}`,
-						depth: h.depth,
-					})),
-				};
-			});
-			loaded.set(path, pending);
+	// Keyed by module, not path: a hot-swapped page module brings fresh content with no reload.
+	const loaded = new WeakMap<ModuleExports, LoadedPage>();
+	const toPage = (mod: ModuleExports): LoadedPage => {
+		let page = loaded.get(mod);
+		if (!page) {
+			const headings = mod.meta?.headings ?? [];
+			page = {
+				content: mod.content,
+				manifest: mod.manifest as LoadedPage["manifest"],
+				structuredData: mod.structuredData ?? { headings: [], contents: [] },
+				headings,
+				toc: headings.map((h) => ({
+					title: h.text,
+					url: `#${h.id}`,
+					depth: h.depth,
+				})),
+			};
+			loaded.set(mod, page);
 		}
-		return pending;
+		return page;
+	};
+	const load = (path: string): Promise<LoadedPage> => {
+		const body = bodies.get(path) ?? bodies.get(path.toLowerCase());
+		if (!body) return Promise.reject(new Error(`[docvia] No body for ${path}`));
+		return body().then(toPage);
 	};
 
 	return {

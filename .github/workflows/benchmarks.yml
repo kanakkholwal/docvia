@@ -1,0 +1,129 @@
+name: Benchmarks
+
+# Every stack runs on its own fresh runner, so one heavy build cannot starve another of memory.
+# Results are uploaded as artifacts only: nothing is committed or published from CI.
+on:
+  workflow_dispatch:
+    inputs:
+      stacks:
+        description: Comma-separated stack ids (empty runs every stack measurable on Linux)
+        required: false
+        default: ""
+      pages:
+        description: Corpus sizes
+        required: false
+        default: "300,1500"
+      runs:
+        description: Measured runs per metric, after one warm-up
+        required: false
+        default: "3"
+  schedule:
+    - cron: "0 3 * * 1" # Mondays 03:00 UTC
+
+concurrency:
+  group: benchmarks
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.matrix.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Choose stacks
+        id: matrix
+        env:
+          REQUESTED: ${{ inputs.stacks }}
+        run: |
+          if [ -n "$REQUESTED" ]; then
+            stacks=$(node -e 'console.log(JSON.stringify(process.env.REQUESTED.split(",").map((s) => s.trim()).filter(Boolean)))')
+          else
+            stacks=$(node benchmarks/run.mjs --list --json)
+          fi
+          echo "stacks=$stacks" >> "$GITHUB_OUTPUT"
+
+  bench:
+    name: ${{ matrix.stack }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJSON(needs.plan.outputs.stacks) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Client-rendered dev servers (Docusaurus, Rspress, VitePress) are measured in Chromium.
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Benchmark
+        env:
+          STACK: ${{ matrix.stack }}
+          PAGES: ${{ inputs.pages || '300,1500' }}
+          RUNS: ${{ inputs.runs || '3' }}
+          NEXT_TELEMETRY_DISABLED: "1"
+          ASTRO_TELEMETRY_DISABLED: "1"
+        run: node benchmarks/run.mjs --stacks "$STACK" --pages "$PAGES" --runs "$RUNS"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ matrix.stack }}
+          path: benchmarks/results/
+          retention-days: 30
+
+  report:
+    name: Report
+    needs: bench
+    if: always() && needs.bench.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Download stack results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bench-*
+          path: runs
+
+      - name: Merge
+        run: node benchmarks/merge.mjs runs
+
+      - name: Job summary
+        if: always()
+        run: cat benchmarks/results/*/results.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmarks/results/
+          retention-days: 90
