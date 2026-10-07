@@ -1,5 +1,47 @@
 # @docvia/source
 
+## 2.0.0
+
+### Major Changes
+
+- c3350bb: Production hardening from the baby-ui field report. Breaking:
+  
+  - `docvia()` is the only Vite plugin; `docviaSourcePlugin` and `docviaMarkdownPlugin` are removed. `docvia()` with no arguments loads `docvia.config.*`.
+  - `registry` moved from `virtual:docvia/source` to `virtual:docvia/registry` (`docvia/registry` on Next.js), which always exists.
+  - Generated files live in `.docvia/`: `docvia-env.d.ts` is now `.docvia/env.d.ts` and `dynamic.ts` is gone. Add `".docvia/*.d.ts"` to tsconfig `include`. Apps must depend on `@docvia/source` directly.
+  - `outDir` and component paths resolve from the project root, not `process.cwd()`. Missing component files fail the build.
+  - Packages ship ESM `.js` with an `exports` map (incl. `./package.json`). `@docvia/renderer-svelte` takes `svelte` as a peer.
+  - Renderers lose `docviaVitePlugin`, `createInMemoryStore` and `invalidateModules`.
+  - `@docvia/schema` drops Zod; `DocPageSchema` is a Standard Schema.
+  
+  New: `docvia sync`, per-collection `frontmatter`, `optional` collections, `hashExclude`, component globs, fence `title`/`tab`, code groups, npm tabs, renderer `transform` hook, search `records` and result `url`, `defineConfig` from `@docvia/plugin-vite` and `@docvia/plugin-next`.
+  
+  Fixed: HMR for collections outside the Vite root, renames and deletes in every Vite environment, Windows path casing, and dev pages missing plugin output (e.g. highlighting). Packages are MIT with a LICENSE file each.
+
+### Minor Changes
+
+- c2f9544: fumadocs-style macro API and a lazy, cache-free pipeline.
+  
+  - `defineDocs()` and `defineRegistry()` from `@docvia/source/macro`, plus `loader()` from `@docvia/source` with fumadocs method names (`getPage`, `getPages`, `getPageTree`, `generateParams`, `getPageByHref`, `serializePageTree`). The same `lib/source.ts` works in Vite (SvelteKit, React, TanStack Start) and Next.js (webpack and Turbopack).
+  - `page.data.load()` returns `{ content, toc, headings, manifest, structuredData }`; bodies compile on first request and stay lazy in SSR bundles (small Workers cold start).
+  - `meta.json` page tree: `title`, `pages` (`...`, `---Separator---`, `!exclude`, `[Text](url)`), `defaultOpen`, `root`.
+  - Breaking: no disk cache. `.docvia/cache.json`, `incremental` and the CLI `--no-cache` flag are gone; `.docvia/` is only written for legacy config collections.
+  - Pages emit compile-time `structuredData`; `createFromSource` indexes it and accepts `loader()` sources.
+  - Static subtrees render to HTML strings (`staticHtml` renderer option), roughly halving Svelte page payloads.
+  - Shiki uses the WASM engine and loads languages on demand (`engine: "javascript"` opts out).
+
+### Patch Changes
+
+- d805bf3: Editing a page body in dev swaps just that page on the server instead of reloading every server module.
+  
+  - Fixes `Cannot read properties of null (reading 'function')` thrown by SvelteKit layouts after each content edit: the full SSR program reload re-ran Svelte's runtime under the running app.
+  - Compiled pages accept their own hot updates in dev, and `page.data.load()` caches by module rather than by path, so the server serves the new body at once. The browser reloads to show it.
+  - A visible edit in a fresh SvelteKit app drops from about 250 ms to 56 ms.
+- Updated dependencies [ee4878c]
+- Updated dependencies [c2f9544]
+- Updated dependencies [c3350bb]
+  - @docvia/renderer-core@2.0.0
+
 ## 0.4.0
 
 ### Minor Changes

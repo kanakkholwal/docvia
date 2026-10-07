@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/cli",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"description": "docvia CLI: add docs to a Next.js, SvelteKit or TanStack Start app",
 	"type": "module",
 	"bin": {
