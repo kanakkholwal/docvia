@@ -15,15 +15,14 @@ compatibility_flags = ["nodejs_compat"]
 # Tail logs on production for the first weeks of public preview.
 observability = { enabled = true }
 
+# Served only on the custom domain; www.docvia.dev 301s here via a zone Redirect Rule.
+workers_dev = false
+preview_urls = false
+
 [assets]
 directory = ".svelte-kit/cloudflare"
 binding = "ASSETS"
 
-# When you connect a custom domain, uncomment and set zone_name:
 [[routes]]
 pattern = "docvia.dev"
-custom_domain = true
-
-[[routes]]
-pattern = "www.docvia.dev"
 custom_domain = true
