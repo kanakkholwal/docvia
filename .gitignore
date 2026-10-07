@@ -9,7 +9,7 @@ dist/
 .claude
 .next/
 docvia-env.d.ts
-*.d.ts
+next-env.d.ts
 # docvia inter-process build lock — should never be committed
 *.docvia-build.lock
 .docvia-build.lock
