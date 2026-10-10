@@ -1,0 +1,8 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		// Tests render through @docvia/core/render, whose hydrate module is browser code.
+		"lib": ["ES2022", "dom"]
+	},
+	"include": ["src", "tests/**/*.test.ts"]
+}

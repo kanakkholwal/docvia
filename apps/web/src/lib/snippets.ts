@@ -4,8 +4,8 @@ export type Snippet = { lang: string; code: string };
 export const snippets = {
 	"config.ts": {
 		lang: "typescript",
-		code: `import { defineConfig } from "@docvia/plugin-vite";
-import { createReactRenderer } from "@docvia/renderer-react";
+		code: `import { defineConfig } from "@docvia/build/vite";
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
@@ -17,8 +17,8 @@ export default defineConfig({
 	},
 	"source.ts": {
 		lang: "typescript",
-		code: `import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+		code: `import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod";
 
 const docs = defineDocs({
@@ -31,7 +31,7 @@ export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() }
 	},
 	"page.tsx": {
 		lang: "tsx",
-		code: `import { DocviaContent } from "@docvia/renderer-react";
+		code: `import { Renderer } from "@docvia/core/react";
 import { notFound } from "next/navigation";
 import { source } from "@/lib/source";
 
@@ -41,13 +41,13 @@ export default async function DocPage({ params }) {
 
   // No parser, no highlighter, just a compiled module.
   const { content } = await page.data.load();
-  return <DocviaContent nodes={content} />;
+  return <Renderer nodes={content} />;
 }`,
 	},
 	"page.svelte": {
 		lang: "svelte",
 		code: `<script lang="ts">
-  import { Renderer } from "@docvia/renderer-svelte";
+  import { Renderer } from "@docvia/core/svelte";
   import type { PageProps } from "./$types";
 
   let { data }: PageProps = $props();

@@ -1,7 +1,6 @@
 import { resolve } from "node:path";
-import type { IRDocument, RendererAdapter } from "@docvia/ir";
-import { resolveProject } from "@docvia/plugins";
-import { CompileService } from "@docvia/runtime";
+import { CompileService, resolveProject } from "@docvia/build";
+import type { IRDocument, RendererAdapter } from "@docvia/core";
 import { createSearchIndexer } from "./index";
 
 // Node-only entry point: building the index compiles the docs in-process, which

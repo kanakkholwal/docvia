@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageTree } from '@docvia/source';
+	import type { PageTree } from '@docvia/core/source';
 	import DocsTree from './DocsTree.svelte';
 
 	let { folder, activePath }: { folder: PageTree.Folder; activePath: string } = $props();

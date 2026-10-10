@@ -12,7 +12,7 @@ transforms, and content generation are built, all without forking the compiler.
 ## The plugin shape
 
 A plugin implements the `docviaPlugin` interface from
-[`@docvia/ir`](/docs/packages/ir):
+[`@docvia/core`](/docs/packages/core/ir):
 
 | Field | Type | Description |
 |---|---|---|
@@ -27,7 +27,7 @@ A plugin implements the `docviaPlugin` interface from
 | `afterTransform` | hook | See below. |
 | `beforeRender` | hook | See below. |
 
-`name` and `version` are mandatory. [`resolvePlugins`](/docs/packages/plugins)
+`name` and `version` are mandatory. [`resolvePlugins`](/docs/packages/core/plugins)
 throws a `PLUGIN_ERROR` for a plugin that omits either, or for a duplicated
 name.
 
@@ -92,7 +92,7 @@ flowchart LR
 ## A minimal plugin
 
 ```ts
-import type { docviaPlugin } from "@docvia/ir";
+import type { docviaPlugin } from "@docvia/core";
 
 export function upperTitles(): docviaPlugin {
   return {
@@ -113,7 +113,7 @@ export function upperTitles(): docviaPlugin {
 Register it in your config:
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 import { upperTitles } from "./plugins/upper-titles";
 
 export default defineConfig({

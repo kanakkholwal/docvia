@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { defineConfig } from "@docvia/plugins";
+import { defineConfig } from "@docvia/core";
 import { Command } from "commander";
 import { runBuild } from "./commands/build";
 import { runDev } from "./commands/dev";
@@ -10,7 +10,7 @@ import { runPreview } from "./commands/preview";
 import { runSync } from "./commands/sync";
 import { getVersion } from "./version";
 
-export type { docviaConfig, docviaPlugin } from "@docvia/ir";
+export type { docviaConfig, docviaPlugin } from "@docvia/core";
 // Re-export defineConfig so users can import it from "@docvia/cli"
 export { defineConfig };
 

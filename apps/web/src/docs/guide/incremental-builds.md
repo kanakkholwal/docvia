@@ -11,7 +11,7 @@ by content hash. An edit recompiles only the page you changed.
 
 ## The in-memory cache
 
-[`@docvia/runtime`](/docs/packages/runtime)'s `PagePipeline` keeps one entry
+[`@docvia/build`](/docs/packages/build/pipeline)'s `PagePipeline` keeps one entry
 per page, keyed by collection and file path, holding an `xxh64` hash of the
 raw source plus the compiled IR and rendered module. Nothing is written to
 disk: there is no `.docvia/` folder and no cache file.
@@ -30,7 +30,7 @@ A failed compile is not cached, so the next request retries.
 ## The content hash
 
 Each compiled page also carries a **composite** `contentHash` in its IR, used
-by downstream caches such as the [`@docvia/ssr`](/docs/packages/ssr) LRU. The
+by downstream caches such as the [`@docvia/core/ssr`](/docs/packages/core/ssr) LRU. The
 inputs are:
 
 | Input | Why it matters |

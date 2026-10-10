@@ -83,14 +83,14 @@ describe("patchViteConfig", () => {
 			"import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [\n    react(),\n  ],\n})\n",
 		);
 		const { code } = patchViteConfig(join(root, "vite.config.ts"));
-		expect(code).toContain("import { docvia } from '@docvia/plugin-vite'\n");
+		expect(code).toContain("import { docvia } from '@docvia/build/vite'\n");
 		expect(code).toContain("  plugins: [\n    docvia(),\n    react(),");
 	});
 
 	it("leaves a config that already uses docvia alone", async () => {
 		await write(
 			"vite.config.ts",
-			'import { docvia } from "@docvia/plugin-vite";\nexport default { plugins: [docvia()] };\n',
+			'import { docvia } from "@docvia/build/vite";\nexport default { plugins: [docvia()] };\n',
 		);
 		expect(patchViteConfig(join(root, "vite.config.ts")).code).toBeUndefined();
 	});
@@ -110,7 +110,7 @@ describe("patchNextConfig", () => {
 			'import type { NextConfig } from "next";\n\nconst nextConfig: NextConfig = {};\n\nexport default nextConfig;\n',
 		);
 		const { code } = patchNextConfig(join(root, "next.config.ts"));
-		expect(code).toContain('import { withDocvia } from "@docvia/plugin-next";');
+		expect(code).toContain('import { withDocvia } from "@docvia/build/next";');
 		expect(code).toContain("export default withDocvia()(nextConfig);");
 	});
 
@@ -121,7 +121,7 @@ describe("patchNextConfig", () => {
 		);
 		const { code } = patchNextConfig(join(root, "next.config.js"));
 		expect(code).toContain(
-			'const { withDocvia } = require("@docvia/plugin-next");',
+			'const { withDocvia } = require("@docvia/build/next");',
 		);
 		expect(code).toContain(
 			"module.exports = withDocvia()({ reactStrictMode: true });",

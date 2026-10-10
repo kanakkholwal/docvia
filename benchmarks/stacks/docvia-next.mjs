@@ -14,7 +14,7 @@ export default {
 	docsPath: "/docs",
 	caches: [".next"],
 	clientDir: ".next/static",
-	versionsOf: ["next", "react", "@docvia/plugin-next"],
+	versionsOf: ["next", "react", "@docvia/build/next"],
 
 	async setup({ dir, sh, pins, docvia, log }) {
 		const createMs = await sh(

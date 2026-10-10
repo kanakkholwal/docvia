@@ -283,3 +283,39 @@
 		filter: blur(8px);
 	}
 }
+
+/* tabs */
+.scrollbar-none {
+	scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+	display: none;
+}
+
+/* code-block */
+.scroll-area {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-strong) transparent;
+}
+
+/* checkbox */
+.checkbox-check path {
+	stroke-dasharray: 12;
+	stroke-dashoffset: 12;
+	transition: stroke-dashoffset 200ms var(--ease-out) 60ms;
+}
+.checkbox-check[data-on="true"] path {
+	stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+	.checkbox-check path {
+		transition: none;
+		stroke-dashoffset: 0;
+	}
+}
+
+/* scroll-area */
+.scroll-area {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-strong) transparent;
+}

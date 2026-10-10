@@ -1,5 +1,5 @@
 // @docvia/plugin-mermaid — Mermaid diagrams for docvia.
-import type { docviaPlugin, IRDocument, IRNode } from "@docvia/ir";
+import type { docviaPlugin, IRDocument, IRNode } from "@docvia/core";
 
 const DEFAULT_LANG = "mermaid";
 const DEFAULT_COMPONENT = "Mermaid";

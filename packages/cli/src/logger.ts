@@ -1,5 +1,5 @@
 // ANSI colors with no dependency. Honors NO_COLOR, FORCE_COLOR and non-TTY output.
-import { docviaError } from "@docvia/ir";
+import { docviaError } from "@docvia/core";
 
 /** Whether ANSI styling is emitted. Honors FORCE_COLOR / NO_COLOR / TTY. */
 export const colorEnabled =

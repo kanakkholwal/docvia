@@ -45,7 +45,7 @@ jobs:
 
       - name: Build examples/demo-svelte
         # Build through Turbo so workspace dependencies (@docvia/cli,
-        # @docvia/plugin-vite, etc.) are compiled before the demo's Vite build
+        # @docvia/build, etc.) are compiled before the demo's Vite build
         # runs the docvia plugin in-process.
         run: pnpm turbo run build --filter=demo-svelte
 

@@ -14,9 +14,9 @@ const transcript = [
 ];
 
 const hosts = [
-	{ name: "Next.js", note: "plugin-next, webpack and Turbopack", path: siNextdotjs.path },
-	{ name: "SvelteKit", note: "plugin-vite", path: siSvelte.path },
-	{ name: "TanStack Start", note: "plugin-vite", path: siTanstack.path },
+	{ name: "Next.js", note: "build/next, webpack and Turbopack", path: siNextdotjs.path },
+	{ name: "SvelteKit", note: "build/vite", path: siSvelte.path },
+	{ name: "TanStack Start", note: "build/vite", path: siTanstack.path },
 	{ name: "Standalone", note: "docvia build, no framework", path: "" },
 ];
 </script>

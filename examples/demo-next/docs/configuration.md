@@ -11,8 +11,8 @@ Build settings live in `docvia.config.ts` at your project root; `defineConfig` a
 ## Minimal config
 
 ```typescript
-import { defineConfig } from "@docvia/plugin-next";
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/next";
+import { createReactRenderer } from "@docvia/core/react";
 
 export default defineConfig({
   renderer: createReactRenderer(),
@@ -34,8 +34,8 @@ export default defineConfig({
 Extend the built-in schema in `defineDocs()` with any Standard Schema library, such as Zod:
 
 ```typescript title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod/v3";
 
 const docs = defineDocs({
@@ -79,7 +79,7 @@ The renderer converts IR nodes into framework-specific output. For Next.js,
 use `createReactRenderer`:
 
 ```typescript
-import { createReactRenderer } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/core/react";
 
 createReactRenderer({
   registry: optionalCustomRegistry,

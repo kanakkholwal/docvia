@@ -6,6 +6,25 @@ import { snippets } from "./src/lib/snippets.ts";
 const VIRTUAL_ID = "virtual:docvia-snippets";
 const RESOLVED_ID = `\0${VIRTUAL_ID}`;
 
+let shared: ReturnType<typeof import("shiki").createHighlighter> | undefined;
+
+/** Build-time highlighting in the site's dual theme; languages load on first use. */
+export async function highlight(code: string, lang: string): Promise<string> {
+	shared ??= import("shiki").then((m) =>
+		m.createHighlighter({ themes: ["github-light", "github-dark"], langs: [] }),
+	);
+	const highlighter = await shared;
+	if (lang !== "text" && !highlighter.getLoadedLanguages().includes(lang))
+		await highlighter.loadLanguage(
+			lang as Parameters<typeof highlighter.loadLanguage>[0],
+		);
+	return highlighter.codeToHtml(code, {
+		lang,
+		themes: { light: "github-light", dark: "github-dark" },
+		defaultColor: false,
+	});
+}
+
 export function highlightedSnippets(): Plugin {
 	let cache: string | null = null;
 

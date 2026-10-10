@@ -70,13 +70,13 @@ try {
 					build: "vite build",
 				},
 				dependencies: {
-					"@docvia/renderer-svelte": overrides["@docvia/renderer-svelte"],
-					"@docvia/source": overrides["@docvia/source"],
+					"@docvia/core": overrides["@docvia/core"],
+					"@docvia/markdown": overrides["@docvia/markdown"],
 				},
 				devDependencies: {
 					"@docvia/cli": overrides["@docvia/cli"],
 					"@docvia/plugin-shiki": overrides["@docvia/plugin-shiki"],
-					"@docvia/plugin-vite": overrides["@docvia/plugin-vite"],
+					"@docvia/build": overrides["@docvia/build"],
 					"@sveltejs/adapter-cloudflare": version(
 						"@sveltejs/adapter-cloudflare",
 					),
@@ -118,7 +118,7 @@ try {
 	);
 	write(
 		"vite.config.ts",
-		`import { docvia } from "@docvia/plugin-vite";
+		`import { docvia } from "@docvia/build/vite";
 import adapter from "@sveltejs/adapter-cloudflare";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
@@ -128,9 +128,9 @@ export default defineConfig({ plugins: [sveltekit({ adapter: adapter() }), docvi
 	);
 	write(
 		"docvia.config.ts",
-		`import { defineConfig } from "@docvia/plugin-vite";
+		`import { defineConfig } from "@docvia/build/vite";
 import { shiki } from "@docvia/plugin-shiki";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 export default defineConfig({
 	components: ["./src/lib/docs/*.svelte"],
@@ -154,8 +154,8 @@ export default defineConfig({
 	// The macro API: types come from this file, no `.docvia/` or sync step.
 	write(
 		"src/lib/source.ts",
-		`import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+		`import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "docs" });
 export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() });
@@ -163,7 +163,7 @@ export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() }
 	);
 	write(
 		"src/lib/registry.ts",
-		`import { defineRegistry } from "@docvia/source/macro";
+		`import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 `,
@@ -197,7 +197,7 @@ export async function load({ params }: { params: { slug: string } }) {
 	write(
 		"src/routes/docs/[...slug]/+page.svelte",
 		`<script lang="ts">
-import { Renderer } from "@docvia/renderer-svelte";
+import { Renderer } from "@docvia/core/svelte";
 import { registry } from "#lib/registry.ts";
 
 let { data } = $props();
@@ -205,6 +205,29 @@ let { data } = $props();
 
 <h1>{data.title}</h1>
 <Renderer nodes={data.content} {registry} />
+`,
+	);
+
+	// @docvia/markdown stands alone: the string renderer and the Svelte subpath on one prerendered page.
+	write(
+		"src/routes/markdown/+page.ts",
+		`import { toHtml } from "@docvia/markdown";
+
+export const prerender = true;
+export const load = () => ({ html: toHtml("**string** renderer") });
+`,
+	);
+	write(
+		"src/routes/markdown/+page.svelte",
+		`<script lang="ts">
+import { Markdown } from "@docvia/markdown/svelte";
+
+let { data } = $props();
+const source = "# Svelte\\n\\n:::callout{type=tip}\\nDirective\\n:::";
+</script>
+
+<Markdown {source} />
+{@html data.html}
 `,
 	);
 
@@ -225,6 +248,15 @@ let { data } = $props();
 			`Edge-unsafe code in the server bundle:\n${offenders.join("\n")}`,
 		);
 	}
+	const page = readFileSync(
+		join(app, ".svelte-kit", "output", "prerendered", "pages", "markdown.html"),
+		"utf8",
+	);
+	if (
+		!page.includes("<strong>string</strong>") ||
+		!page.includes('data-directive="callout"')
+	)
+		throw new Error("pack-smoke: the @docvia/markdown page did not render");
 	console.log("\npack-smoke: OK");
 } finally {
 	if (keep) console.log(`kept ${work}`);

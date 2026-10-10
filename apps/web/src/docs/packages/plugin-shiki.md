@@ -29,8 +29,8 @@ that code blocks render unhighlighted. Register it in the `plugins` array of
 your `docvia.config.ts`:
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/vite";
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
@@ -84,7 +84,7 @@ Switching the site theme then needs no re-highlight.
 The plugin's `cacheKey()` is keyed on the theme (or `themes` and
 `defaultColor`) and the regex engine, so pages re-highlight when either
 changes. Fence titles, tabs, and package-manager tabs work with or without Shiki; see
-[Code blocks](/docs/packages/renderer-core#code-blocks).
+[Code blocks](/docs/packages/core/render#code-blocks).
 
 ## Pluggable highlighting
 

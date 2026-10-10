@@ -1,9 +1,8 @@
 import { existsSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import { docviaError } from "@docvia/ir";
-import { resolveProject } from "@docvia/plugins";
-import { CompileService } from "@docvia/runtime";
+import { CompileService, resolveProject } from "@docvia/build";
+import { docviaError } from "@docvia/core";
 import { c, fmtMs, formatError, header, log, step, symbols } from "../logger";
 
 export interface BuildOptions {

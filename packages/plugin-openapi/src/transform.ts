@@ -1,3 +1,4 @@
+import { deref } from "./schema";
 import { resolveRef } from "./spec";
 import type {
 	OpenAPIDocument,
@@ -5,6 +6,8 @@ import type {
 	OpenAPIOperation,
 	OpenAPIParameter,
 	OpenAPIParameterOrRef,
+	OpenAPIRequestBody,
+	OpenAPIResponse,
 	OpenAPISchema,
 } from "./types";
 
@@ -121,19 +124,20 @@ export function renderOperation(
 	}
 
 	// Request body
-	if (op.requestBody?.content) {
+	const body = deref(doc, op.requestBody).schema as OpenAPIRequestBody;
+	if (body.content) {
 		out.push({
 			type: "heading",
 			depth: 4,
 			children: [text("Request body")],
 		});
-		if (op.requestBody.description) {
+		if (body.description) {
 			out.push({
 				type: "paragraph",
-				children: [text(op.requestBody.description)],
+				children: [text(body.description)],
 			});
 		}
-		for (const node of renderMediaTypes(doc, op.requestBody.content)) {
+		for (const node of renderMediaTypes(doc, body.content)) {
 			out.push(node);
 		}
 	}
@@ -147,7 +151,8 @@ export function renderOperation(
 		});
 		const statuses = Object.keys(op.responses).sort();
 		for (const status of statuses) {
-			const response = op.responses[status];
+			const response = deref(doc, op.responses[status])
+				.schema as OpenAPIResponse;
 			if (!response) continue;
 			out.push({
 				type: "paragraph",

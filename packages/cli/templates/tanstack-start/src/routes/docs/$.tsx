@@ -1,4 +1,4 @@
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { source } from "~lib/source";
@@ -39,7 +39,7 @@ function DocsPage() {
 			<article className="docs-content">
 				<h1>{title}</h1>
 				{description && <p className="docs-description">{description}</p>}
-				<DocviaContent nodes={content} />
+				<Renderer nodes={content} />
 			</article>
 			<aside className="docs-toc">
 				<p>On this page</p>

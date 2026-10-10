@@ -16,7 +16,12 @@ export interface Project {
 	readonly framework: Framework;
 	readonly pm: PackageManager;
 	/** Where the package manager was inferred from, for the summary line. */
-	readonly pmSource: "lockfile" | "packageManager" | "user agent" | "default";
+	readonly pmSource:
+		| "flag"
+		| "lockfile"
+		| "packageManager"
+		| "user agent"
+		| "default";
 	/** Directory holding `lib/` and `components/`, relative to root (`src` or ``). */
 	readonly srcDir: string;
 	/** Directory holding routes, relative to root. */

@@ -13,7 +13,7 @@ export default {
 	docsPath: "/docs",
 	caches: [".svelte-kit", "node_modules/.vite"],
 	clientDir: ".svelte-kit/output/client",
-	versionsOf: ["@sveltejs/kit", "svelte", "vite", "@docvia/plugin-vite"],
+	versionsOf: ["@sveltejs/kit", "svelte", "vite", "@docvia/build/vite"],
 
 	async setup({ dir, sh, pins, docvia, log }) {
 		const createMs = await sh(

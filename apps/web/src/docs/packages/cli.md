@@ -5,7 +5,7 @@ eyebrow: "Packages"
 order: 1
 ---
 
-`@docvia/cli` ships the `docvia` binary. It is a dev dependency only. It also re-exports `defineConfig`, but config files should import it from `@docvia/plugin-vite` or `@docvia/plugin-next`.
+`@docvia/cli` ships the `docvia` binary. It is a dev dependency only. It also re-exports `defineConfig`, but config files should import it from `@docvia/build/vite` or `@docvia/build/next`.
 
 Apps that declare collections with `defineDocs()` do not need the CLI at runtime: the Vite or Next.js plugin compiles pages on demand. `build`, `dev` and `preview` drive the standalone compiler, which writes a `.docvia/` module graph for hosts without a docvia bundler plugin.
 
@@ -71,13 +71,13 @@ The `bin.mjs` shim calls `runCli()` explicitly; any downstream tooling that want
 
 ### `defineConfig`
 
-Re-exported from `@docvia/plugins`. It is the helper used in `docvia.config.ts` to get full type-checking and editor completion on the config object. Since the CLI is a dev-only tool, import it from your framework plugin instead:
+Re-exported from `@docvia/core`. It is the helper used in `docvia.config.ts` to get full type-checking and editor completion on the config object. Since the CLI is a dev-only tool, import it from your framework plugin instead:
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
+import { defineConfig } from "@docvia/build/vite"; // or @docvia/build/next
 
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 export default defineConfig({
   renderer: createSvelteRenderer(),
@@ -88,8 +88,8 @@ export default defineConfig({
 
 | Type | Source | Purpose |
 |---|---|---|
-| `docviaConfig` | `@docvia/ir` | The shape of a docvia configuration object. |
-| `docviaPlugin` | `@docvia/ir` | The shape of a compiler plugin. |
+| `docviaConfig` | `@docvia/core` | The shape of a docvia configuration object. |
+| `docviaPlugin` | `@docvia/core` | The shape of a compiler plugin. |
 
 ## Global options
 
@@ -203,7 +203,7 @@ For legacy config collections only: writes `.docvia/types.d.ts` and `.docvia/env
 docvia sync && svelte-kit sync && svelte-check
 ```
 
-The same routine is available programmatically as `syncTypes({ cwd?, configPath? })` from `@docvia/runtime`.
+The same routine is available programmatically as `syncTypes({ cwd?, configPath? })` from `@docvia/build`.
 
 ### `docvia preview`
 
