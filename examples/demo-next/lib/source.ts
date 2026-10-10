@@ -1,5 +1,5 @@
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod/v3";
 
 const docs = defineDocs({

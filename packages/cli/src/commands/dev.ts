@@ -1,10 +1,14 @@
 import { existsSync } from "node:fs";
 import { basename, relative, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import type { docviaConfig } from "@docvia/ir";
-import { docviaError } from "@docvia/ir";
-import { loadConfig, resolveProject } from "@docvia/plugins";
-import { CompileService, samePath } from "@docvia/runtime";
+import {
+	CompileService,
+	loadConfig,
+	resolveProject,
+	samePath,
+} from "@docvia/build";
+import type { docviaConfig } from "@docvia/core";
+import { docviaError } from "@docvia/core";
 import { c, formatError, header, log, step, symbols } from "../logger";
 
 export interface DevOptions {
@@ -22,8 +26,8 @@ function rel(p: string): string {
 
 /**
  * `docvia dev` — the generic, framework-agnostic watch loop. Frameworks with a
- * dedicated integration (Vite via `@docvia/plugin-vite`, Next via
- * `@docvia/plugin-next`) compile in-process; this command is the fallback for
+ * dedicated integration (Vite via `@docvia/build/vite`, Next via
+ * `@docvia/build/next`) compile in-process; this command is the fallback for
  * everything else. It drives the same `CompileService` so output is identical,
  * and recompiles incrementally via `service.invalidate()`.
  */

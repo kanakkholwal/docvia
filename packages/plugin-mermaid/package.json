@@ -13,7 +13,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/ir": "workspace:*"
+		"@docvia/core": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",

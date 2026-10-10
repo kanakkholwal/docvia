@@ -60,7 +60,7 @@ function insertImport(s: MagicString, program: Node, line: string): void {
 /** Adds `docvia()` as the first Vite plugin. */
 export function patchViteConfig(file: string): PatchResult {
 	const code = readFileSync(file, "utf8");
-	if (code.includes("@docvia/plugin-vite")) return { file };
+	if (code.includes("@docvia/build/vite")) return { file };
 	const { program } = parseSync(file, code) as unknown as { program: Node };
 	let plugins: Node | undefined;
 	walk(program, (n) => {
@@ -92,14 +92,14 @@ export function patchViteConfig(file: string): PatchResult {
 	} else {
 		s.appendLeft(plugins.start + 1, "docvia()");
 	}
-	insertImport(s, program, 'import { docvia } from "@docvia/plugin-vite";');
+	insertImport(s, program, 'import { docvia } from "@docvia/build/vite";');
 	return { file, code: s.toString() };
 }
 
 /** Wraps the exported Next config in `withDocvia()`. */
 export function patchNextConfig(file: string): PatchResult {
 	const code = readFileSync(file, "utf8");
-	if (code.includes("@docvia/plugin-next")) return { file };
+	if (code.includes("@docvia/build/next")) return { file };
 	const { program } = parseSync(file, code) as unknown as { program: Node };
 	const s = new MagicString(code);
 	const body = program.body as Node[];
@@ -111,7 +111,7 @@ export function patchNextConfig(file: string): PatchResult {
 		insertImport(
 			s,
 			program,
-			'import { withDocvia } from "@docvia/plugin-next";',
+			'import { withDocvia } from "@docvia/build/next";',
 		);
 		return { file, code: s.toString() };
 	}
@@ -131,7 +131,7 @@ export function patchNextConfig(file: string): PatchResult {
 	if (!cjs) throw new Error(`no default export found in ${file}`);
 	s.prependLeft(cjs.start, "withDocvia()(");
 	s.appendRight(cjs.end, ")");
-	s.prepend('const { withDocvia } = require("@docvia/plugin-next");\n');
+	s.prepend('const { withDocvia } = require("@docvia/build/next");\n');
 	return { file, code: s.toString() };
 }
 

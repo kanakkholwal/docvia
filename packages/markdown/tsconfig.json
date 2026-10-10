@@ -1,0 +1,13 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		// No @types/node: this package runs in browsers and Workers.
+		"types": [],
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"paths": {}
+	},
+	"include": ["src"],
+	"exclude": ["src/svelte"]
+}

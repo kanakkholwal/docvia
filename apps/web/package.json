@@ -19,10 +19,12 @@
 		"baby-ui:css": "node scripts/baby-ui-css.mjs"
 	},
 	"devDependencies": {
+		"@docvia/build": "workspace:*",
 		"@docvia/cli": "workspace:*",
+		"@docvia/markdown": "workspace:*",
 		"@docvia/plugin-mermaid": "workspace:*",
+		"@docvia/plugin-openapi": "workspace:*",
 		"@docvia/plugin-shiki": "workspace:*",
-		"@docvia/plugin-vite": "workspace:*",
 		"@lucide/svelte": "^1.52.0",
 		"@sveltejs/adapter-cloudflare": "catalog:",
 		"@sveltejs/kit": "catalog:",
@@ -43,11 +45,9 @@
 		"wrangler": "catalog:"
 	},
 	"dependencies": {
-		"@docvia/compiler": "workspace:*",
-		"@docvia/renderer-core": "workspace:*",
-		"@docvia/renderer-svelte": "workspace:*",
+		"@docvia/build": "workspace:*",
+		"@docvia/core": "workspace:*",
 		"@docvia/search": "workspace:*",
-		"@docvia/source": "workspace:*",
 		"@fontsource-variable/geist-pixel": "^5.3.1",
 		"@fontsource-variable/inter": "^5.3.0",
 		"@fontsource-variable/jetbrains-mono": "^5.3.0",

@@ -18,7 +18,7 @@ const features = [
 	},
 	{
 		title: "React 19",
-		body: "Renders with @docvia/renderer-react; code is highlighted at build time by @docvia/plugin-shiki.",
+		body: "Renders with @docvia/core/react; code is highlighted at build time by @docvia/plugin-shiki.",
 	},
 	{
 		title: "Static export",
@@ -27,8 +27,8 @@ const features = [
 ];
 
 const codeSnippet = `// docvia.config.ts
-import { defineConfig } from "@docvia/plugin-next";
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/next";
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

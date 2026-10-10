@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Renderer } from '@docvia/renderer-svelte';
+	import { Renderer } from '@docvia/core/svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

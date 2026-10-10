@@ -4,7 +4,7 @@ import Pager from "#lib/components/docs/pager.svelte";
 import Prose from "#lib/components/docs/prose.svelte";
 import { docsRegistry } from "#lib/components/docs/registry.ts";
 import Toc from "#lib/components/docs/toc.svelte";
-import { Renderer } from "@docvia/renderer-svelte";
+import { Renderer } from "@docvia/core/svelte";
 import { Pencil } from "@lucide/svelte";
 import { RollText } from "#lib/components/text/roll-text/index.ts";
 import type { PageProps } from "./$types";
@@ -30,9 +30,14 @@ const eyebrow = $derived(fm.eyebrow ? String(fm.eyebrow) : undefined);
 
 <Toc variant="inline" headings={data.page.headings} />
 
-<Prose>
+<!-- Generated API pages bring their own layout; Prose's element rules would restyle it. -->
+{#if fm.openapi}
 	<Renderer nodes={data.page.content} registry={docsRegistry} />
-</Prose>
+{:else}
+	<Prose>
+		<Renderer nodes={data.page.content} registry={docsRegistry} />
+	</Prose>
+{/if}
 
 <div class="mt-12 flex items-center justify-end">
 	<a

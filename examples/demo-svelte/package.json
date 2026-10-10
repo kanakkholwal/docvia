@@ -17,9 +17,9 @@
 		"deploy": "wrangler deploy"
 	},
 	"devDependencies": {
+		"@docvia/build": "workspace:*",
 		"@docvia/cli": "workspace:*",
 		"@docvia/plugin-shiki": "workspace:*",
-		"@docvia/plugin-vite": "workspace:*",
 		"@sveltejs/adapter-cloudflare": "catalog:",
 		"@sveltejs/kit": "catalog:",
 		"@sveltejs/vite-plugin-svelte": "catalog:",
@@ -30,9 +30,8 @@
 		"wrangler": "catalog:"
 	},
 	"dependencies": {
-		"@fontsource-variable/geist": "^5.3.0",
-		"@docvia/source": "workspace:*",
-		"@docvia/renderer-svelte": "workspace:*"
+		"@docvia/core": "workspace:*",
+		"@fontsource-variable/geist": "^5.3.0"
 	},
 	"portless": {
 		"name": "svelte.demo.docvia",

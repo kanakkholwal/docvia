@@ -1,4 +1,4 @@
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { source } from "~lib/source";
@@ -19,7 +19,7 @@ export default async function DocsPage({ params }: Props) {
 				{page.data.description && (
 					<p className="docs-description">{page.data.description}</p>
 				)}
-				<DocviaContent nodes={content} />
+				<Renderer nodes={content} />
 			</article>
 			<aside className="docs-toc">
 				<p>On this page</p>

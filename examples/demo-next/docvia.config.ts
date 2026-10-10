@@ -1,6 +1,6 @@
-import { defineConfig } from "@docvia/plugin-next";
+import { defineConfig } from "@docvia/build/next";
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
-import { createReactRenderer } from "@docvia/renderer-react";
 
 export default defineConfig({
 	// Register components here — the compiler generates the runtime registry

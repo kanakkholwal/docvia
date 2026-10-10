@@ -1,0 +1,75 @@
+{
+	"name": "@docvia/build",
+	"version": "2.0.0",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js",
+		"./next": "./dist/next/index.js",
+		"./next/loader": "./dist/next/loader.js",
+		"./next/macro-loader": "./dist/next/macro-loader.js",
+		"./vite": "./dist/vite/index.js",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsdown --watch --no-clean",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@node-rs/xxhash": "^1.7.8",
+		"chokidar": "^5.0.0",
+		"jiti": "^2.7.0",
+		"magic-string": "^1.4.3",
+		"oxc-parser": "^0.152.0",
+		"tinyglobby": "^0.2.17"
+	},
+	"devDependencies": {
+		"@docvia/core": "workspace:*",
+		"@types/hast": "^3.0.5",
+		"@types/mdast": "^4.0.4",
+		"@types/node": "catalog:",
+		"next": "^16.3.8",
+		"typescript": "catalog:",
+		"vite": "catalog:",
+		"vitest": "catalog:",
+		"webpack": "^5.111.1"
+	},
+	"description": "docvia's build tooling for Node: the compiler, the page pipeline, config loading, and the Vite and Next.js plugins.",
+	"license": "MIT",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/build"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"keywords": [
+		"docs",
+		"documentation",
+		"docvia"
+	],
+	"sideEffects": false,
+	"peerDependencies": {
+		"@docvia/core": "workspace:*",
+		"next": ">=14",
+		"vite": "^8.0.0"
+	},
+	"peerDependenciesMeta": {
+		"next": {
+			"optional": true
+		},
+		"vite": {
+			"optional": true
+		}
+	}
+}

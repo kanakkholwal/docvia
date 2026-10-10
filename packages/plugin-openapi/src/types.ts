@@ -34,7 +34,15 @@ export interface OpenAPIParameter {
 	readonly in: "query" | "path" | "header" | "cookie";
 	readonly description?: string;
 	readonly required?: boolean;
+	readonly deprecated?: boolean;
 	readonly schema?: OpenAPISchema;
+	readonly example?: unknown;
+	readonly examples?: Readonly<Record<string, OpenAPIExample>>;
+}
+
+export interface OpenAPIExample {
+	readonly summary?: string;
+	readonly value?: unknown;
 }
 
 export interface OpenAPIReference {
@@ -58,9 +66,7 @@ export interface OpenAPISchema {
 export interface OpenAPIMediaType {
 	readonly schema?: OpenAPISchema;
 	readonly example?: unknown;
-	readonly examples?: Readonly<
-		Record<string, { readonly value?: unknown; readonly summary?: string }>
-	>;
+	readonly examples?: Readonly<Record<string, OpenAPIExample>>;
 }
 
 export interface OpenAPIRequestBody {
@@ -71,7 +77,35 @@ export interface OpenAPIRequestBody {
 
 export interface OpenAPIResponse {
 	readonly description?: string;
+	readonly headers?: Readonly<
+		Record<string, Omit<OpenAPIParameter, "name" | "in"> | OpenAPIReference>
+	>;
 	readonly content?: Readonly<Record<string, OpenAPIMediaType>>;
+}
+
+export interface OpenAPIServer {
+	readonly url: string;
+	readonly description?: string;
+	readonly variables?: Readonly<Record<string, { readonly default: string }>>;
+}
+
+export interface OpenAPITag {
+	readonly name: string;
+	readonly description?: string;
+}
+
+/** Scheme names mapped to required scopes; an empty object means "no auth". */
+export type OpenAPISecurityRequirement = Readonly<
+	Record<string, readonly string[]>
+>;
+
+export interface OpenAPISecurityScheme {
+	readonly type: "apiKey" | "http" | "oauth2" | "openIdConnect" | "mutualTLS";
+	readonly description?: string;
+	readonly name?: string;
+	readonly in?: "query" | "header" | "cookie";
+	readonly scheme?: string;
+	readonly bearerFormat?: string;
 }
 
 export interface OpenAPIOperation {
@@ -81,21 +115,31 @@ export interface OpenAPIOperation {
 	readonly tags?: readonly string[];
 	readonly deprecated?: boolean;
 	readonly parameters?: readonly OpenAPIParameterOrRef[];
-	readonly requestBody?: OpenAPIRequestBody;
-	readonly responses?: Readonly<Record<string, OpenAPIResponse>>;
+	readonly requestBody?: OpenAPIRequestBody | OpenAPIReference;
+	readonly responses?: Readonly<
+		Record<string, OpenAPIResponse | OpenAPIReference>
+	>;
+	readonly security?: readonly OpenAPISecurityRequirement[];
+	readonly servers?: readonly OpenAPIServer[];
 }
 
 export type OpenAPIPathItem = Partial<Record<HttpMethod, OpenAPIOperation>> & {
 	readonly parameters?: readonly OpenAPIParameterOrRef[];
+	readonly servers?: readonly OpenAPIServer[];
 };
 
 export interface OpenAPIDocument {
 	readonly openapi?: string;
 	readonly info?: OpenAPIInfo;
-	readonly servers?: readonly { readonly url: string }[];
+	readonly servers?: readonly OpenAPIServer[];
+	readonly tags?: readonly OpenAPITag[];
+	readonly security?: readonly OpenAPISecurityRequirement[];
 	readonly paths?: Readonly<Record<string, OpenAPIPathItem>>;
 	readonly components?: {
 		readonly schemas?: Readonly<Record<string, OpenAPISchema>>;
+		readonly securitySchemes?: Readonly<
+			Record<string, OpenAPISecurityScheme | OpenAPIReference>
+		>;
 	};
 	readonly [key: string]: unknown;
 }

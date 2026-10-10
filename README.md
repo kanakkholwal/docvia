@@ -28,8 +28,8 @@ fumadocs-style `loader()`:
 ## Install
 
 ```bash
-pnpm add -D @docvia/plugin-vite   # or @docvia/plugin-next
-pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add -D @docvia/build   # or
+pnpm add @docvia/core   # or
 ```
 
 ## Quick start
@@ -37,8 +37,8 @@ pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
 `docvia.config.ts` holds the renderer, plugins, components, and Markdown options:
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/vite"; // or @docvia/build/next
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
@@ -51,8 +51,8 @@ Declare the collection in code:
 
 ```ts
 // lib/source.ts (SvelteKit: src/lib/source.ts)
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod";
 
 const docs = defineDocs({
@@ -66,7 +66,7 @@ export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() }
 
 ```ts
 // lib/registry.ts: components from `components` in docvia.config.ts
-import { defineRegistry } from "@docvia/source/macro";
+import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 ```
@@ -95,13 +95,13 @@ changed pages recompile on HMR.
 ### SvelteKit (Vite)
 
 ```bash
-pnpm add -D @docvia/plugin-vite
-pnpm add @docvia/renderer-svelte @docvia/source
+pnpm add -D @docvia/build
+pnpm add @docvia/core
 ```
 
 ```ts
 // vite.config.ts (SvelteKit 3: no svelte.config.js)
-import { docvia } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/build/vite";
 import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
@@ -111,9 +111,9 @@ export default defineConfig({
 });
 ```
 
-`docvia()` rewrites every module that imports `@docvia/source/macro` and
+`docvia()` rewrites every module that imports `@docvia/core/source/macro` and
 configures `ssr.noExternal` and `optimizeDeps` for the renderer. The config must
-use the Svelte renderer (`createSvelteRenderer` from `@docvia/renderer-svelte/node`).
+use the Svelte renderer (`createSvelteRenderer` from `@docvia/core/svelte/node`).
 Load pages in a catch-all route:
 
 ```ts
@@ -130,7 +130,7 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 ```
 
-Render `content` with the `Renderer` component from `@docvia/renderer-svelte`
+Render `content` with the `Renderer` component from `@docvia/core/svelte`
 and the `registry` from `$lib/registry`. See
 [`examples/demo-svelte`](./examples/demo-svelte) and [`apps/web`](./apps/web)
 for working setups.
@@ -138,13 +138,13 @@ for working setups.
 ### Next.js
 
 ```bash
-pnpm add -D @docvia/plugin-next
-pnpm add @docvia/renderer-react @docvia/source react react-dom
+pnpm add -D @docvia/build
+pnpm add @docvia/core react react-dom
 ```
 
 ```ts
 // next.config.ts
-import { withDocvia } from "@docvia/plugin-next";
+import { withDocvia } from "@docvia/build/next";
 
 export default withDocvia()({
   reactStrictMode: true,
@@ -157,7 +157,7 @@ Turbopack**. Other names: `withDocvia({ macroFiles: ["docs-source.ts"] })`.
 
 ```tsx
 // app/docs/[[...slug]]/page.tsx
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import { notFound } from "next/navigation";
 import { registry } from "@/lib/registry";
 import { source } from "@/lib/source";
@@ -170,7 +170,7 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
   const page = source.getPage((await params).slug);
   if (!page) notFound();
   const { content } = await page.data.load();
-  return <DocviaContent nodes={content} registry={registry} />;
+  return <Renderer nodes={content} registry={registry} />;
 }
 ```
 
@@ -196,12 +196,12 @@ export async function GET(request: Request) {
 ### Server-side rendering
 
 Framework apps render through `page.data.load()` on the server, Node or edge.
-For a **non-framework Node server** that renders per request, `@docvia/ssr`
+For a **non-framework Node server** that renders per request, `@docvia/core/ssr`
 renders IR resolved by a content source. A live `CompileService` already is
 one, so pass it directly:
 
 ```ts
-import { createDocviaSSR } from "@docvia/ssr";
+import { createDocviaSSR } from "@docvia/core/ssr";
 
 const ssr = createDocviaSSR({ provider: service }); // or a (collection, slug) => IR fn
 const page = await ssr.render("docs", "getting-started");
@@ -220,23 +220,14 @@ is the recommended path. The standalone CLI (`docvia build`, `dev`, `sync`,
 
 | Package | Version | Purpose |
 |---|---|---|
-| [`@docvia/cli`](https://www.npmjs.com/package/@docvia/cli) | [![npm](https://img.shields.io/npm/v/@docvia/cli.svg)](https://www.npmjs.com/package/@docvia/cli) | `init` scaffolding plus the standalone `build` / `dev` / `sync` / `preview` commands (dev dependency only). |
-| [`@docvia/runtime`](https://www.npmjs.com/package/@docvia/runtime) | [![npm](https://img.shields.io/npm/v/@docvia/runtime.svg)](https://www.npmjs.com/package/@docvia/runtime) | Page pipeline, macro transform, and `CompileService`, shared by every integration. |
-| [`@docvia/compiler`](https://www.npmjs.com/package/@docvia/compiler) | [![npm](https://img.shields.io/npm/v/@docvia/compiler.svg)](https://www.npmjs.com/package/@docvia/compiler) | Batch build entry (`compile()`), a thin wrapper over `CompileService`. |
-| [`@docvia/core`](https://www.npmjs.com/package/@docvia/core) | [![npm](https://img.shields.io/npm/v/@docvia/core.svg)](https://www.npmjs.com/package/@docvia/core) | Markdown parsing pipeline (`unified` + `remark` + `rehype`). |
-| [`@docvia/ir`](https://www.npmjs.com/package/@docvia/ir) | [![npm](https://img.shields.io/npm/v/@docvia/ir.svg)](https://www.npmjs.com/package/@docvia/ir) | Intermediate representation, error system, AST → IR transform. |
-| [`@docvia/schema`](https://www.npmjs.com/package/@docvia/schema) | [![npm](https://img.shields.io/npm/v/@docvia/schema.svg)](https://www.npmjs.com/package/@docvia/schema) | Frontmatter validation (Standard Schema), YAML extraction, TS codegen. |
-| [`@docvia/plugins`](https://www.npmjs.com/package/@docvia/plugins) | [![npm](https://img.shields.io/npm/v/@docvia/plugins.svg)](https://www.npmjs.com/package/@docvia/plugins) | `defineConfig`, `loadConfig`, `PluginRunner`. |
-| [`@docvia/ssr`](https://www.npmjs.com/package/@docvia/ssr) | [![npm](https://img.shields.io/npm/v/@docvia/ssr.svg)](https://www.npmjs.com/package/@docvia/ssr) | Request-time rendering for non-framework Node servers. |
-| [`@docvia/renderer-core`](https://www.npmjs.com/package/@docvia/renderer-core) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-core.svg)](https://www.npmjs.com/package/@docvia/renderer-core) | Framework-agnostic rendering engine and default renderers. |
-| [`@docvia/renderer-react`](https://www.npmjs.com/package/@docvia/renderer-react) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-react.svg)](https://www.npmjs.com/package/@docvia/renderer-react) | React renderer adapter (server + `./client` hydration). |
-| [`@docvia/renderer-svelte`](https://www.npmjs.com/package/@docvia/renderer-svelte) | [![npm](https://img.shields.io/npm/v/@docvia/renderer-svelte.svg)](https://www.npmjs.com/package/@docvia/renderer-svelte) | Svelte renderer adapter. |
-| [`@docvia/search`](https://www.npmjs.com/package/@docvia/search) | [![npm](https://img.shields.io/npm/v/@docvia/search.svg)](https://www.npmjs.com/package/@docvia/search) | Section-level Orama search: `createFromSource()` for a `loader()` source, plus a client helper. |
-| [`@docvia/source`](https://www.npmjs.com/package/@docvia/source) | [![npm](https://img.shields.io/npm/v/@docvia/source.svg)](https://www.npmjs.com/package/@docvia/source) | `loader()` plus the `defineDocs()` / `defineRegistry()` macros (`@docvia/source/macro`). |
-| [`@docvia/plugin-vite`](https://www.npmjs.com/package/@docvia/plugin-vite) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-vite.svg)](https://www.npmjs.com/package/@docvia/plugin-vite) | In-process Vite plugin (`docvia()`): compiles `defineDocs()` collections, with HMR. |
-| [`@docvia/plugin-next`](https://www.npmjs.com/package/@docvia/plugin-next) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-next.svg)](https://www.npmjs.com/package/@docvia/plugin-next) | Next.js wrapper (`withDocvia`) for webpack and Turbopack. |
-| [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Build-time syntax highlighting via Shiki (pluggable). |
-| [`@docvia/plugin-openapi`](https://www.npmjs.com/package/@docvia/plugin-openapi) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-openapi.svg)](https://www.npmjs.com/package/@docvia/plugin-openapi) | Generate reference pages from an OpenAPI spec. |
+| [`@docvia/core`](https://www.npmjs.com/package/@docvia/core) | [![npm](https://img.shields.io/npm/v/@docvia/core.svg)](https://www.npmjs.com/package/@docvia/core) | Config and plugin API, IR, Markdown, rendering, sources, SSR, React and Svelte bindings. No Node APIs. |
+| [`@docvia/build`](https://www.npmjs.com/package/@docvia/build) | [![npm](https://img.shields.io/npm/v/@docvia/build.svg)](https://www.npmjs.com/package/@docvia/build) | Compiler, page pipeline, config loading, and the Vite and Next.js plugins (Node, build time). |
+| [`@docvia/cli`](https://www.npmjs.com/package/@docvia/cli) | [![npm](https://img.shields.io/npm/v/@docvia/cli.svg)](https://www.npmjs.com/package/@docvia/cli) | The `docvia` command. |
+| [`@docvia/markdown`](https://www.npmjs.com/package/@docvia/markdown) | [![npm](https://img.shields.io/npm/v/@docvia/markdown.svg)](https://www.npmjs.com/package/@docvia/markdown) | Dependency-free Markdown renderer with streaming, for any app. |
+| [`@docvia/search`](https://www.npmjs.com/package/@docvia/search) | [![npm](https://img.shields.io/npm/v/@docvia/search.svg)](https://www.npmjs.com/package/@docvia/search) | Section-level Orama search. |
+| [`@docvia/plugin-shiki`](https://www.npmjs.com/package/@docvia/plugin-shiki) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-shiki.svg)](https://www.npmjs.com/package/@docvia/plugin-shiki) | Syntax highlighting via Shiki. |
+| [`@docvia/plugin-mermaid`](https://www.npmjs.com/package/@docvia/plugin-mermaid) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-mermaid.svg)](https://www.npmjs.com/package/@docvia/plugin-mermaid) | Mermaid diagrams. |
+| [`@docvia/plugin-openapi`](https://www.npmjs.com/package/@docvia/plugin-openapi) | [![npm](https://img.shields.io/npm/v/@docvia/plugin-openapi.svg)](https://www.npmjs.com/package/@docvia/plugin-openapi) | API reference pages from an OpenAPI spec. |
 
 ## Status
 

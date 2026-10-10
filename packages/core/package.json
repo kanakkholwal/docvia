@@ -4,15 +4,38 @@
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js",
-		"./package.json": "./package.json"
+		"./markdown": "./dist/markdown/index.js",
+		"./react": "./dist/react/index.js",
+		"./react/client": "./dist/react/client.js",
+		"./render": "./dist/render/index.js",
+		"./render/client": "./dist/render/client.js",
+		"./schema": "./dist/schema/index.js",
+		"./source": "./dist/source/index.js",
+		"./source/internal": "./dist/source/internal.js",
+		"./source/macro": "./dist/source/macro.js",
+		"./source/macro-runtime": "./dist/source/macro-runtime.js",
+		"./source/runtime": "./dist/source/runtime.js",
+		"./ssr": "./dist/ssr/index.js",
+		"./package.json": "./package.json",
+		"./svelte": {
+			"types": "./dist/svelte/index.d.ts",
+			"svelte": "./dist/svelte/index.js",
+			"default": "./dist/svelte/index.js"
+		},
+		"./svelte/node": {
+			"types": "./dist/svelte/node.d.ts",
+			"default": "./dist/svelte/node.js"
+		}
 	},
 	"scripts": {
-		"build": "tsdown",
+		"build": "tsdown && svelte-package --input src/svelte --output dist/svelte --tsconfig tsconfig.svelte.json",
 		"dev": "tsdown --watch --no-clean",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "tsc --noEmit && svelte-check --tsconfig tsconfig.svelte.json",
 		"test": "vitest run"
 	},
 	"dependencies": {
+		"@standard-schema/spec": "^1.1.0",
+		"github-slugger": "^2.0.0",
 		"hast-util-sanitize": "^5.0.2",
 		"rehype-raw": "^7.0.0",
 		"rehype-sanitize": "^6.0.0",
@@ -21,16 +44,25 @@
 		"remark-parse": "^11.0.0",
 		"remark-rehype": "^11.1.2",
 		"unified": "^11.0.5",
-		"unist-util-visit": "^5.1.0"
+		"unist-util-visit": "^5.1.0",
+		"yaml": "^2.9.1"
 	},
 	"devDependencies": {
+		"@sveltejs/package": "^3.0.0",
 		"@types/hast": "^3.0.5",
 		"@types/mdast": "^4.0.4",
 		"@types/node": "catalog:",
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
 		"svelte": "catalog:",
-		"typescript": "catalog:"
+		"svelte-check": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:",
+		"zod": "^4.3.6"
 	},
-	"description": "Markdown parsing pipeline (micromark + unified) for docvia",
+	"description": "The docvia core: config, IR, Markdown parsing, rendering, sources and React/Svelte bindings. Runs anywhere, including Cloudflare Workers.",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"
@@ -54,6 +86,22 @@
 		"docvia"
 	],
 	"sideEffects": false,
+	"peerDependencies": {
+		"react": ">=19",
+		"react-dom": ">=19",
+		"svelte": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		},
+		"react-dom": {
+			"optional": true
+		},
+		"svelte": {
+			"optional": true
+		}
+	},
 	"inlinedDependencies": {
 		"@types/hast": "3.0.5",
 		"@types/unist": "3.0.3"

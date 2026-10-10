@@ -14,20 +14,21 @@ across all three.
 ```mermaid
 %% title: Package layers
 flowchart TD
-  IR["@docvia/ir<br/><i>contracts, IR types</i>"]
-  CORE["@docvia/core<br/>@docvia/schema<br/><i>parse + validate</i>"]
-  RT["@docvia/runtime<br/>@docvia/compiler<br/>@docvia/plugins<br/><i>compile core</i>"]
-  REN["@docvia/renderer-core<br/>renderer-react · renderer-svelte<br/><i>render</i>"]
-  RUN["@docvia/source<br/>@docvia/ssr · @docvia/search<br/><i>runtime</i>"]
-  INT["@docvia/cli<br/>plugin-vite · plugin-next<br/>plugin-shiki · plugin-openapi<br/><i>integration</i>"]
+  CORE["@docvia/core<br/><i>IR, Markdown, rendering, sources, SSR</i><br/><i>runs anywhere, no Node APIs</i>"]
+  BUILD["@docvia/build<br/><i>pipeline, compiler, config loading</i><br/><i>Vite and Next.js plugins, Node only</i>"]
+  CLI["@docvia/cli<br/><i>the docvia command</i>"]
+  PLUG["@docvia/plugin-shiki · plugin-mermaid · plugin-openapi<br/><i>build-time plugins</i>"]
+  SEARCH["@docvia/search<br/><i>indexing and search</i>"]
 
-  IR --> CORE --> RT --> REN --> RUN
-  INT --> RT
+  BUILD --> CORE
+  CLI --> BUILD
+  PLUG --> CORE
+  SEARCH --> CORE
 ```
 
 ## The compile core
 
-At the centre is [`@docvia/runtime`](/docs/packages/runtime)'s
+At the centre is [`@docvia/build`](/docs/packages/build/pipeline)'s
 **`PagePipeline`**. It holds the resolved config and the plugin runner, reads
 frontmatter without parsing Markdown (`meta()`), and compiles a page on demand
 (`document()`, `module()`), memoised in memory by content hash.
@@ -37,9 +38,9 @@ drifts:
 
 | Mode | Driven by | What it does |
 |---|---|---|
-| **App build and dev** | [`@docvia/plugin-vite`](/docs/packages/plugin-vite), [`@docvia/plugin-next`](/docs/packages/plugin-next) | Rewrites `defineDocs()` into a frontmatter index plus lazy page imports, and compiles each page when the bundler requests it. |
-| **Standalone build** | [`@docvia/cli`](/docs/packages/cli), [`@docvia/compiler`](/docs/packages/compiler) | `CompileService` compiles the whole tree once and emits a module graph to `outDir`. |
-| **SSR** | [`@docvia/ssr`](/docs/packages/ssr) | Renders a single document per request, on Node or the edge. |
+| **App build and dev** | [`@docvia/build/vite`](/docs/packages/build/vite), [`@docvia/build/next`](/docs/packages/build/next) | Rewrites `defineDocs()` into a frontmatter index plus lazy page imports, and compiles each page when the bundler requests it. |
+| **Standalone build** | [`@docvia/cli`](/docs/packages/cli), [`@docvia/build`](/docs/packages/build/compiler) | `CompileService` compiles the whole tree once and emits a module graph to `outDir`. |
+| **SSR** | [`@docvia/core/ssr`](/docs/packages/core/ssr) | Renders a single document per request, on Node or the edge. |
 
 `CompileService` is the batch wrapper over `PagePipeline` for hosts that need
 everything up front: `compileAll()`, `compileFile()`, `invalidate(filePaths)`,
@@ -89,7 +90,7 @@ A framework app on Vite or Next.js, including on the edge, already renders
 pages at request time with `source.getPage()` and `page.data.load()`; the
 compiled bodies are bundled in as lazy chunks. No extra package is required.
 
-For a **non-framework Node server**, [`@docvia/ssr`](/docs/packages/ssr) renders one
+For a **non-framework Node server**, [`@docvia/core/ssr`](/docs/packages/core/ssr) renders one
 document per request. `createDocviaSSR({ provider })` resolves IR through a
 generic `ContentSource`, which can be a `ContentProvider`, a live
 `CompileService` (it already satisfies the shape), or a
@@ -105,22 +106,22 @@ Whichever mode is active, each `.md` file runs through this sequence:
 %% title: The seven stages of a compile
 flowchart TD
   F["file.md"] --> H1{{"beforeParse"}}
-  H1 --> FM["Frontmatter<br/>@docvia/schema"]
-  FM --> PA["Parse to HAST<br/>@docvia/core"]
+  H1 --> FM["Frontmatter<br/>@docvia/core/schema"]
+  FM --> PA["Parse to HAST<br/>@docvia/core/markdown"]
   PA --> H2{{"afterParse<br/>beforeTransform"}}
-  H2 --> TR["transformToIR<br/>@docvia/ir"]
+  H2 --> TR["transformToIR<br/>@docvia/core"]
   TR --> H3{{"afterTransform<br/>beforeRender"}}
   H3 --> RE["RendererAdapter"]
   RE --> OUT["Framework-native module"]
 ```
 
 1. **`beforeParse`.** Plugins rewrite the raw file.
-2. **Frontmatter.** [`@docvia/schema`](/docs/packages/schema) splits the YAML
+2. **Frontmatter.** [`@docvia/core/schema`](/docs/packages/core/schema) splits the YAML
    block and validates it.
-3. **Parse.** [`@docvia/core`](/docs/packages/core) turns the Markdown body into a
+3. **Parse.** [`@docvia/core/markdown`](/docs/packages/core/markdown) turns the Markdown body into a
    sanitized HAST tree (`unified` + `remark` + `rehype`).
 4. **`afterParse`** / **`beforeTransform`.** Plugins manipulate the AST.
-5. **Transform.** [`@docvia/ir`](/docs/packages/ir)'s `transformToIR` converts the
+5. **Transform.** [`@docvia/core`](/docs/packages/core/ir)'s `transformToIR` converts the
    HAST tree into an `IRDocument`.
 6. **`afterTransform`** / **`beforeRender`.** Plugins manipulate the IR. This
    is where [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) highlights code
@@ -141,8 +142,8 @@ The IR is the contract that decouples Markdown from any framework. An
 %% title: One IR, many renderers
 flowchart LR
   MD["Markdown"] --> IRD["IRDocument<br/><i>framework-agnostic</i>"]
-  IRD --> RR["renderer-react"] --> RC["React components"]
-  IRD --> RS["renderer-svelte"] --> SC["Svelte components"]
+  IRD --> RR["core/react"] --> RC["React components"]
+  IRD --> RS["core/svelte"] --> SC["Svelte components"]
   IRD --> RX["your RendererAdapter"] --> XC["anything else"]
 ```
 
@@ -158,7 +159,7 @@ ships to the browser or the edge bundle**. Highlighting is pluggable: Shiki is
 the default (`@docvia/plugin-shiki`), and any highlighter can be wired the
 same way.
 
-`@docvia/ir` is deliberately dependency-light (only `github-slugger`), so every
+`@docvia/core` is deliberately dependency-light (only `github-slugger`), so every
 other package can import its types without pulling in a heavy tree.
 
 ## What defineDocs() becomes
@@ -186,13 +187,9 @@ generated: frontmatter types come from the `defineDocs()` schema.
 
 ## The package map
 
-| Layer | Packages |
+| Runs | Packages |
 |---|---|
-| Contracts | [`@docvia/ir`](/docs/packages/ir) |
-| Parsing | [`@docvia/core`](/docs/packages/core), [`@docvia/schema`](/docs/packages/schema) |
-| Compile core | [`@docvia/runtime`](/docs/packages/runtime), [`@docvia/compiler`](/docs/packages/compiler), [`@docvia/plugins`](/docs/packages/plugins) |
-| Rendering | [`@docvia/renderer-core`](/docs/packages/renderer-core), [`@docvia/renderer-react`](/docs/packages/renderer-react), [`@docvia/renderer-svelte`](/docs/packages/renderer-svelte) |
-| Runtime | [`@docvia/source`](/docs/packages/source), [`@docvia/ssr`](/docs/packages/ssr), [`@docvia/search`](/docs/packages/search) |
-| Integration | [`@docvia/cli`](/docs/packages/cli), [`@docvia/plugin-vite`](/docs/packages/plugin-vite), [`@docvia/plugin-next`](/docs/packages/plugin-next), [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki), [`@docvia/plugin-mermaid`](/docs/packages/plugin-mermaid), [`@docvia/plugin-openapi`](/docs/packages/plugin-openapi) |
+| Anywhere (Workers, browsers, Node) | [`@docvia/core`](/docs/packages/core): [IR](/docs/packages/core/ir), [plugin API](/docs/packages/core/plugins), [Markdown](/docs/packages/core/markdown), [schema](/docs/packages/core/schema), [rendering](/docs/packages/core/render), [sources](/docs/packages/core/source), [SSR](/docs/packages/core/ssr), [React](/docs/packages/core/react), [Svelte](/docs/packages/core/svelte); [`@docvia/search`](/docs/packages/search) |
+| Build time (Node) | [`@docvia/build`](/docs/packages/build): [pipeline](/docs/packages/build/pipeline), [`compile()`](/docs/packages/build/compiler), [Vite](/docs/packages/build/vite), [Next.js](/docs/packages/build/next); [`@docvia/cli`](/docs/packages/cli); [`@docvia/plugin-shiki`](/docs/packages/plugin-shiki), [`@docvia/plugin-mermaid`](/docs/packages/plugin-mermaid), [`@docvia/plugin-openapi`](/docs/packages/plugin-openapi) |
 
 The [Packages](/docs/packages) section documents each one in depth.

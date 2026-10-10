@@ -1,0 +1,294 @@
+openapi: 3.1.0
+info:
+  title: Petstore
+  version: 1.4.0
+  description: |
+    A sample API that shows what `@docvia/plugin-openapi` generates. docvia has no HTTP API of its
+    own; every page in this section is built from [this spec](https://github.com/kanakkholwal/docvia/blob/main/apps/web/src/api/petstore.yaml).
+servers:
+  - url: https://petstore.example.com/v1
+    description: Production
+  - url: https://sandbox.petstore.example.com/v1
+    description: Sandbox
+  - url: /api/petstore/v1
+    description: Live demo on docvia.dev; accepts any token
+tags:
+  - name: Pets
+    description: Animals listed for adoption.
+  - name: Orders
+    description: Adoption orders and their status.
+security:
+  - bearerAuth: []
+paths:
+  /pets:
+    get:
+      operationId: listPets
+      tags: [Pets]
+      summary: List pets
+      description: |
+        Returns pets in the order they were listed, newest first. Results are paginated with a
+        cursor: pass the `nextCursor` of one page as `cursor` to get the next.
+      parameters:
+        - name: species
+          in: query
+          description: Only return pets of this species.
+          schema:
+            $ref: "#/components/schemas/Species"
+        - name: limit
+          in: query
+          description: Maximum number of pets to return.
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: cursor
+          in: query
+          description: Cursor from a previous response.
+          schema: { type: string }
+      responses:
+        "200":
+          description: A page of pets.
+          headers:
+            X-RateLimit-Remaining:
+              description: Requests left in the current window.
+              schema: { type: integer }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Pet" }
+                  nextCursor:
+                    type: [string, "null"]
+                    description: Pass as `cursor` for the next page; `null` on the last page.
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      operationId: createPet
+      tags: [Pets]
+      summary: Create a pet
+      description: Lists a new pet for adoption. The pet starts as `available`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewPet" }
+            examples:
+              dog:
+                summary: A dog
+                value: { name: Rex, species: dog, birthDate: "2023-04-12", tags: [friendly] }
+              cat:
+                summary: A cat with a microchip
+                value: { name: Mochi, species: cat, microchip: { id: "985112003456789", vendor: HomeAgain } }
+      responses:
+        "201":
+          description: The pet was created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+  /pets/{petId}:
+    parameters:
+      - $ref: "#/components/parameters/PetId"
+    get:
+      operationId: getPet
+      tags: [Pets]
+      summary: Get a pet
+      security: []
+      description: "Public: anyone can look up a pet, no token needed."
+      responses:
+        "200":
+          description: The pet.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      operationId: updatePet
+      tags: [Pets]
+      summary: Update a pet
+      description: Changes only the fields you send.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 64 }
+                status: { $ref: "#/components/schemas/PetStatus" }
+                tags:
+                  type: array
+                  items: { type: string }
+                  uniqueItems: true
+      responses:
+        "200":
+          description: The updated pet.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Pet" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      operationId: deletePet
+      tags: [Pets]
+      summary: Delete a pet
+      deprecated: true
+      description: "Use **Update a pet** with `status: archived` instead; deleted pets cannot be restored."
+      responses:
+        "204":
+          description: The pet was deleted.
+        "404": { $ref: "#/components/responses/NotFound" }
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [Orders]
+      summary: Place an order
+      security:
+        - apiKey: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: A unique key per order, so a retried request is not placed twice.
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewOrder" }
+      responses:
+        "201":
+          description: The order was placed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "409":
+          description: The pet is no longer available.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [Orders]
+      summary: Get an order
+      security:
+        - apiKey: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          example: ord_8f2k3
+          schema: { type: string }
+      responses:
+        "200":
+          description: The order.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Order" }
+        "404": { $ref: "#/components/responses/NotFound" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: A token from the dashboard's **API keys** page.
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Order endpoints use a separate key with the `orders` permission.
+  parameters:
+    PetId:
+      name: petId
+      in: path
+      required: true
+      description: The pet's id.
+      example: 1042
+      schema: { type: integer, format: int64, minimum: 1 }
+  responses:
+    BadRequest:
+      description: The request body is invalid.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: The token is missing or expired.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: No resource with that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Species:
+      type: string
+      enum: [dog, cat, bird, rabbit]
+    PetStatus:
+      type: string
+      enum: [available, pending, adopted, archived]
+    NewPet:
+      type: object
+      required: [name, species]
+      properties:
+        name:
+          type: string
+          description: Display name.
+          minLength: 1
+          maxLength: 64
+          examples: [Rex]
+        species: { $ref: "#/components/schemas/Species" }
+        birthDate:
+          type: string
+          format: date
+        tags:
+          type: array
+          items: { type: string }
+        microchip:
+          description: Identification, when the pet has one.
+          oneOf:
+            - $ref: "#/components/schemas/Microchip"
+            - type: "null"
+    Pet:
+      allOf:
+        - type: object
+          required: [id, status, createdAt]
+          properties:
+            id: { type: integer, format: int64, readOnly: true, examples: [1042] }
+            status: { $ref: "#/components/schemas/PetStatus" }
+            createdAt: { type: string, format: date-time, readOnly: true }
+        - $ref: "#/components/schemas/NewPet"
+    Microchip:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          pattern: "^[0-9]{15}$"
+          description: The 15-digit ISO 11784 number.
+        vendor: { type: string }
+    NewOrder:
+      type: object
+      required: [petId]
+      properties:
+        petId: { type: integer, format: int64, examples: [1042] }
+        note: { type: string, maxLength: 500 }
+    Order:
+      type: object
+      required: [id, petId, status]
+      properties:
+        id: { type: string, readOnly: true, examples: [ord_8f2k3] }
+        petId: { type: integer, format: int64 }
+        status:
+          type: string
+          enum: [placed, approved, completed]
+        note: { type: string }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, examples: [not_found] }
+        message: { type: string, examples: [No pet with id 1042.] }

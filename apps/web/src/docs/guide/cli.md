@@ -165,7 +165,7 @@ module graph, not a runtime. Use a framework integration for a real site.
 
 The CLI is also importable. `runCli` is the entry point the `docvia` binary
 calls. `defineConfig` is re-exported too, but import it from
-`@docvia/plugin-vite` or `@docvia/plugin-next` in `docvia.config.ts`:
+`@docvia/build/vite` or `@docvia/build/next` in `docvia.config.ts`:
 
 ```ts
 import { runCli } from "@docvia/cli";

@@ -6,7 +6,7 @@ order: 1
 ---
 
 docvia is distributed as a set of `@docvia/*` packages on npm. A bundler
-plugin compiles your Markdown, `@docvia/source` gives you the typed page
+plugin compiles your Markdown, `@docvia/core/source` gives you the typed page
 loader, and a renderer package turns pages into framework components.
 
 ## One command
@@ -25,12 +25,12 @@ page is the same setup by hand.
 ## Install
 
 ```bash
-pnpm add -D @docvia/plugin-vite   # or @docvia/plugin-next
-pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add -D @docvia/build   # or
+pnpm add @docvia/core   # or
 ```
 
 The framework plugin (which also exports `defineConfig`) is a dev dependency.
-`@docvia/source` and the renderer are runtime dependencies: your pages import
+`@docvia/core/source` and the renderer are runtime dependencies: your pages import
 them.
 
 ## Configure
@@ -40,8 +40,8 @@ dependencies and Shiki is enabled when `@docvia/plugin-shiki` is installed. Add
 one to register components or set plugins and Markdown options:
 
 ```ts title="docvia.config.ts"
-import { defineConfig } from "@docvia/plugin-vite"; // or @docvia/plugin-next
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/vite"; // or @docvia/build/next
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({
@@ -61,8 +61,8 @@ build time into an index of the folder's frontmatter plus one lazy import per
 page body:
 
 ```ts title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod";
 
 const docs = defineDocs({
@@ -78,7 +78,7 @@ export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() }
 registered in `docvia.config.ts` come from a second macro:
 
 ```ts title="lib/registry.ts"
-import { defineRegistry } from "@docvia/source/macro";
+import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 ```
@@ -94,7 +94,7 @@ if (!page) notFound();
 const { content, toc, headings, manifest, structuredData } = await page.data.load();
 ```
 
-Pass `content` to the renderer (`<DocviaContent nodes={content} registry={registry} />`
+Pass `content` to the renderer (`<Renderer nodes={content} registry={registry} />`
 in React, `<Renderer nodes={content} {registry} />` in Svelte). Build the
 sidebar from `source.pageTree`, and pre-render routes with
 `source.generateParams()`.

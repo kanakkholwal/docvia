@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageTree } from "@docvia/source";
+import type { PageTree } from "@docvia/core/source";
 import { usePathname } from "next/navigation";
 import { DocsTree } from "~components/docs-tree";
 

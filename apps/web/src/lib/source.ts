@@ -1,9 +1,32 @@
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import petstore from "virtual:docvia/openapi";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
+import {
+	type OpenAPIPageData,
+	openapiSource,
+} from "@docvia/plugin-openapi/source";
 
 const docs = defineDocs({ dir: "src/docs" });
-
-export const source = loader({
+const markdown = docs.toDocviaSource();
+const api = openapiSource(petstore, {
+	dir: "api-example",
 	baseUrl: "/docs",
-	source: docs.toDocviaSource(),
+	title: "API reference example",
 });
+
+type MarkdownPage = Extract<
+	(typeof markdown.files)[number],
+	{ type: "page" }
+>["data"];
+
+/** Markdown pages from src/docs, plus the pages generated from the sample OpenAPI spec. */
+export const source = loader<MarkdownPage | OpenAPIPageData>({
+	baseUrl: "/docs",
+	source: { files: [...markdown.files, ...api.files] },
+});
+
+// The sample API pages stay reachable but out of the sidebar: the API reference has its own navbar entry.
+export const sidebarTree = loader({
+	baseUrl: "/docs",
+	source: markdown,
+}).pageTree;

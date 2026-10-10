@@ -1,0 +1,309 @@
+---
+title: "@docvia/core/react"
+description: "The React adapter for docvia: a build-time renderer, an RSC-safe content component, and a browser-only island hydrator."
+eyebrow: "Packages"
+order: 9
+---
+
+`@docvia/core/react` is the React adapter for docvia. It wires `@docvia/core/render` into a React application across three roles: a **build-time `RendererAdapter`** that compiles IR documents into JS modules, a **`Renderer` component** that renders the resulting tree, and a **browser-only `hydrate()`** function that activates interactive islands.
+
+The package is split into two entry points so it works in React Server Components, classic SSR, and the browser. It targets **React 19** (`react` and `react-dom` are peer dependencies, `>=19`).
+
+## Architecture
+
+docvia rendering happens in two phases:
+
+1. **Build time.** `createReactRenderer()` produces a `RendererAdapter`. docvia calls it for each document; it walks the IR through `renderer-core` and emits a JS module exporting `meta`, `content`, and `manifest`.
+2. **Runtime.** Your app imports that module and passes `content` to `<Renderer>`. Interactive components are then hydrated in the browser via the `./client` entry.
+
+The key design point: **`Renderer` contains no `"use client"` directive and uses no hooks or browser APIs.** It renders identically as a React Server Component, under SSR (`renderToString`), and in the browser. Anything that touches `react-dom/client` lives exclusively in the separate `./client` entry.
+
+## Installation
+
+```bash
+npm install @docvia/core
+```
+
+```jsonc
+// peer dependencies
+{
+  "react": ">=19",
+  "react-dom": ">=19"
+}
+```
+
+## Exports
+
+The package has two entry points with a strict server/browser boundary.
+
+| Subpath | Environment | Purpose |
+| --- | --- | --- |
+| `.` | RSC, SSR, and browser (**server-safe**) | The build-time adapter (`createReactRenderer`), the `Renderer` component, and the `RenderOutput`, `ComponentRegistry`, and `HydrationManifest` types. Safe everywhere except hydration. Does **not** import `react-dom/client`. |
+| `./client` | **Browser only** | The island hydrator. Imports `react-dom/client` (`hydrateRoot`, `createRoot`). Exports `hydrate`, `HydrateOptions`, `installCodeGroups`, and `installCopyButtons`. Must never be imported in an RSC or a Node SSR path. |
+| `./package.json` | Tooling | Package metadata. |
+
+```ts
+// server-safe: RSC / SSR / build / client bundles
+import {
+  createReactRenderer,
+  Renderer,
+  type RendererProps,
+  type RendererComponents,
+  type CodeBlockOverrideProps,
+  type RenderOutput,
+} from "@docvia/core/react";
+
+// browser only: island hydration
+import { hydrate, type HydrateOptions } from "@docvia/core/react/client";
+```
+
+> Importing `@docvia/core/react/client` inside a React Server Component will fail the Next.js build, because `react-dom/client` cannot land in the RSC bundle. Keep hydration in a `"use client"` component.
+
+## Compiled page modules
+
+Every page module emitted by the adapter exports the same three named bindings:
+
+```ts
+export const meta;     // PageMeta
+export const content;  // RenderOutput (a fragment)
+export const manifest; // HydrationManifest
+```
+
+`content` feeds `<Renderer>`, `manifest` feeds `hydrate()`, and `meta` carries the page's title, description, headings, tags, order, and content hash.
+
+## Component reference
+
+### Renderer
+
+```ts
+function Renderer(props: RendererProps): React.ReactElement;
+```
+
+Renders a docvia `RenderOutput` tree into React elements. It is a plain component with no hooks, so it is safe as an RSC, under SSR, and in the browser.
+
+#### Props
+
+| Prop | Type | Required | Description |
+| --- | --- | --- | --- |
+| `nodes` | `RenderOutput \| RenderOutput[]` | Yes | The serialized tree (the `content` export of a compiled page, or any subtree). |
+| `registry` | `ComponentRegistry` | No | Resolves custom directive components by name. |
+| `components` | `RendererComponents` | No | Tag-level and semantic component overrides. |
+
+#### Rendering behaviour
+
+- **`text`** renders verbatim.
+- **`html`** is injected via `dangerouslySetInnerHTML` (the value is sanitized upstream).
+- **`fragment`** renders its children transparently.
+- **`element`** maps to a host element. The `class` prop is renamed to `className`, and `id` becomes `data-hid`.
+- **Code-block collapse.** When an element's children are all `html` nodes, they are merged and injected directly with `dangerouslySetInnerHTML`, avoiding an extra wrapper `<div>` around shiki output.
+- **`component`** resolves through `registry`. The rendered component is wrapped in `<div data-hid={id} className="docvia-component-wrapper">`, which is the hydration anchor. An unresolved name renders a `docvia-render-error` placeholder.
+- **Tag overrides.** If `components[tag]` exists, that component replaces the host element (for example `a` becomes `next/link`).
+- **`codeBlock` override.** If `components.codeBlock` is set, it receives the pre-rendered shiki HTML instead of the default `docvia-code-block` div.
+
+Tag overrides apply to `a`, `img` and code blocks, which the build keeps as nodes. Other tags are pre-rendered to HTML for speed; list them in `createReactRenderer({ staticHtml: { keepTags: ["table"] } })` to override them too. The Svelte [`Renderer`](/docs/packages/core/svelte#renderer) takes the same props.
+
+### RendererProps
+
+```ts
+interface RendererProps {
+  nodes: RenderOutput | RenderOutput[];
+  registry?: ComponentRegistry;
+  components?: RendererComponents;
+}
+```
+
+### RendererComponents
+
+```ts
+interface RendererComponents {
+  codeBlock?: React.ComponentType<CodeBlockOverrideProps>;
+  a?: React.ComponentType<
+    React.AnchorHTMLAttributes<HTMLAnchorElement> & { children?: React.ReactNode }
+  >;
+  img?: React.ComponentType<React.ImgHTMLAttributes<HTMLImageElement>>;
+  [tag: string]: React.ComponentType<any> | undefined;
+}
+```
+
+A fumadocs-inspired override map.
+
+| Slot | Purpose |
+| --- | --- |
+| `codeBlock` | Overrides the entire code-block render. Receives the pre-rendered shiki HTML without the built-in copy button, which suits your own controls or language tabs. Falls back to a `docvia-code-block` div with the copy button. |
+| `a` | Overrides all anchor tags, typically swapped for `next/link`. |
+| `img` | Overrides all images, typically swapped for `next/image`. |
+| `[tag]` | Overrides any other HTML tag by name. |
+
+### CodeBlockOverrideProps
+
+```ts
+interface CodeBlockOverrideProps {
+  html: string;       // pre-rendered syntax-highlighted markup from shiki
+  id?: string;        // hydration / anchor id, if the block has one
+  className: string;  // always "docvia-code-block"
+}
+```
+
+## API reference
+
+### createReactRenderer()
+
+```ts
+function createReactRenderer(options?: {
+  registry?: ComponentRegistry;
+  transform?: (output: RenderOutput, doc: IRDocument) => RenderOutput | Promise<RenderOutput>;
+}): RendererAdapter;
+```
+
+Creates the build-time React `RendererAdapter` (`name: "react"`) via `createModuleRenderer` from `@docvia/core/render`. It runs at build time or server-side in dev. Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
+
+If no `registry` is supplied, an empty one (`resolve: () => null`) is used. `transform(output, doc)` rewrites each page's `RenderOutput` tree before it is serialized.
+
+Syntax highlighting is **not** a renderer option. It is a build-time plugin: add
+[`@docvia/plugin-shiki`](/docs/packages/plugin-shiki) to `plugins` in your
+docvia config, and the highlighted HTML is baked into the IR before the
+renderer ever runs.
+
+## Client API reference
+
+### hydrate()
+
+```ts
+function hydrate(
+  manifest: HydrationManifest,
+  registry: ComponentRegistry,
+  options?: HydrateOptions,
+): void;
+```
+
+Hydrates interactive component islands listed in the manifest. Each entry's `hydrate` mode controls timing:
+
+- `client:load` mounts immediately.
+- `client:idle` mounts on `requestIdleCallback`, falling back to `setTimeout(…, 200)`.
+- `client:visible` mounts when the `[data-hid]` anchor enters the viewport via `IntersectionObserver`.
+
+`hydrate()` also makes tabbed code groups switch on click and code-block copy buttons work (via `installCodeGroups()` and `installCopyButtons()`, both exported for pages with no islands). Each island is mounted at its `[data-hid]` element. The function is **idempotent**: every hydrated id is tracked, so repeated calls never double-mount. Missing anchors and unresolved components log a warning/error and are skipped.
+
+### HydrateOptions
+
+```ts
+interface HydrateOptions {
+  ssr?: boolean;
+}
+```
+
+| Field | Default | Behaviour |
+| --- | --- | --- |
+| `ssr` | `false` | When `true`, the island was server-rendered, so React calls `hydrateRoot(el, element)` to attach handlers to existing DOM. When `false`, it calls `createRoot(el).render(element)` for a fresh client-only render (Vite SPA). |
+
+## Usage
+
+### Wiring the adapter in `docvia.config.ts`
+
+```ts
+import { defineConfig } from "@docvia/build/next"; // or @docvia/build/vite
+import { createReactRenderer } from "@docvia/core/react";
+import { shiki } from "@docvia/plugin-shiki";
+
+export default defineConfig({
+  renderer: createReactRenderer(),
+  plugins: [shiki({ theme: "github-dark" })],
+});
+```
+
+### Rendering a page (RSC / Next.js App Router)
+
+Declare the collection and registry with `defineDocs()` / `defineRegistry()`
+(see [`@docvia/core/source`](/docs/packages/core/source)), then read pages from a **Server
+Component**:
+
+```tsx
+// app/docs/[[...slug]]/page.tsx: a Server Component, no "use client"
+import { Renderer } from "@docvia/core/react";
+import { notFound } from "next/navigation";
+import { registry } from "@/lib/registry";
+import { source } from "@/lib/source";
+
+export async function generateStaticParams() {
+  return source.generateParams();
+}
+
+export default async function DocPage({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+  const { slug } = await params;
+  const page = source.getPage(slug);
+  if (!page) notFound();
+  const { content } = await page.data.load();
+
+  return (
+    <article>
+      <h1>{page.data.title}</h1>
+      <Renderer nodes={content} registry={registry} />
+    </article>
+  );
+}
+```
+
+`page.data` is the page's frontmatter, including any fields your `defineDocs()`
+schema adds. `load()` returns `content` (typed `RenderOutput`), `headings`, `toc`
+and `manifest`.
+
+### Tag and code-block overrides
+
+```tsx
+import { Renderer, type RendererComponents } from "@docvia/core/react";
+import { source } from "@/lib/source";
+import Link from "next/link";
+import Image from "next/image";
+
+const components: RendererComponents = {
+  a: (props) => <Link href={props.href ?? "#"} {...props} />,
+  img: (props) => <Image {...props} alt={props.alt ?? ""} />,
+  codeBlock: ({ html, className }) => (
+    <div className={className}>
+      <button>Copy</button>
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </div>
+  ),
+};
+
+export default async function Doc() {
+  const { content } = await source.getPage(["getting-started"])!.data.load();
+  return <Renderer nodes={content} components={components} />;
+}
+```
+
+### Hydrating interactive islands
+
+The manifest comes from `page.data.load()` on the server, so pass it into the
+client component as a prop.
+
+```tsx
+// components/DocviaHydrator.tsx
+"use client";
+
+import { useEffect } from "react";
+import { hydrate } from "@docvia/core/react/client";
+import type { HydrationManifest } from "@docvia/core/react";
+import { registry } from "@/lib/registry";
+
+export function DocviaHydrator({ manifest }: { manifest: HydrationManifest }) {
+  useEffect(() => {
+    // ssr: true for server-rendered pages (App Router / Pages Router)
+    hydrate(manifest, registry, { ssr: true });
+  }, [manifest]);
+  return null;
+}
+```
+
+Render it from the Server Component alongside the content:
+
+```tsx
+{manifest.length > 0 && <DocviaHydrator manifest={manifest} />}
+```
+
+For a Vite SPA with no server render, call `hydrate` directly with `{ ssr: false }`
+using the manifest from the page you loaded.

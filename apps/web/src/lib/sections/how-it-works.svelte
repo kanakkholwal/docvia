@@ -4,7 +4,7 @@ import Section from "#lib/components/site/section.svelte";
 import CodeSample from "#lib/components/code-sample.svelte";
 import EditDemo from "#lib/components/site/edit-demo.svelte";
 
-// Each line maps to code: runtime/src/fs.ts, runtime/src/hash.ts, core/src/index.ts, ir/src/transform.ts.
+// Each line maps to code: build/src/fs.ts, build/src/hash.ts, core/src/markdown/parse.ts, core/src/ir/transform.ts.
 const stages = [
 	{ name: "read", body: "Parallel directory walk, xxhash per file" },
 	{ name: "parse", body: "remark and rehype, one cached processor" },
@@ -34,7 +34,7 @@ const stages = [
 			<CodeSample name="config.ts" filename="docvia.config.ts" class="border-0" />
 		</BentoCard>
 
-		<BentoCard title="Instant edits in dev" description="Edit a page and only that page compiles again: about 50 ms at 300 pages." class="lg:col-span-2">
+		<BentoCard title="Instant edits in dev" description="Edit a page and only that page compiles again: under 70 ms at 300 pages." class="lg:col-span-2">
 			<EditDemo />
 		</BentoCard>
 
