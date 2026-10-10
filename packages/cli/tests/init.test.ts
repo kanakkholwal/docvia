@@ -62,6 +62,20 @@ describe("detectProject", () => {
 		).toBe("#lib/source.ts");
 	});
 
+	it("uses $lib only on SvelteKit versions that still alias it", async () => {
+		const spec = () =>
+			importSpecifier(
+				detectProject(root),
+				join(root, "src/routes/docs/+page.ts"),
+				join(root, "src/lib/source"),
+				".ts",
+			);
+		await pkg({ devDependencies: { "@sveltejs/kit": "^2.20.0" } });
+		expect(spec()).toBe("$lib/source");
+		await pkg({ devDependencies: { "@sveltejs/kit": "^3.0.0" } });
+		expect(spec()).toBe("../../lib/source");
+	});
+
 	it("falls back to relative imports", async () => {
 		await pkg({ dependencies: { "@tanstack/react-start": "1" } });
 		const project = detectProject(root);

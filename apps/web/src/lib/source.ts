@@ -24,3 +24,9 @@ export const source = loader<MarkdownPage | OpenAPIPageData>({
 	baseUrl: "/docs",
 	source: { files: [...markdown.files, ...api.files] },
 });
+
+// The sample API pages stay reachable but out of the sidebar: the API reference has its own navbar entry.
+export const sidebarTree = loader({
+	baseUrl: "/docs",
+	source: markdown,
+}).pageTree;

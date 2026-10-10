@@ -1,7 +1,7 @@
 <script lang="ts">
 import data from "#lib/benchmarks/comparison.json";
 import { Bar, BarChart, BarTooltip, BarXAxis, BarYAxis } from "#lib/components/charts/bar-chart/index.ts";
-import { ChartContainer } from "#lib/components/charts/chart/index.ts";
+import { ChartContainer, ChartTooltipContent } from "#lib/components/charts/chart/index.ts";
 import BentoCard from "#lib/components/site/bento-card.svelte";
 import Section from "#lib/components/site/section.svelte";
 
@@ -53,9 +53,78 @@ const table = metrics.map((m) => {
 	return { ...m, values, best: Math.min(...values) };
 });
 const m = data.machine;
+const v = (name: string) => (data.versions as Record<string, string | undefined>)[name] ?? "";
+
+// Every tool on the same corpus, every page prerendered, search off; docvia once per framework.
+type SiteRow = { pages: number; tool: string } & Record<string, number | string | null>;
+const siteRows = [...((data as { frameworks?: SiteRow[] }).frameworks ?? []), ...((data as { tools?: SiteRow[] }).tools ?? [])];
+// The largest size every tool finished, so no tool drops out of the comparison.
+const toolCount = new Set(siteRows.map((r) => r.tool)).size;
+const siteBig = Math.max(
+	0,
+	...siteRows.map((r) => r.pages).filter((n) => siteRows.filter((r) => r.pages === n).length === toolCount),
+);
+const toolSeries = {
+	docvia: { label: "docvia", color: "var(--brand)" },
+	other: { label: "Other docs tools", color: "var(--muted-soft)" },
+};
+// One bar per tool: stacking a docvia and an "other" series colours each bar without a per-bar API.
+const toolChart = (key: string, scale: number) =>
+	siteRows
+		.filter((r) => r.pages === siteBig && typeof r[key] === "number")
+		.sort((a, b) => (a[key] as number) - (b[key] as number))
+		.map((r) => {
+			const value = +((r[key] as number) / scale).toFixed(scale === 1 ? 0 : 1);
+			const docvia = r.tool.startsWith("docvia ");
+			return { name: r.tool, docvia: docvia ? value : 0, other: docvia ? 0 : value };
+		});
+const toolCharts = [
+	{ key: "build", title: "Production build", description: "Seconds to prerender every page.", unit: "s", scale: 1000 },
+	{ key: "devFirstPage", title: "Cold dev start to first page", description: "Seconds until the page is visible in a browser.", unit: "s", scale: 1000 },
+	{ key: "devEdit", title: "Edit to visible, dev", description: "Milliseconds from saving a page to the open tab showing it.", unit: "ms", scale: 1 },
+].map((c) => ({
+	...c,
+	data: toolChart(c.key, c.scale),
+	config: {
+		docvia: { label: c.title, color: toolSeries.docvia.color },
+		other: { label: c.title, color: toolSeries.other.color },
+	},
+}));
+const withUnit = (value: number, unit: string) =>
+	unit === "ms" && value >= 1000 ? `${(value / 1000).toFixed(1)} s` : `${value.toLocaleString("en")} ${unit}`;
 </script>
 
-<Section id="numbers" number={3} title="numbers." description="docvia and fumadocs on the same Markdown pages, same machine, best of 2 runs. Lower is better.">
+<Section id="numbers" number={3} title="numbers." description="docvia against fumadocs, VitePress, Starlight, Nextra and Docusaurus on the same Markdown pages, same machine, best of 2 runs. Lower is better.">
+	{#if siteRows.length > 0}
+		<ul class="mb-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-xs text-muted">
+			{#each Object.values(toolSeries) as s}
+				<li class="flex items-center gap-2"><span class="size-2.5 rounded-sm" style="background: {s.color}"></span>{s.label}</li>
+			{/each}
+			<li class="ml-auto">{siteBig.toLocaleString("en")} pages, docvia on SvelteKit, Next.js and TanStack Start</li>
+		</ul>
+		<div class="mb-10 grid gap-3 lg:grid-cols-3">
+			{#each toolCharts as chart (chart.key)}
+				<BentoCard title={chart.title} description={chart.description}>
+					<ChartContainer config={chart.config} title={chart.title} aspect="square">
+						<BarChart data={chart.data} xKey="name" xLabel="Tool" orientation="horizontal" stacked margin={{ left: 136 }}>
+							<BarXAxis tickFormatter={(v) => (chart.unit === "ms" && v >= 1000 ? `${v / 1000} s` : `${v} ${chart.unit}`)} />
+							<BarYAxis />
+							<Bar dataKey="docvia" />
+							<Bar dataKey="other" />
+							<BarTooltip>
+								{#snippet content()}
+									<ChartTooltipContent hideEmpty>
+										{#snippet formatter({ value })}{withUnit(value, chart.unit)}{/snippet}
+									</ChartTooltipContent>
+								{/snippet}
+							</BarTooltip>
+						</BarChart>
+					</ChartContainer>
+				</BentoCard>
+			{/each}
+		</div>
+		<h3 class="mb-4 font-mono text-xs text-muted">docvia and fumadocs in depth: Vite SSR and Next.js, up to {big.toLocaleString("en")} pages</h3>
+	{/if}
 	<ul class="mb-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-xs text-muted">
 		{#each Object.values(series) as s}
 			<li class="flex items-center gap-2"><span class="size-2.5 rounded-sm" style="background: {s.color}"></span>{s.label}</li>
@@ -70,7 +139,13 @@ const m = data.machine;
 					<Bar dataKey="fumadocs" />
 					<Bar dataKey="react" />
 					<Bar dataKey="svelte" />
-					<BarTooltip />
+					<BarTooltip>
+					{#snippet content()}
+						<ChartTooltipContent>
+							{#snippet formatter({ value })}{withUnit(value, "s")}{/snippet}
+						</ChartTooltipContent>
+					{/snippet}
+				</BarTooltip>
 				</BarChart>
 			</ChartContainer>
 		</BentoCard>
@@ -83,7 +158,13 @@ const m = data.machine;
 					<Bar dataKey="fumadocs" />
 					<Bar dataKey="react" />
 					<Bar dataKey="svelte" />
-					<BarTooltip />
+					<BarTooltip>
+					{#snippet content()}
+						<ChartTooltipContent>
+							{#snippet formatter({ value })}{withUnit(value, "ms")}{/snippet}
+						</ChartTooltipContent>
+					{/snippet}
+				</BarTooltip>
 				</BarChart>
 			</ChartContainer>
 		</BentoCard>
@@ -95,7 +176,13 @@ const m = data.machine;
 					<BarXAxis />
 					<Bar dataKey="fumadocs" />
 					<Bar dataKey="react" />
-					<BarTooltip />
+					<BarTooltip>
+					{#snippet content()}
+						<ChartTooltipContent>
+							{#snippet formatter({ value })}{withUnit(value, "s")}{/snippet}
+						</ChartTooltipContent>
+					{/snippet}
+				</BarTooltip>
 				</BarChart>
 			</ChartContainer>
 		</BentoCard>
@@ -127,6 +214,9 @@ const m = data.machine;
 	</BentoCard>
 	<p class="mt-4 font-mono text-xs text-muted">
 		fumadocs-mdx {data.versions["fumadocs-mdx"]} + fumadocs-core {data.versions["fumadocs-core"]}, Next {data.versions.next}.
+		{#if siteRows.length > 0}
+			VitePress {v("vitepress")}, Starlight {v("@astrojs/starlight")}, Nextra {v("nextra")}, Docusaurus {v("@docusaurus/core")}, SvelteKit {v("@sveltejs/kit")}, TanStack Start {v("@tanstack/react-start")}; search off and highlighting on for all.
+		{/if}
 		{m.cpu}, {m.ramGB} GB, Node {m.node.replace(/^v/, "")}, {data.date}. Synthetic pages with headings, lists, tables and code.
 	</p>
 </Section>

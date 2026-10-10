@@ -21,6 +21,7 @@ let mobileOpen = $state(false);
 const links = [
 	{ label: "Docs", href: "/docs/getting-started" },
 	{ label: "Packages", href: "/docs/packages" },
+	{ label: "API reference", href: "/api-reference" },
 	{ label: "Changelog", href: "https://github.com/kanakkholwal/docvia/releases" },
 ];
 

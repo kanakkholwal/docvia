@@ -112,7 +112,7 @@ export function docvia(
 		if (!config?.renderer) {
 			throw new docviaError(
 				"CONFIG_ERROR",
-				"No renderer found: install @docvia/renderer-react or @docvia/renderer-svelte, or set `renderer` in docvia.config.ts",
+				"No renderer found: set `renderer` in docvia.config.ts, e.g. `createReactRenderer()` from @docvia/core/react or `createSvelteRenderer()` from @docvia/core/svelte/node",
 				configPath,
 			);
 		}

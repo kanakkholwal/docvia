@@ -5,7 +5,7 @@ import InstallCommand from "#lib/components/install-command.svelte";
 import { SquareTerminal } from "@lucide/svelte";
 import { siNextdotjs, siSvelte, siTanstack } from "simple-icons";
 
-// Abridged from packages/cli/src/commands/init.ts:111-226 on a fresh create-next-app (setup.json: 12 files).
+// Abridged from `docvia init` on a fresh create-next-app: 11 planned files plus next.config.ts and globals.css.
 const transcript = [
 	{ dim: "framework", text: "Next.js" },
 	{ dim: "packages ", text: "pnpm (lockfile)" },
@@ -29,7 +29,7 @@ const hosts = [
 				{#each transcript as line}
 					<p><span class="text-muted">{line.dim}</span>  <span class="text-ink">{line.text}</span></p>
 				{/each}
-				<p class="mt-3 text-muted">12 file(s)</p>
+				<p class="mt-3 text-muted">13 file(s)</p>
 				<p><span class="text-success">+</span> <span class="text-ink">app/docs/[[...slug]]/page.tsx</span></p>
 				<p><span class="text-success">+</span> <span class="text-ink">content/docs/index.md</span></p>
 				<p class="text-muted">...</p>

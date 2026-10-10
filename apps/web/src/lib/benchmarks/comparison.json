@@ -1,11 +1,18 @@
 {
-	"date": "2026-10-05",
+	"date": "2026-10-10",
 	"source": ".local/bench/results.md",
 	"versions": {
-		"fumadocs-mdx": "15.4.6",
-		"fumadocs-core": "16.16.1",
-		"vite": "8.3.2",
-		"next": "16.3.8"
+		"fumadocs-mdx": "15.4.7",
+		"fumadocs-core": "16.17.1",
+		"vite": "8.3.4",
+		"next": "16.4.0",
+		"vitepress": "1.6.4",
+		"astro": "7.3.8",
+		"@astrojs/starlight": "0.42.6",
+		"nextra": "4.6.1",
+		"@docusaurus/core": "3.10.2",
+		"@sveltejs/kit": "3.0.1",
+		"@tanstack/react-start": "1.168.61"
 	},
 	"machine": {
 		"cpu": "AMD Ryzen 7 7435HS",
@@ -17,110 +24,220 @@
 		{
 			"pages": 300,
 			"tool": "fumadocs async",
-			"ready": 385,
-			"firstPage": 2590,
-			"edit": 222,
+			"ready": 539,
+			"firstPage": 3710,
+			"edit": 225,
 			"add": null,
-			"build": 6010,
-			"ssrImport": 69,
+			"build": 5950,
+			"ssrImport": 81,
 			"heapMB": 8,
-			"renderWarm": 38,
+			"renderWarm": 64,
 			"htmlKB": 1658
 		},
 		{
 			"pages": 300,
 			"tool": "docvia svelte",
-			"ready": 713,
-			"firstPage": 1530,
-			"edit": 49,
-			"add": 104,
-			"build": 4030,
-			"ssrImport": 15,
+			"ready": 875,
+			"firstPage": 1910,
+			"edit": 68,
+			"add": 243,
+			"build": 4730,
+			"ssrImport": 9,
 			"heapMB": 5,
-			"renderWarm": 6,
-			"htmlKB": 873
+			"renderWarm": 18,
+			"htmlKB": 1125
 		},
 		{
 			"pages": 300,
 			"tool": "docvia react",
-			"ready": 93,
-			"firstPage": 929,
-			"edit": 53,
-			"add": 95,
-			"build": 4000,
-			"ssrImport": 63,
+			"ready": 76,
+			"firstPage": 1030,
+			"edit": 51,
+			"add": 96,
+			"build": 3460,
+			"ssrImport": 73,
 			"heapMB": 7,
-			"renderWarm": 17,
-			"htmlKB": 843
+			"renderWarm": 21,
+			"htmlKB": 910
 		},
 		{
 			"pages": 1500,
 			"tool": "fumadocs async",
-			"ready": 374,
-			"firstPage": 7850,
-			"edit": 778,
+			"ready": 404,
+			"firstPage": 7300,
+			"edit": 702,
 			"add": null,
-			"build": 25460,
-			"ssrImport": 85,
+			"build": 21770,
+			"ssrImport": 97,
 			"heapMB": 13,
-			"renderWarm": 287,
+			"renderWarm": 365,
 			"htmlKB": 8300
 		},
 		{
 			"pages": 1500,
 			"tool": "docvia svelte",
-			"ready": 718,
-			"firstPage": 3320,
-			"edit": 284,
-			"add": 671,
-			"build": 16480,
-			"ssrImport": 31,
+			"ready": 710,
+			"firstPage": 3540,
+			"edit": 292,
+			"add": 614,
+			"build": 16760,
+			"ssrImport": 32,
 			"heapMB": 9,
-			"renderWarm": 26,
-			"htmlKB": 4372
+			"renderWarm": 78,
+			"htmlKB": 5633
 		},
 		{
 			"pages": 1500,
 			"tool": "docvia react",
-			"ready": 103,
-			"firstPage": 3340,
-			"edit": 266,
-			"add": 605,
-			"build": 16900,
-			"ssrImport": 93,
-			"heapMB": 11,
-			"renderWarm": 50,
-			"htmlKB": 4222
+			"ready": 94,
+			"firstPage": 4030,
+			"edit": 261,
+			"add": 586,
+			"build": 17460,
+			"ssrImport": 89,
+			"heapMB": 10,
+			"renderWarm": 72,
+			"htmlKB": 4559
 		}
 	],
 	"next": [
 		{
 			"pages": 300,
 			"tool": "fumadocs",
-			"build": 48380,
-			"devFirstPage": 15580,
-			"devEdit": 414
+			"build": 21380,
+			"devFirstPage": 16070,
+			"devEdit": 514
 		},
 		{
 			"pages": 300,
 			"tool": "docvia",
-			"build": 20470,
-			"devFirstPage": 13790,
-			"devEdit": 302
+			"build": 20360,
+			"devFirstPage": 15350,
+			"devEdit": 425
 		},
 		{
 			"pages": 1500,
 			"tool": "fumadocs",
-			"build": 52280,
-			"devFirstPage": 26860,
-			"devEdit": 565
+			"build": 52470,
+			"devFirstPage": 29310,
+			"devEdit": 766
 		},
 		{
 			"pages": 1500,
 			"tool": "docvia",
-			"build": 44990,
-			"devFirstPage": 24620,
-			"devEdit": 779
+			"build": 47450,
+			"devFirstPage": 27060,
+			"devEdit": 1110
+		}
+	],
+	"frameworks": [
+		{
+			"pages": 300,
+			"tool": "docvia SvelteKit",
+			"build": 20700,
+			"htmlKB": 12181,
+			"htmlPages": 300,
+			"devReady": 3410,
+			"devFirstPage": 5860,
+			"devEdit": 234,
+			"framework": "SvelteKit"
+		},
+		{
+			"pages": 300,
+			"tool": "docvia Next.js",
+			"build": 20850,
+			"htmlKB": 15852,
+			"htmlPages": 300,
+			"devReady": 1020,
+			"devFirstPage": 14710,
+			"devEdit": 880,
+			"framework": "Next.js"
+		},
+		{
+			"pages": 300,
+			"tool": "docvia TanStack Start",
+			"build": 12930,
+			"htmlKB": 12550,
+			"htmlPages": 300,
+			"devReady": 2070,
+			"devFirstPage": 4740,
+			"devEdit": 225,
+			"framework": "TanStack Start"
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia SvelteKit",
+			"build": 83770,
+			"htmlKB": 232546,
+			"htmlPages": 1500,
+			"devReady": 4020,
+			"devFirstPage": 7200,
+			"devEdit": 458,
+			"framework": "SvelteKit"
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia Next.js",
+			"build": 65070,
+			"htmlKB": 290035,
+			"htmlPages": 1500,
+			"devReady": 1010,
+			"devFirstPage": 29490,
+			"devEdit": null,
+			"framework": "Next.js"
+		},
+		{
+			"pages": 1500,
+			"tool": "docvia TanStack Start",
+			"build": 56830,
+			"htmlKB": 246356,
+			"htmlPages": 1500,
+			"devReady": 2240,
+			"devFirstPage": 7010,
+			"devEdit": 467,
+			"framework": "TanStack Start"
+		}
+	],
+	"tools": [
+		{
+			"pages": 300,
+			"tool": "VitePress",
+			"build": 23840,
+			"htmlKB": 41104,
+			"htmlPages": 300,
+			"devReady": 1160,
+			"devFirstPage": 3100,
+			"devEdit": 155
+		},
+		{
+			"pages": 300,
+			"tool": "Starlight",
+			"build": 12040,
+			"htmlKB": 21517,
+			"htmlPages": 300,
+			"devReady": 8100,
+			"devFirstPage": 12210,
+			"devEdit": 1380
+		},
+		{
+			"pages": 300,
+			"tool": "Nextra",
+			"build": 59140,
+			"htmlKB": 138580,
+			"htmlPages": 300,
+			"devReady": 1050,
+			"devFirstPage": 51300,
+			"devEdit": 1430
+		},
+		{
+			"pages": 300,
+			"tool": "Docusaurus",
+			"build": 61350,
+			"htmlKB": 7144,
+			"htmlPages": 300,
+			"devReady": 5330,
+			"devFirstPage": 27140,
+			"devEdit": 8490
 		}
 	]
 }

@@ -1,4 +1,4 @@
-import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 import { docvia } from "@docvia/build/vite";
 import { openapiModule } from "@docvia/plugin-openapi/vite";
 import adapter from "@sveltejs/adapter-cloudflare";
@@ -9,8 +9,12 @@ import { defineConfig } from "vite";
 import { highlight, highlightedSnippets } from "./vite-plugin-snippets.ts";
 
 // Baked in at build time so prerendered HTML and the client agree on the version.
-const require = createRequire(import.meta.url);
-const cliVersion: string = require("../../packages/cli/package.json").version;
+const cliVersion: string = JSON.parse(
+	readFileSync(
+		new URL("../../packages/cli/package.json", import.meta.url),
+		"utf8",
+	),
+).version;
 
 export default defineConfig({
 	define: {
