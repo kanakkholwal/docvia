@@ -1,4 +1,7 @@
 <script lang="ts">
+import { page } from "$app/state";
+import { absolute, SITE } from "#lib/seo.ts";
+import Seo from "#lib/components/site/seo.svelte";
 import PageHeader from "#lib/components/docs/page-header.svelte";
 import Pager from "#lib/components/docs/pager.svelte";
 import Prose from "#lib/components/docs/prose.svelte";
@@ -19,12 +22,29 @@ const description = $derived(
 const eyebrow = $derived(fm.eyebrow ? String(fm.eyebrow) : undefined);
 </script>
 
-<svelte:head>
-	<title>{title} · docvia</title>
-	{#if description}
-		<meta name="description" content={description} />
-	{/if}
-</svelte:head>
+<Seo
+	title="{title} · docvia docs"
+	description={description ?? `${title}: docvia documentation.`}
+	type="article"
+	schema={[
+		{
+			"@context": "https://schema.org",
+			"@type": "TechArticle",
+			headline: title,
+			description,
+			url: absolute(page.url.pathname),
+			isPartOf: { "@type": "WebSite", name: SITE.name, url: SITE.url },
+		},
+		{
+			"@context": "https://schema.org",
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{ "@type": "ListItem", position: 1, name: "Docs", item: absolute("/docs") },
+				{ "@type": "ListItem", position: 2, name: title, item: absolute(page.url.pathname) },
+			],
+		},
+	]}
+/>
 
 <PageHeader {eyebrow} {title} {description} />
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+import Seo from "#lib/components/site/seo.svelte";
 import { Plus } from "@lucide/svelte";
 import RequestView from "#lib/components/api-workspace/request-view.svelte";
 import { workspace } from "#lib/components/api-workspace/workspace.svelte.ts";
@@ -10,9 +11,7 @@ let { data }: PageProps = $props();
 const draft = $derived(workspace.drafts.find((d) => d.id === workspace.activeDraft));
 </script>
 
-<svelte:head>
-	<title>Drafts · API reference · docvia</title>
-</svelte:head>
+<Seo title="Drafts · API reference · docvia" noindex />
 
 {#if draft}
 	{#key draft.id}

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { external } from "#lib/links.ts";
 import { RollText } from "#lib/components/text/roll-text/index.ts";
 import { VERSION } from "#lib/version.ts";
 import { ArrowUp } from "@lucide/svelte";
@@ -56,7 +57,7 @@ function toTop() {
 					<a
 						href={link.href}
 						class="group/roll w-fit text-muted transition-colors duration-(--duration-fast) hover:text-ink"
-						{...link.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {}}
+						{...external(link.href)}
 					>
 						<RollText text={link.label} groupHover size="sm" class="cursor-[inherit]" />
 					</a>

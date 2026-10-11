@@ -82,14 +82,7 @@ const toolCharts = [
 	{ key: "build", title: "Production build", description: "Seconds to prerender every page.", unit: "s", scale: 1000 },
 	{ key: "devFirstPage", title: "Cold dev start to first page", description: "Seconds until the page is visible in a browser.", unit: "s", scale: 1000 },
 	{ key: "devEdit", title: "Edit to visible, dev", description: "Milliseconds from saving a page to the open tab showing it.", unit: "ms", scale: 1 },
-].map((c) => ({
-	...c,
-	data: toolChart(c.key, c.scale),
-	config: {
-		docvia: { label: c.title, color: toolSeries.docvia.color },
-		other: { label: c.title, color: toolSeries.other.color },
-	},
-}));
+].map((c) => ({ ...c, data: toolChart(c.key, c.scale) }));
 const withUnit = (value: number, unit: string) =>
 	unit === "ms" && value >= 1000 ? `${(value / 1000).toFixed(1)} s` : `${value.toLocaleString("en")} ${unit}`;
 </script>
@@ -105,7 +98,7 @@ const withUnit = (value: number, unit: string) =>
 		<div class="mb-10 grid gap-3 lg:grid-cols-3">
 			{#each toolCharts as chart (chart.key)}
 				<BentoCard title={chart.title} description={chart.description}>
-					<ChartContainer config={chart.config} title={chart.title} aspect="square">
+					<ChartContainer config={toolSeries} title={chart.title} aspect="square">
 						<BarChart data={chart.data} xKey="name" xLabel="Tool" orientation="horizontal" stacked margin={{ left: 136 }}>
 							<BarXAxis tickFormatter={(v) => (chart.unit === "ms" && v >= 1000 ? `${v / 1000} s` : `${v} ${chart.unit}`)} />
 							<BarYAxis />

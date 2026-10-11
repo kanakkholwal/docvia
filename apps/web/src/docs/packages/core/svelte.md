@@ -106,8 +106,12 @@ On mount it calls, once per page, `installCodeGroups()` and `installCopyButtons(
 function createSvelteRenderer(options?: {
   registry?: ComponentRegistry;
   transform?: (output: RenderOutput, doc: IRDocument) => RenderOutput | Promise<RenderOutput>;
+  staticHtml?: { keepTags?: string[] } | false;
+  externalLinks?: { target?: string; rel?: string } | false;
 }): RendererAdapter;
 ```
+
+Absolute `http(s)` links in Markdown open in a new tab with `rel="noopener noreferrer"`. Pass `externalLinks: false` to keep them as plain links, or your own `target` and `rel`.
 
 Creates the build-time Svelte `RendererAdapter` (`name: "svelte"`) via `createModuleRenderer` from `@docvia/core/render`. Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
 

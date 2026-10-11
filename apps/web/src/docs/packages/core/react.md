@@ -152,8 +152,12 @@ interface CodeBlockOverrideProps {
 function createReactRenderer(options?: {
   registry?: ComponentRegistry;
   transform?: (output: RenderOutput, doc: IRDocument) => RenderOutput | Promise<RenderOutput>;
+  staticHtml?: { keepTags?: string[] } | false;
+  externalLinks?: { target?: string; rel?: string } | false;
 }): RendererAdapter;
 ```
+
+Absolute `http(s)` links in Markdown open in a new tab with `rel="noopener noreferrer"`. Pass `externalLinks: false` to keep them as plain links, or your own `target` and `rel`.
 
 Creates the build-time React `RendererAdapter` (`name: "react"`) via `createModuleRenderer` from `@docvia/core/render`. It runs at build time or server-side in dev. Its `renderPage` method walks an `IRDocument` through `createDefaultRendererMap()` and emits a JS module exporting `meta`, `content`, and `manifest`. Its `renderManifest` method returns a JSON string describing all pages.
 

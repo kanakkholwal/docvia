@@ -1,4 +1,5 @@
 <script lang="ts">
+import { track } from "#lib/analytics/index.ts";
 import { Check, Copy } from "@lucide/svelte";
 import { cn } from "#lib/utils.ts";
 
@@ -23,6 +24,7 @@ const command = $derived(
 async function copy() {
 	try {
 		await navigator.clipboard.writeText(command);
+		track("install_command_copy", { manager: active });
 		copied = true;
 		setTimeout(() => (copied = false), 1600);
 	} catch {

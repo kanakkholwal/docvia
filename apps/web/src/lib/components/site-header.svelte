@@ -1,4 +1,5 @@
 <script lang="ts">
+import { external } from "#lib/links.ts";
 import { afterNavigate } from "$app/navigation";
 import { page } from "$app/state";
 import Brand from "#lib/components/brand.svelte";
@@ -59,6 +60,7 @@ const ICON_BUTTON =
 				{#each links as link}
 					<a
 						href={link.href}
+						{...external(link.href)}
 						class="group/roll rounded-lg px-2.5 py-1.5 text-sm text-muted transition-[color,background-color] duration-(--duration-fast) hover:bg-ink/[0.06] hover:text-ink"
 					>
 						<RollText text={link.label} groupHover size="sm" />
@@ -67,7 +69,7 @@ const ICON_BUTTON =
 			</nav>
 			<SearchDialog />
 			<span aria-hidden="true" class="mx-2 hidden h-4 w-px bg-hairline-strong sm:block"></span>
-			<a href="https://github.com/kanakkholwal/docvia" aria-label="docvia on GitHub" class={ICON_BUTTON}>
+			<a href="https://github.com/kanakkholwal/docvia" {...external("https://github.com/kanakkholwal/docvia")} aria-label="docvia on GitHub" class={ICON_BUTTON}>
 				<IconRoll icon={Github} class="size-4" />
 			</a>
 			<ThemeToggle />
@@ -89,7 +91,7 @@ const ICON_BUTTON =
 			{:else}
 				<nav class="flex flex-col">
 					{#each links as link}
-						<a href={link.href} onclick={close} class="flex min-h-11 items-center rounded-lg px-3 text-base text-body hover:bg-ink/[0.06] hover:text-ink">
+						<a href={link.href} {...external(link.href)} onclick={close} class="flex min-h-11 items-center rounded-lg px-3 text-base text-body hover:bg-ink/[0.06] hover:text-ink">
 							{link.label}
 						</a>
 					{/each}

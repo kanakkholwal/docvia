@@ -5,7 +5,10 @@ import type {
 	RendererAdapter,
 } from "../ir/index";
 import { toPageMeta, toStructuredData } from "../ir/index";
-import { createDefaultRendererMap } from "./default-renderers";
+import {
+	createDefaultRendererMap,
+	type ExternalLinkOptions,
+} from "./default-renderers";
 import { renderDocument } from "./render";
 import { collapseStatic, type StaticHtmlOptions } from "./static-html";
 import type { ComponentRegistry, RenderOutput } from "./types";
@@ -23,6 +26,8 @@ export interface ModuleRendererOptions {
 	readonly transform?: RenderTransform;
 	/** Pre-render static subtrees to HTML (default on). `false` keeps every node. */
 	readonly staticHtml?: StaticHtmlOptions | false;
+	/** Absolute links open in a new tab with `rel="noopener noreferrer"`; `false` turns that off. */
+	readonly externalLinks?: ExternalLinkOptions | false;
 }
 
 /**
@@ -47,7 +52,7 @@ export function createModuleRenderer(
 			const meta = toPageMeta(doc);
 			const { output, manifest } = await renderDocument(
 				doc,
-				createDefaultRendererMap(),
+				createDefaultRendererMap({ externalLinks: options.externalLinks }),
 				{ slug: doc.slug, meta, registry },
 			);
 			const transformed = options.transform

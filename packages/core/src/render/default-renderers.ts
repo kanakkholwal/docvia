@@ -88,8 +88,32 @@ const renderCodeBlock: NodeRenderer = async (n, ctx) => {
 	}
 };
 
-export function createDefaultRendererMap(): RendererMap {
+/** Attributes added to links that leave the site; `false` leaves them as plain links. */
+export interface ExternalLinkOptions {
+	/** Default `"_blank"`. */
+	readonly target?: string;
+	/** Default `"noopener noreferrer"`. */
+	readonly rel?: string;
+}
+
+export interface DefaultRendererOptions {
+	/** Absolute `http(s)` links open in a new tab by default. */
+	readonly externalLinks?: ExternalLinkOptions | false;
+}
+
+const EXTERNAL = /^(?:https?:)?\/\//i;
+
+export function createDefaultRendererMap(
+	options: DefaultRendererOptions = {},
+): RendererMap {
 	const defaultMap = {} as RendererMap;
+	const external =
+		options.externalLinks === false
+			? null
+			: {
+					target: options.externalLinks?.target ?? "_blank",
+					rel: options.externalLinks?.rel ?? "noopener noreferrer",
+				};
 
 	const map: RendererMap = {
 		paragraph: async (n, ctx) => ({
@@ -180,7 +204,13 @@ export function createDefaultRendererMap(): RendererMap {
 		link: async (n, ctx) => ({
 			kind: "element",
 			tag: "a",
-			props: { href: n.props.href, title: n.props.title },
+			props: {
+				href: n.props.href,
+				title: n.props.title,
+				...(external && EXTERNAL.test(String(n.props.href ?? ""))
+					? external
+					: {}),
+			},
 			children: await renderNodes(n.children, defaultMap, ctx),
 		}),
 

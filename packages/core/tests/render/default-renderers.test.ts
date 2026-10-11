@@ -29,6 +29,31 @@ describe("default-renderers", () => {
 		manifest: [],
 	};
 
+	it("opens external links in a new tab unless turned off", async () => {
+		const link = (href: string): IRNode => ({
+			type: "link",
+			id: "l",
+			props: { href },
+			children: [],
+		});
+		const props = async (href: string, map = createDefaultRendererMap()) => {
+			const out = await map.link?.(link(href), ctx);
+			return out?.kind === "element" ? out.props : undefined;
+		};
+		expect(await props("https://example.com")).toMatchObject({
+			target: "_blank",
+			rel: "noopener noreferrer",
+		});
+		expect(await props("/docs/intro")).not.toHaveProperty("target");
+		expect(await props("mailto:a@b.c")).not.toHaveProperty("target");
+		expect(
+			await props(
+				"https://example.com",
+				createDefaultRendererMap({ externalLinks: false }),
+			),
+		).not.toHaveProperty("target");
+	});
+
 	it("renders code-block as html kind", async () => {
 		const renderers = createDefaultRendererMap();
 		const node: IRNode = {

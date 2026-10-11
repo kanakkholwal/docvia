@@ -1,4 +1,5 @@
 <script lang="ts">
+import { external } from "#lib/links.ts";
 import Github from "#lib/components/icons/github.svelte";
 import InitTerminal from "#lib/components/site/init-terminal.svelte";
 import WorkersBadge from "#lib/components/site/workers-badge.svelte";
@@ -49,11 +50,11 @@ const hosts = [
 			</p>
 
 			<div class="rise mt-8 flex flex-wrap items-center gap-3 max-lg:justify-center" style="--i: 6">
-				<Button href="/docs/getting-started" size="lg" class="group">
+				<Button href="/docs/getting-started" size="lg" class="group" data-track="cta_click" data-track-location="hero">
 					Get started
 					{@render arrow("size-4")}
 				</Button>
-				<Button href="https://github.com/kanakkholwal/docvia" variant="secondary" size="lg">
+				<Button href="https://github.com/kanakkholwal/docvia" {...external("https://github.com/kanakkholwal/docvia")} variant="secondary" size="lg" data-track="github_click" data-track-location="hero">
 					<Github />
 					GitHub
 				</Button>
