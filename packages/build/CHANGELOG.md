@@ -1,5 +1,46 @@
 # @docvia/runtime
 
+## 3.0.0
+
+### Major Changes
+
+- 11dfc48: docvia is now seven packages instead of eighteen.
+  
+  - `@docvia/core` holds everything that runs where docs are served, with no Node APIs, so it runs on Cloudflare Workers and in browsers. It absorbs `@docvia/ir`, `@docvia/schema`, the plugin API from `@docvia/plugins`, `@docvia/renderer-core`, `@docvia/source`, `@docvia/ssr`, `@docvia/renderer-react` and `@docvia/renderer-svelte` as subpaths. React and Svelte are optional peers.
+  - `@docvia/build` holds the Node build tooling: `@docvia/runtime`, `@docvia/compiler`, config loading from `@docvia/plugins`, `@docvia/plugin-vite` (now `@docvia/build/vite`) and `@docvia/plugin-next` (now `@docvia/build/next`). `@docvia/core` is its peer dependency.
+  - `markdownToIR`, the pipeline every mode shares, is now exported from `@docvia/core/markdown`.
+  - `docvia init` installs `@docvia/core` and `@docvia/search`, plus `@docvia/build` and `@docvia/plugin-shiki` as dev dependencies.
+  
+  Imports move like this:
+  
+  | Before | After |
+  |---|---|
+  | `@docvia/ir`, `@docvia/plugins` (`defineConfig`, `PluginRunner`) | `@docvia/core` |
+  | `@docvia/core` (`parseMarkdown`) | `@docvia/core/markdown` |
+  | `@docvia/schema` | `@docvia/core/schema` |
+  | `@docvia/renderer-core` | `@docvia/core/render` |
+  | `@docvia/source`, `@docvia/source/macro` | `@docvia/core/source`, `@docvia/core/source/macro` |
+  | `@docvia/ssr` | `@docvia/core/ssr` |
+  | `@docvia/renderer-react`, `@docvia/renderer-svelte` | `@docvia/core/react`, `@docvia/core/svelte` |
+  | `@docvia/renderer-svelte/node` | `@docvia/core/svelte/node` |
+  | `@docvia/runtime`, `@docvia/compiler`, `@docvia/plugins` (`loadConfig`, `resolveProject`) | `@docvia/build` |
+  | `@docvia/plugin-vite` | `@docvia/build/vite` |
+  | `@docvia/plugin-next` | `@docvia/build/next` |
+
+### Patch Changes
+
+- 11dfc48: `docvia init` works with npm, pnpm, yarn and bun alike, checked by creating and building Next.js, SvelteKit and TanStack Start apps with each.
+  
+  - `init` exits with code 1 when installing fails, instead of reporting success.
+  - With `DOCVIA_TARBALLS`, yarn pins tarballs through `resolutions`, and npm no longer hits `EOVERRIDE` for directly installed packages.
+  - `@docvia/search` no longer installs `@docvia/build`: it is an optional peer, needed only by `@docvia/search/node`.
+  - On SvelteKit 3, which dropped the `$lib` alias, `init` writes relative imports unless the app declares `#lib/*` in package.json `imports`.
+  - The "No renderer found" error names `createReactRenderer()` and `createSvelteRenderer()` instead of the retired renderer packages.
+- Updated dependencies [11dfc48]
+- Updated dependencies [f5ec52e]
+- Updated dependencies [11dfc48]
+  - @docvia/core@3.0.0
+
 ## 2.0.0
 
 ### Major Changes

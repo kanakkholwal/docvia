@@ -1,5 +1,45 @@
 # @docvia/core
 
+## 3.0.0
+
+### Major Changes
+
+- 11dfc48: docvia is now seven packages instead of eighteen.
+  
+  - `@docvia/core` holds everything that runs where docs are served, with no Node APIs, so it runs on Cloudflare Workers and in browsers. It absorbs `@docvia/ir`, `@docvia/schema`, the plugin API from `@docvia/plugins`, `@docvia/renderer-core`, `@docvia/source`, `@docvia/ssr`, `@docvia/renderer-react` and `@docvia/renderer-svelte` as subpaths. React and Svelte are optional peers.
+  - `@docvia/build` holds the Node build tooling: `@docvia/runtime`, `@docvia/compiler`, config loading from `@docvia/plugins`, `@docvia/plugin-vite` (now `@docvia/build/vite`) and `@docvia/plugin-next` (now `@docvia/build/next`). `@docvia/core` is its peer dependency.
+  - `markdownToIR`, the pipeline every mode shares, is now exported from `@docvia/core/markdown`.
+  - `docvia init` installs `@docvia/core` and `@docvia/search`, plus `@docvia/build` and `@docvia/plugin-shiki` as dev dependencies.
+  
+  Imports move like this:
+  
+  | Before | After |
+  |---|---|
+  | `@docvia/ir`, `@docvia/plugins` (`defineConfig`, `PluginRunner`) | `@docvia/core` |
+  | `@docvia/core` (`parseMarkdown`) | `@docvia/core/markdown` |
+  | `@docvia/schema` | `@docvia/core/schema` |
+  | `@docvia/renderer-core` | `@docvia/core/render` |
+  | `@docvia/source`, `@docvia/source/macro` | `@docvia/core/source`, `@docvia/core/source/macro` |
+  | `@docvia/ssr` | `@docvia/core/ssr` |
+  | `@docvia/renderer-react`, `@docvia/renderer-svelte` | `@docvia/core/react`, `@docvia/core/svelte` |
+  | `@docvia/renderer-svelte/node` | `@docvia/core/svelte/node` |
+  | `@docvia/runtime`, `@docvia/compiler`, `@docvia/plugins` (`loadConfig`, `resolveProject`) | `@docvia/build` |
+  | `@docvia/plugin-vite` | `@docvia/build/vite` |
+  | `@docvia/plugin-next` | `@docvia/build/next` |
+- 11dfc48: React and Svelte share one renderer API: `Renderer` with `nodes`, `registry` and `components`.
+  
+  - `DocviaContent` from `@docvia/core/react` is now `Renderer`, the name Svelte already used. `DocviaContentProps` is `RendererProps` and `DocviaComponents` is `RendererComponents`.
+  - The Svelte `Renderer` takes `components` too: tag overrides (`{ a: Link }`) and a `codeBlock` slot, with the same props as React.
+  - `codeBlock` overrides now reach code blocks at any depth, such as inside lists; before, React only saw top-level ones and Svelte none.
+  - The Svelte renderer keeps `a` and `img` as nodes, like React, so tag overrides work the same in both.
+  - `staticHtml.keepTags` adds to the renderer's own kept tags instead of replacing them.
+  - A missing directive component renders the same `docvia-render-error` placeholder in both.
+  - `docvia init` templates use `Renderer`.
+
+### Minor Changes
+
+- f5ec52e: Absolute `http(s)` links in Markdown now open in a new tab with `rel="noopener noreferrer"`. Set `externalLinks: false` on `createReactRenderer()` or `createSvelteRenderer()` to keep plain links, or pass your own `target` and `rel`.
+
 ## 2.0.0
 
 ### Major Changes
