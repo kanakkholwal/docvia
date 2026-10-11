@@ -1,6 +1,6 @@
 {
 	"name": "@docvia/markdown",
-	"version": "0.0.1",
+	"version": "2.0.0",
 	"type": "module",
 	"description": "Markdown for any app: a small, dependency-free CommonMark + GFM parser and renderer with streaming support for AI output.",
 	"license": "MIT",
