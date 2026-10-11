@@ -1,0 +1,198 @@
+import type {
+	CollectionConfig,
+	docviaConfig,
+	docviaPlugin,
+	FileEntry,
+	FrontmatterData,
+	FrontmatterSchema,
+	HookPhase,
+	IRDocument,
+} from "../ir/index";
+import { docviaError } from "../ir/index";
+
+// Plugin Resolution
+
+export function resolvePlugins(
+	plugins: readonly docviaPlugin[],
+): readonly docviaPlugin[] {
+	const names = new Set<string>();
+
+	for (const p of plugins) {
+		if (!p.name) {
+			throw new docviaError("PLUGIN_ERROR", "Plugin missing name");
+		}
+		if (!p.version) {
+			throw new docviaError(
+				"PLUGIN_ERROR",
+				`Plugin "${p.name}" missing version`,
+			);
+		}
+		if (names.has(p.name)) {
+			throw new docviaError("PLUGIN_ERROR", `Duplicate plugin: "${p.name}"`);
+		}
+		names.add(p.name);
+	}
+
+	return [...plugins].sort((a, b) => {
+		const phaseOrder: Record<HookPhase, number> = {
+			pre: 0,
+			normal: 1,
+			post: 2,
+		};
+		const pa = phaseOrder[a.phase ?? "normal"];
+		const pb = phaseOrder[b.phase ?? "normal"];
+		return pa !== pb ? pa - pb : (a.priority ?? 100) - (b.priority ?? 100);
+	});
+}
+
+// Plugin Runner
+
+/**
+ * Wrap a plugin hook invocation so any thrown error carries the originating
+ * plugin's name+version+hook in the resulting docviaError.
+ */
+async function callHook<T>(
+	plugin: docviaPlugin,
+	hook: string,
+	file: string | undefined,
+	fn: () => Promise<T> | T,
+): Promise<T> {
+	try {
+		return await fn();
+	} catch (err) {
+		if (err instanceof docviaError) throw err;
+		const e = err as Error;
+		throw new docviaError(
+			"PLUGIN_ERROR",
+			`Plugin "${plugin.name}@${plugin.version}" failed in ${hook}: ${e?.message ?? String(err)}`,
+			file,
+			undefined,
+			e,
+		);
+	}
+}
+
+export class PluginRunner {
+	private readonly plugins: readonly docviaPlugin[];
+
+	constructor(plugins: readonly docviaPlugin[]) {
+		this.plugins = resolvePlugins(plugins);
+	}
+
+	async runBeforeParse(file: FileEntry): Promise<FileEntry> {
+		let result = file;
+		for (const plugin of this.plugins) {
+			const hook = plugin.beforeParse;
+			if (hook) {
+				result = await callHook(plugin, "beforeParse", file.path, () =>
+					hook(result),
+				);
+			}
+		}
+		return result;
+	}
+
+	async runAfterParse(ast: unknown, file: FileEntry): Promise<unknown> {
+		let result = ast;
+		for (const plugin of this.plugins) {
+			if (plugin.afterParse) {
+				result = await callHook(plugin, "afterParse", file.path, () =>
+					plugin.afterParse?.(result, file),
+				);
+			}
+		}
+		return result;
+	}
+
+	async runBeforeTransform(
+		ast: unknown,
+		meta: FrontmatterData,
+	): Promise<unknown> {
+		let result = ast;
+		for (const plugin of this.plugins) {
+			if (plugin.beforeTransform) {
+				result = await callHook(plugin, "beforeTransform", undefined, () =>
+					plugin.beforeTransform?.(result, meta),
+				);
+			}
+		}
+		return result;
+	}
+
+	async runAfterTransform(doc: IRDocument): Promise<IRDocument> {
+		let result = doc;
+		for (const plugin of this.plugins) {
+			const hook = plugin.afterTransform;
+			if (hook) {
+				result = await callHook(plugin, "afterTransform", undefined, () =>
+					hook(result),
+				);
+			}
+		}
+		return result;
+	}
+
+	async runBeforeRender(doc: IRDocument): Promise<IRDocument> {
+		let result = doc;
+		for (const plugin of this.plugins) {
+			const hook = plugin.beforeRender;
+			if (hook) {
+				result = await callHook(plugin, "beforeRender", undefined, () =>
+					hook(result),
+				);
+			}
+		}
+		return result;
+	}
+
+	getPluginCacheKeys(): string[] {
+		return this.plugins.map((p) => p.cacheKey?.() ?? `${p.name}@${p.version}`);
+	}
+}
+
+/**
+ * Define a docvia config with full type inference. The generic `F` preserves
+ * the concrete frontmatter schema type (Zod, Valibot, ArkType, …) on the
+ * returned config so the generated `types.d.ts` can infer a precise
+ * `Frontmatter` type from `typeof import('./docvia.config').default.frontmatter`.
+ */
+export function defineConfig<
+	const F extends FrontmatterSchema = FrontmatterSchema,
+	const C extends readonly CollectionConfig[] = readonly CollectionConfig[],
+>(
+	config: Partial<Omit<docviaConfig, "frontmatter" | "collections">> & {
+		frontmatter?: F;
+		collections?: C;
+	},
+): docviaConfig & { readonly frontmatter?: F; readonly collections?: C } {
+	return {
+		sourceDir: config.sourceDir ?? "docs",
+		outDir: config.outDir ?? ".docvia",
+		plugins: config.plugins ?? [],
+		renderer: config.renderer,
+		components: config.components,
+		collections: config.collections,
+		frontmatter: config.frontmatter,
+		hashExclude: config.hashExclude,
+		markdown: {
+			remarkPlugins: config.markdown?.remarkPlugins ?? [],
+		},
+		syntax: {
+			highlighter: config.syntax?.highlighter ?? "shiki",
+			theme: config.syntax?.theme ?? "github-dark",
+			langs: config.syntax?.langs ?? [
+				"javascript",
+				"typescript",
+				"bash",
+				"json",
+				"css",
+				"html",
+				"svelte",
+			],
+		},
+		theme: {
+			name: config.theme?.name ?? "default",
+			options: config.theme?.options ?? {},
+		},
+	};
+}

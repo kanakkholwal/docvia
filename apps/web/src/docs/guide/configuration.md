@@ -9,17 +9,17 @@ order: 1
 plugins, components, and Markdown options. Collections are declared in code
 with [`defineDocs()`](#collections). The Vite plugin loads the config from the
 Vite root when called as `docvia()`, the Next.js wrapper reads it on config
-evaluation, and the CLI loads it via [`loadConfig`](/docs/packages/plugins).
+evaluation, and the CLI loads it via [`loadConfig`](/docs/packages/core/plugins).
 
 ## defineConfig
 
-Import `defineConfig` from your framework plugin: `@docvia/plugin-vite` or
-`@docvia/plugin-next` (`@docvia/cli` re-exports it too, but the CLI is a
+Import `defineConfig` from your framework plugin: `@docvia/build/vite` or
+`@docvia/build/next` (`@docvia/cli` re-exports it too, but the CLI is a
 dev-only tool). It takes a `Partial<docviaConfig>`, fills in defaults, and
 returns a fully resolved `docviaConfig`.
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 
 export default defineConfig({
   /* ... */
@@ -47,7 +47,7 @@ editor completion on every field.
 > bakes the HTML into the IR, so no highlighter ships to the browser. It is the
 > recommended default: without a highlighter, docvia warns once that code blocks
 > render unhighlighted. Fence titles, tabs, and npm/pnpm/yarn/bun tabs need no
-> config; see [Code blocks](/docs/packages/renderer-core#code-blocks).
+> config; see [Code blocks](/docs/packages/core/render#code-blocks).
 >
 > A `syntax` config block (`syntax.highlighter` / `syntax.theme` / `syntax.langs`)
 > still exists in the config schema for backward compatibility, but it no longer
@@ -60,14 +60,14 @@ The `renderer` field is required; compiling with no renderer throws a
 
 ```ts
 // React
-import { createReactRenderer } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/core/react";
 
 renderer: createReactRenderer();
 ```
 
 ```ts
 // Svelte: use the /node subpath, the build-time entry
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 renderer: createSvelteRenderer();
 ```
@@ -84,19 +84,19 @@ renderer: createSvelteRenderer({
 });
 ```
 
-See [`@docvia/renderer-react`](/docs/packages/renderer-react) and
-[`@docvia/renderer-svelte`](/docs/packages/renderer-svelte) for the full adapter
+See [`@docvia/core/react`](/docs/packages/core/react) and
+[`@docvia/core/svelte`](/docs/packages/core/svelte) for the full adapter
 API.
 
 ## Collections
 
 A collection is a folder of Markdown, declared in a source file with
-`defineDocs()` from `@docvia/source/macro`. The bundler plugin rewrites the call
+`defineDocs()` from `@docvia/core/source/macro`. The bundler plugin rewrites the call
 at build time:
 
 ```ts title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "content/docs" });
 const api = defineDocs({ dir: "content/api" });
@@ -111,7 +111,7 @@ export const apiSource = loader({ baseUrl: "/api", source: api.toDocviaSource() 
 | `docs.schema` | A Standard Schema adding frontmatter fields. See [below](#extending-the-frontmatter-schema). |
 
 `baseUrl` belongs to `loader()`, not the collection. See
-[`@docvia/source`](/docs/packages/source) for the loader API and `meta.json`.
+[`@docvia/core/source`](/docs/packages/core/source) for the loader API and `meta.json`.
 
 > Legacy config collections (`collections`, `sourceDir`, `outDir`, and a
 > top-level `frontmatter` in this file) still work through
@@ -143,7 +143,7 @@ base fields plus your schema, and `page.data` is typed from the schema's output
 type. No type files are generated.
 
 ```ts
-import { defineDocs } from "@docvia/source/macro";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod";
 
 const docs = defineDocs({
@@ -159,7 +159,7 @@ const docs = defineDocs({
 
 A file that omits a required custom field fails the build with a
 `SCHEMA_ERROR` pointing at the offending file. See
-[`@docvia/schema`](/docs/packages/schema) for the validation and codegen details.
+[`@docvia/core/schema`](/docs/packages/core/schema) for the validation and codegen details.
 
 ## Components
 
@@ -167,7 +167,7 @@ Register components once under `components`, then expose them to your routes
 with `defineRegistry()`, which the bundler plugin rewrites into real imports:
 
 ```ts title="lib/registry.ts"
-import { defineRegistry } from "@docvia/source/macro";
+import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 ```
@@ -199,8 +199,8 @@ a `:::counter` directive.
 ## A complete example
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { defineConfig } from "@docvia/build/vite";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

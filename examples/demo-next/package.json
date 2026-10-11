@@ -17,12 +17,10 @@
 		"react-dom": "^19.3.0"
 	},
 	"devDependencies": {
+		"@docvia/build": "workspace:*",
 		"@docvia/cli": "workspace:*",
-		"@docvia/plugin-next": "workspace:*",
+		"@docvia/core": "workspace:*",
 		"@docvia/plugin-shiki": "workspace:*",
-		"@docvia/renderer-core": "workspace:*",
-		"@docvia/renderer-react": "workspace:*",
-		"@docvia/source": "workspace:*",
 		"@types/node": "catalog:",
 		"@types/react": "^19.3.0",
 		"@types/react-dom": "^19.3.0",

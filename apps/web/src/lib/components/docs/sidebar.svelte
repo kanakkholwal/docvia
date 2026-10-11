@@ -2,7 +2,7 @@
 import { page } from "$app/state";
 import { cn } from "#lib/cn.ts";
 import NavGroup from "#lib/components/docs/nav-group.svelte";
-import type { PageTree } from "@docvia/source";
+import type { PageTree } from "@docvia/core/source";
 
 // The tree is docvia's own page tree for the `docs` collection (+layout.server.ts).
 let { tree, mobile = false }: { tree: PageTree.Root; mobile?: boolean } = $props();
@@ -57,7 +57,7 @@ $effect(() => {
 
 <div
 	bind:this={scrollEl}
-	class={cn("scrollbar-transparent relative", !mobile && "sticky top-16 max-h-[calc(100vh-4rem)] overflow-y-auto")}
+	class={cn("relative", !mobile && "sticky top-16 -ml-2 max-h-[calc(100vh-4rem)] overflow-y-auto pl-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden")}
 >
 	<div class="pr-4 pb-8">
 		{#each groups as group, i (group.title)}

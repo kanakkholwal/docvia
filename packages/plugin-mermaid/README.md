@@ -21,7 +21,7 @@ pnpm add -D @docvia/plugin-mermaid
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
 
@@ -38,7 +38,7 @@ Register a component under that name and pass the registry to the renderer:
 
 ```svelte
 <script lang="ts">
-  import { Renderer } from "@docvia/renderer-svelte";
+  import { Renderer } from "@docvia/core/svelte";
   import Mermaid from "#lib/components/mermaid.svelte";
 
   const registry = {

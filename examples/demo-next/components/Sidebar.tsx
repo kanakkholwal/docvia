@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageTree } from "@docvia/source/runtime";
+import type { PageTree } from "@docvia/core/source/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";

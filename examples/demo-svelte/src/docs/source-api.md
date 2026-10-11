@@ -10,8 +10,8 @@ order: 2
 SvelteKit load functions. The method names match fumadocs.
 
 ```typescript title="src/lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "src/docs" });
 

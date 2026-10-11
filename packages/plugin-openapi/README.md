@@ -1,8 +1,10 @@
 # @docvia/plugin-openapi
 
-Render OpenAPI 3.x endpoints inline in your docvia Markdown.
+OpenAPI for docvia: API reference pages generated from a spec, and inline endpoint blocks in Markdown.
 
-Point the plugin at a spec file, then drop fenced ` ```openapi METHOD /path` blocks anywhere in your Markdown. Each block is replaced — at build time — with a fully rendered endpoint card: heading, description, parameters table, request and response samples. No runtime spec parsing ships to the browser.
+- **Generated pages.** An overview and one page per operation, grouped by tag, in the same sidebar and search as your Markdown. Each page renders through a component you register, so it matches your site.
+- **Code samples.** cURL, JavaScript, Python and Go by default, from [Scalar](https://github.com/scalar/scalar)'s `snippetz`.
+- **Build time only.** Swagger 2.0 and OpenAPI 3.x (JSON or YAML) are parsed during the build. Operations load lazily, so a Worker or browser bundle holds only the pages it renders.
 
 ## Install
 
@@ -10,52 +12,44 @@ Point the plugin at a spec file, then drop fenced ` ```openapi METHOD /path` blo
 pnpm add -D @docvia/plugin-openapi
 ```
 
-## Configure
+## Generated pages
 
 ```ts
-// docvia.config.ts
-import { defineConfig } from "@docvia/plugin-vite";
-import { openapi } from "@docvia/plugin-openapi";
-import { createReactRenderer } from "@docvia/renderer-react";
+// vite.config.ts
+import { openapiModule } from "@docvia/plugin-openapi/vite";
 
 export default defineConfig({
-  sourceDir: "docs",
-  outDir: ".docvia",
-  renderer: createReactRenderer(),
-  plugins: [
-    openapi({ spec: "./openapi.yaml" }),
-  ],
+  plugins: [openapiModule({ spec: "openapi.yaml" })],
 });
 ```
 
-## Use
+```ts
+// src/lib/source.ts
+import { openapiSource } from "@docvia/plugin-openapi/source";
+import api from "virtual:docvia/openapi";
 
-In any Markdown file:
-
-````markdown
-## List pets
-
-```openapi GET /pets
+export const source = loader({
+  baseUrl: "/docs",
+  source: {
+    files: [...docs.toDocviaSource().files, ...openapiSource(api, { dir: "api" }).files],
+  },
+});
 ```
 
-## Create a pet
+Then register `APIOperation` (prop `operation`) and `APIOverview` (prop `api`) in your renderer's component registry.
 
+## Inline blocks
+
+```ts
+// docvia.config.ts
+import { openapi } from "@docvia/plugin-openapi";
+
+export default defineConfig({ plugins: [openapi({ spec: "./openapi.yaml" })] });
+```
+
+````markdown
 ```openapi POST /pets
 ```
 ````
 
-Each fenced block is replaced with the rendered endpoint, including parameter tables and JSON request/response samples synthesized from the spec's schemas.
-
-## Options
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `spec` | `string` | _required_ | Path to the OpenAPI 3.x spec. JSON, YAML, or YML. |
-| `fenceLang` | `string` | `"openapi"` | Language tag the plugin looks for. Use `"api"` for ` ```api GET /pets`. |
-| `onMissing` | `"throw" \| "warn"` | `"throw"` | Behaviour when a block references a path/method that isn't in the spec. |
-
-## How it works
-
-The plugin hooks `afterParse`. For each Markdown file, it walks the mdast tree, finds matching fenced blocks, and replaces them with structured mdast (heading + paragraph + table + code blocks). The rest of docvia's pipeline turns those nodes into IR, framework-native modules, and your renderer's output — exactly the same path as any hand-written Markdown.
-
-The spec is hashed and contributes to the plugin's `cacheKey`, so when you change the spec, all pages that reference it are rebuilt.
+Full reference: https://docvia.dev/docs/packages/plugin-openapi

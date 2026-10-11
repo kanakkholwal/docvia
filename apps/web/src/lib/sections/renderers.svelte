@@ -7,7 +7,7 @@ import { siReact, siSvelte } from "simple-icons";
 
 <Section id="renderers" number={2} title="bring your framework." description="One compiled tree, rendered by React or Svelte. The adapter contract is small enough to write your own.">
 	<div class="grid gap-3 lg:grid-cols-2">
-		<BentoCard title="React" description="@docvia/renderer-react" bodyClass="p-0">
+		<BentoCard title="React" description="@docvia/core/react" bodyClass="p-0">
 			{#snippet icon()}
 				<svg viewBox="0 0 24 24" class="size-6 fill-current" aria-hidden="true"><path d={siReact.path} /></svg>
 			{/snippet}
@@ -15,7 +15,7 @@ import { siReact, siSvelte } from "simple-icons";
 				<CodeSample name="page.tsx" filename="app/docs/[[...slug]]/page.tsx" class="border-0" />
 			{/snippet}
 		</BentoCard>
-		<BentoCard title="Svelte" description="@docvia/renderer-svelte" bodyClass="p-0">
+		<BentoCard title="Svelte" description="@docvia/core/svelte" bodyClass="p-0">
 			{#snippet icon()}
 				<svg viewBox="0 0 24 24" class="size-6 fill-current" aria-hidden="true"><path d={siSvelte.path} /></svg>
 			{/snippet}

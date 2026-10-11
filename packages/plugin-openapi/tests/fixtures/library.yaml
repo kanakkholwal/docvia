@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: Library
+  version: 2.1.0
+  description: Books and **loans**.
+servers:
+  - url: https://{region}.library.test/v2
+    variables:
+      region:
+        default: eu
+tags:
+  - name: Books
+    description: The catalogue.
+security:
+  - bearer: []
+paths:
+  /books/{bookId}:
+    parameters:
+      - $ref: "#/components/parameters/BookId"
+    get:
+      operationId: getBook
+      tags: [Books]
+      summary: Get a book
+      parameters:
+        - name: fields
+          in: query
+          schema: { type: array, items: { type: string } }
+      responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: The book.
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Book" }
+  /books:
+    post:
+      operationId: createBook
+      tags: [Books]
+      summary: Add a book
+      security:
+        - apiKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewBook" }
+      responses:
+        "201":
+          description: Created.
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: OK
+components:
+  parameters:
+    BookId:
+      name: bookId
+      in: path
+      required: true
+      example: 42
+      schema: { type: integer, minimum: 1 }
+  responses:
+    NotFound:
+      description: No such book.
+  securitySchemes:
+    bearer: { type: http, scheme: bearer }
+    apiKey: { type: apiKey, in: header, name: X-Api-Key }
+  schemas:
+    NewBook:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 200 }
+        format:
+          type: string
+          enum: [hardcover, ebook]
+        author:
+          oneOf:
+            - $ref: "#/components/schemas/Person"
+            - type: string
+    Book:
+      allOf:
+        - $ref: "#/components/schemas/NewBook"
+        - type: object
+          required: [id]
+          properties:
+            id: { type: integer, readOnly: true }
+            subtitle: { type: string, nullable: true }
+    Person:
+      type: object
+      properties:
+        name: { type: string }
+        mentor: { $ref: "#/components/schemas/Person" }

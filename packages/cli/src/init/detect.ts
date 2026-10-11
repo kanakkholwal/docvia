@@ -16,13 +16,20 @@ export interface Project {
 	readonly framework: Framework;
 	readonly pm: PackageManager;
 	/** Where the package manager was inferred from, for the summary line. */
-	readonly pmSource: "lockfile" | "packageManager" | "user agent" | "default";
+	readonly pmSource:
+		| "flag"
+		| "lockfile"
+		| "packageManager"
+		| "user agent"
+		| "default";
 	/** Directory holding `lib/` and `components/`, relative to root (`src` or ``). */
 	readonly srcDir: string;
 	/** Directory holding routes, relative to root. */
 	readonly routesDir: string;
 	readonly dependencies: ReadonlySet<string>;
 	readonly aliases: readonly Alias[];
+	/** SvelteKit before 3 aliases `src/lib` as `$lib`; Kit 3 dropped it for package.json `imports`. */
+	readonly dollarLib?: boolean;
 }
 
 /** An import prefix that maps to a directory, from tsconfig `paths` or package.json `imports`. */
@@ -147,10 +154,28 @@ export function detectProject(root: string, framework?: Framework): Project {
 		routesDir,
 		dependencies,
 		aliases: detectAliases(root, pkg),
+		dollarLib: fw === "sveltekit" && kitMajor(root, pkg) < 3,
 	};
 }
 
 const posix = (p: string) => p.split("\\").join("/");
+
+// The installed version wins; the declared range covers an app whose install hasn't run yet.
+function kitMajor(
+	root: string,
+	pkg: Record<string, unknown> | undefined,
+): number {
+	const installed = readJson(
+		join(root, "node_modules", "@sveltejs", "kit", "package.json"),
+	);
+	const deps = {
+		...(pkg?.dependencies as object | undefined),
+		...(pkg?.devDependencies as object | undefined),
+	} as Record<string, string>;
+	const version = String(installed?.version ?? deps["@sveltejs/kit"] ?? "");
+	const major = /(\d+)/.exec(version)?.[1];
+	return major === undefined ? 3 : Number(major);
+}
 
 /** The import specifier for `target` (absolute, no extension) as written in `from`. */
 export function importSpecifier(
@@ -164,7 +189,7 @@ export function importSpecifier(
 		if (rest.startsWith("..") || /^[a-zA-Z]:/.test(rest)) continue;
 		return `${alias.prefix}${posix(rest)}${alias.withExtension ? extension : ""}`;
 	}
-	if (project.framework === "sveltekit") {
+	if (project.framework === "sveltekit" && project.dollarLib) {
 		const rest = relative(join(project.root, "src", "lib"), target);
 		if (!rest.startsWith("..")) return `$lib/${posix(rest)}`;
 	}

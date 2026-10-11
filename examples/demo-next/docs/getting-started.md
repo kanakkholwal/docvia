@@ -12,12 +12,12 @@ Next plugin, a source file, and a catch-all route that renders pages.
 ## 1. Install
 
 ```bash
-npm install -D @docvia/plugin-next @docvia/plugin-shiki
-npm install @docvia/renderer-react @docvia/source
+npm install -D @docvia/build @docvia/plugin-shiki
+npm install @docvia/core
 ```
 
-The Next and Shiki plugins are dev-only. The renderer and `@docvia/source` are
-runtime dependencies: your source file imports `@docvia/source`, and your routes
+The Next and Shiki plugins are dev-only. The renderer and `@docvia/core/source` are
+runtime dependencies: your source file imports `@docvia/core/source`, and your routes
 render with the renderer.
 
 ## 2. Configure Docvia
@@ -26,9 +26,9 @@ Create `docvia.config.ts` in your project root. It holds the renderer, plugins,
 and components; collections are declared in code (step 4).
 
 ```typescript
-import { defineConfig } from "@docvia/plugin-next";
+import { defineConfig } from "@docvia/build/next";
 import { shiki } from "@docvia/plugin-shiki";
-import { createReactRenderer } from "@docvia/renderer-react";
+import { createReactRenderer } from "@docvia/core/react";
 
 export default defineConfig({
   renderer: createReactRenderer(),
@@ -49,7 +49,7 @@ export default defineConfig({
 separate build step, and dev recompiles changed files.
 
 ```typescript
-import { withDocvia } from "@docvia/plugin-next";
+import { withDocvia } from "@docvia/build/next";
 
 const withDocs = withDocvia();
 
@@ -62,8 +62,8 @@ Create `lib/source.ts`. The plugin rewrites `defineDocs()` at build time into an
 index of the folder, so nothing is scanned at runtime.
 
 ```typescript title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "docs" });
 
@@ -73,7 +73,7 @@ export const source = loader({ baseUrl: "/docs", source: docs.toDocviaSource() }
 Add `lib/registry.ts` for the components listed in `docvia.config.ts`:
 
 ```typescript title="lib/registry.ts"
-import { defineRegistry } from "@docvia/source/macro";
+import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 ```
@@ -98,11 +98,11 @@ This is your first documentation page.
 
 ## 6. Render pages in a route
 
-Add a catch-all route at `app/docs/[[...slug]]/page.tsx`. `DocviaContent` is a
+Add a catch-all route at `app/docs/[[...slug]]/page.tsx`. `Renderer` is a
 React Server Component, so it renders on the server with no client bundle:
 
 ```tsx
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import { registry } from "@/lib/registry";
 import { source } from "@/lib/source";
 import type { Metadata } from "next";
@@ -131,7 +131,7 @@ export default async function DocPage({ params }: PageProps) {
 
   return (
     <article className="prose">
-      <DocviaContent nodes={content} registry={registry} />
+      <Renderer nodes={content} registry={registry} />
     </article>
   );
 }

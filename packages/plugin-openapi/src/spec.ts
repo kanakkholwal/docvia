@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { extname, resolve } from "node:path";
-import { docviaError } from "@docvia/ir";
-import yaml from "js-yaml";
+import { resolve } from "node:path";
+import { docviaError } from "@docvia/core";
+import { upgrade } from "@scalar/openapi-parser";
 import {
 	HTTP_METHODS,
 	type HttpMethod,
@@ -18,9 +18,8 @@ export interface LoadedSpec {
 }
 
 /**
- * Load an OpenAPI 3.x document from disk. Supports `.json`, `.yaml`, and
- * `.yml` extensions. Returns the parsed document along with a content hash
- * suitable for plugin cache invalidation.
+ * Load a Swagger 2.0 or OpenAPI 3.x document (JSON or YAML) from disk, upgraded to OpenAPI 3.1.
+ * The hash covers the raw file, for plugin cache invalidation.
  */
 export async function loadSpec(specPath: string): Promise<LoadedSpec> {
 	const absolute = resolve(specPath);
@@ -37,30 +36,37 @@ export async function loadSpec(specPath: string): Promise<LoadedSpec> {
 		);
 	}
 
-	const ext = extname(absolute).toLowerCase();
+	const doc = parseSpec(raw, absolute);
+	const hash = createHash("sha256").update(raw).digest("hex").slice(0, 16);
+	return { path: absolute, hash, doc };
+}
+
+/** Parse spec text (JSON or YAML) and upgrade it to OpenAPI 3.1. `source` names it in errors. */
+export function parseSpec(raw: string, source: string): OpenAPIDocument {
 	let parsed: unknown;
 	try {
-		parsed = ext === ".json" ? JSON.parse(raw) : yaml.load(raw);
+		parsed = upgrade(raw).specification;
 	} catch (err) {
 		throw new docviaError(
 			"CONFIG_ERROR",
-			`@docvia/plugin-openapi: failed to parse ${ext === ".json" ? "JSON" : "YAML"} spec at ${absolute}\n  ${(err as Error).message}`,
-			absolute,
+			`@docvia/plugin-openapi: failed to parse the spec at ${source}\n  ${(err as Error).message}`,
+			source,
 			undefined,
 			err as Error,
 		);
 	}
-
-	if (!parsed || typeof parsed !== "object") {
+	if (
+		!parsed ||
+		typeof parsed !== "object" ||
+		typeof (parsed as OpenAPIDocument).openapi !== "string"
+	) {
 		throw new docviaError(
 			"CONFIG_ERROR",
-			`@docvia/plugin-openapi: spec at ${absolute} did not produce an object`,
-			absolute,
+			`@docvia/plugin-openapi: ${source} is not a Swagger 2.0 or OpenAPI 3.x document`,
+			source,
 		);
 	}
-
-	const hash = createHash("sha256").update(raw).digest("hex").slice(0, 16);
-	return { path: absolute, hash, doc: parsed as OpenAPIDocument };
+	return parsed as OpenAPIDocument;
 }
 
 /**

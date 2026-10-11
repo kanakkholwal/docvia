@@ -10,8 +10,8 @@ order: 2
 pages, build navigation, and generate routes. The method names match fumadocs.
 
 ```typescript title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "docs" });
 
@@ -52,7 +52,7 @@ export default async function DocPage({ params }) {
   if (!page) notFound();
   const { content } = await page.data.load();
 
-  return <DocviaContent nodes={content} registry={registry} />;
+  return <Renderer nodes={content} registry={registry} />;
 }
 ```
 

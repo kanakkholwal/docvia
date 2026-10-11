@@ -30,8 +30,8 @@ async function createDemo() {
 			svelte: "^4.2.0",
 			vite: "^8.0.3",
 			"@docvia/cli": "workspace:*",
-			"@docvia/compiler": "workspace:*",
-			"@docvia/renderer-svelte": "workspace:*",
+			"@docvia/build": "workspace:*",
+			"@docvia/core/svelte": "workspace:*",
 		},
 	};
 	await writeFile(
@@ -75,7 +75,7 @@ export default defineConfig({
 	// 5. Create docvia.config.ts
 	const docviaConfig = `
 import { defineConfig } from '@docvia/cli';
-import { createSvelteRenderer } from '@docvia/renderer-svelte';
+import { createSvelteRenderer } from '@docvia/core/svelte';
 
 export default defineConfig({
     dir: './docs',
@@ -287,7 +287,7 @@ export const load: PageLoad = async ({ params }) => {
 
 	const pageSvelte = `
 <script lang="ts">
-    import { Renderer, hydrate } from '@docvia/renderer-svelte';
+    import { Renderer, hydrate } from '@docvia/core/svelte';
     import { onMount } from 'svelte';
     import Counter from '$lib/components/Counter.svelte';
 

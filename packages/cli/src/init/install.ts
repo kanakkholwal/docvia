@@ -10,29 +10,13 @@ export interface Dependencies {
 }
 
 export function dependenciesFor(framework: Framework): Dependencies {
-	switch (framework) {
-		case "next":
-			return {
-				runtime: ["@docvia/source", "@docvia/renderer-react", "@docvia/search"],
-				dev: ["@docvia/plugin-next", "@docvia/plugin-shiki"],
-			};
-		case "sveltekit":
-			return {
-				runtime: [
-					"@docvia/source",
-					"@docvia/renderer-svelte",
-					"@docvia/search",
-				],
-				dev: ["@docvia/plugin-vite", "@docvia/plugin-shiki"],
-			};
-		case "tanstack-start":
-			return {
-				runtime: ["@docvia/source", "@docvia/renderer-react", "@docvia/search"],
-				dev: ["@docvia/plugin-vite", "@docvia/plugin-shiki"],
-			};
-		case "standalone":
-			return { runtime: [], dev: ["@docvia/cli", "@docvia/plugin-shiki"] };
-	}
+	// Every framework needs the same two packages; the React or Svelte bindings are subpaths of core.
+	if (framework === "standalone")
+		return { runtime: [], dev: ["@docvia/cli", "@docvia/plugin-shiki"] };
+	return {
+		runtime: ["@docvia/core", "@docvia/search"],
+		dev: ["@docvia/build", "@docvia/plugin-shiki"],
+	};
 }
 
 /**
@@ -73,7 +57,9 @@ function writeOverrides(
 	}
 	const pkgFile = join(root, "package.json");
 	const pkg = JSON.parse(readFileSync(pkgFile, "utf8"));
-	pkg.overrides = { ...pkg.overrides, ...Object.fromEntries(specs) };
+	// Yarn 1 ignores `overrides`; npm and bun read it (bun also reads `resolutions`).
+	const field = pm === "yarn" ? "resolutions" : "overrides";
+	pkg[field] = { ...pkg[field], ...Object.fromEntries(specs) };
 	writeFileSync(pkgFile, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
@@ -128,7 +114,15 @@ export async function installDependencies(
 	deps: Dependencies,
 ): Promise<void> {
 	const local = localTarballs();
-	if (local) writeOverrides(root, pm, local);
+	if (local) {
+		// npm rejects an override that also names a direct dependency (EOVERRIDE); the direct install already pins it.
+		const direct = new Set([...deps.runtime, ...deps.dev]);
+		const pins =
+			pm === "npm"
+				? new Map([...local].filter(([name]) => !direct.has(name)))
+				: local;
+		if (pins.size > 0) writeOverrides(root, pm, pins);
+	}
 	const spec = (name: string) => local?.get(name) ?? name;
 	const add = ADD[pm].add;
 	if (deps.runtime.length)

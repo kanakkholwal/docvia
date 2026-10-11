@@ -10,7 +10,7 @@ const features = [
 	},
 	{
 		title: "Vite-native",
-		body: "Markdown is consumed via the @docvia/plugin-vite ?docvia transform.",
+		body: "Markdown is consumed via the @docvia/build/vite ?docvia transform.",
 	},
 	{
 		title: "SSR + hydration",
@@ -19,8 +19,8 @@ const features = [
 ];
 
 const codeSnippet = `// docvia.config.ts
-import { defineConfig } from "@docvia/plugin-vite";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { defineConfig } from "@docvia/build/vite";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

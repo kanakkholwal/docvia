@@ -183,7 +183,7 @@ Headless server index. Walks every page of a `loader()` source, calls `page.data
 
 ```ts
 const server = await createFromSource(source, {
-  records: [{ id: "api:docvia", title: "docvia()", url: "/docs/packages/plugin-vite", body: "The Vite plugin." }],
+  records: [{ id: "api:docvia", title: "docvia()", url: "/docs/packages/build/vite", body: "The Vite plugin." }],
 });
 ```
 
@@ -220,7 +220,7 @@ The runtime counterpart to `extractSections`: splits a page's **rendered** `cont
 
 ### `SearchDocument`
 
-Re-exported from `@docvia/ir`:
+Re-exported from `@docvia/core`:
 
 ```ts
 interface SearchDocument {

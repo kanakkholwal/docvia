@@ -12,7 +12,7 @@ reaches your app.
 
 This documentation site is itself compiled by docvia. Every page you are
 reading is a Markdown file under `apps/web/src/docs/`, run through the compile
-core and rendered by `@docvia/renderer-svelte`.
+core and rendered by `@docvia/core/svelte`.
 
 ## Why a compiler?
 
@@ -57,7 +57,7 @@ flowchart LR
 ## Three modes, one core
 
 docvia runs in three modes, all driven by the same `PagePipeline` from
-`@docvia/runtime` (see [Architecture](/docs/guide/architecture)), so their
+`@docvia/build` (see [Architecture](/docs/guide/architecture)), so their
 output is identical:
 
 - **Build.** The bundler plugin compiles pages as part of `vite build` or
@@ -69,10 +69,10 @@ output is identical:
 ```mermaid
 %% title: One pipeline behind all three modes
 flowchart TD
-  VITE["Vite / Next build and dev<br/>(plugin-vite, plugin-next)"] --> CS
+  VITE["Vite / Next build and dev<br/>(build/vite, build/next)"] --> CS
   CLI["Standalone build<br/>(@docvia/cli)"] --> CS
-  SSR["Per-request render<br/>(@docvia/ssr)"] --> CS
-  CS["PagePipeline<br/>@docvia/runtime"] --> OUT[Identical IR and output]
+  SSR["Per-request render<br/>(@docvia/core/ssr)"] --> CS
+  CS["PagePipeline<br/>@docvia/build"] --> OUT[Identical IR and output]
 ```
 
 ## Highlights
@@ -94,8 +94,8 @@ flowchart TD
 ## How it fits together
 
 ```ts title="lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "content/docs" });
 

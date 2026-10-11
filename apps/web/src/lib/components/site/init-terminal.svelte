@@ -3,7 +3,7 @@ import setup from "#lib/benchmarks/setup.json";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#lib/components/ui/select/index.ts";
 import { onMount, untrack } from "svelte";
 
-// Transcripts follow packages/cli/src/commands/init.ts and planFiles(); file counts match setup.json.
+// Transcripts follow packages/cli/src/commands/init.ts; file lists are planFiles() output, in its order.
 const FRAMEWORKS = {
 	next: {
 		label: "Next.js",
@@ -13,10 +13,11 @@ const FRAMEWORKS = {
 			"lib/source.ts",
 			"components/docs-tree.tsx",
 			"components/docvia-client.tsx",
-			"app/docs/[[...slug]]/page.tsx",
-			"app/docs/layout.tsx",
-			"app/docs/docs.css",
 			"app/api/search/route.ts",
+			"app/docs/layout.tsx",
+			"app/docs/[[...slug]]/page.tsx",
+			"components/docs-sidebar.tsx",
+			"app/docs/docs.css",
 		],
 		config: "next.config.ts",
 		css: "app/globals.css",
@@ -27,12 +28,14 @@ const FRAMEWORKS = {
 		port: 5173,
 		files: [
 			"src/lib/source.ts",
+			"src/routes/api/search/+server.ts",
 			"src/routes/docs/+layout.server.ts",
 			"src/routes/docs/+layout.svelte",
+			"src/routes/docs/DocsFolder.svelte",
+			"src/routes/docs/DocsTree.svelte",
 			"src/routes/docs/[...slug]/+page.server.ts",
 			"src/routes/docs/[...slug]/+page.svelte",
 			"src/routes/docs/docs.css",
-			"src/routes/api/search/+server.ts",
 		],
 		config: "vite.config.ts",
 		css: null,
@@ -45,10 +48,10 @@ const FRAMEWORKS = {
 			"src/lib/source.ts",
 			"src/components/docs-tree.tsx",
 			"src/components/docvia-client.tsx",
-			"src/routes/docs/route.tsx",
-			"src/routes/docs/$.tsx",
-			"src/routes/docs/-docs.css",
 			"src/routes/api/search.ts",
+			"src/routes/docs/$.tsx",
+			"src/routes/docs/route.tsx",
+			"src/routes/docs/-docs.css",
 		],
 		config: "vite.config.ts",
 		css: "src/styles.css",
@@ -62,7 +65,9 @@ const MANAGERS = {
 	yarn: { run: "yarn dlx", dev: "yarn dev" },
 } as const;
 type Manager = keyof typeof MANAGERS;
-const CONTENT = ["content/docs/index.md", "content/docs/guides/writing.md", "content/docs/guides/meta.json"];
+const CONTENT = ["content/docs/guides/meta.json", "content/docs/guides/writing.md", "content/docs/index.md"];
+// dependenciesFor(): @docvia/core and @docvia/search, plus @docvia/build and @docvia/plugin-shiki as dev.
+const PACKAGES = 4;
 
 let framework = $state<Framework>("next");
 let manager = $state<Manager>("pnpm");
@@ -89,7 +94,7 @@ function transcript(fw: Framework, pm: Manager): Line[] {
 		{ kind: "head", a: "◇", b: `${files.length} file(s)` },
 		...files,
 		{ kind: "rail" },
-		{ kind: "spin", a: `Installing 5 packages with ${pm}`, b: `Installed with ${pm}${secs(timing?.installMs)}` },
+		{ kind: "spin", a: `Installing ${PACKAGES} packages with ${pm}`, b: `Installed with ${pm}${secs(timing?.installMs)}` },
 		{ kind: "rail" },
 		{ kind: "head", a: "◇", b: "Next" },
 		{ kind: "note", a: MANAGERS[pm].dev, b: `then open http://localhost:${f.port}/docs` },

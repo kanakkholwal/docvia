@@ -62,6 +62,20 @@ describe("detectProject", () => {
 		).toBe("#lib/source.ts");
 	});
 
+	it("uses $lib only on SvelteKit versions that still alias it", async () => {
+		const spec = () =>
+			importSpecifier(
+				detectProject(root),
+				join(root, "src/routes/docs/+page.ts"),
+				join(root, "src/lib/source"),
+				".ts",
+			);
+		await pkg({ devDependencies: { "@sveltejs/kit": "^2.20.0" } });
+		expect(spec()).toBe("$lib/source");
+		await pkg({ devDependencies: { "@sveltejs/kit": "^3.0.0" } });
+		expect(spec()).toBe("../../lib/source");
+	});
+
 	it("falls back to relative imports", async () => {
 		await pkg({ dependencies: { "@tanstack/react-start": "1" } });
 		const project = detectProject(root);
@@ -83,14 +97,14 @@ describe("patchViteConfig", () => {
 			"import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [\n    react(),\n  ],\n})\n",
 		);
 		const { code } = patchViteConfig(join(root, "vite.config.ts"));
-		expect(code).toContain("import { docvia } from '@docvia/plugin-vite'\n");
+		expect(code).toContain("import { docvia } from '@docvia/build/vite'\n");
 		expect(code).toContain("  plugins: [\n    docvia(),\n    react(),");
 	});
 
 	it("leaves a config that already uses docvia alone", async () => {
 		await write(
 			"vite.config.ts",
-			'import { docvia } from "@docvia/plugin-vite";\nexport default { plugins: [docvia()] };\n',
+			'import { docvia } from "@docvia/build/vite";\nexport default { plugins: [docvia()] };\n',
 		);
 		expect(patchViteConfig(join(root, "vite.config.ts")).code).toBeUndefined();
 	});
@@ -110,7 +124,7 @@ describe("patchNextConfig", () => {
 			'import type { NextConfig } from "next";\n\nconst nextConfig: NextConfig = {};\n\nexport default nextConfig;\n',
 		);
 		const { code } = patchNextConfig(join(root, "next.config.ts"));
-		expect(code).toContain('import { withDocvia } from "@docvia/plugin-next";');
+		expect(code).toContain('import { withDocvia } from "@docvia/build/next";');
 		expect(code).toContain("export default withDocvia()(nextConfig);");
 	});
 
@@ -121,7 +135,7 @@ describe("patchNextConfig", () => {
 		);
 		const { code } = patchNextConfig(join(root, "next.config.js"));
 		expect(code).toContain(
-			'const { withDocvia } = require("@docvia/plugin-next");',
+			'const { withDocvia } = require("@docvia/build/next");',
 		);
 		expect(code).toContain(
 			"module.exports = withDocvia()({ reactStrictMode: true });",

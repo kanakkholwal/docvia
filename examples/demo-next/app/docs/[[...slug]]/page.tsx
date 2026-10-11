@@ -1,4 +1,4 @@
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,7 +45,7 @@ export default async function DocPage({ params }: PageProps) {
 		<div className="doc-page">
 			<article className="doc-content">
 				<div className="prose">
-					<DocviaContent
+					<Renderer
 						nodes={content}
 						registry={registry}
 						components={{

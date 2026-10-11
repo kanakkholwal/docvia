@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageTree } from "@docvia/source";
+import type { PageTree } from "@docvia/core/source";
 import { useEffect, useState } from "react";
 
 type Props = { nodes: PageTree.Node[]; activePath: string };

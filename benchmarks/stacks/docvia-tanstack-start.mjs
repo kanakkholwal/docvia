@@ -14,7 +14,7 @@ export default {
 	docsPath: "/docs",
 	caches: [".output", ".nitro", ".tanstack", "dist", "node_modules/.vite"],
 	clientDir: ".output/public",
-	versionsOf: ["@tanstack/react-start", "react", "vite", "@docvia/plugin-vite"],
+	versionsOf: ["@tanstack/react-start", "react", "vite", "@docvia/build/vite"],
 
 	async setup({ dir, sh, pins, docvia, log }) {
 		// The create CLI installs dependencies itself, so its time includes the install.

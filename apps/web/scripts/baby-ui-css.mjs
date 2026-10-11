@@ -13,6 +13,16 @@ const ITEMS = [
 	"table-of-contents",
 	"theme-toggle",
 	"shortcut",
+	"tabs",
+	"table",
+	"collapsible",
+	"code-block",
+	"copy-button",
+	"docs-nav",
+	"checkbox",
+	"popover",
+	"scroll-area",
+	"tooltip",
 ];
 const OUT = new URL(
 	"../src/lib/styles/baby-ui.components.css",

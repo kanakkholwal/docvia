@@ -49,6 +49,10 @@ jobs:
 
       - name: Build apps/web
         run: pnpm turbo run build --filter=@docvia/web
+        env:
+          # Inlined at build time; unset leaves analytics out of the bundle.
+          PUBLIC_POSTHOG_KEY: ${{ vars.PUBLIC_POSTHOG_KEY }}
+          PUBLIC_POSTHOG_HOST: ${{ vars.PUBLIC_POSTHOG_HOST }}
 
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v4

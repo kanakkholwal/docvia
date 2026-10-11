@@ -9,6 +9,7 @@ let {
 	hideLabel = false,
 	hideIndicator = false,
 	labelKey,
+	hideEmpty = false,
 	labelFormatter,
 	formatter,
 	class: className,
@@ -18,6 +19,8 @@ let {
 	hideIndicator?: boolean;
 	/** Read the title from this key instead of the chart's own label for the datum. */
 	labelKey?: string;
+	/** Drop rows whose value is 0 or missing, e.g. the placeholder half of a one-bar-per-category stack. */
+	hideEmpty?: boolean;
 	labelFormatter?: Snippet<[{ label: string; datum: Datum }]>;
 	formatter?: Snippet<[{ value: number; key: string; datum: Datum }]>;
 	class?: string;
@@ -42,7 +45,7 @@ const styles = $derived(chartTooltip({ indicator }));
 			</div>
 		{/if}
 		<div class={styles.rows()}>
-			{#each pointer.rows(active.datum) as row (row.key)}
+			{#each pointer.rows(active.datum).filter((r) => !hideEmpty || (r.value !== null && r.value !== 0)) as row (row.key)}
 				{@const Icon = chart.config[row.key]?.icon as Component | undefined}
 				<div class={styles.row()}>
 					{#if Icon}

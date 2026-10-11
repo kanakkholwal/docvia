@@ -11,7 +11,7 @@ highlighter, docvia warns once that code blocks render unhighlighted.
 
 ```ts
 // docvia.config.ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

@@ -1,17 +1,17 @@
 ---
 title: Rendering
-description: Render documentation content with DocviaContent, component overrides, and the component registry.
+description: Render documentation content with Renderer, component overrides, and the component registry.
 order: 3
 ---
 
 # Rendering
 
-Docvia compiles Markdown into a `RenderOutput` tree. `page.data.load()` returns it as `content`, and the `DocviaContent` component renders it in your React application.
+Docvia compiles Markdown into a `RenderOutput` tree. `page.data.load()` returns it as `content`, and the `Renderer` component renders it in your React application.
 
 ## Basic usage
 
 ```tsx
-import { DocviaContent } from "@docvia/renderer-react";
+import { Renderer } from "@docvia/core/react";
 import { source } from "@/lib/source";
 
 export default async function Page() {
@@ -19,18 +19,18 @@ export default async function Page() {
   if (!page) notFound();
   const { content } = await page.data.load();
 
-  return <DocviaContent nodes={content} />;
+  return <Renderer nodes={content} />;
 }
 ```
 
-`DocviaContent` is a React Server Component. No client-side JavaScript is shipped unless your content contains interactive components.
+`Renderer` is a React Server Component. No client-side JavaScript is shipped unless your content contains interactive components.
 
 ## Component overrides
 
 Override how HTML elements are rendered using the `components` prop:
 
 ```tsx
-<DocviaContent
+<Renderer
   nodes={content}
   components={{
     a: ({ href, children, ...props }) => (
@@ -75,7 +75,7 @@ For interactive components embedded in Markdown via directives, pass a `registry
 ```tsx
 import { registry } from "@/lib/registry";
 
-<DocviaContent
+<Renderer
   nodes={content}
   registry={registry}
 />
@@ -93,7 +93,7 @@ const customRegistry = {
   },
 };
 
-<DocviaContent nodes={content} registry={customRegistry} />
+<Renderer nodes={content} registry={customRegistry} />
 ```
 
 ## Hydration
@@ -108,7 +108,7 @@ const { content, manifest } = await page.data.load();
 {manifest.length > 0 && <DocviaHydrator manifest={manifest} />}
 ```
 
-`hydrate()` also makes tabbed code groups (`tab="..."` fences, `:::code-group`, `npm` fences) switch. On pages without islands, call `installCodeGroups()` from `@docvia/renderer-react/client` in a client component instead.
+`hydrate()` also makes tabbed code groups (`tab="..."` fences, `:::code-group`, `npm` fences) switch. On pages without islands, call `installCodeGroups()` from `@docvia/core/react/client` in a client component instead.
 
 See [Components](/docs/components) for hydration modes and directive syntax.
 

@@ -21,3 +21,8 @@ memory
 .wrangler/
 # Benchmark results: written per run, never committed
 benchmarks/results/
+
+# Local env files; .env.example documents the variables.
+.env
+.env.*
+!.env.example

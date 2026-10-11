@@ -8,16 +8,16 @@ docvia follows a **Compiler-Grade Architecture** designed for scalability and ex
 
 ### 1. The Pipeline
 1. **Core Parser (`@docvia/core`):** Micromark-based parser converts markdown strings into a standard `mdast` (Markdown Abstract Syntax Tree).
-2. **Plugins (`@docvia/plugins`):** `unified` plugins can intercept and modify the `mdast` before transformation.
-3. **IR Transform (`@docvia/ir`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
-4. **Page pipeline (`@docvia/runtime`):** `PagePipeline` reads frontmatter and compiles page bodies; the macro transform rewrites `defineDocs()` / `defineRegistry()` calls (`@docvia/source/macro`) into a frontmatter index plus lazy per-page imports. Bodies compile in memory, keyed by content hash; nothing is written to disk.
-5. **Renderer (`@docvia/renderer-core` + adapters):** Takes IR nodes and produces framework output. Syntax highlighting is a build-time plugin (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR, so no highlighter ships at runtime.
+2. **Plugins (`@docvia/core`):** `unified` plugins can intercept and modify the `mdast` before transformation.
+3. **IR Transform (`@docvia/core`):** Converts the `mdast` into our own **Intermediate Representation (IR)** nodes. This is a single-pass DFS that also extracts headings and dependencies.
+4. **Page pipeline (`@docvia/build`):** `PagePipeline` reads frontmatter and compiles page bodies; the macro transform rewrites `defineDocs()` / `defineRegistry()` calls (`@docvia/core/source/macro`) into a frontmatter index plus lazy per-page imports. Bodies compile in memory, keyed by content hash; nothing is written to disk.
+5. **Renderer (`@docvia/core/render` + adapters):** Takes IR nodes and produces framework output. Syntax highlighting is a build-time plugin (`@docvia/plugin-shiki`) that bakes highlighted HTML into the IR, so no highlighter ships at runtime.
 
 ### 2. Run modes
 
-- **Bundler (recommended):** `@docvia/plugin-vite` and `@docvia/plugin-next` (webpack + Turbopack) run the macro transform in-process. Apps read pages through `loader()` from `@docvia/source`: `source.getPage(slugs)` returns frontmatter synchronously and `page.data.load()` compiles the body on first call. Dev recompiles changed pages on HMR.
-- **SSR:** framework apps call `page.data.load()` on the server (Node or edge); bodies stay lazy, so cold start stays small. `@docvia/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
-- **Legacy config collections:** `collections` in `docvia.config.ts` with `virtual:docvia/source` / `docvia/source` imports, and the standalone `@docvia/compiler` / CLI build. See [MODES.md](./MODES.md).
+- **Bundler (recommended):** `@docvia/build/vite` and `@docvia/build/next` (webpack + Turbopack) run the macro transform in-process. Apps read pages through `loader()` from `@docvia/core/source`: `source.getPage(slugs)` returns frontmatter synchronously and `page.data.load()` compiles the body on first call. Dev recompiles changed pages on HMR.
+- **SSR:** framework apps call `page.data.load()` on the server (Node or edge); bodies stay lazy, so cold start stays small. `@docvia/core/ssr` covers non-framework Node servers (pass a `CompileService` straight to `createDocviaSSR`), cached in an in-memory LRU.
+- **Legacy config collections:** `collections` in `docvia.config.ts` with `virtual:docvia/source` / `docvia/source` imports, and the standalone `@docvia/build` / CLI build. See [MODES.md](./MODES.md).
 
 Every mode shares one render path, so output is identical.
 

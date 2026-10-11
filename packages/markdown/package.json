@@ -1,0 +1,73 @@
+{
+	"name": "@docvia/markdown",
+	"version": "2.0.0",
+	"type": "module",
+	"description": "Markdown for any app: a small, dependency-free CommonMark + GFM parser and renderer with streaming support for AI output.",
+	"license": "MIT",
+	"sideEffects": false,
+	"exports": {
+		".": "./dist/index.js",
+		"./dom": "./dist/dom.js",
+		"./react": "./dist/react.js",
+		"./package.json": "./package.json",
+		"./svelte": {
+			"types": "./dist/svelte/index.d.ts",
+			"svelte": "./dist/svelte/index.js",
+			"default": "./dist/svelte/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE",
+		"THIRD_PARTY_NOTICES.md"
+	],
+	"scripts": {
+		"build": "tsdown && svelte-package --input src/svelte --output dist/svelte --tsconfig tsconfig.svelte.json",
+		"dev": "tsdown --watch --no-clean",
+		"typecheck": "tsc --noEmit && svelte-check --tsconfig tsconfig.svelte.json",
+		"test": "vitest run"
+	},
+	"devDependencies": {
+		"@sveltejs/package": "^3.0.0",
+		"@types/react": "^19.3.0",
+		"react": "^19.3.0",
+		"react-dom": "^19.3.0",
+		"svelte": "catalog:",
+		"svelte-check": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kanakkholwal/docvia.git",
+		"directory": "packages/markdown"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"markdown",
+		"commonmark",
+		"gfm",
+		"streaming",
+		"ai",
+		"react",
+		"svelte"
+	],
+	"peerDependencies": {
+		"react": ">=18",
+		"svelte": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		},
+		"svelte": {
+			"optional": true
+		}
+	}
+}

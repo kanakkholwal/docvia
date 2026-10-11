@@ -40,21 +40,19 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/compiler": "workspace:*",
-		"@docvia/ir": "workspace:*",
-		"@docvia/plugins": "workspace:*",
-		"@docvia/runtime": "workspace:*",
+		"@docvia/build": "workspace:*",
+		"@docvia/core": "workspace:*",
 		"chokidar": "^5.0.0",
 		"commander": "^15.0.0",
-		"sirv": "^3.0.2",
 		"magic-string": "^1.4.3",
-		"oxc-parser": "^0.152.0"
+		"oxc-parser": "^0.152.0",
+		"sirv": "^3.0.2"
 	},
 	"peerDependencies": {
-		"@docvia/source": "workspace:*"
+		"@docvia/core": "workspace:*"
 	},
 	"devDependencies": {
-		"@docvia/source": "workspace:*",
+		"@docvia/core": "workspace:*",
 		"@types/node": "catalog:",
 		"typescript": "catalog:"
 	},

@@ -1,4 +1,4 @@
-import { docvia } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/build/vite";
 import adapter from "@sveltejs/adapter-cloudflare";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";

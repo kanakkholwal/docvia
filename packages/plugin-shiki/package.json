@@ -13,7 +13,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/ir": "workspace:*",
+		"@docvia/core": "workspace:*",
 		"shiki": "^4.5.0"
 	},
 	"devDependencies": {

@@ -4,24 +4,14 @@
 	"commit": false,
 	"fixed": [
 		[
-			"@docvia/cli",
-			"@docvia/compiler",
 			"@docvia/core",
-			"@docvia/ir",
-			"@docvia/plugin-mermaid",
-			"@docvia/plugin-next",
-			"@docvia/plugin-openapi",
-			"@docvia/plugin-shiki",
-			"@docvia/plugin-vite",
-			"@docvia/plugins",
-			"@docvia/renderer-core",
-			"@docvia/renderer-react",
-			"@docvia/renderer-svelte",
-			"@docvia/runtime",
-			"@docvia/schema",
+			"@docvia/build",
+			"@docvia/cli",
 			"@docvia/search",
-			"@docvia/source",
-			"@docvia/ssr"
+			"@docvia/plugin-shiki",
+			"@docvia/plugin-mermaid",
+			"@docvia/plugin-openapi",
+			"@docvia/markdown"
 		]
 	],
 	"linked": [],

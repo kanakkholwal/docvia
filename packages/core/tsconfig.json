@@ -1,5 +1,13 @@
 {
 	"extends": "../../tsconfig.base.json",
-	"include": ["src", "tests/**/*.test.ts"],
-	"exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		// No @types/node: core runs on Workers and in browsers, so a Node API should fail to type-check.
+		"types": [],
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"paths": {}
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "src/svelte"]
 }

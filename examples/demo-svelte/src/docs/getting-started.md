@@ -12,12 +12,12 @@ plugin, a source file, and a catch-all route that renders pages.
 ## 1. Install
 
 ```bash
-npm install -D @docvia/plugin-vite @docvia/plugin-shiki
-npm install @docvia/renderer-svelte @docvia/source
+npm install -D @docvia/build @docvia/plugin-shiki
+npm install @docvia/core
 ```
 
-The Vite and Shiki plugins are dev-only. The renderer and `@docvia/source` are
-runtime dependencies: your source file imports `@docvia/source`, and your routes
+The Vite and Shiki plugins are dev-only. The renderer and `@docvia/core/source` are
+runtime dependencies: your source file imports `@docvia/core/source`, and your routes
 render with the renderer.
 
 ## 2. Configure Docvia
@@ -26,9 +26,9 @@ Create `docvia.config.ts` in your project root. It holds the renderer, plugins,
 and components; collections are declared in code (step 4).
 
 ```typescript
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 import { shiki } from "@docvia/plugin-shiki";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 export default defineConfig({
   renderer: createSvelteRenderer(),
@@ -43,9 +43,9 @@ export default defineConfig({
 });
 ```
 
-> Note the `/node` subpath on `@docvia/renderer-svelte/node`: that is the
+> Note the `/node` subpath on `@docvia/core/svelte/node`: that is the
 > build-time entry used inside the config. The `<Renderer>` component in step 6
-> imports from `@docvia/renderer-svelte` (no subpath).
+> imports from `@docvia/core/svelte` (no subpath).
 
 ## 3. Add the Vite plugin
 
@@ -54,7 +54,7 @@ and compiles Markdown during dev and build, with HMR on edits. SvelteKit 3 takes
 its options in `sveltekit({ ... })`; there is no `svelte.config.js`.
 
 ```typescript
-import { docvia } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/build/vite";
 import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
@@ -70,8 +70,8 @@ Create `src/lib/source.ts`. The plugin rewrites `defineDocs()` at build time int
 an index of the folder, so nothing is scanned at runtime.
 
 ```typescript title="src/lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 
 const docs = defineDocs({ dir: "src/docs" });
 
@@ -84,7 +84,7 @@ export const source = loader({
 Add `src/lib/registry.ts` for the components listed in `docvia.config.ts`:
 
 ```typescript title="src/lib/registry.ts"
-import { defineRegistry } from "@docvia/source/macro";
+import { defineRegistry } from "@docvia/core/source/macro";
 
 export const registry = defineRegistry();
 ```
@@ -137,7 +137,7 @@ component and the registry:
 
 ```svelte
 <script lang="ts">
-  import { Renderer } from "@docvia/renderer-svelte";
+  import { Renderer } from "@docvia/core/svelte";
   import { registry } from "#lib/registry.ts";
   import type { PageProps } from "./$types";
 

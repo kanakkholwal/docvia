@@ -1,4 +1,5 @@
 <script lang="ts">
+import { external } from "#lib/links.ts";
 import { page } from "$app/state";
 import RequestLog from "#lib/components/site/request-log.svelte";
 import Wordmark from "#lib/components/site/wordmark.svelte";
@@ -9,6 +10,7 @@ import { ArrowRight } from "@lucide/svelte";
 
 const status = $derived(page.status);
 const notFound = $derived(status === 404);
+const secondary = $derived(notFound ? "/docs/getting-started" : "https://github.com/kanakkholwal/docvia/issues");
 // SvelteKit replaces unexpected error messages with "Internal Error" in production.
 const message = $derived(page.error?.message ?? "Unknown error");
 </script>
@@ -39,7 +41,8 @@ const message = $derived(page.error?.message ?? "Unknown error");
 					<ArrowRight class="transition-transform duration-(--duration-fast) group-hover/roll:translate-x-0.5" />
 				</Button>
 				<Button
-					href={notFound ? "/docs/getting-started" : "https://github.com/kanakkholwal/docvia/issues"}
+					href={secondary}
+					{...external(secondary)}
 					variant="secondary"
 					size="lg"
 				>

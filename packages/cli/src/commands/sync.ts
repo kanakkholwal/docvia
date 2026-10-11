@@ -1,7 +1,7 @@
 import { relative } from "node:path";
 import { performance } from "node:perf_hooks";
-import { docviaError } from "@docvia/ir";
-import { syncTypes } from "@docvia/runtime";
+import { syncTypes } from "@docvia/build";
+import { docviaError } from "@docvia/core";
 import { c, fmtMs, formatError, header, log, symbols } from "../logger";
 
 export interface SyncOptions {

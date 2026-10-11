@@ -30,10 +30,10 @@ Register it in the `plugins` array of your `docvia.config.ts`. Put it before
 any highlighter so diagram fences are claimed first:
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
+import { defineConfig } from "@docvia/build/vite";
 import { mermaid } from "@docvia/plugin-mermaid";
 import { shiki } from "@docvia/plugin-shiki";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 export default defineConfig({
   renderer: createSvelteRenderer(),
@@ -84,7 +84,7 @@ renderer:
 
 ```svelte
 <script lang="ts">
-  import { Renderer } from "@docvia/renderer-svelte";
+  import { Renderer } from "@docvia/core/svelte";
   import Mermaid from "#lib/components/mermaid.svelte";
   import type { PageProps } from "./$types";
 

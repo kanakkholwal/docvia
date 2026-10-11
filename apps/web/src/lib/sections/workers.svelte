@@ -18,7 +18,7 @@ const rows = [
 	return { ...t, heap: Number(r?.heapMB ?? 0), cold: Number(r?.ssrImport ?? 0) };
 });
 
-// Each line is enforced or proven in code: runtime/src/emit.ts, scripts/pack-smoke.mjs, plugin-shiki, search.
+// Each line is enforced or proven in code: scripts/pack-smoke.mjs, plugin-shiki, search, core/source.
 const checks = [
 	"No createRequire or yaml in the server bundle, checked in CI",
 	"Highlighting is baked in at build, so no Shiki at runtime",

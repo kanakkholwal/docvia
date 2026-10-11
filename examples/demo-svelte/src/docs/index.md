@@ -32,8 +32,8 @@ All heavy work happens at build time. At runtime, your pages are pre-compiled JS
 ## Quick start
 
 ```bash
-npm install -D @docvia/plugin-vite @docvia/plugin-shiki
-npm install @docvia/renderer-svelte @docvia/source
+npm install -D @docvia/build @docvia/plugin-shiki
+npm install @docvia/core
 ```
 
 Add the `docvia()` Vite plugin and declare a source (see

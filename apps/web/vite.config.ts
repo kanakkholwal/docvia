@@ -1,15 +1,20 @@
-import { createRequire } from "node:module";
-import { docvia } from "@docvia/plugin-vite";
+import { readFileSync } from "node:fs";
+import { docvia } from "@docvia/build/vite";
+import { openapiModule } from "@docvia/plugin-openapi/vite";
 import adapter from "@sveltejs/adapter-cloudflare";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import { highlightedSnippets } from "./vite-plugin-snippets.ts";
+import { highlight, highlightedSnippets } from "./vite-plugin-snippets.ts";
 
 // Baked in at build time so prerendered HTML and the client agree on the version.
-const require = createRequire(import.meta.url);
-const cliVersion: string = require("../../packages/cli/package.json").version;
+const cliVersion: string = JSON.parse(
+	readFileSync(
+		new URL("../../packages/cli/package.json", import.meta.url),
+		"utf8",
+	),
+).version;
 
 export default defineConfig({
 	define: {
@@ -27,5 +32,7 @@ export default defineConfig({
 		// Loads ./docvia.config.ts.
 		docvia(),
 		highlightedSnippets(),
+		// The sample spec behind /docs/api-example, resolved and highlighted at build time.
+		openapiModule({ spec: "src/api/petstore.yaml", highlight }),
 	],
 });

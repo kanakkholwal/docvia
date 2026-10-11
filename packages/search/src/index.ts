@@ -4,8 +4,8 @@ import type {
 	IRNode,
 	SearchDocument,
 	StructuredData,
-} from "@docvia/ir";
-import type { RenderOutput } from "@docvia/renderer-core";
+} from "@docvia/core";
+import type { RenderOutput } from "@docvia/core/render";
 import {
 	create,
 	insertMultiple,

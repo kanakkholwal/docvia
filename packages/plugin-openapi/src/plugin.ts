@@ -1,5 +1,5 @@
-import type { docviaPlugin, FileEntry } from "@docvia/ir";
-import { docviaError } from "@docvia/ir";
+import type { docviaPlugin, FileEntry } from "@docvia/core";
+import { docviaError } from "@docvia/core";
 import {
 	findOperation,
 	type LoadedSpec,

@@ -11,8 +11,8 @@
  * hydration doesn't cover, using requestIdleCallback / IntersectionObserver.
  */
 
-import type { HydrationManifest } from "@docvia/renderer-core";
-import { hydrate } from "@docvia/renderer-react/client";
+import { hydrate } from "@docvia/core/react/client";
+import type { HydrationManifest } from "@docvia/core/render";
 import { useEffect } from "react";
 import { registry } from "@/lib/registry";
 

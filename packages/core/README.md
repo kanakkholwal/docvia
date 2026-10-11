@@ -1,30 +1,22 @@
 # @docvia/core
 
-Markdown parsing pipeline (micromark + unified) for docvia
-
-Part of [docvia](https://github.com/kanakkholwal/docvia) — a Markdown
-documentation compiler for React, Svelte, and any framework with a renderer
-adapter.
-
-## Install
+Everything in docvia that runs where your docs are served: Cloudflare Workers, browsers and Node. No Node APIs.
 
 ```bash
 pnpm add @docvia/core
 ```
 
-## Usage
+| Import | Contents |
+|---|---|
+| `@docvia/core` | IR and config types, `docviaError`, the plugin API (`defineConfig`, `PluginRunner`) |
+| `@docvia/core/markdown` | `parseMarkdown`, `markdownToIR` |
+| `@docvia/core/schema` | Frontmatter extraction and validation |
+| `@docvia/core/render` | The rendering engine; `/render/client` for copy buttons and code tabs |
+| `@docvia/core/source` | `loader()`, the page tree; `/source/macro` for `defineDocs()` |
+| `@docvia/core/ssr` | Request-time rendering |
+| `@docvia/core/react` | React bindings (React is an optional peer) |
+| `@docvia/core/svelte` | Svelte bindings (Svelte is an optional peer) |
 
-```ts
-import { parseMarkdown } from "@docvia/core";
+Build tooling (compiler, config loading, Vite and Next.js plugins) is in `@docvia/build`.
 
-const { ast } = await parseMarkdown(md, { remarkPlugins: [] });
-```
-
-## Documentation
-
-See the [main README](https://github.com/kanakkholwal/docvia#readme) for the
-full architecture overview, configuration reference, and examples.
-
-## Licence
-
-MIT
+Docs: https://docvia.dev/docs/packages/core

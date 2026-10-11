@@ -1,4 +1,5 @@
 <script lang="ts">
+import { external } from "#lib/links.ts";
 import Github from "#lib/components/icons/github.svelte";
 import InstallCommand from "#lib/components/install-command.svelte";
 import { Button } from "#lib/components/ui/button/index.ts";
@@ -28,11 +29,11 @@ function track(event: PointerEvent) {
 			<InstallCommand />
 		</div>
 		<div class="relative mt-6 flex flex-wrap justify-center gap-3">
-			<Button href="/docs/getting-started" size="lg" class="group/roll">
+			<Button href="/docs/getting-started" size="lg" class="group/roll" data-track="cta_click" data-track-location="footer_cta">
 				Get started
 				<ArrowRight class="transition-transform duration-(--duration-fast) group-hover/roll:translate-x-0.5" />
 			</Button>
-			<Button href="https://github.com/kanakkholwal/docvia" variant="secondary" size="lg">
+			<Button href="https://github.com/kanakkholwal/docvia" {...external("https://github.com/kanakkholwal/docvia")} variant="secondary" size="lg" data-track="github_click" data-track-location="footer_cta">
 				<Github />
 				Star on GitHub
 			</Button>

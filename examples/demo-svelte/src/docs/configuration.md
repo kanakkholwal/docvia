@@ -13,8 +13,8 @@ adds types and defaults. Collections and frontmatter schemas are declared in
 ## Minimal config
 
 ```typescript
-import { defineConfig } from "@docvia/plugin-vite";
-import { createSvelteRenderer } from "@docvia/renderer-svelte/node";
+import { defineConfig } from "@docvia/build/vite";
+import { createSvelteRenderer } from "@docvia/core/svelte/node";
 
 export default defineConfig({
   renderer: createSvelteRenderer(),
@@ -42,8 +42,8 @@ such as Zod. Built-in fields (`title`, `description`, `tags`, `order`, `slug`,
 on `page.data`. Each `defineDocs()` call is its own collection with its own schema.
 
 ```typescript title="src/lib/source.ts"
-import { loader } from "@docvia/source";
-import { defineDocs } from "@docvia/source/macro";
+import { loader } from "@docvia/core/source";
+import { defineDocs } from "@docvia/core/source/macro";
 import { z } from "zod";
 
 const docs = defineDocs({
@@ -86,7 +86,7 @@ export default defineConfig({
 compiles pages in-process during dev and build.
 
 ```typescript
-import { docvia } from "@docvia/plugin-vite";
+import { docvia } from "@docvia/build/vite";
 import adapter from "@sveltejs/adapter-auto";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";

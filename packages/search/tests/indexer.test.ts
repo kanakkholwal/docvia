@@ -1,4 +1,4 @@
-import type { IRDocument, IRNode } from "@docvia/ir";
+import type { IRDocument, IRNode } from "@docvia/core";
 import { describe, expect, it } from "vitest";
 import { extractSections, extractTextFromIR } from "../src/index";
 

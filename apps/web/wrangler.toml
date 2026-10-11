@@ -26,3 +26,4 @@ binding = "ASSETS"
 [[routes]]
 pattern = "docvia.dev"
 custom_domain = true
+

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,9 +57,25 @@ async function safeRmDir(target) {
 	}
 }
 
+function isTracked(dir) {
+	const out = spawnSync("git", ["ls-files", "--cached", "--", dir], {
+		cwd: repoRoot,
+		encoding: "utf8",
+	});
+	return out.status === 0 && out.stdout.trim() !== "";
+}
+
 async function handleDirectoryEntry(ent, dir) {
 	const name = ent.name;
 	const full = path.join(dir, name);
+
+	// Build output is gitignored; a directory git tracks is source that only shares the name (packages/build).
+	if (DIRS_TO_DELETE.has(name) && isTracked(full)) {
+		console.log("  keep (tracked by git):", full);
+		skipped++;
+		await walk(full);
+		return;
+	}
 
 	if (DIRS_TO_DELETE.has(name)) {
 		found++;

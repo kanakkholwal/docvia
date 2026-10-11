@@ -1,4 +1,6 @@
 <script lang="ts">
+import { SITE } from "#lib/seo.ts";
+import Seo from "#lib/components/site/seo.svelte";
 import Hero from "#lib/sections/hero.svelte";
 import HowItWorks from "#lib/sections/how-it-works.svelte";
 import Cta from "#lib/sections/cta.svelte";
@@ -11,14 +13,22 @@ import Statement from "#lib/sections/statement.svelte";
 import Workers from "#lib/sections/workers.svelte";
 </script>
 
-<svelte:head>
-	<title>docvia · Markdown docs, built into your app</title>
-	<meta
-		name="description"
-		content="Collections, page tree, typed frontmatter and search for Next.js, SvelteKit and TanStack Start. Your bundler compiles the Markdown, rendered with React or Svelte."
-	/>
-	<meta property="og:title" content="docvia: Markdown docs, built into your app" />
-</svelte:head>
+<Seo
+	title="docvia · {SITE.tagline}"
+	schema={[
+		{ "@context": "https://schema.org", "@type": "WebSite", name: SITE.name, url: SITE.url, description: SITE.description },
+		{
+			"@context": "https://schema.org",
+			"@type": "SoftwareSourceCode",
+			name: SITE.name,
+			description: SITE.description,
+			url: SITE.url,
+			codeRepository: SITE.repo,
+			programmingLanguage: "TypeScript",
+			license: "https://opensource.org/licenses/MIT",
+		},
+	]}
+/>
 
 <Hero />
 

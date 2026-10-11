@@ -12,7 +12,7 @@ Docvia compiles Markdown into a `RenderOutput` tree. `page.data.load()` returns 
 
 ```svelte
 <script>
-  import { Renderer } from "@docvia/renderer-svelte";
+  import { Renderer } from "@docvia/core/svelte";
   let { data } = $props();
 </script>
 

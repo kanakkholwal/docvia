@@ -7,11 +7,11 @@ documentation compiler.
 
 ```bash
 pnpm add -D @docvia/cli
-pnpm add @docvia/source @docvia/renderer-react   # or @docvia/renderer-svelte
+pnpm add @docvia/core   # or
 ```
 
-Framework apps do not need the CLI to build: `@docvia/plugin-vite` or
-`@docvia/plugin-next` compiles `defineDocs()` collections in-process. The
+Framework apps do not need the CLI to build: `@docvia/build/vite` or
+`@docvia/build/next` compiles `defineDocs()` collections in-process. The
 compile commands below drive the standalone compiler over legacy config
 collections (`sourceDir` / `collections` in `docvia.config.ts`).
 
@@ -36,11 +36,11 @@ docvia preview [--out <dir>] [-p <port>]
 ## Config
 
 `@docvia/cli` is a dev dependency only. It re-exports `defineConfig`, but import
-it from your framework plugin (`@docvia/plugin-vite` or `@docvia/plugin-next`):
+it from your framework plugin (`@docvia/build/vite` or `@docvia/build/next`):
 
 ```ts
-import { defineConfig } from "@docvia/plugin-vite";
-import { createReactRenderer } from "@docvia/renderer-react";
+import { defineConfig } from "@docvia/build/vite";
+import { createReactRenderer } from "@docvia/core/react";
 import { shiki } from "@docvia/plugin-shiki";
 
 export default defineConfig({

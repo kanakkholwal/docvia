@@ -41,7 +41,11 @@ export const load: PageServerLoad = async ({ params }) => {
 			p.slugs.slice(0, slugs.length).join("/") === key,
 	);
 	const rel = slugs.length === 0 ? "index" : isFolder ? `${key}/index` : key;
-	const editUrl = `${REPO}/edit/main/apps/web/src/docs/${rel}.md`;
+	// Generated API pages come from the spec, so that is what there is to edit.
+	const editUrl =
+		"openapi" in data
+			? `${REPO}/edit/main/apps/web/src/api/petstore.yaml`
+			: `${REPO}/edit/main/apps/web/src/docs/${rel}.md`;
 
 	return { page: { data, content, headings }, prev, next, editUrl };
 };

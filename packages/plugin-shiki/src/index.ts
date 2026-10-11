@@ -1,7 +1,7 @@
 // Build-time Shiki highlighting: `beforeRender` stores highlighted HTML on each `code-block`
 // node, so no highlighter ships to the runtime or edge bundle.
 
-import type { docviaPlugin, IRDocument, IRNode } from "@docvia/ir";
+import type { docviaPlugin, IRDocument, IRNode } from "@docvia/core";
 import {
 	bundledLanguages,
 	type CodeOptionsThemes,

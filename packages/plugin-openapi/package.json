@@ -4,6 +4,9 @@
 	"type": "module",
 	"exports": {
 		".": "./dist/index.js",
+		"./proxy": "./dist/proxy.js",
+		"./source": "./dist/source.js",
+		"./vite": "./dist/vite.js",
 		"./package.json": "./package.json"
 	},
 	"scripts": {
@@ -13,15 +16,17 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@docvia/ir": "workspace:*",
-		"js-yaml": "^5.4.2"
+		"@docvia/core": "workspace:*",
+		"@scalar/openapi-parser": "^0.29.11",
+		"@scalar/snippetz": "^0.10.6",
+		"micromark": "^4.0.3"
 	},
 	"devDependencies": {
-		"@types/js-yaml": "^4.0.9",
 		"@types/node": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	},
-	"description": "OpenAPI 3.x renderer for docvia. Transforms `openapi METHOD /path` fenced blocks into rich endpoint cards.",
+	"description": "OpenAPI for docvia: generated API reference pages with code samples, and inline `openapi METHOD /path` blocks.",
 	"license": "MIT",
 	"engines": {
 		"node": ">=20.0.0"

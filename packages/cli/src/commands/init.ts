@@ -104,7 +104,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
 				? detected
 				: detectProject(root, framework);
 		if (opts.pm && isPackageManager(opts.pm)) {
-			project = { ...project, pm: opts.pm, pmSource: "lockfile" };
+			project = { ...project, pm: opts.pm, pmSource: "flag" };
 		}
 
 		const files = planFiles(project);
@@ -160,7 +160,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
 		} catch (err) {
 			manual.push(
 				project.framework === "next"
-					? `Wrap your Next config: ${c.brand("export default withDocvia()(config)")} from @docvia/plugin-next`
+					? `Wrap your Next config: ${c.brand("export default withDocvia()(config)")} from @docvia/build/next`
 					: `Add ${c.brand("docvia()")} from @docvia/plugin-vite to your Vite plugins`,
 				c.dim(`(${(err as Error).message})`),
 			);
@@ -197,6 +197,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
 				);
 			} catch (err) {
 				spin.stop("Install failed", false);
+				process.exitCode = 1;
 				manual.push(
 					...installCommands(project.pm, deps).map((cmd) => c.brand(cmd)),
 				);
